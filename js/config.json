@@ -1,0 +1,53 @@
+{
+
+	"url": "https://kekse.biz/",
+
+	"pages": {
+		"path": "pages",
+		"extension": [ ".html", ".txt" ],
+		"enabled": true
+	},
+
+	"title": [
+		[ "kuchen`s", 7200 ],
+		[ "check one", 2400 ],
+		[ "check two", 2400 ],
+		[ "<kekse.biz>", 9600 ]
+	],
+
+	"animation": {
+		"duration": 1.0,
+		"delay": 1.0,
+		"textDuration": 1.0
+	},
+
+	"init": {
+		"query": {
+			"www": false,
+			"dot": false,
+			"tls": true,
+
+			"remove": [
+				"fbclid"
+			]
+		}
+	},
+
+	"menu": {
+		"enabled": true,
+		"data": "json/menu.json",
+		"max": 192,
+		"min": 32
+	},
+
+	"context": {
+		"data": "json/context.json"
+	},
+
+	"behavior": {
+		"disableContextMenu": true,
+		"hideAddressBar": true,
+		"removeSearch": true
+	}
+
+}

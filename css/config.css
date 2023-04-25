@@ -1,0 +1,37 @@
+:root, #OSD
+{
+	--osd: auto;
+}
+
+:root, #FAVICON
+{
+	--favicon: auto;
+	--favicon-image: url('img/favicon.png');
+	--favicon-animation: auto;
+	--favicon-duration: 32000 1600;
+	--favicon-delay: 8000 0;
+	--favicon-restart: 0;
+}
+
+:root, .bionic
+{
+	--bionic: auto;
+	--bionic-fixation: 0.39;
+	--bionic-sakkade-words: 2;
+	--bionic-sakkade-words-max: 16;
+	--bionic-sakkade-chars: 12;
+	--bionic-sakkade-chars-max: 64;
+}
+
+:root
+{
+	--page-scripting: auto;
+	--page-styling: auto;
+	--page-reload-hash: auto;
+}
+
+:root
+{
+	--callback-timeout: none;
+}
+

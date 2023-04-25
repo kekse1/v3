@@ -1,0 +1,69 @@
+#OSD
+{
+	--duration: 1400;
+	--timeout: 1800;
+	position: fixed;
+	display: table-cell;
+	right: 48px;
+	top: 24px;
+	color: rgba(90, 200, 30, 0.8);
+	backdrop-filter: none;
+	box-shadow: none;
+	background-color: transparent;
+	text-shadow: 3px 3px 4px rgba(40, 70, 100, 1.0);
+	font-weight: bold;
+	font-size: 8em;
+	pointer-events: none;
+	overflow: hidden;
+	line-height: 90%;
+	text-align: right;
+	font-family: 'Source Code Pro', monospace;
+	margin: 2px;
+	padding: 32px;
+	/*backdrop-filter: blur(1px);*/
+	touch-action: none;
+	z-index: 524288;
+	width: auto;
+	height: auto;
+}
+
+@media only screen and (max-width: 1023px)
+{
+	#OSD
+	{
+		font-size: 7em;
+	}
+}
+
+@media only screen and (max-width: 767px)
+{
+	#OSD
+	{
+		font-size: 6em;
+	}
+}
+
+@media only screen and (max-width: 479px)
+{
+	#OSD
+	{
+		font-size: 5em;
+	}
+}
+
+@media only screen and (max-width: 380px)
+{
+	#OSD
+	{
+		font-size: 4em;
+	}
+}
+
+@media only screen and (max-width: 320px)
+{
+	#OSD
+	{
+		display: none;
+	}
+}
+

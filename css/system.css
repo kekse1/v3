@@ -1,0 +1,355 @@
+*
+{
+	font-family: inherit;
+	cursor: inherit;
+	scroll-behavior: inherit;
+	/*box-sizing: border-box;*/
+}
+
+html
+{
+	cursor: url('../pointer.png') 12 8, auto;
+	font-family: 'Candara', 'Open Sans', 'Source Code Pro', 'sans-serif', 'monospace';
+	color: black;
+	text-shadow: 1px 1px 6px white;
+	font-size: 16px;
+	scroll-behavior: smooth;
+}
+
+html, body
+{
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	left: 0;
+	top: 0;
+	height: 100vh;/*min-height: 100vh;*/
+	width: 100vw;
+	background-color: rgba(70, 100, 120, 0.6);
+	overflow: hidden;
+	z-index: 0;
+}
+
+#MAIN
+{
+	z-index: 1;
+	position: fixed;
+	left: 64px;
+	right: -1px;
+	top: -1px;
+	bottom: 24px;
+	margin: 0;
+	padding: 16px;
+	padding-left: 64px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background-color: rgba(240, 250, 255, 0.3);
+	border: 1px dotted rgba(20, 50, 80, 1.0);
+	color: rgba(10, 30, 50, 1.0);
+	text-shadow: 1px 1px 6px white;
+	border-radius: 4px;
+	/*white-space: pre;*/
+}
+
+#VERSION
+{
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	left: 24px;
+	bottom: 2px;
+	font-size: 1.0rem;
+	/*color: rgb(80, 80, 80);*/
+	color: rgb(255, 255, 255);
+	text-shadow: 1px 1px 8px black;
+	border-radius: 16px;
+	padding-left: 8px;
+	padding-right: 8px;
+	z-index: 16;
+}
+
+#UPDATED
+{
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	left: 19vw;
+	bottom: 2px;
+	font-size: 0.8rem;
+	color: rgb(64, 64, 64);
+	text-shadow: 1px 1px 6px white;
+	border-radius: 16px;
+	padding-left: 8px;
+	padding-right: 8px;
+	background-color: transparent;
+	z-index: 16;
+}
+
+#COUNTER
+{
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	bottom: 2px;
+	right: 30vw;
+	font-size: 1.0rem;
+	border-radius: 16px;
+	padding-left: 8px;
+	padding-right: 8px;
+	z-index: 16;
+}
+
+#COUNTER #counter
+{
+	font-weight: 600;
+	font-size: 1rem;
+	color: white;/*rgb(210, 220, 110);*/
+	text-shadow: 1px 1px 6px black;
+	margin-right: 10px;
+	border-radius: 4px;
+}
+
+#COUNTER #counterInfoText
+{
+	font-size: 0.85rem;
+	color: rgb(60, 90, 120);
+	text-shadow: 1px 1px 6px white;
+	margin-left: 4px;
+	margin-right: 2px;
+	border-radius: 4px;
+}
+
+#self
+{
+	font-size: 0.82rem;
+	margin-left: 4px;
+	color: rgb(30, 60, 90);
+	text-shadow: 1px 1px 6px rgb(224, 224, 224);
+	vertical-align: middle;
+	margin-top: 4px;
+}
+
+#COPYRIGHT
+{
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	bottom: 2px;
+	right: 32px;
+	color: rgb(60, 100, 130);
+	text-shadow: 1px 1px 6px rgb(224, 224, 224);
+	border-radius: 16px;
+	padding-left: 8px;
+	padding-right: 8px;
+	z-index: 16;
+}
+
+*::selection
+{
+	color: yellow;
+	text-shadow: 2px 2px 2px black;
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-decoration-style: wavy;
+}
+
+.noArrow::before
+{
+	display: none;
+}
+
+.redArrow::before, .greenArrow::before, .blueArrow::before, .yellowArrow::before, .whiteArrow::before, .blackArrow::before, .grayArrow::before
+{
+	font-size: 1.0rem;
+	font-weight: 800;
+	content: '⤳';
+	padding-right: 6px;
+}
+
+.greenArrow::before
+{
+	color: rgb(170, 190, 70);
+	text-shadow: 1px 1px 6px rgb(0, 0, 0);
+}
+
+.redArrow::before
+{
+	color: rgb(255, 0, 0, 1);
+	text-shadow: 1px 1px 6px rgb(255, 255, 255);
+}
+
+.blueArrow::before
+{
+	color: rgb(50, 130, 170);
+	text-shadow: 1px 1px 6px rgb(255, 255, 255);
+}
+
+.yellowArrow::before
+{
+	color: yellow;
+	text-shadow: 1px 1px 6px black;
+}
+
+.whiteArrow::before
+{
+	color: white;
+	text-shadow: 1px 1px 6px black;
+}
+
+.blackArrow::before
+{
+	color: black;
+	text-shadow: 1px 1px 6px white;
+}
+
+.grayArrow::before
+{
+	color: slategray;
+	text-shadow: 1px 1px 6px white;
+}
+
+a, .link, a:link, .link:link
+{
+	font-weight: 500;
+	display: inline-block;
+	white-space: nowrap;
+	text-decoration: none;
+	padding-left: 4px;
+	padding-right: 4px;
+	vertical-align: middle;
+	overflow: hidden;
+	cursor: zoom-in;
+	color: rgb(20, 100, 140);
+	text-shadow: 1px 1px 6px black;
+	background-color: transparent;
+	border-radius: 6px;
+	border: 1px solid rgba(0, 0, 0, 0);
+}
+
+a::before, .link::before, a:link::before, .link:link::before
+{
+	vertical-align: middle;
+	display: inline-block;
+	font-weight: 800;
+	content: '⤳';
+	color: green;
+	text-shadow: 1px 1px 6px white;
+	margin: 0;
+	padding: 0;
+	margin-right: 8px;
+	background-color: transparent;
+	border-width: 0;
+}
+
+a:hover, .link:hover, a.hover, .link.hover
+{
+	display: inline-block;
+	white-space: nowrap;
+	padding-left: 4px;
+	padding-right: 4px;
+	vertical-align: middle;
+	color: green;
+	text-shadow: 1px 1px 6px black;
+	background-color: rgba(180, 190, 50, 0.6);
+	border-radius: 6px;
+	border: 1px solid gray;
+}
+
+a:hover::before, .link:hover::before, a.hover::before, .link.hover::before
+{
+	display: inline-block;
+	vertical-align: middle;
+	content: '⤳';
+	font-weight: 800;
+	color: rgb(50, 130, 170);
+	text-shadow: 1px 1px 6px white;
+	margin: 0;
+	padding: 0;
+	margin-right: 8px;
+	border-width: 0;
+}
+
+a:active, .link:active, a.active, .link.active
+{
+	display: inline-block;
+	white-space: nowrap;
+	padding-left: 4px;
+	padding-right: 4px;
+	vertical-align: middle;
+	color: white;
+	text-shadow: 1px 1px 6px black;
+	background-color: rgba(180, 190, 50, 0.6);
+	border-radius: 6px;
+	border: 1px solid white;
+}
+
+a:active::before, .link:active::before, a.active::before, .link.active::before
+{
+	vertical-align: middle;
+	display: inline-block;
+	content: '⤳';
+	font-weight: 800;
+	color: red;
+	text-shadow: 1px 1px 6px white;
+	margin: 0;
+	padding: 0;
+	margin-right: 8px;
+	border-width: 0;
+}
+
+a:visited, .link:visited
+{
+	display: inline-block;
+	padding-left: 4px;
+	padding-right: 4px;
+	vertical-align: middle;
+	white-space: nowrap;
+	color: rgba(64, 64, 64, 0.5);
+	text-shadow: 1px 1px 6px rgba(50, 130, 170, 1);
+	border-radius: 6px;
+}
+
+a:visited::before, .link:visited::before
+{
+	vertical-align: middle;
+	display: inline-block;
+	content: '⤳';
+	font-weight: 800;
+	color: rgb(64, 64, 64);
+	text-shadow: 1px 1px 6px rgb(120, 150, 60);
+	background-color: transparent;
+	margin: 0;
+	padding: 0;
+	margin-right: 8px;
+}
+
+.code
+{
+	font-family: 'Source Code Pro', 'monospace';
+}
+
+.text
+{
+	font-family: 'Candara', 'Open Sans', 'sans-serif';
+}
+
+img#FAVICON
+{
+	position: fixed;
+	width: 192px;
+	height: 192px;
+	right: 16px;
+	bottom: 32px;
+	z-index: 32768;
+}
+
+#MENU
+{
+	top: 120px;
+	background-color: transparent;
+}
+
+#CONTEXT
+{
+}
+

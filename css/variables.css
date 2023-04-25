@@ -1,0 +1,94 @@
+:root
+{
+	--arrange: auto;
+	--resize-timeout: 500;
+	--duration: 2000;
+	--class-duration: 500;
+	--delay: 0;
+	--data-duration: 3200;
+	--data-delay: 0;
+	--data-delete-mul: null;
+	--blink-duration: 1400;
+	--blink-delay: 0;
+	--blink-count: 2;
+	--blink-border-radius: 96px;
+	--blink-border-width: 16px;
+	--blink-blur: 2px;
+	--data-delay: 0;
+	--remove-multiple: stop;
+	--none: auto;
+	--easing: ease;
+	--persist: auto;
+	--persist-resolved: auto;/*should stay..*/
+	/*--transform-origin: center;*/
+	--border-radius: 96px;
+	--border-width: 24px;
+	--border-color: auto;
+	--border: auto;
+	--font-size: 450%;
+	--font: auto;
+	--state: none;
+	--blur: 9px;
+	--colors: auto;
+	--color: auto;
+	--background-color: auto;
+	--opacity: auto;
+	--filter: auto;
+	--transform: auto;
+	--scale: auto;
+	--rotate: auto;
+	--rotate-x: +120deg -120deg;
+	--rotate-y: +120deg -120deg;
+	--rotate-z: +120deg -120deg;
+	--size: none;
+	--position: none;
+	--width: auto;
+	--height: auto;
+	--left: auto;
+	--top: auto;
+	--right: auto;
+	--bottom: auto;
+	--page-history: auto;
+	--page-history-length: 32;
+	--page-scroll-inline: nearest;/*start*/
+	--page-scroll-block: start;
+	--page-fallback-type: text;/*html*/
+	--page-data-duration: 3800;
+	--page-data-delete-mul: null;
+	--page-blink-duration: 2000;
+	--page-blink-count: 1;
+	--page-callback: auto;
+	--page-target: MAIN;
+	--page-invalid-hash-clear: auto;
+	--page-text-white-space: pre;
+}
+
+a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
+{
+	--hide: backwards;/*forwards*/
+	--animate: auto;
+	--sin: 1.6;
+	--image-sin: 44px;
+	--text-sin: 11px;
+	--min: 24px;
+	--max: 72px;
+	--duration: 720;
+	--delay: 320;
+	--blink-duration: 2100;
+	--blink-count: 1;
+	--data-delay: 0;
+	--data-duration: 800;
+	--random-animation: auto;
+	--random-animation-delay: 8400 1200;
+	--random-animation-duration: 4800 1200;
+	--callback: auto;
+	--transform-origin: -60% 60%;
+}
+
+a-context, .context, a-context-item, .contextItem
+{
+	--duration: 2400;
+	--delay: 480;
+	--pointer-duration: 800;
+}
+

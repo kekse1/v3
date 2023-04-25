@@ -1,0 +1,70 @@
+@media only screen and (max-width: 1000px)
+{
+	a-menu, .menu, #MENU
+	{
+		top: 128px;
+	}
+
+	.menuItemText
+	{
+	}
+}
+
+@media only screen and (max-width: 767px)
+{
+	a-menu, .menu, #MENU
+	{
+		--min: 64px;
+		--max: 64px;
+		top: 64px;
+	}
+
+	a-menu-item, .menuItem
+	{
+		margin-top: 20px;
+	}
+
+	.menuItemText
+	{
+		margin-bottom: -8px;
+		font-weight: normal;
+	}
+}
+
+@media only screen and (max-width: 479px)
+{
+	a-menu, .menu, #MENU
+	{
+		--min: 20px;
+		--max: 50px;
+		top: 32px;
+	}
+
+	a-menu-item, .menuItem
+	{
+		margin-top: 18px;
+		margin-left: 12px;
+	}
+
+	.menuItemText
+	{
+		margin-bottom: -12px;
+		font-size: 0.75rem;
+	}
+}
+
+@media only screen and (max-width: 359px)
+{
+	a-menu, .menu, #MENU
+	{
+		--min: 10px;
+		--max: 40px;
+		top: 3px;
+	}
+
+	.menuItemText
+	{
+		display: none;
+	}
+}
+

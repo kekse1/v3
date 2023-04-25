@@ -1,0 +1,151 @@
+a-box, .box
+{
+	padding: 8px;
+	z-index: 2;
+	position: fixed;
+	display: table-cell;
+	/*background-color: transparent;*/
+	background-color: rgba(255, 255, 255, 0.5);
+	backdrop-filter: blur(2px) brightness(0.9);
+	min-width: 32px;
+	min-height: 32px;
+	width: auto;
+	height: auto;
+	--movable: auto;/*none*/
+	--center-x: none;
+	--center-y: none;
+	--width: auto;
+	--height: auto;
+	/*border: 1px solid black;*/
+	overflow-x: hidden;
+	overflow-y: auto;
+	color: rgba(16, 16, 16, 1.0);
+	text-shadow: 1px 1px 6px white;
+}
+
+a-box, .box, .none, .a
+{
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+}
+
+a-box:hover, .box:hover, .hover, .b
+{
+	box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+}
+
+a-box:focus, .box:focus, .focus, .c
+{
+	box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}
+
+a-box:active, .box:active, .active, .d
+{
+	box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px, rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+}
+
+a-box.move, .box.move, a-box.resize, .box.resize, .move, .resize
+{
+	-webkit-box-shadow: 0px 20px 0px -10px #FFFFFF, 0px -20px 0px -10px #FFFFFF, 20px 0px 0px -10px #FFFFFF, -20px 0px 0px -10px #FFFFFF, 0px 0px 0px 10px #FF0000, 5px 5px 15px 5px rgba(0,0,0,0);
+	box-shadow: 0px 20px 0px -10px #FFFFFF, 0px -20px 0px -10px #FFFFFF, 20px 0px 0px -10px #FFFFFF, -20px 0px 0px -10px #FFFFFF, 0px 0px 0px 10px #FF0000, 5px 5px 15px 5px rgba(0,0,0,0);
+}
+
+a-menu, .menu
+{
+	display: table-cell;
+	position: fixed;
+	backdrop-filter: none;
+	z-index: 32;
+	--width: auto;
+	--height: auto;
+	background-color: transparent;
+	user-select: none;
+	left: 16px;
+	top: 32px;
+}
+
+a-menu-item, .menuItem
+{
+	position: fixed;
+	padding: 0;
+	margin: 0;
+	text-align: center;
+	display: table-cell;
+	/*width: auto;*/
+	/*margin-left: 8px;*/
+	position: fixed;
+	z-index: 64;
+	/*--width: auto;
+	--height: auto;*/
+	background-color: transparent;
+	user-select: none;
+	padding-right: 12px;
+	color: black;
+	text-shadow: 2px 2px 8px white;
+	pointer-events: auto;
+	--pointer-over-scale: 2.5;
+	--pointer-over-color: white;
+	--pointer-over-text-shadow: 2px 2px 8px black;
+	--pointer-over-background-color: rgba(255, 255, 255, 0.1);
+	--pointer-over-border-color: rgba(255, 255, 255, 0.3);
+	--pointer-over-opacity: 1 0.5 1;
+}
+
+.menuItemImage
+{
+	position: fixed;
+	padding: 0;
+	margin: 0;
+	margin-left: 2px;
+	display: table-cell;
+	width: 48px;
+	height: 48px;
+	user-select: none;
+	pointer-events: none;
+	border-radius: 48px;
+	border-style: dashed;
+	border-color: rgba(255, 255, 255, 0.5);
+	border-width: 2px;
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+.menuItemText
+{
+	display: table-cell;
+	position: fixed;
+	margin: 2px;
+	padding: 2px;
+	position: fixed;
+	height: 0.9rem;
+	font-size: 0.8rem;
+	/*height: 1.00rem;*/
+	/*text-shadow: 3px 3px 9px white;
+	color: rgba(240, 240, 240, 0.8);
+	/*padding-top: 2px;
+	padding-bottom: 3px;*/
+	z-index: 128;
+	user-select: none;
+	background-color: transparent;
+	user-select: none;
+	pointer-events: none;
+	text-shadow: inherit;
+	color: inherit;
+}
+
+a-context, .context
+{
+	z-index: 256;
+	position: fixed;
+	display: table-cell;
+	/*background-color: gray;*/
+	color: black;
+	text-shadow: 1px 1px 6px white;
+	user-select: none;
+	min-width: 16px;
+	min-height: 16px;
+	--center-x: none;
+	--center-y: none;
+	--movable: none;
+	--width: auto;
+	--height: auto;
+}
+

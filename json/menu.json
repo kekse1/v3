@@ -1,0 +1,93 @@
+[
+	{
+		"image": "img/menu/home.png",
+		"data": "Home",
+		"description": "World Wide Home",
+		"href": "#~home",
+		"popup": "The INDEX/HOME page of this web presence"
+	},
+	{
+		"image": "img/menu/tools.png",
+		"data": "Tools",
+		"description": "Some nifty tools (JavaScript, maybe PHP)",
+		"href": "#~tools.txt",
+		"popup": "Some nifty tools, maybe a helping hand for you.."
+	},
+	{
+		"image": "img/menu/events.png",
+		"data": "Events",
+		"description": "Messaging and other (remote) events, all real-time! ^_^",
+		"href": "#~events",
+		"popup": "Everything which goes real-time here.. ^_^"
+	},
+	{
+		"image": "img/menu/projects.png",
+		"data": "Projects",
+		"description": "Some of my projects",
+		"href": "#~projects",
+		"popup": "I'm working on some things.."
+	},
+	{
+		"image": "img/menu/documents.png",
+		"data": "Documents",
+		"description": "Documents of Interest",
+		"href": "#~documents",
+		"popup": "I've collected many useful documents, papers and other resources which looked interesting."
+	},
+	{
+		"image": "img/menu/gallery.png",
+		"data": "Gallery",
+		"description": "My own gallery",
+		"href": "#~gallery",
+		"popup": "Images and other media I do like"
+	},
+	{
+		"image": "img/menu/downloads.png",
+		"data": "Downloads",
+		"description": "Download area",
+		"href": "#~downloads",
+		"popup": "Interesting binary data which doesn't fit into gallery or documents."
+	},
+	{
+		"image": "img/menu/bookmarks.png",
+		"data": "Bookmarks",
+		"description": "Bookmark collection",
+		"href": "#~bookmarks",
+		"popup": "Since a long time I'm bookmarking many resources in the world wide web (my browser history, kinda ;)~"
+	},
+	{
+		"image": "img/menu/hardware.png",
+		"data": "Hardware",
+		"description": "The hardware I'm using",
+		"href": "#~hardware.txt",
+		"popup": "That's all the hardware I'm using or used to use"
+	},
+	{
+		"image": "img/menu/imprint.png",
+		"data": "Imprint",
+		"description": "Necessary..",
+		"href": "#~imprint",
+		"popup": "The law wants it this way... ;/~"
+	},
+	{
+		"image": "img/menu/news.png",
+		"data": "News",
+		"description": "News for this Web site etc.",
+		"href": "#~news",
+		"popup": "Just for your info - what's new on this web site and here and so on.."
+	},
+	{
+		"image": "img/menu/api.png",
+		"data": "API / Test",
+		"description": "API access for this web project (or testing code atm)",
+		"href": "#~api",
+		"popup": "At least I'm <b>planning</b> to provide one, two alternative access methods.. still <i>TODO</i>! ^_^"
+	},
+	{
+		"image": "img/menu/contact.png",
+		"data": "Contact",
+		"description": "Way(s) to contact me",
+		"href": "#~contact",
+		"popup": "If you want to send me a message/letter/.. or anything; that's for you. :)~"
+	}
+]

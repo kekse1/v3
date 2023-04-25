@@ -1,0 +1,140 @@
+@media only screen and (max-width: 1000px)
+{
+	img#FAVICON
+	{
+		width: 128px;
+		height: 128px;
+	}
+}
+
+@media only screen and (max-width: 1100px)
+{
+	#UPDATED
+	{
+		display: none;
+	}
+}
+
+@media only screen and (max-width: 767px)
+{
+	#COPYRIGHT
+	{
+		right: 16px;
+		left: auto;
+	}
+
+	#VERSION
+	{
+		left: 16px;
+		right: auto;
+	}
+}
+
+@media only screen and (max-width: 479px)
+{
+	#COPYRIGHT
+	{
+		font-size: 1.0rem;
+		right: 4px;
+		left: auto;
+		bottom: 2px;
+	}
+
+	/*#COPYRIGHT::before
+	{
+		margin-right: 2px;
+		margin-left: 2px;
+	}*/
+
+	#VERSION
+	{
+		left: 80px;
+		right: auto;
+		margin-left: -8px;
+		font-size: 0.94rem;
+		bottom: 4px;
+	}
+
+	#COUNTER
+	{
+		left: 12px;
+		right: auto;
+		bottom: 4px;
+	}
+
+	#COUNTER::before
+	{
+		font-size: 0.7rem;
+	}
+
+	#COUNTER #counter
+	{
+		font-size: 1.2rem;
+	}
+
+	#COUNTER #counterInfoText
+	{
+		display: none;
+	}
+
+	#self
+	{
+		display: none;
+	}
+
+	img#FAVICON
+	{
+		width: 64px;
+		height: 64px;
+	}
+
+	#MAIN
+	{
+		left: 52px;
+	}
+}
+
+@media only screen and (max-width: 359px)
+{
+	#VERSION
+	{
+		right: 12px;
+		left: auto;
+		margin-left: -16px;
+	}
+
+	#COPYRIGHT
+	{
+		display: none;
+	}
+
+	#COUNTER
+	{
+		left: 30px;
+		right: auto;
+	}
+
+	#COUNTER #counterInfoText
+	{
+		display: inline-block;
+		font-size: 0.6rem;
+		margin-left: -2px;
+	}
+
+	img#FAVICON
+	{
+		width: 48px;
+		height: 48px;
+	}
+
+	#MAIN
+	{
+		left: 40px;
+	}
+
+	#OSD
+	{
+		font-size: 750%;
+	}
+}
+
