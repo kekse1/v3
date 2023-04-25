@@ -49,9 +49,15 @@ function testCookie()
 	return true;
 }
 
-function makeCookie($_domain = HOSTNAME)
+function makeCookie($_domain = HOSTNAME, $_hours = 12, $_days = 0, $_secure = !!$_SERVER['HTTPS'], $_same_site = 'Strict', $_path = '/', $_http_only = true)
 {
-	setcookie('timestamp', timestamp(), '/', $_domain);
+	return setcookie('timestamp', timestamp(), array(
+		'expires': (($_hours * 60 * 60) * ($_days * 60 * 60 * 24)),
+		'domain': $_domain,
+		'secure': $_secure,
+		'path': $_path,
+		'samesite': $_same_site,
+		'httponly': $_http_only ));
 }
 
 function readCounter($_path = PATH)

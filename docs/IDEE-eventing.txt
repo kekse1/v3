@@ -1,0 +1,26 @@
+ich ueberlege gerade...
+
+die erste idee war ja, dass ich farblich markiere oder so,
+wie alt die code-zeilen sind, oder wann die letzen updates
+geschahen, etc.. neuronal fast mit gewichten, welche evtl.
+faktoren noch einfluss nehmen koennten (>1<); .. davon ab,
+man koennte auch noch einen zeitpfeil oder sonstige formen
+von "legende" einbringen.. so "augemented reality" styles,
+oder alles *umrahmen* mit zeigerwerk oder so, fuer dates..
+
+(<1>) funktions-signaturen veraendert, oder sonstiges da!?
+
+die weitere idee ist diese, dass sich ja funktionen immer-
+zu veraendern koennten, wenn man sie erweitert o.ae.. dazu
+moechte ich, dass wir uns (@ server) "registrieren", durch
+die "statische" quellcode-analyse gar, damit der server so
+weisz, welche funktionen wir auch verwenden. oder auch mit
+ganzen modulen, oder apps, etc..
+
+wenn dann ein entwickler am server ein entsprechendes push
+/update-event schickt, so wird an alle eine info verteilt,
+die diese elemente auch nutzen.. alles absolut auch in den
+formen von uhrwerk, scheduler, o.ae. abbildungen (>2<); ..
+
+(<2>) "augemented reality", bedenke das auch...!!! :-D ...
+
