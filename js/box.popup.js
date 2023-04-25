@@ -236,22 +236,20 @@
 					delay: 0, persist: true, state: false
 				};
 				
-				const call = () => {
+				const moveIt = () => {
 					return this.MOVE = this.animate(keyframes, options, (_e, _f) => {
-						call(_callback, { type: 'move', event: _e, finish: _f }, _e, _f);
 						delete this.MOVE;
+						call(_callback, { type: 'move', event: _e, finish: _f }, _e, _f);
 					});
 				}
 				
 				if(this.MOVE)
 				{
-					this.MOVE.finish(() => {
-						call();
-					});
+					this.MOVE.finish(moveIt);
 				}
 				else
 				{
-					call();
+					moveIt();
 				}
 			}
 			else
