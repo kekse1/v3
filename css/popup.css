@@ -4,7 +4,7 @@ a-popup, .popup
 	--duration: 1800;
 	--delay: 0;
 	--pointer-duration: 900;
-	--pointer-animation: all;
+	--pointer-animation: none;
 	--data-duration: 1200;
 	display: table-cell;
 	text-align: center;
