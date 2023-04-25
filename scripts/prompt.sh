@@ -108,7 +108,7 @@ ps1Prompt()
 	PS1=""
 
 	#
-	write ' '
+	write ' ➜ '
 	user_host=0
 
 	#
