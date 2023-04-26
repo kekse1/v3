@@ -7,11 +7,33 @@
 define('DIRECTORY', 'counter');
 //define('THRESHOLD', 600);
 define('THRESHOLD', 7200);
+define('HOST_LENGTH', 255);
+define('HOST_CHARS', array_merge(range('a', 'z'), range('0', '9'), ['.','-']));
 
 //
-function secureHost($_hostname)
+/*function secureHost($_hostname)
 {
 	return str_replace('/', '', str_replace('\\', '', $_hostname));
+}*///old version.. new one is below.
+
+function secureHost($_hostname)
+{
+	$_hostname = strtolower($_hostname);
+	$length = min(strlen($_hostname), HOST_LENGTH);
+	$result = '';
+
+	for($i = 0; $i < $length; $i++)
+	{
+		$char = $_hostname[$i];
+		$byte = ord($char);
+
+		if(in_array($char, HOST_CHARS) || $byte === 45 || $byte === 46)
+		{
+			$result .= $char;
+		}
+	}
+
+	return $result;
 }
 
 //
