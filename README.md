@@ -27,3 +27,9 @@ Something like [https://chriscoyier.net/2023/04/11/expanding-grid-cards-with-vie
 The plan was to use a '*box*.js' (which is already there, btw), but planned to be used like regular
 windows on your PC.. so that's not the final plan, as it's not so beautiful on mobile browsers. And
 currently there are, btw, also '/**responsible**/.css', but they are going to be optimized as well.
+
+## Links
+
+### Library.js / lib.js
+[https://libjs.de/]
+
