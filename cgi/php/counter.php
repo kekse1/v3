@@ -5,7 +5,8 @@
  */
 //
 define('DIRECTORY', 'counter');
-define('THRESHOLD', 600);
+//define('THRESHOLD', 600);
+define('THRESHOLD', 7200);
 
 //
 function secureHost($_hostname)
