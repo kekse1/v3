@@ -5,7 +5,8 @@
  */
 //
 define('DIRECTORY', 'counter');
-define('THRESHOLD', 600);
+//define('THRESHOLD', 600);
+define('THRESHOLD', 7200);
 
 //
 function secureHost($_hostname)
@@ -49,15 +50,15 @@ function testCookie()
 	return true;
 }
 
-function makeCookie($_domain = HOSTNAME, $_hours = 12, $_days = 0, $_secure = !!$_SERVER['HTTPS'], $_same_site = 'Strict', $_path = '/', $_http_only = true)
+function makeCookie($_domain = HOSTNAME, $_hours = 2, $_days = 0, $_path = '/', $_same_site = 'Strict', $_http_only = true)
 {
 	return setcookie('timestamp', timestamp(), array(
-		'expires': (($_hours * 60 * 60) * ($_days * 60 * 60 * 24)),
-		'domain': $_domain,
-		'secure': $_secure,
-		'path': $_path,
-		'samesite': $_same_site,
-		'httponly': $_http_only ));
+		'expires' => (time() + (($_hours * 60 * 60) + ($_days * 60 * 60 * 24))),
+		'domain' => $_domain,
+		//'secure' => !!$_SERVER['HTTPS'],
+		'path' => $_path,
+		'samesite' => $_same_site,
+		'httponly' => $_http_only));
 }
 
 function readCounter($_path = PATH)
@@ -86,7 +87,7 @@ if(testCookie())
 makeCookie();
 
 //
-header('Content-Type: text/plain; charset=UTF-8');
+header('Content-Type: text/plain;charset=UTF-8');
 echo $count;
 exit();
 
