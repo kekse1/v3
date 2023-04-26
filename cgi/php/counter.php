@@ -64,10 +64,11 @@ function testCookie()
 	return true;
 }
 
-function makeCookie($_domain = HOSTNAME, $_hours = 2, $_days = 0, $_path = '/', $_same_site = 'Strict', $_http_only = true)
+function makeCookie($_domain = HOSTNAME, $_path = '/', $_same_site = 'Strict', $_http_only = true)
 {
 	return setcookie('timestamp', timestamp(), array(
-		'expires' => (time() + (($_hours * 60 * 60) + ($_days * 60 * 60 * 24))),
+		//'expires' => (time() + (($_hours * 60 * 60) + ($_days * 60 * 60 * 24))),
+		'expires' => (time() + THRESHOLD),
 		'domain' => $_domain,
 		//'secure' => !!$_SERVER['HTTPS'],
 		'path' => $_path,
