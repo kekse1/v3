@@ -54,7 +54,6 @@ function testCookie()
 	if(! isset($_COOKIE['timestamp']))
 	{
 		makeCookie();
-		return true;
 	}
 	else if(timestamp((int)$_COOKIE['timestamp']) < THRESHOLD)
 	{
