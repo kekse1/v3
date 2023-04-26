@@ -19,11 +19,9 @@ function secureHost($_hostname)
 
 	for($i = 0; $i < $length; $i++)
 	{
-		$char = $_hostname[$i];
-
-		if(in_array($char, CHARS))
+		if(in_array($_hostname[$i], CHARS))
 		{
-			$result .= $char;
+			$result .= $_hostname[$i];
 		}
 	}
 
