@@ -1,1 +1,1 @@
-cgi/php/counter.php
+cgi-bin/php/counter.php
