@@ -40,24 +40,24 @@
 			}
 			else if(_link[0] === '~')
 			{
-				const pagesConfig = Page.checkPagesConfig();
+				const homeConfig = Page.checkHomeConfig();
 				
-				if(pagesConfig)
+				if(homeConfig)
 				{
-					var link = pagesConfig.path + '/' + _link.substr(1);
+					var link = homeConfig.path + '/' + _link.substr(1);
 
-					if(pagesConfig.extension)
+					if(homeConfig.extension)
 					{
-						if(typeof pagesConfig.extension === 'string')
+						if(typeof homeConfig.extension === 'string')
 						{
-							pagesConfig.extension = [ pagesConfig.extension ];
+							homeConfig.extension = [ homeConfig.extension ];
 						}
 
 						var found = false;
 
-						for(var i = 0; i < pagesConfig.extension.length; ++i)
+						for(var i = 0; i < homeConfig.extension.length; ++i)
 						{
-							if(link.endsWith(pagesConfig.extension[i]))
+							if(link.endsWith(homeConfig.extension[i]))
 							{
 								found = true;
 								break;
@@ -68,11 +68,11 @@
 						{
 							if(link[link.length - 1] === '.')
 							{
-								link += pagesConfig.extension[0].substr(1);
+								link += homeConfig.extension[0].substr(1);
 							}
 							else
 							{
-								link += pagesConfig.extension[0];
+								link += homeConfig.extension[0];
 							}
 						}
 					}
@@ -83,7 +83,7 @@
 				{
 					if(_throw)
 					{
-						throw new Error('Missing/invalid config.pages configuration, etc.');
+						throw new Error('Missing/invalid config.home configuration, etc.');
 					}
 					
 					return null;
@@ -93,44 +93,44 @@
 			return _link;
 		}
 		
-		static checkPagesConfig()
+		static checkHomeConfig()
 		{
-			if(! isObject(config.pages))
+			if(! isObject(config.home))
 			{
 				return null;
 			}
-			else if(! config.pages.enabled)
+			else if(! config.home.enabled)
 			{
 				return null;
 			}
-			else if(typeof config.pages.path !== 'string')
+			else if(typeof config.home.path !== 'string')
 			{
 				return null;
 			}
 			
 			const result = Object.create(null);
-			result.path = config.pages.path;
+			result.path = config.home.path;
 			
-			if(typeof config.pages.extension === 'string')
+			if(typeof config.home.extension === 'string')
 			{
-				config.pages.extension = [ config.pages.extension ];
+				config.home.extension = [ config.home.extension ];
 			}
 
-			if(isArray(config.pages.extension, false))
+			if(isArray(config.home.extension, false))
 			{
-				for(var i = 0; i < config.pages.extension.length; ++i)
+				for(var i = 0; i < config.home.extension.length; ++i)
 				{
-					if(config.pages.extension[i][0] !== '.')
+					if(config.home.extension[i][0] !== '.')
 					{
-						config.pages.extension[i] = '.' + config.pages.extension[i];
+						config.home.extension[i] = '.' + config.home.extension[i];
 					}
 				}
 				
-				result.extension = config.pages.extension;
+				result.extension = config.home.extension;
 			}
 			else
 			{
-				result.extension = config.pages.extension = [];
+				result.extension = config.home.extension = [];
 			}
 			
 			return result;
