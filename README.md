@@ -1,6 +1,10 @@
 # kekse.biz
 v3
 
+## Sneak Preview
+[https://kekse.biz/v3/test.html]
+[https://kekse.biz/v3/]
+
 ## scripts/
 
 ### prompt.sh
@@ -13,10 +17,6 @@ Currently the performance is somewhat going down when playing
 around with the animated menu bar.. goin' to fix it soon. ^_^
 
 ## Next steps
-
-#### Sneak preview in your browser
-As everything important is uploaded right now, I'm just missing
-a web link for a sneak preview.. this is what I'm going to do next.. ^_^
 
 #### Responsible Design
 That's how I want to design everything, to get it more 'responsible', too. Automatically align/size
@@ -32,4 +32,10 @@ currently there are, btw, also '/**responsible**/.css', but they are going to be
 
 ### Library.js / lib.js
 [https://libjs.de/]
+
+### Bionic Reading
+As this is just integrated in *my own implementation*, this is just to read a bit 'bout it (you can
+see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
+
+[https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html]
 
