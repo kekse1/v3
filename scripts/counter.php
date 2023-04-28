@@ -1,6 +1,10 @@
 <?php
 
 /*
+ * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+ */
+
+/*
  * BE SURE TO `chmod 1777 ./counter/`.. (so that PHP can access there, with write permissions, too)!
  */
 //
@@ -9,6 +13,10 @@ define('DIRECTORY', 'counter');
 define('THRESHOLD', 7200);
 define('LENGTH', 255);
 define('CHARS', array_merge(range('a', 'z'), range('0', '9'), ['.','-']));
+define('COOKIE', 'timestamp');
+define('COOKIE_SAME_SITE', 'Strict');
+define('COOKIE_PATH', '/');
+define('COOKIE_HTTP_ONLY', true);
 
 //
 function secureHost($_hostname)
@@ -25,12 +33,17 @@ function secureHost($_hostname)
 		}
 	}
 
+	if(strlen($result) === 0)
+	{
+		die('Filtered hostname got no length');
+	}
+
 	return $result;
 }
 
 //
-define('HOSTNAME', $_SERVER['HTTP_HOST']);
-define('PATH', (DIRECTORY . '/' . secureHost(HOSTNAME)));
+define('HOSTNAME', secureHost($_SERVER['HTTP_HOST']));
+define('PATH', (DIRECTORY . '/' . HOSTNAME));
 
 //
 if(! file_exists(DIRECTORY))
@@ -51,11 +64,11 @@ function timestamp($_difference = null)
 
 function testCookie()
 {
-	if(! isset($_COOKIE['timestamp']))
+	if(! isset($_COOKIE[COOKIE]))
 	{
 		makeCookie();
 	}
-	else if(timestamp((int)$_COOKIE['timestamp']) < THRESHOLD)
+	else if(timestamp((int)$_COOKIE[COOKIE]) < THRESHOLD)
 	{
 		return false;
 	}
@@ -63,16 +76,16 @@ function testCookie()
 	return true;
 }
 
-function makeCookie($_domain = HOSTNAME, $_path = '/', $_same_site = 'Strict', $_http_only = true)
+function makeCookie()
 {
-	return setcookie('timestamp', timestamp(), array(
-		//'expires' => (time() + (($_hours * 60 * 60) + ($_days * 60 * 60 * 24))),
+	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'domain' => $_domain,
+		'domain' => HOSTNAME,
 		//'secure' => !!$_SERVER['HTTPS'],
-		'path' => $_path,
-		'samesite' => $_same_site,
-		'httponly' => $_http_only));
+		'path' => COOKIE_PATH,
+		'samesite' => COOKIE_SAME_SITE,
+		'httponly' => COOKIE_HTTP_ONLY
+	));
 }
 
 function readCounter($_path = PATH)
