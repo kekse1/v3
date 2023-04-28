@@ -79,6 +79,10 @@ function testCookie()
 function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
+<<<<<<< HEAD
+=======
+		'max-age' => THRESHOLD,
+>>>>>>> 0310e5c1d8786d5ce46562af60cb18f55ee9a96b
 		'expires' => (time() + THRESHOLD),
 		'domain' => HOSTNAME,
 		//'secure' => !!$_SERVER['HTTPS'],

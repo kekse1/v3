@@ -2,7 +2,7 @@
 
 	"url": "https://kekse.biz/",
 
-	"pages": {
+	"home": {
 		"path": "home",
 		"extension": [ ".html", ".txt" ],
 		"enabled": true
