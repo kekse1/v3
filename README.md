@@ -2,8 +2,8 @@
 v3
 
 ## Preview
-* [https://kekse.biz/v3/test.html]
-* [https://kekse.biz/v3/]
+* https://kekse.biz/v3/test.html
+* https://kekse.biz/v3/
 
 ## scripts/
 
@@ -29,11 +29,20 @@ currently there are, btw, also '\*responsible\*.css', but they are going to be o
 ## Links
 
 ### Library.js / lib.js
-[https://libjs.de/]
+(Now) especially for the server-side, optimized to work with [Node.js](https://nodejs.org/).
+
+* https://libjs.de/
+
+See this web site with it's [Gallery](https://libjs.de/#screenshots); you can also see the expensive
+usage of ANSI Escape Sequences, they've got their own module there.
+
+BROWSER usage was integrated there, but I've came to the conclusion It'd be better do reduce it to
+the server side. **This** here is the browser part, which I'll be using for my private website, soon. ^_^
 
 ### Bionic Reading
 As this is just integrated in *my own implementation*, this is just to read a bit 'bout it (you can
 see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
 
-[https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html]
+* https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html
+* https://bionic-reading.com/
 
