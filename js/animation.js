@@ -115,7 +115,7 @@
 
 			for(var i = 0; i < this.animation.length; ++i)
 			{
-				for(var j = 0; j < this.animation[i].properties.length; ++j)
+				if(this.animation[i].properties !== null) for(var j = 0; j < this.animation[i].properties.length; ++j)
 				{
 					if(cssProperties.includes(this.animation[i].properties[j]))
 					{
@@ -201,25 +201,22 @@
 
 		//
 		const animateOptions = Element.animateOptions;
-		const parameters = { ... _options };
-		_options = {};
-
+		const tempOptions = {};
+		
 		for(const idx of animateOptions)
 		{
-			if(idx in parameters)
+			if(idx in _options)
 			{
-				_options[idx] = parameters[idx];
+				tempOptions[idx] = _options[idx];
 			}
 		}
 
 		//
-		result = _animate.call(this, _keyframes, _options);
-		_options = parameters;
+		result = _animate.call(this, _keyframes, tempOptions);
 		const orig = result;
 
 		result.element = this;
 		result.options = _options;
-		result.parameters = parameters;
 		result.keyframes = _keyframes;
 		result.properties = (cssProperties === null ? null : [ ... cssProperties ]);
 		result.removed = (removed === null ? null : [ ... removed ]);

@@ -1184,26 +1184,9 @@
 			}
 			else if(_target.OUT)
 			{
-				var count = _target.OUT.length;
-				const cb = (_e, _f) => {
-					if(--count <= 0)
-					{
-						//
-						delete _target.OUT;
-
-						//
-						return setTimeout(() => {
-							return Menu.Item.onpointerover(_event, _target, _callback);
-						}, 0);
-					}
-				};
-
-				for(const e of _target.OUT)
-				{
-					e.stop(cb);
-				}
-
-				return true;
+				return _target.OUT.stop(() => {
+					return Menu.Item.onpointerover(_event, _target, _callback);
+				});
 			}
 			else
 			{
@@ -1255,15 +1238,10 @@
 
 				if(--count <= 0)
 				{
-					/*if(fin >= 2)
+					if(fin >= 2)
 					{
-						_target._state = 'over';
+						_target._state = 'over';//'half'?
 					}
-					else
-					{
-						_target._state = 'half';
-					}*/
-					_target._state = 'over';
 
 					delete _target.OUT;
 					delete _target.OVER;
@@ -1278,9 +1256,46 @@
 			delete keyframes.backgroundColor;
 			delete keyframes.borderRadius;
 			delete keyframes.border;
-			keyframes.left = [ setValue(_target.textNode.leftOver, 'px', true) ];
+			keyframes.left = [ null, setValue(_target.textNode.leftOver, 'px', true) ];
 			
 			_target.OVER[1] = _target.textNode.animate(keyframes, options, cb);
+
+			//
+			var stopped = false;
+
+			_target.OVER.stop = (_cb) => {
+				if(stopped)
+				{
+					return false;
+				}
+				else
+				{
+					stopped = true;
+				}
+
+				const over = [ ... _target.OVER ];
+				var rest = _target.OVER.length;
+				const cb = () => {
+					if(--rest <= 0)
+					{
+						delete _target.OVER;
+
+						if(typeof _cb === 'function')
+						{
+							setTimeout(() => {
+								_cb();
+							}, 0);
+						}
+					}
+				};
+
+				for(var i = 0; i < over.length; ++i)
+				{
+					over[i].stop(cb);
+				}
+
+				return true;
+			};
 
 			//
 			return _target.OVER;
@@ -1306,24 +1321,9 @@
 			}
 			else if(_target.OVER)
 			{
-				var count = _target.OVER.length;
-				const cb = (_e, _f) => {
-					if(--count <= 0)
-					{
-						delete _target.OVER;
-
-						return setTimeout(() => {
-							return Menu.Item.onpointerout(_event, _target, _callback);
-						}, 0);
-					}
-				};
-
-				for(const e of _target.OVER)
-				{
-					e.stop(cb);
-				}
-
-				return true;
+				return _target.OVER.stop(() => {
+					return Menu.Item.onpointerout(_event, _target, _callback);
+				});
 			}
 			else
 			{
@@ -1373,12 +1373,12 @@
 				//
 				if(--count <= 0)
 				{
-					_target._state = 'out';
-
 					if(fin >= 2)
 					{
 						delete _target._originalPointerStyle;
 					}
+
+					_target._state = 'out';
 
 					delete _target.OUT;
 					delete _target.OVER;
@@ -1396,9 +1396,46 @@
 			delete keyframes.borderRadius;
 			delete keyframes.border;
 			delete keyframes.right;
-			keyframes.left = [ setValue(_target.textNode.leftOut, 'px', true) ];
+			keyframes.left = [ null, setValue(_target.textNode.leftOut, 'px', true) ];
 			
 			_target.OUT[1] = _target.textNode.animate(keyframes, options, cb);
+
+			//
+			var stopped = false;
+
+			_target.OUT.stop = (_cb) => {
+				if(stopped)
+				{
+					return false;
+				}
+				else
+				{
+					stopped = true;
+				}
+
+				const out = [ ... _target.OUT ];
+				var rest = _target.OUT.length;
+				const cb = () => {
+					if(--rest <= 0)
+					{
+						delete _target.OUT;
+
+						if(typeof _cb === 'function')
+						{
+							setTimeout(() => {
+								_cb();
+							}, 0);
+						}
+					}
+				};
+
+				for(var i = 0; i < out.length; ++i)
+				{
+					out[i].stop(cb);
+				}
+
+				return true;
+			};
 
 			//
 			return _target.OUT;
