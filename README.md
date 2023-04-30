@@ -36,8 +36,8 @@ use the 'best' sorting algorithm.
 * https://codercorner.com/RadixSortRevisited.htm
 
 #### Conversions
-As already integrated in my [https://libjs.de/](lib.js / library.js), the regular 36 radix maximum
-isn't enough for me. It's even really useful that I'm supporting the 256 byte-code-radix (using all
+As already integrated in my [https://libjs.de/](lib[rary].js), the regular 36 radix maximum isn't
+enough for me. It's even really useful that I'm supporting the 256 byte-code-radix (using all
 the one-byte-characters)! :D~
 
 Here's my current implementation (which is going to be ported to here!):
