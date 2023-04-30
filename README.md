@@ -1,8 +1,8 @@
 # kekse.biz
 v3
 
-.. the real version of all the JavaScript's is available in the `version.json` (which is being loaded
-and rendered in the web browser environment).
+.. the real version of all the JavaScript's is available in the `[./blob/git/version.json](version.json)`,
+which is, btw, being loaded and rendered in the web browser environment.
 
 ## Preview
 * https://kekse.biz/v3/test.html
