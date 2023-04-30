@@ -1,9 +1,9 @@
 # kekse.biz
 v3
 
-## Sneak Preview
-[https://kekse.biz/v3/test.html]
-[https://kekse.biz/v3/]
+## Preview
+* [https://kekse.biz/v3/test.html]
+* [https://kekse.biz/v3/]
 
 ## scripts/
 
