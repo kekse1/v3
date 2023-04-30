@@ -35,7 +35,8 @@ navigate through all the pages.
 
 I also didn't forgot about `.txt` files beneath `.html`.. for the last doc-type, it wasn't possible
 to embed `<script>` or `<style>` tags, so I manually filtered them out, to bring them to live on my
-own.
+own (against cross-site-attacs or smth. like this it's only allowed for HTTP requests to the current
+`location.host[name?]` ;)~ ..
 
 #### CSS
 See `css.js` and `css.matrix.js`.. the first one is implementing the base, to handle CSS on my own
