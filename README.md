@@ -33,7 +33,7 @@ also the `json/config.json` - which is, btw, going to be completely replaced by 
 ... utilizing the '#' hash/fragment of the URL, there's no necessity of reloading everything to
 navigate through all the pages.
 
-I also didn't forgot about '.txt' files, not only '.html'. For the last doc-type, it wasn't possible
+I also didn't forgot about `.txt` files beneath `.html`.. for the last doc-type, it wasn't possible
 to embed `<script>` or `<style>` tags, so I manually filtered them out, to bring them to live on my
 own.
 
