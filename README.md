@@ -29,11 +29,11 @@ currently there are, btw, also '\*responsible\*.css', but they are going to be o
 #### Radix Sort and Radix conversions
 
 #### Sort
-See '[file:///home/kuchen/git/www/kekse.biz/v3/docs/RadixSortRevisited.htm](Radix Sort Revisited)'!
-
 As in JavaScript there's usually everything being sorted with the help of pure Integers (only real
 floating point numbers - but they'll work here as well, due to their encoding..), the plan is to
 use the 'best' sorting algorithm.
+
+* https://codercorner.com/RadixSortRevisited.htm
 
 #### Conversions
 As already integrated in my [https://libjs.de/](lib.js / library.js), the regular 36 radix maximum
