@@ -33,8 +33,9 @@ currently there are, btw, also '\*responsible\*.css', but they are going to be o
 
 * https://libjs.de/
 
-See this web site with it's [Gallery](https://libjs.de/#screenshots); you can also see the expensive
-usage of ANSI Escape Sequences, they've got their own module there.
+See this web site with it's [Screenshots](https://libjs.de/#screenshots); you can also see there the
+extensive use of ANSI Escape Sequences, they've got their own module [there](https://libjs.de/lib/lib.js/tty/ansi.js)
+(whereas this is extended to the 'String' (atm also for the browser..));
 
 BROWSER usage was integrated there, but I've came to the conclusion It'd be better do reduce it to
 the server side. **This** here is the browser part, which I'll be using for my private website, soon. ^_^
