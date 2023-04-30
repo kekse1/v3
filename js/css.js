@@ -413,9 +413,8 @@ throw new Error('TODO');
 						{
 							blocks[j] += ';';
 						}
+
 						selectors = css.parse.selectors(selectors, true, _throw);
-				alert(JSON.stringify(selectors));
-				alert('\n\n\n'+css.render.selectors(selectors));
 						blocks[j] = [ css.render.selectors(selectors), blocks[j] ];
 						selectors = '';
 					}
@@ -501,10 +500,12 @@ throw new Error('TODO');
 
 			for(var j = 0; j < selectors.length; ++j)
 			{
-				result[selectors[j]] = block;
+				if((selectors[j] = selectors[j].trim()).length > 0)
+				{
+					result[selectors[j]] = block;
+				}
 			}
 		}
-//alert('result:\n\n' + Object.debug(result));
 
 		//
 		return result;

@@ -60,6 +60,7 @@
 	--page-target: MAIN;
 	--page-invalid-hash-clear: auto;
 	--page-text-white-space: pre;
+	--divide-css-selectors: auto;
 }
 
 a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
