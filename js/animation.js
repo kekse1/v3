@@ -391,12 +391,16 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				_callback(e, e.finish);
+				setTimeout(() => {
+					_callback(e, e.finish);
+				}, 0);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				_cb(e, e.finish);
+				setTimeout(() => {
+					_cb(e, e.finish);
+				}, 0);
 			}
 
 			//
@@ -437,12 +441,16 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				_callback(e, e.finish);
+				setTimeout(() => {
+					_callback(e, e.finish);
+				}, 0);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				_cb(e, e.finish);
+				setTimeout(() => {
+					_cb(e, e.finish);
+				}, 0);
 			}
 
 			//
@@ -461,16 +469,9 @@
 			}
 			else
 			{
-				_pause(... _args);
 				style = getStyle();
-				ending(null, null);
+				ending(null, resolvedStyle);
 				_finish(... _args);
-			}
-
-			//
-			if(_options.persist !== false) for(const idx in style)
-			{
-				this.style.setProperty(idx, style[idx]);
 			}
 			
 			//
@@ -489,12 +490,16 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				_callback(e, e.finish);
+				setTimeout(() => {
+					_callback(e, e.finish);
+				}, 0);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				_cb(e, e.finish);
+				setTimeout(() => {
+					_cb(e, e.finish);
+				}, 0);
 			}
 			
 			//
@@ -534,7 +539,9 @@
 			//
 			if(typeof _cb === 'function')
 			{
-				call(_cb, e, e.finish);
+				setTimeout(() => {
+					_cb(e, e.finish);
+				}, 0);
 			}
 
 			//
