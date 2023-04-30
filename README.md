@@ -96,6 +96,11 @@ extensive use of ANSI Escape Sequences, they've got their own module [there](htt
 BROWSER usage was integrated there, but I've came to the conclusion It'd be better do reduce it to
 the server side. **This** here is the browser part, which I'll be using for my private website, soon. ^_^
 
+For **one** reason: the library's _own_ `require()` is NOT async, as we need to wait for `module.exports`;
+in the browser I already worked that way, but we had to preload the modules step by step.. this caused an
+enormous latency! NOW I'm using just `<script>`-tags w/ `refer` enabled, so everything is loaded async;
+thus: nearly NO delay! ;D~
+
 ### Bionic Reading
 As this is just integrated in *my own implementation*, this is just to read a bit 'bout it (you can
 see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
