@@ -85,6 +85,11 @@
 	Object.defineProperty(Element.prototype, 'scrollY', {
 		get: function()
 		{
+			if(this.scrollHeight <= this.clientHeight)
+			{
+				return 100;
+			}
+
 			const result = (this.scrollTop / (this.scrollHeight - this.clientHeight) * 100);
 			
 			if(isNaN(result))
@@ -125,6 +130,11 @@
 	Object.defineProperty(Element.prototype, 'scrollX', {
 		get: function()
 		{
+			if(this.scrollWidth <= this.clientWidth)
+			{
+				return 100;
+			}
+
 			const result = (this.scrollLeft / (this.scrollWidth - this.clientWidth) * 100);
 			
 			if(isNaN(result))
@@ -473,18 +483,18 @@
 		//
 		var xValue, yValue;
 
-		if(_elem.scrollX === 0 && _elem.clientWidth <= _elem.scrollWidth)
+		if(_elem.clientWidth >= _elem.scrollWidth)
 		{
-			xValue = 100;
+			xValue = null;
 		}
 		else
 		{
 			xValue = _elem.scrollX;
 		}
 
-		if(_elem.scrollY === 0 && _elem.clientHeight <= _elem.scrollHeight)
+		if(_elem.clientHeight >= _elem.scrollHeight)
 		{
-			yValue = 100;
+			yValue = null;
 		}
 		else
 		{
@@ -492,16 +502,13 @@
 		}
 
 		//
-		const has = { x: _elem.scrollX > 0, y: _elem.scrollY > 0 };
-
-		//
-		xValue = xValue.toFixed(DEFAULT_OSD_ROUND);
-		yValue = yValue.toFixed(DEFAULT_OSD_ROUND);
+		xValue = (xValue === null ? null : xValue.toFixed(DEFAULT_OSD_ROUND));
+		yValue = (yValue === null ? null : yValue.toFixed(DEFAULT_OSD_ROUND));
 
 		var x = '';
 		var y = '';
 			
-		for(var i = 0; i < xValue.length; ++i)
+		if(xValue !== null) for(var i = 0; i < xValue.length; ++i)
 		{
 			if(xValue[i] === '.')
 			{
@@ -515,7 +522,7 @@
 			}
 		}
 			
-		for(var i = 0; i < yValue.length; ++i)
+		if(yValue !== null) for(var i = 0; i < yValue.length; ++i)
 		{
 			if(yValue[i] === '.')
 			{
@@ -532,26 +539,22 @@
 		//
 		var result;
 
-		//if(true)
-		if(has.x || has.y)
+		if(xValue !== null || yValue !== null)
 		{
 			result = '<div>';
 
-			//if(true)
-			if(has.y)
+			if(yValue !== null)
 			{
 				result += '<span style="font-size: 40%; font-weight: 100; color: red;">[<b style="color: blue; font-size: 150%; font-weight: 700;">y</b>]</span>';
 				result += '<span style="font-weight: 700;">' + y + '</span><span style="font-size: 80%; font-weight: 100; margin-left: 16px; color: yellow;">%</span>';
 
-				//if(true)
-				if(x > 0)
+				if(xValue !== null)
 				{
 					result += '<br>';
 				}
 			}
 
-			//if(true)
-			if(has.x)
+			if(xValue !== null)
 			{
 				result += '<span style="font-size: 40%; font-weight: 100; color: red">[<b style="color: blue; font-size: 150%; font-weight: 700;">x</b>]</span>';
 				result += '<span style="font-weight: 700;">' + x + '</span><span style="font-size: 80%; font-weight: 100; margin-left: 16px; color: yellow;">%</span>';
