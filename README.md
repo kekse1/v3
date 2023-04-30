@@ -26,6 +26,23 @@ The plan was to use a '*box*.js' (which is already there, btw), but planned to b
 windows on your PC.. so that's not the final plan, as it's not so beautiful on mobile browsers. And
 currently there are, btw, also '\*responsible\*.css', but they are going to be optimized as well.
 
+#### Radix Sort and Radix conversions
+
+#### Sort
+See '[file:///home/kuchen/git/www/kekse.biz/v3/docs/RadixSortRevisited.htm](Radix Sort Revisited)'!
+
+As in JavaScript there's usually everything being sorted with the help of pure Integers (only real
+floating point numbers - but they'll work here as well, due to their encoding..), the plan is to
+use the 'best' sorting algorithm.
+
+#### Conversions
+As already integrated in my [https://libjs.de/](lib.js / library.js), the regular 36 radix maximum
+isn't enough for me. It's even really useful that I'm supporting the 256 byte-code-radix (using all
+the one-byte-characters)! :D~
+
+Here's my current implementation (which is going to be ported to here!):
+* https://libjs.de/lib/lib.js/ext/numeric.js
+
 #### Contents
 The menu (`js/box.menu.js`) is using `js/page.js` to load the ressources under './**home**/' (see
 also the `json/config.json` - which is, btw, going to be completely replaced by CSS custom properties!
@@ -37,6 +54,9 @@ I also didn't forgot about `.txt` files beneath `.html`.. for the last doc-type,
 to embed `<script>` or `<style>` tags, so I manually filtered them out, to bring them to live on my
 own (against cross-site-attacs or smth. like this it's only allowed for HTTP requests to the current
 `location.host[name?]` ;)~ ..
+
+
+## Modules
 
 #### CSS
 See `css.js` and `css.matrix.js`.. the first one is implementing the base, to handle CSS on my own
@@ -56,8 +76,7 @@ instance, so you can switch on/off them, etc.. ^_^
 This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some
 on-screen-display a short time.
 
-#### All the modules ..
-... are located in `js/`, you need to inspect them by yourself.
+### Documentation!??
 
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
 but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
