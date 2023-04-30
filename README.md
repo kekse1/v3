@@ -2,7 +2,7 @@
 v3
 
 .. the real version of all the JavaScript's is available in the [version.json](https://raw.githubusercontent.com/kekse1/kekse.biz/main/version.json),
-which is, btw, being loaded and rendered in the web browser environment.
+'[version.json](https://raw.githubusercontent.com/kekse1/lib.js/git/version.json)', which is, btw, being loaded and rendered in the web browser environment.
 
 ## Preview
 * https://kekse.biz/v3/test.html
