@@ -76,9 +76,13 @@
 			_target.popup = result;
 			
 			//
+			result.x = _event.clientX;
+			result.y = _event.clientY;
+			
+			//
 			DEFAULT_PARENT.appendChild(result, null, () => {
 				result.style.opacity = '0';
-				result.open(_event, false, _callback);
+				result.open(_event, null, _callback);
 			});
 
 			//
@@ -97,10 +101,17 @@
 			}
 			else if(_update)
 			{
-				return this.update(_event);
+				return this.update(_event, true);
+			}
+			else if(_update !== null)
+			{
+				this.move(_event);
 			}
 		
-			[ this.x, this.y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+			this.style.right = this.style.bottom = 'auto';
+			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+			this.style.left = setValue(x);
+			this.style.top = setValue(y);
 
 			if(this._mode.startsWith('open'))
 			{
@@ -292,11 +303,12 @@
 		measureData(_event)
 		{
 			//
+throw new Error('TODO');
 		}
 		
 		get x()
 		{
-			return getComputedStyle(this).left;
+			return getValue(getComputedStyle(this).left, 'px');
 		}
 		
 		set x(_value)
@@ -304,6 +316,11 @@
 			if(! isNumber(_value) && typeof _value !== 'string')
 			{
 				return null;
+			}
+			else if(typeof _value === 'number')
+			{
+				const pos = this.getPosition(_value, this.y, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+				_value = pos[0];
 			}
 			
 			this.style.right = 'auto';
@@ -313,7 +330,7 @@
 		
 		get y()
 		{
-			return getComputedStyle(this).top;
+			return getValue(getComputedStyle(this).top, 'px');
 		}
 		
 		set y(_value)
@@ -321,6 +338,11 @@
 			if(! isNumber(_value) && typeof _value !== 'string')
 			{
 				return null;
+			}
+			else if(typeof _value === 'number')
+			{
+				const pos = this.getPosition(this.x, _value, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+				_value = pos[1];
 			}
 			
 			this.style.bottom = 'auto';
@@ -429,7 +451,11 @@
 			var result;
 			const r = _popup.related;
 			
-			if(! _popup.isVisible)
+			if(!r)
+			{
+				result = false;
+			}
+			else if(! r.isVisible)
 			{
 				result = false;
 			}
@@ -502,17 +528,19 @@
 		{
 			const index = [ ... Popup.INDEX ];
 
-			for(var i = 0, j = 0; i < index.length; ++i)
+			for(var i = 0; i < index.length; ++i)
 			{
+				index[i].move(_event);
+				
 				if(! index[i].test(_event))
 				{
-					index.splice(i--, 1)[0].close(_event);
+					index[i].close(_event);
 				}
 			}
 			
 			const popup = Popup.lookup(_event);
 			
-			if(popup) for(const p of popup)
+			if(popup.length > 0) for(const p of popup)
 			{
 				if(p.popup?.isPopup)
 				{
