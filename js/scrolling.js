@@ -469,70 +469,88 @@
 		{
 			return null;
 		}
-		
-		//
-		const _x = _elem.scrollX.toFixed(DEFAULT_OSD_ROUND);
-		const _y = _elem.scrollY.toFixed(DEFAULT_OSD_ROUND);
-		const has = { x: (_x > 0), y: (_y > 0) };
-		var x, y;
 
-		if(DEFAULT_OSD_ROUND === 0)
+		//
+		var xValue, yValue;
+
+		if(_elem.scrollX === 0 && _elem.clientWidth <= _elem.scrollWidth)
 		{
-			x = _x;
-			y = _y;
+			xValue = 100;
 		}
 		else
 		{
-			x = '';
-			y = '';
+			xValue = _elem.scrollX;
+		}
+
+		if(_elem.scrollY === 0 && _elem.clientHeight <= _elem.scrollHeight)
+		{
+			yValue = 100;
+		}
+		else
+		{
+			yValue = _elem.scrollY;
+		}
+
+		//
+		const has = { x: _elem.scrollX > 0, y: _elem.scrollY > 0 };
+
+		//
+		xValue = xValue.toFixed(DEFAULT_OSD_ROUND);
+		yValue = yValue.toFixed(DEFAULT_OSD_ROUND);
+
+		var x = '';
+		var y = '';
 			
-			for(var i = 0; i < _x.length; ++i)
+		for(var i = 0; i < xValue.length; ++i)
+		{
+			if(xValue[i] === '.')
 			{
-				if(_x[i] === '.')
-				{
-					x = x.padStart(3, ' ').replaces(' ', '&nbsp;');
-					x += '<span style="font-size: 55%;">' + _x.substr(i) + '</span>';
-					break;
-				}
-				else
-				{
-					x += _x[i];
-				}
+				x = x.padStart(3, ' ').replaces(' ', '&nbsp;');
+				x += '<span style="font-size: 55%;">' + xValue.substr(i) + '</span>';
+				break;
 			}
-			
-			for(var i = 0; i < _y.length; ++i)
+			else
 			{
-				if(_y[i] === '.')
-				{
-					y = y.padStart(3, ' ').replaces(' ', '&nbsp;');
-					y += '<span style="font-size: 55%;">' + _y.substr(i) + '</span>';
-					break;
-				}
-				else
-				{
-					y += _y[i];
-				}
+				x += xValue[i];
+			}
+		}
+			
+		for(var i = 0; i < yValue.length; ++i)
+		{
+			if(yValue[i] === '.')
+			{
+				y = y.padStart(3, ' ').replaces(' ', '&nbsp;');
+				y += '<span style="font-size: 55%;">' + yValue.substr(i) + '</span>';
+				break;
+			}
+			else
+			{
+				y += yValue[i];
 			}
 		}
 
 		//
 		var result;
 
+		//if(true)
 		if(has.x || has.y)
 		{
 			result = '<div>';
 
+			//if(true)
 			if(has.y)
 			{
 				result += '<span style="font-size: 40%; font-weight: 100; color: red;">[<b style="color: blue; font-size: 150%; font-weight: 700;">y</b>]</span>';
 				result += '<span style="font-weight: 700;">' + y + '</span><span style="font-size: 80%; font-weight: 100; margin-left: 16px; color: yellow;">%</span>';
 
+				//if(true)
 				if(x > 0)
 				{
 					result += '<br>';
 				}
 			}
 
+			//if(true)
 			if(has.x)
 			{
 				result += '<span style="font-size: 40%; font-weight: 100; color: red">[<b style="color: blue; font-size: 150%; font-weight: 700;">x</b>]</span>';

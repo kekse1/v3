@@ -214,6 +214,7 @@
 
 		//
 		result = _animate.call(this, _keyframes, _options);
+		_options = parameters;
 		const orig = result;
 
 		result.element = this;
@@ -236,7 +237,7 @@
 		//
 		var fin = false;
 
-		const ending = (_event) => {
+		const ending = (_event, _style = null) => {
 			//
 			if(fin)
 			{
@@ -245,6 +246,15 @@
 			else
 			{
 				fin = true;
+			}
+
+			//
+			if(_style)
+			{
+				for(const idx in _style)
+				{
+					this.style.setProperty(idx, _style[idx]);
+				}
 			}
 
 			//
@@ -290,33 +300,8 @@
 			}
 			else
 			{
-				ending(_event);
-			}
-
-			//
-			if(_event.type === 'finish')
-			{
-				result.currentTime = result.currentTime - 1;
 				style = getStyle();
-				result.currentTime = result.currentTime + 1;
-			}
-			else
-			{
-				style = getStyle();
-			}
-
-			if(_options.persist !== false)
-			{
-				setTimeout(() => {
-					if(this.getVariable('persist-resolved', true)) for(const idx in resolvedStyle)
-					{
-						this.style.setProperty(idx, resolvedStyle[idx]);
-					}
-					else for(const idx in style)
-					{
-						this.style.setProperty(idx, style[idx]);
-					}
-				}, 0);
+				ending(_event, (_event.type === 'finish' ? resolvedStyle : null));
 			}
 
 			//
@@ -325,7 +310,7 @@
 				//
 				_event.animation = result;
 				_event.animations = this.animation || null;
-				_event.finish = (_event.type === 'finish' || result.currentTime >= _options.duration);
+				_event.finish = (_event.type === 'finish' || (result.currentTime >= _options.duration));
 				_event.keyframes = _keyframes;
 				_event.cssProperties = cssProperties;
 				_event.originalStyle = originalStyle;
@@ -379,32 +364,19 @@
 			//
 			if(fin)
 			{
-				return null;
+				return style = getStyle();
+			}
+			else if(result.playState === 'finished')
+			{
+				return style = getStyle();
 			}
 			else
 			{
-				ending(null);
+				_pause(... _args);
+				style = getStyle();
+				ending(null, resolvedStyle);
+				_cancel(... _args);
 			}
-
-			//
-			if(result.playState === 'finished')
-			{
-				return null;
-			}
-
-			//
-			_pause(... _args);
-			style = getStyle();
-			const currentTime = result.currentTime;
-			_cancel(... _args);
-			
-			//
-			setTimeout(() => {
-				for(const idx in style)
-				{
-					this.style.setProperty(idx, style[idx]);
-				}
-			}, 0);
 
 			//
 			const e = {
@@ -415,8 +387,8 @@
 				style, cssProperties, resolvedStyle, originalStyle,
 				computedStyle, originalComputedStyle,
 				keyframes: _keyframes,
-				currentTime, duration: _options.duration,
-				time: Math.min(1, (currentTime / _options.duration))
+				currentTime: result.currentTime, duration: _options.duration,
+				time: Math.min(1, (result.currentTime / _options.duration))
 			};
 
 			//
@@ -438,25 +410,19 @@
 			//
 			if(fin)
 			{
-				return null;
+				return style = getStyle();
+			}
+			else if(result.playState === 'finished')
+			{
+				return style = getStyle();
 			}
 			else
 			{
-				ending(null);
+				_pause(... _args);
+				style = getStyle();
+				ending(null, null);
+				_cancel(... _args);
 			}
-
-			//
-			if(result.playState === 'finished')
-			{
-				return null;
-			}
-
-
-			//
-			_pause(... _args);
-			style = getStyle();
-			const currentTime = result.currentTime;
-			_cancel(... _args);
 
 			//
 			const e = {
@@ -467,8 +433,8 @@
 				style, cssProperties, resolvedStyle, originalStyle,
 				computedStyle, originalComputedStyle,
 				keyframes: _keyframes,
-				currentTime, duration: _options.duration,
-				time: Math.min(1, (currentTime / _options.duration))
+				currentTime: result.currentTime, duration: _options.duration,
+				time: Math.min(1, (result.currentTime / _options.duration))
 			};
 
 			//
@@ -492,23 +458,18 @@
 			{
 				return null;
 			}
-			else
-			{
-				ending(null);
-			}
-
-			//
-			if(result.playState === 'finished')
+			else if(result.playState === 'finished')
 			{
 				return null;
 			}
+			else
+			{
+				_pause(... _args);
+				style = getStyle();
+				ending(null, null);
+				_finish(... _args);
+			}
 
-			//
-			_pause(... _args);
-			style = getStyle();
-			const currentTime = result.currentTime;
-			_finish(... _args);
-			
 			//
 			if(_options.persist !== false) for(const idx in style)
 			{
@@ -524,8 +485,8 @@
 				style, cssProperties, resolvedStyle, originalStyle,
 				computedStyle, originalComputedStyle,
 				keyframes: _keyframes,
-				currentTime, duration: _options.duration,
-				time: Math.min(1, (currentTime / _options.duration))
+				currentTime: result.currentTime, duration: _options.duration,
+				time: Math.min(1, (result.currentTime / _options.duration))
 			};
 
 			//
@@ -547,7 +508,7 @@
 			//
 			if(result.playState === 'finished')
 			{
-				return style || null;
+				return style = getStyle();
 			}
 			else if(result.playState === 'paused')
 			{
@@ -560,9 +521,6 @@
 			}
 
 			//
-			const currentTime = result.currentTime;
-
-			//
 			const e = {
 				this: this, element: this,
 				type: 'pause',
@@ -572,8 +530,8 @@
 				style, cssProperties, resolvedStyle, originalStyle,
 				computedStyle, originalComputedStyle,
 				keyframes: _keyframes,
-				currentTime, duration: _options.duration,
-				time: Math.min(1, (currentTime / _options.duration))
+				currentTime: result.currentTime, duration: _options.duration,
+				time: Math.min(1, (result.currentTime / _options.duration))
 			};
 
 			//
@@ -2206,7 +2164,7 @@ var c=0;
 			throw new Error('Invalid _key argument (not a CSS style property)');
 		}
 
-		return this.animate({ [_key]: _value }, _options, _callback, _throw);
+		return this.animate({ [_key]: [ null, _value ] }, _options, _callback, _throw);
 	}});
 
 	//

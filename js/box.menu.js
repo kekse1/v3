@@ -1236,12 +1236,12 @@
 			_target.textNode.style.setProperty('transform-origin', _target.getVariable('transform-origin'));
 
 			//
-			keyframes.transform = [ `scale(${_target.getVariable('pointer-over-scale')})` ];
-			keyframes.color = [ _target.getVariable('pointer-over-color') ];
-			keyframes.textShadow = [ _target.getVariable('pointer-over-text-shadow') ];
-			keyframes.backgroundColor = [ _target.getVariable('pointer-over-background-color') ];
-			keyframes.opacity = [ ... _target.getVariable('pointer-over-opacity', true) ];
-			keyframes.borderColor = [ _target.getVariable('pointer-over-border-color', null) ];
+			keyframes.transform = [ null, `scale(${_target.getVariable('pointer-over-scale')})` ];
+			keyframes.color = [ null, _target.getVariable('pointer-over-color') ];
+			keyframes.textShadow = [ null, _target.getVariable('pointer-over-text-shadow') ];
+			keyframes.backgroundColor = [ null, _target.getVariable('pointer-over-background-color') ];
+			keyframes.opacity = [ null, ... _target.getVariable('pointer-over-opacity', null).split(' ') ];
+			keyframes.borderColor = [ null, _target.getVariable('pointer-over-border-color', null) ];
 
 			//
 			var count = 2;
@@ -1311,7 +1311,10 @@
 					if(--count <= 0)
 					{
 						delete _target.OVER;
-						return Menu.Item.onpointerout(_event, _target, _callback);
+
+						return setTimeout(() => {
+							return Menu.Item.onpointerout(_event, _target, _callback);
+						}, 0);
 					}
 				};
 
@@ -1347,14 +1350,14 @@
 			_target.textNode.style.setProperty('transform-origin', _target.getVariable('transform-origin'));
 
 			//
-			keyframes.transform = [ 'none' ];
-			keyframes.filter = [ 'none' ];
-			keyframes.opacity = [ '1' ];
-			keyframes.color = [ _target._originalPointerStyle.color ];
-			keyframes.textShadow = [ _target._originalPointerStyle.textShadow ];
-			keyframes.backgroundColor = [ _target._originalPointerStyle.backgroundColor ];
-			keyframes.border = [ _target._originalPointerStyle.border ];
-			keyframes.borderRadius = [ _target._originalPointerStyle.borderRadius ];
+			keyframes.transform = [ null, 'none' ];
+			keyframes.filter = [ null, 'none' ];
+			keyframes.opacity = [ null, '1' ];
+			keyframes.color = [ null, _target._originalPointerStyle.color ];
+			keyframes.textShadow = [ null, _target._originalPointerStyle.textShadow ];
+			keyframes.backgroundColor = [ null, _target._originalPointerStyle.backgroundColor ];
+			keyframes.border = [ null, _target._originalPointerStyle.border ];
+			keyframes.borderRadius = [ null, _target._originalPointerStyle.borderRadius ];
 
 			//
 			var count = 2;
