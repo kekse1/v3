@@ -377,7 +377,156 @@
 
 				if(_type === 'html')
 				{
-//throw new Error('TODO');//TODO/FIXME/!!!!
+					var idx1 = -1;
+					var idx2 = -1;
+					var start = 0;
+					var stop = -1;
+					var open = '';
+					var outer = '';
+					var inner;
+					var fin = false;
+					
+					do
+					{
+						//
+						if(open.length > 0)
+						{
+							switch(open)
+							{
+								case 'style':
+									idx1 = data.indexOf(' />', start);
+									idx2 = data.indexOf('</style>', start);
+
+									if(idx1 === -1 && idx2 === -1)
+									{
+										break;
+									}
+									else if(idx1 > -1 && idx2 > -1)
+									{
+										if(idx1 < idx2)
+										{
+											inner = data.substring(start, stop = idx1 + 3);
+										}
+										else
+										{
+											inner = data.substring(start, stop = idx2 + 8);
+										}
+									}
+									else if(idx1 > -1)
+									{
+										inner = data.substring(start, stop = idx1 + 3);
+									}
+									else
+									{
+										inner = data.substring(start, stop = idx2 + 8);
+									}
+
+									if(inner.length > 0)
+									{
+										styles.push(inner);
+										inner = '';
+									}
+									break;
+								case 'script':
+									idx1 = data.indexOf(' />', start);
+									idx2 = data.indexOf('</script>', start);
+
+									if(idx1 === -1 && idx2 === -1)
+									{
+										break;
+									}
+									else if(idx1 > -1 && idx2 > -1)
+									{
+										if(idx1 < idx2)
+										{
+											inner = data.substring(start, stop = idx1 + 3);
+										}
+										else
+										{
+											inner = data.substring(start, stop = idx2 + 9);
+										}
+									}
+									else if(idx1 > -1)
+									{
+										inner = data.substring(start, stop = idx1 + 3);
+									}
+									else
+									{
+										inner = data.substring(start, stop = idx2 + 9);
+									}
+									
+									if(inner.length > 0)
+									{
+										scripts.push(inner);
+										inner = '';
+									}
+									break;
+							}
+							
+							open = '';
+						}
+
+						idx1 = data.indexOf('<style', idx1);
+						idx2 = data.indexOf('<script', idx2);
+
+						if(idx1 === -1 && idx2 === -1)
+						{
+							stop = start;
+							start = data.length - 1;
+							fin = true;
+						}
+						else
+						{
+							if(idx1 > -1 && data[idx1] === '>')
+							{
+								++idx1;
+							}
+							
+							if(idx2 > -1 && data[idx2] === '>')
+							{
+								++idx2;
+							}
+						
+							if(idx1 > -1 && idx2 > -1)
+							{
+								if(idx1 < idx2)
+								{
+									open = 'style';
+									start = idx1;
+								}
+								else
+								{
+									open = 'script';
+									start = idx2;
+								}
+							}
+							else if(idx1 > -1)
+							{
+								open = 'style';
+								start = idx1;
+							}
+							else
+							{
+								open = 'script';
+								start = idx2;
+							}
+						}
+						
+						if(stop > -1)
+						{
+							outer += data.substring(stop, start);
+						}
+						
+						if(fin)
+						{
+							break;
+						}
+					}
+					while(true);
+					
+					console.dir(outer);
+					console.dir(scripts);
+					console.dir(styles);
 				}
 
 				if(! (document.getVariable('page-scripting', true) && local))
