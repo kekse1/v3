@@ -1799,7 +1799,15 @@ throw new Error('TODO');
 	}});
 
 	//
-	const animateData = (_callback, _data, _duration, _delete_mul, _property, _element, _intermediate_callback, _throw = DEFAULT_THROW) => {
+	const animateData = (_callback, _data, _duration, _delay, _delete_mul, _property, _element, _intermediate_callback, _throw = DEFAULT_THROW) => {
+		//
+		if(isInt(_delay) && _delay >= 0)
+		{
+			return setTimeout(() => {
+				return animateData(_callback, _data, _duration, null, _delete_mul, _property, _element, _intermediate_callback, _throw);
+			}, _delay);
+		}
+
 		//
 		if(typeof _throw !== 'boolean')
 		{
@@ -1851,7 +1859,7 @@ throw new Error('TODO');
 			delete _element._dataAnimation;
 
 			setTimeout(() => {
-				return animateData(_callback, _data, _duration, _delete_mul, _property, _element, _intermediate_callback, _throw);
+				return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, _element, _intermediate_callback, _throw);
 			}, 0);
 
 			return _data;
@@ -2100,7 +2108,7 @@ var c=0;
 	};
 
 	//
-	Object.defineProperty(Node.prototype, 'setText', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'textContent', _throw = DEFAULT_THROW)
+	Object.defineProperty(Node.prototype, 'setText', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delay = this.getVariable('data-delay', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'textContent', _throw = DEFAULT_THROW)
 	{
 		if(! isString(_property, false))
 		{
@@ -2112,12 +2120,12 @@ var c=0;
 			return this[_property];
 		}
 		
-		return animateData(_callback, _data, _duration, _delete_mul, _property, this, _intermediate_callback, _throw);
+		return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, this, _intermediate_callback, _throw);
 	}});
 	
 	Object.defineProperty(Element.prototype, 'setText', { value: Node.prototype.setText });
 	
-	Object.defineProperty(Element.prototype, 'setHTML', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'innerHTML', _throw = DEFAULT_THROW)
+	Object.defineProperty(Element.prototype, 'setHTML', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delay = this.getVariable('data-delay', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'innerHTML', _throw = DEFAULT_THROW)
 	{
 		if(! isString(_property, false))
 		{
@@ -2129,12 +2137,12 @@ var c=0;
 			return this[_property];
 		}
 		
-		return animateData(_callback, _data, _duration, _delete_mul, _property, this, _intermediate_callback, _throw);
+		return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, this, _intermediate_callback, _throw);
 	}});
 	
 	Object.defineProperty(HTMLElement.prototype, 'setHTML', { value: Element.prototype.setHTML });
 	
-	Object.defineProperty(HTMLElement.prototype, 'setText', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'innerText', _throw = DEFAULT_THROW)
+	Object.defineProperty(HTMLElement.prototype, 'setText', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delay = this.getVariable('data-delay', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'innerText', _throw = DEFAULT_THROW)
 	{
 		if(! isString(_property, false))
 		{
@@ -2146,7 +2154,7 @@ var c=0;
 			return this[_property];
 		}
 		
-		return animateData(_callback, _data, _duration, _delete_mul, _property, this, _intermediate_callback, _throw);
+		return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, this, _intermediate_callback, _throw);
 	}});
 
 	Object.defineProperty(HTMLElement.prototype, 'setStyle', { value: function(_key, _value, _options, _callback, _throw = DEFAULT_THROW)

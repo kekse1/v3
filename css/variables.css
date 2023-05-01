@@ -53,6 +53,7 @@
 	--page-scroll-block: start;
 	--page-fallback-type: text;/*html*/
 	--page-data-duration: 3800;
+	--page-data-delay: 0;
 	--page-data-delete-mul: null;
 	--page-blink-duration: 2000;
 	--page-blink-count: 1;

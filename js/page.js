@@ -136,7 +136,7 @@
 			return result;
 		}
 
-		static get(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
+		static get(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delay = document.getVariable('data-delay', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
 		{
 			if(typeof _throw !== 'boolean')
 			{
@@ -161,7 +161,7 @@
 				return Page.executeJavaScript(_link, DEFAULT_CONTEXT, _throw);
 			}
 
-			return Page.getLink(_link, _target, _callback, _options, _type, _animate, _delete_mul, _throw);
+			return Page.getLink(_link, _target, _callback, _options, _type, _animate, _delay, _delete_mul, _throw);
 		}
 
 		static getHash(_link, _callback, _reload = document.getVariable('page-reload-hash', true), _throw = DEFAULT_THROW)
@@ -251,7 +251,7 @@
 			return result;
 		}
 
-		static getLink(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
+		static getLink(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delay = document.getVariable('data-delay', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
 		{
 			if(typeof _throw !== 'boolean')
 			{
@@ -340,6 +340,11 @@
 			else
 			{
 				doAnimate = true;
+			}
+
+			if(! (isInt(_delay) && _delay >= 0))
+			{
+				_delay = 0;
 			}
 			
 			if(_delete_mul !== null && !(isNumber(_delete_mul) && _delete_mul > 0))
@@ -634,7 +639,7 @@
 						else if(_anim)
 						{
 							_target.innerHTML = '';
-							_target.setHTML(_cb, _value, _animate, _delete_mul, 'innerHTML', _throw);
+							_target.setHTML(_cb, _value, _animate, _delay, _delete_mul, 'innerHTML', _throw);
 						}
 						else
 						{
@@ -662,7 +667,7 @@
 							if(_anim)
 							{
 								_target.textContent = '';
-								_target.setText(_cb, _value, _animate, _delete_mul, 'textContent', _throw);
+								_target.setText(_cb, _value, _animate, _delay, _delete_mul, 'textContent', _throw);
 							}
 							else
 							{
@@ -679,7 +684,7 @@
 							if(_anim)
 							{
 								_target.innerText = '';
-								_target.setText(_cb, _value, _animate, _delete_mul, 'innerText', _throw);
+								_target.setText(_cb, _value, _animate, _delay, _delete_mul, 'innerText', _throw);
 							}
 							else
 							{

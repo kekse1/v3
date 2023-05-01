@@ -261,7 +261,7 @@
 						if(textNode) textNode._resetTextAnimation = textNode.setHTML(() => {
 							delete textNode._resetTextAnimation;
 							textNode.innerHTML = '';
-						}, '', this.getVariable('data-duration', true));
+						}, '', this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 
 						//
 						if(imageNode) imageNode.out(options, (_e, _f) => {
@@ -532,10 +532,7 @@
 
 							if(! abort)
 							{
-								textNode._dataTimeout = setTimeout(() => {
-									textNode.setHTML(null, imageNode.data, this.getVariable('data-duration', true));
-									delete textNode._dataTimeout;
-								}, this.getVariable('data-delay', true));
+								textNode.setHTML(null, imageNode.data, this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 							}
 
 							call(callback, node, imageNode, textNode, index);

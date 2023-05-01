@@ -22,7 +22,7 @@
 	const mod = dynamic.module = {};
 
 	//
-	const setHTML = (_element, _html, _animate = _element, _duration = _element.getVariable('data-duration', true)) => {
+	const setHTML = (_element, _html, _animate = _element, _duration = _element.getVariable('data-duration', true), _delay = _element.getVariable('data-delay', true)) => {
 		//
 		var animationElement;
 		
@@ -60,7 +60,7 @@
 			return blink();
 		}
 
-		return _element.setHTML(blink, _html, _duration);
+		return _element.setHTML(blink, _html, _duration, _delay);
 	};
 
 	//
