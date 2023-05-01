@@ -15,7 +15,6 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PARENT = HTML;
-	const DEFAULT_RE = null;
 		
 	//
 	Popup = Box.Popup = class Popup extends Box
@@ -93,54 +92,58 @@
 			return result;
 		}
 	
-		open(_event, _callback, _re = false)
+		open(_event, _callback)
 		{
-			this.move(_event);
-			
 			if(this.isOpen)
 			{
-				return null;
+				return this.move(_event);
 			}
 			else if(this.IN)
 			{
-				return this.IN;
+				return this.move(_event);
 			}
 			else if(this.OUT)
 			{
 				return this.OUT.stop(() => {
-					return this.open(_event, _callback, DEFAULT_RE);
+					return this.open(_event, _callback);
 				});
 			}
 			else if(this.forceDestroy)
 			{
-				if(this.OUT)
+				if(! this.OUT)
 				{
-					return this.OUT.stop(() => {
-						return this.close(_event, _callback);
-					});
+					return this.close(_event, _callback, true);
 				}
-
-				return this.close(_event, _callback, true);
+				
+				return this.move(_event);
 			}
 
 			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
 
 			return this.in({
 				duration: this.getVariable('duration', true), delay: 0,
-				rotate: (_re !== true)
+				position: true, left: setValue(x, 'px'), top: setValue(y, 'px')
 			}, (_e, _f) => {
 				call(_callback, { type: 'open', event: _e, finish: _f }, _f);
 			});
 		}
 		
-		close(_event, _callback, _force_destroy = false, _re = false)
+		close(_event, _callback, _force_destroy = false)
 		{
-			//
-			this.move(_event);
-			
 			//
 			if(this.isClosed)
 			{
+				return null;
+			}
+			else if(this.forceDestroy)
+			{
+				this.move(_event);
+
+				if(!this.OUT && !this.isClosed)
+				{
+					return this.close(_event, _callback);
+				}
+
 				return null;
 			}
 			else
@@ -150,12 +153,12 @@
 
 			if(this.OUT)
 			{
-				return this.OUT;
+				return this.move(_event);
 			}
 			else if(this.IN)
 			{
 				return this.IN.stop(() => {
-					return this.close(_event, _callback, _force_destroy, DEFAULT_RE);
+					return this.close(_event, _callback, _force_destroy);
 				});
 			}
 
@@ -168,7 +171,7 @@
 			
 			return this.out({
 				duration: this.getVariable('duration', true), delay: 0,
-				rotate: (_re !== true)
+				position: true, left: setValue(x), top: setValue(y)
 			}, (_e, _f) => {
 				if(_f || this.forceDestroy)
 				{
