@@ -76,7 +76,7 @@
 			
 			const cb = (_e, _f) => {
 				delete result.IN;
-				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: result.getVariable('timeout', true) }, _e, _f, result);
+				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: result.getVariable('timeout', true) }, _f, result);
 			};
 
 			result.IN = result.animate({
@@ -115,19 +115,19 @@
 				if(box.parentNode)
 				{
 					box.parentNode.removeChild(box, null, () => {
-						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _e, _f, box);
+						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
 					});
 				}
 				else
 				{
-					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _e, _f, box);
+					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
 				}
 
 				osd.box = null;
 			}
 			else
 			{
-				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _e, _f, box);
+				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
 			}
 		};
 
@@ -183,7 +183,7 @@
 		//
 		const cb = (_e, _f) => {
 			delete box.IN;
-			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box }, _e, _f, box);
+			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box }, _f, box);
 		};
 		
 		if(box.IN)

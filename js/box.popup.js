@@ -124,7 +124,7 @@
 				duration: this.getVariable('duration', true), delay: 0,
 				position: true, left: setValue(x, 'px'), top: setValue(y, 'px')
 			}, (_e, _f) => {
-				call(_callback, { type: 'open', event: _e, finish: _f }, _e, _f);
+				call(_callback, { type: 'open', event: _e, finish: _f }, _f);
 			});
 		}
 		
@@ -164,7 +164,7 @@
 
 			//
 			const callback = (_e, _f) => {
-				call(_callback, { type: (_f ? 'destroy' : 'close'), event: _e, finish: _f }, _e, _f);
+				call(_callback, { type: (_f ? 'destroy' : 'close'), event: _e, finish: _f }, _f);
 			};
 
 			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
@@ -230,7 +230,7 @@
 				const moveIt = () => {
 					return this.MOVE = this.animate(keyframes, options, (_e, _f) => {
 						delete this.MOVE;
-						call(_callback, { type: 'move', event: _e, finish: _f }, _e, _f);
+						call(_callback, { type: 'move', event: _e, finish: _f }, _f);
 					});
 				}
 				

@@ -110,7 +110,7 @@
 			{
 				this.parentNode.removeChild(this, _animate, (_e, _f) => {
 					this.destroyed = true;
-					call(_callback, { type: 'destroy', event: _e, finish: _f }, _e, _f);
+					call(_callback, { type: 'destroy', event: _e, finish: _f }, _f);
 				});
 			}
 			else
