@@ -26,9 +26,6 @@
 
 			//
 			this.identifyAs('popup');
-
-			//
-			this._mode = 'closed';
 		}
 
 		static create(_event, _target = _event.target, _callback = null, _throw = DEFAULT_THROW)
@@ -36,14 +33,19 @@
 			//
 			if(typeof _target.dataset.popup !== 'string')
 			{
-				if(_throw)
+				if(_target.isPopup)
+				{
+					_target = _target.related;
+				}
+				else if(_throw)
 				{
 					throw new Error('Your .dataset.popup is not a String, so we can\'t create a new Popup');
 				}
 				
 				return null;
 			}
-			else if(_target.dataset.popup.length === 0)
+			
+			if(_target.dataset.popup.length === 0)
 			{
 				if(_throw)
 				{
@@ -70,70 +72,58 @@
 			
 			//
 			result.isPopup = true;
+			result.hasPopup = null;
 			result.related = _target;
 			_target.related = result;
 			_target.isPopup = false;
+			_target.hasPopup = true;
 			_target.popup = result;
 			
 			//
 			result.x = _event.clientX;
 			result.y = _event.clientY;
-			
+
 			//
 			DEFAULT_PARENT.appendChild(result, null, () => {
-				result.style.opacity = '0';
-				result.open(_event, null, _callback);
+				result.open(_event, _callback);
 			});
 
 			//
 			return result;
 		}
 	
-		open(_event, _update = true, _callback)
+		open(_event, _callback)
 		{
-			if(! _event)
+			if(this.isOpen)
 			{
-				return null;
+				return this.move(_event);
+			}
+			else if(this.IN)
+			{
+				return this.move(_event);
+			}
+			else if(this.OUT)
+			{
+				return this.OUT.stop(() => {
+					return this.open(_event, _callback);
+				});
 			}
 			else if(this.forceDestroy)
 			{
-				return false;
+				if(! this.OUT)
+				{
+					return this.close(_event, _callback, true);
+				}
+				
+				return this.move(_event);
 			}
-			else if(_update)
-			{
-				return this.update(_event, true);
-			}
-			else if(_update !== null)
-			{
-				this.move(_event);
-			}
-		
-			this.style.right = this.style.bottom = 'auto';
+
 			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
-			this.style.left = setValue(x);
-			this.style.top = setValue(y);
 
-			if(this._mode.startsWith('open'))
-			{
-				return this;
-			}
-			else
-			{
-				this._mode = 'opening';
-			}
-			
 			return this.in({
-				duration: this.getVariable('duration', true), delay: 0
+				duration: this.getVariable('duration', true), delay: 0,
+				position: true, left: setValue(x, 'px'), top: setValue(y, 'px')
 			}, (_e, _f) => {
-				if(_f)
-				{
-					this._mode = 'open';
-				}
-				else
-				{
-					this._mode = 'half';
-				}
-
 				call(_callback, { type: 'open', event: _e, finish: _f }, _e, _f);
 			});
 		}
@@ -141,36 +131,48 @@
 		close(_event, _callback, _force_destroy = false)
 		{
 			//
-			this.forceDestroy = _force_destroy = !!_force_destroy;
+			if(this.isClosed)
+			{
+				return null;
+			}
+			else if(this.forceDestroy)
+			{
+				this.move(_event);
+
+				if(!this.OUT && !this.isClosed)
+				{
+					return this.close(_event, _callback);
+				}
+
+				return null;
+			}
+			else
+			{
+				this.forceDestroy = !!_force_destroy;
+			}
+
+			if(this.OUT)
+			{
+				return this.move(_event);
+			}
+			else if(this.IN)
+			{
+				return this.IN.stop(() => {
+					return this.close(_event, _callback, _force_destroy);
+				});
+			}
 
 			//
 			const callback = (_e, _f) => {
 				call(_callback, { type: (_f ? 'destroy' : 'close'), event: _e, finish: _f }, _e, _f);
 			};
 
-			[ this.x, this.y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
 			
-			if(this._mode.startsWith('clos'))
-			{
-				return this;
-			}
-			else
-			{
-				this._mode = 'closing';
-			}
-
 			return this.out({
-				duration: this.getVariable('duration', true), delay: 0//,
+				duration: this.getVariable('duration', true), delay: 0,
+				position: true, left: setValue(x), top: setValue(y)
 			}, (_e, _f) => {
-				if(_f)
-				{
-					this._mode = 'closed';
-				}
-				else
-				{
-					this._mode = 'half';
-				}
-
 				if(_f || this.forceDestroy)
 				{
 					this.destroy(_event, callback);
@@ -182,30 +184,6 @@
 			});
 		}
 
-		update(_event, _move = true, _callback)
-		{
-			if(_event && _move)
-			{
-				this.move(_event);
-			}
-			
-			if(!this.forceDestroy && typeof this.related.dataset.popup === 'string' && this.related.dataset.popup.length > 0)
-			{
-				if(this.related.dataset.popup !== (this._dataAnimation || this.innerHTML))
-				{
-					this.innerHTML = this.related.dataset.popup;
-				}
-
-				return this.open(_event, false, _callback);
-			}
-			else
-			{
-				return this.close(_event, _callback, !!this.forceDestroy);
-			}
-			
-			return this;
-		}
-		
 		move(_event_x, _y, _animate = this.getVariable('pointer-animation', true), _callback, _throw = DEFAULT_THROW)
 		{
 			//
@@ -232,12 +210,14 @@
 			
 			//
 			this.style.right = this.style.bottom = 'auto';
-			[ x, y ] = this.getPosition(x, y, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
 
-			//
-			if(!!_animate)
+			if(!! _animate)
 			{
+				[ x, y ] = this.getPosition(x, y, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
+
 				const keyframes = {
+					right: [ 'auto' ],
+					bottom: [ 'auto' ],
 					left: [ setValue(x, 'px', true) ],
 					top: [ setValue(y, 'px', true) ]
 				};
@@ -275,11 +255,7 @@
 		
 		destroy(_event, _callback, ... _args)
 		{
-			//
 			return super.destroy(null, () => {
-				//
-				this._mode = '';
-			
 				//
 				Box._INDEX.remove(this);
 
@@ -289,6 +265,7 @@
 					delete this.related.popup;
 					delete this.related.related;
 					delete this.related.isPopup;
+					delete this.related.hasPopup;
 					delete this.related;
 				}
 			
@@ -382,33 +359,20 @@ throw new Error('TODO');
 				{
 					continue;
 				}
-				
-				if(elements[i].isPopup && elements[i].related)
+				else if(typeof elements[i].dataset.popup === 'string')
 				{
-					result[j++] = elements[i].related;
-					continue;
-				}
-				
-				if(elements[i].popup && elements[i].popup.isPopup)
-				{
-					result[j++] = elements[i];
-					continue;
-				}
-				
-				if(typeof elements[i].dataset.popup === 'string')
-				{
-					if(elements[i].dataset.popup.length === 0)
+					if(elements[i].isPopup || elements[i].hasPopup)
+					{
+						continue;
+					}
+					else if(elements[i].dataset.popup.length > 0)
+					{
+						result[j++] = elements[i];
+					}
+					else
 					{
 						break;
 					}
-
-					result[j++] = elements[i];
-					continue;
-				}
-
-				if(elements[i].getVariable('popup', true) === false)
-				{
-					break;
 				}
 			}
 
@@ -526,36 +490,37 @@ throw new Error('TODO');
 		
 		static onpointermove(_event)
 		{
+			//
 			const index = [ ... Popup.INDEX ];
-
-			for(var i = 0; i < index.length; ++i)
+			
+			for(const p of index)
 			{
-				index[i].move(_event);
-				
-				if(! index[i].test(_event))
+				if(p.test(_event))
 				{
-					index[i].close(_event);
+					if(p.isOpen)
+					{
+						p.move(_event);
+					}
+					else
+					{
+						p.open(_event);
+					}
+				}
+				else
+				{
+					if(! p.isClosed)
+					{
+						p.close(_event);
+					}
 				}
 			}
 			
-			const popup = Popup.lookup(_event);
-			
-			if(popup.length > 0) for(const p of popup)
+			//
+			const elements = Popup.lookup(_event);
+
+			for(const e of elements)
 			{
-				if(p.popup?.isPopup)
-				{
-					if(p.popup.update(_event))
-					{
-						_event.preventDefault();
-					}
-				}
-				else if(typeof p.dataset.popup === 'string' && p.dataset.popup.length > 0)
-				{
-					if(Popup.create({ clientX: _event.clientX, clientY: _event.clientY, target: p }, p))
-					{
-						_event.preventDefault();
-					}
-				}
+				Popup.create({ clientX: _event.clientX, clientY: _event.clientY, target: e }, e);
 			}
 		}
 		

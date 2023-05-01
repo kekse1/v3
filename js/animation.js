@@ -246,12 +246,9 @@
 			}
 
 			//
-			if(_style)
+			if(_style) for(const idx in _style)
 			{
-				for(const idx in _style)
-				{
-					this.style.setProperty(idx, _style[idx]);
-				}
+				this.style.setProperty(idx, _style[idx]);
 			}
 
 			//
@@ -298,7 +295,7 @@
 			else
 			{
 				style = getStyle();
-				ending(_event, (_event.type === 'finish' ? resolvedStyle : null));
+				ending(_event, (_event.type === 'finish' ? resolvedStyle : (_options.persist !== false ? style : null)));
 			}
 
 			//
@@ -370,8 +367,7 @@
 			else
 			{
 				_pause(... _args);
-				style = getStyle();
-				ending(null, resolvedStyle);
+				ending(null, style = getStyle());
 				_cancel(... _args);
 			}
 
@@ -2182,12 +2178,16 @@ var c=0;
 		//
 		if(this.IN)
 		{
-			return this.IN;
+			return this.IN.stop((_e, _f) => {
+				return this.in(_options, _callback, _throw);
+				//return this.in(Object.assign(_options, { fontSize: null }), _callback, _throw);
+			});
 		}
 		else if(this.OUT)
 		{
 			return this.OUT.stop((_e, _f) => {
-				return this.in(Object.assign(_options, { fontSize: null }), _callback, _throw);
+				return this.in(_options, _callback, _throw);
+				//return this.in(Object.assign(_options, { fontSize: null }), _callback, _throw);
 			});
 		}
 		else if(typeof _callback !== 'function')
@@ -2277,7 +2277,18 @@ var c=0;
 		//
 		if(_options.opacity !== false)
 		{
-			keyframes.opacity = [ computedStyle.opacity, '1' ];
+			keyframes.opacity = new Array(2);
+
+			if(computedStyle.opacity.length === 0 || computedStyle.opacity === '1')
+			{
+				keyframes.opacity[0] = '0';
+			}
+			else
+			{
+				keyframes.opacity[0] = computedStyle.opacity;
+			}
+
+			keyframes.opacity[1] = '1';
 		}
 
 		if(_options.transform !== false)
@@ -2393,9 +2404,16 @@ var c=0;
 		//
 		this.style.overflow = 'hidden';
 		this.scrolling = false;
+		
+		this.isOpen = false;
+		this.isClosed = false;
 
 		//
 		return this.IN = this.animate(keyframes, _options, (_e, _f) => {
+			//
+			this.isOpen = _f;
+			this.isClosed = false;
+
 			//
 			delete this.IN;
 			delete this.OUT;
@@ -2407,7 +2425,7 @@ var c=0;
 			//
 			if(_callback)
 			{
-				call(_callback, { type: 'in', event: _e, finish: _f, this: this }, _e, _f);
+				call(_callback, { type: 'in', event: _e, finish: _f, this: this }, _f);
 			}
 
 			//
@@ -2421,7 +2439,9 @@ var c=0;
 		//
 		if(this.OUT)
 		{
-			return this.OUT;
+			return this.OUT.stop((_e, _f) => {
+				return this.out(_options, _callback, _throw);
+			});
 		}
 		else if(this.IN)
 		{
@@ -2517,7 +2537,18 @@ var c=0;
 		//
 		if(_options.opacity !== false)
 		{
-			keyframes.opacity = [ computedStyle.opacity, '0' ];
+			keyframes.opacity = new Array(2);
+
+			if(computedStyle.opacity.length === 0 || computedStyle.opacity === '0')
+			{
+				keyframes.opacity[0] = '1';
+			}
+			else
+			{
+				keyframes.opacity[0] = computedStyle.opacity;
+			}
+
+			keyframes.opacity[1] = '0';
 		}
 
 		if(_options.transform !== false)
@@ -2635,7 +2666,15 @@ var c=0;
 		this.scrolling = false;
 
 		//
+		this.isOpen = false;
+		this.isClosed = false;
+
+		//
 		return this.OUT = this.animate(keyframes, _options, (_e, _f) => {
+			//
+			this.isOpen = false;
+			this.isClosed = _f;
+
 			//
 			delete this.IN;
 			delete this.OUT;
@@ -2651,7 +2690,7 @@ var c=0;
 			}
 			
 			//
-			call(_callback, { type: 'out', event: _e, finish: _f, this: this }, _e, _f);
+			call(_callback, { type: 'out', event: _e, finish: _f, this: this }, _f);
 			
 			//
 			this.emit('out', { type: 'out', subType: _e.type, options: _options, event: _e, finish: _f });
