@@ -482,8 +482,9 @@
 
 		//
 		var xValue, yValue;
+		const computed = getComputedStyle(_elem);
 
-		if(_elem.clientWidth >= _elem.scrollWidth)
+		if(_elem.clientWidth >= _elem.scrollWidth || computed.overflowX === 'hidden')
 		{
 			xValue = null;
 		}
@@ -492,7 +493,7 @@
 			xValue = _elem.scrollX;
 		}
 
-		if(_elem.clientHeight >= _elem.scrollHeight)
+		if(_elem.clientHeight >= _elem.scrollHeight || computed.overflowY === 'hidden')
 		{
 			yValue = null;
 		}
@@ -502,8 +503,23 @@
 		}
 
 		//
-		xValue = (xValue === null ? null : xValue.toFixed(DEFAULT_OSD_ROUND));
-		yValue = (yValue === null ? null : yValue.toFixed(DEFAULT_OSD_ROUND));
+		if(xValue === null)
+		{
+			xValue = (100).toFixed(DEFAULT_OSD_ROUND);
+		}
+		else
+		{
+			xValue = xValue.toFixed(DEFAULT_OSD_ROUND);
+		}
+
+		if(yValue === null)
+		{
+			yValue = (100).toFixed(DEFAULT_OSD_ROUND);
+		}
+		else
+		{
+			yValue = yValue.toFixed(DEFAULT_OSD_ROUND);
+		}
 
 		var x = '';
 		var y = '';
