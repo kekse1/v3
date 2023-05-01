@@ -749,6 +749,115 @@
 			return this.movable;
 		}
 		
+		static onpointerdown(_event, _target = _event.target)
+		{
+			if(was(_target, 'Box'))
+			{
+				if(! _target.classList.contains('move'))
+				{
+					_target.startMove(_target.updatePointer(_event));
+				}
+			}
+		}
+		
+		static onpointerup(_event, _target = _event.target)
+		{
+			for(const box of Box._INDEX)
+			{
+				if(box.classList.contains('move'))
+				{
+					box.stopMove(box.updatePointer(_event));
+				}
+			}
+		}
+		
+		static onpointermove(_event, _target = _event.target)
+		{
+			for(const box of Box._INDEX)
+			{
+				if(box.classList.contains('move'))
+				{
+					box.move(box.updatePointer(_event));
+				}
+			}
+		}
+
+		static onkeydown(_event, _target = _event.target)
+		{
+			/*switch(_event.key)
+			{
+				case 'Escape':
+					for(const box of Box._INDEX)
+					{
+						box.stopMove(box.updatePointer(_event));
+					}
+					break;
+				default:
+					return;
+			}
+
+			_event.preventDefault();*/
+		}
+		
+		/*startMove(_pointer, _event = _pointer.event)
+		{
+			if(! _pointer.down)
+			{
+				return this.stopMove(_pointer, _event);
+			}
+			else if(! this.movable)
+			{
+				return this.stopMove(_pointer, _event);
+			}
+			else if(! this.classList.contains('move'))
+			{
+				this.classList._add('move');
+			}
+
+			if(this.popup)
+			{
+				this.popup.close(_event, false);
+			}
+
+			return true;
+		}
+		
+		stopMove(_pointer, _event = _pointer.event)
+		{
+			if(_pointer.down)
+			{
+				return false;
+			}
+			else if(this.classList.contains('move'))
+			{
+				this.classList._remove('move');
+			}
+
+			return true;
+		}
+		
+		moveBox(_pointer, _event = _pointer.event)
+		{
+			if(! this.classList.contains('move'))
+			{
+				return false;
+			}
+
+			if(! this.centerX)
+			{
+				this.style.right = 'auto';
+				this.style.left = setValue(this.left + _pointer.dx);
+			}
+			
+			if(! this.centerY)
+			{
+				this.style.bottom = 'auto';
+				this.style.top = setValue(this.top + _pointer.dy);
+			}
+			
+			return true;
+		}
+
 		updatePointer(_event, ... _actions)
 		{
 			//
@@ -861,116 +970,7 @@
 			}
 			
 			return pointer;
-		}
-		
-		static onpointerdown(_event, _target = _event.target)
-		{
-			if(was(_target, 'Box'))
-			{
-				if(! _target.classList.contains('move'))
-				{
-					_target.startMove(_target.updatePointer(_event));
-				}
-			}
-		}
-		
-		static onpointerup(_event, _target = _event.target)
-		{
-			for(const box of Box._INDEX)
-			{
-				if(box.classList.contains('move'))
-				{
-					box.stopMove(box.updatePointer(_event));
-				}
-			}
-		}
-		
-		static onpointermove(_event, _target = _event.target)
-		{
-			for(const box of Box._INDEX)
-			{
-				if(box.classList.contains('move'))
-				{
-					box.move(box.updatePointer(_event));
-				}
-			}
-		}
-
-		static onkeydown(_event, _target = _event.target)
-		{
-			switch(_event.key)
-			{
-				case 'Escape':
-					for(const box of Box._INDEX)
-					{
-						box.stopMove(box.updatePointer(_event));
-					}
-					break;
-				default:
-					return;
-			}
-
-			_event.preventDefault();
-		}
-		
-		startMove(_pointer, _event = _pointer.event)
-		{
-			if(! _pointer.down)
-			{
-				return this.stopMove(_pointer, _event);
-			}
-			else if(! this.movable)
-			{
-				return this.stopMove(_pointer, _event);
-			}
-			else if(! this.classList.contains('move'))
-			{
-				this.classList._add('move');
-			}
-
-			if(this.popup)
-			{
-				this.popup.close(_event, false);
-			}
-
-			return true;
-		}
-		
-		stopMove(_pointer, _event = _pointer.event)
-		{
-			if(_pointer.down)
-			{
-				return false;
-			}
-			else if(this.classList.contains('move'))
-			{
-				this.classList._remove('move');
-			}
-
-			return true;
-		}
-		
-		move(_pointer, _event = _pointer.event)
-		{
-			if(! this.classList.contains('move'))
-			{
-				return false;
-			}
-
-			if(! this.centerX)
-			{
-				this.style.right = 'auto';
-				this.style.left = setValue(this.left + _pointer.dx);
-			}
-			
-			if(! this.centerY)
-			{
-				this.style.bottom = 'auto';
-				this.style.top = setValue(this.top + _pointer.dy);
-			}
-			
-			return true;
-		}
+		}*/
 		
 		reset()
 		{
