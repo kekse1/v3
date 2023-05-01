@@ -5,7 +5,7 @@
 	--duration: 2000;
 	--class-duration: 500;
 	--delay: 0;
-	--data-duration: 3200;
+	--data-duration: 1400;
 	--data-delay: 0;
 	--data-delete-mul: null;
 	--blink-duration: 1400;
@@ -53,7 +53,7 @@
 	--page-scroll-inline: nearest;/*start*/
 	--page-scroll-block: start;
 	--page-fallback-type: text;/*html*/
-	--page-data-duration: 3800;
+	--page-data-duration: 1800;
 	--page-data-delay: 0;
 	--page-data-delete-mul: null;
 	--page-blink-duration: 2000;

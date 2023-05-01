@@ -364,7 +364,8 @@
 				local = !!_request.responseURL.startsWith(local);
 
 				//
-				setValue(_request, _type, '', false, null);
+				//setValue(_request, _type, '', false, null);
+				_target.innerHTML = '';
 				
 				//
 				var data = _request.responseText;
@@ -376,51 +377,7 @@
 
 				if(_type === 'html')
 				{
-					for(var i = 0, j = 0, scr = 0, sty = 0; i < data.length; ++i)
-					{
-						if(data.at(i, '<script>', false))
-						{
-							const start = i;
-							
-							for(i += 8; i < data.length; ++i)
-							{
-								if(data.at(i, '</script>', false))
-								{
-									script += data.substring(start + 8, i);
-									break;
-								}
-							}
-
-							data = data.substring(0, start - 1) + data.substr(i + 9);
-						}
-						else if(data.at(i, '<script ', false))
-						{
-							const src = scripts[scr++] = Page.extractTag(data, i + 8, 'script');
-							data = data.substr(0, i) + data.substr(i - 3 + src.OUTER.length);
-							--i;
-						}
-						else if(data.at(i, '<style>', false))
-						{
-							const start = i;
-							
-							for(i += 7; i < data.length; ++i)
-							{
-								if(data.at(i, '</style>', false))
-								{
-									style += data.substring(start + 7, i);
-									break;
-								}
-							}
-							
-							data = data.substring(0, start - 1) + data.substr(i + 8);
-						}
-						else if(data.at(i, '<link ', false))
-						{
-							const lnk = styles[sty++] = Page.extractTag(data, i + 7, 'link');
-							data = data.substr(0, i) + data.substr(i - 3 + lnk.OUTER.length);
-							--i;
-						}
-					}
+//throw new Error('TODO');//TODO/FIXME/!!!!
 				}
 
 				if(! (document.getVariable('page-scripting', true) && local))
@@ -430,7 +387,7 @@
 				}
 				else for(var i = 0; i < scripts.length; ++i)
 				{
-					scripts[i].url = path.resolve(scripts[i].url);
+					scripts[i].src = path.resolve(scripts[i].src);
 				}
 
 				if(! (document.getVariable('page-styling', true) && local))
@@ -474,11 +431,11 @@
 						{
 							elem = document.createElement('style');
 							elem.id = _request.responseURL;
-							
-							if(elem.parentNode)
-							{
-								elem.parentNode._removeChild(elem);
-							}
+							elem.name = path.basename(elem.id, '.html');
+						}
+						else if(elem.parentNode)
+						{
+							elem.parentNode._removeChild(elem);
 						}
 
 						elem.innerHTML += '\n\n' + '/* ' + (new Date().format(false, true)) + ' */\n\n' + style + '\n\n';
@@ -494,8 +451,8 @@
 							link = document.createElement('link');
 							link.rel = 'stylesheet';
 							link.href = styles[i].href;
-							link.id = styles[i].href;
 							link.name = path.basename(styles[i].href, '.css');
+							link.href = link.id = styles[i].href;
 						}
 						else if(link.parentNode)
 						{
@@ -513,53 +470,62 @@
 					}
 					else for(var i = 0; i < scripts.length; ++i)
 					{
-						const url = scripts[i].src;
-						
-						ajax(url, (_e, _r) => {
-							switch(_e.type)
-							{
-								case 'load':
-									if(_r.statusClass !== 2)
-									{
-										if(_throw)
-										{
-											throw new Error('Couldn\'t load ' + url.quote() + ': [' + _r.status + '] ' + _r.statusText);
-										}
-									}
-									else
-									{
-										Page.executeJavaScript(_r.responseText, DEFAULT_CONTEXT, true);
-									}
-									break;
-								case 'failure':
-									if(_throw)
-									{
-										throw new Error('Failed to load ' + url.quote());
-									}
-									break;
-							}
-						});
+						var src = document.getElementById(scripts[i].src)
+
+						if(src === null)
+						{
+							src = document.createElement('script');
+							src.charset = 'UTF-8';
+							src.name = path.basename(scripts[i].src);
+							src.src = src.id = scripts[i].src;
+						}
+						else if(src.parentNode)
+						{
+							src.parentNode._removeChild(src);
+						}
+
+						document.head._appendChild(src);
 					}
 
 					if(script.length > 0)
 					{
-						Page.executeJavaScript(script, DEFAULT_CONTEXT, true);
+						var src = document.getElementById(_request.responseURL);
+						
+						if(src === null)
+						{
+							src = document.createElement('script');
+							src.charset = 'UTF-8';
+							src.name = path.basename(src.id = _request.responseURL, '.html');
+						}
+						else if(src.parentNode)
+						{
+							src.parentNode._removeChild(src);
+						}
+						
+						src.innerHTML = '\n\n' + '/* ' + (new Date().format(false, true)) + ' */\n\n' + script + '\n\n';
+						document.head._appendChild(src);
 					}
 				};
-				
-				//
-				applyStyles();
 
 				//
-				setValue(_request, _type, data, doAnimate, (_e) => {
+				setTimeout(() => {
 					//
+					_target.innerHTML = data;
+					applyStyles();
 					applyScripts();
+					_target.innerHTML = '';
 
 					//
-					call(_callback, { type: 'page', href: _request.responseURL, type: _type, local });
+					setTimeout(() => {
+						//
+						setValue(_request, _type, data, doAnimate, (_e) => {
+							//
+							call(_callback, { type: 'page', href: _request.responseURL, type: _type, local });
 
-					//
-					window.emit('page', { type: 'page', href: _request.responseURL, type: _type, local });
+							//
+							window.emit('page', { type: 'page', href: _request.responseURL, type: _type, local });
+						});
+					}, 0);
 				});
 
 				//
@@ -762,228 +728,6 @@
 
 			//
 			return animateIf(result);
-		}
-
-		static extractTag(_data, _index = 0, _type = 'script')
-		{
-			if(typeof _data !== 'string')
-			{
-				throw new Error('Invalid _data argument (expecting a String)');
-			}
-			else if(isString(_type, false))
-			{
-				switch(_type = _type.toLowerCase())
-				{
-					case 'script':
-					case 'style':
-					case 'link':
-						break;
-					default:
-						break;//allow any...
-				}
-			}
-			else
-			{
-				throw new Error('Invalid _type argument (no non-empty String, e.g. \'script\' or \'style\' oder \'link\')');
-			}
-			
-			if(isInt(_index))
-			{
-				_index = _data.getIndex(_index);
-			}
-			else
-			{
-				_index = 0;
-			}
-			
-			var stop = -1;
-			const result = [];
-			const start = _index;
-			var key = '', value = '';
-			var quote = '', raw;
-			var mode = 'key';
-			var fin = null;
-
-			for(var k = _index, p = 0; k < _data.length; ++k)
-			{
-				if(quote.length > 0)
-				{
-					if(_data[k] === quote)
-					{
-						if(mode === 'key')
-						{
-							key += raw;
-						}
-						else if(mode === 'value')
-						{
-							value += raw;
-						}
-
-						raw = '';
-
-						if(key.length > 0)
-						{
-							result[key] = (value.length === 0 ? true : value);
-						}
-						else if(value.length > 0)
-						{
-							result[p++] = value;
-						}
-
-						raw = '';
-						quote = '';
-						mode = 'key';
-						key = value = '';
-					}
-					else
-					{
-						raw += _data[k];
-					}
-				}
-				else if(_data[k] === '\\')
-				{
-					if(quote.length > 0)
-					{
-						raw += _data[++k];
-					}
-					else if(mode === 'key')
-					{
-						key += _data[++k];
-					}
-					else if(mode === 'value')
-					{
-						value += _data[++k];
-					}
-				}
-				else if(_data[k] === '\n' || _data[k] === '\r')
-				{
-					continue;
-				}
-				else if(_data[k] === '>')
-				{
-					fin = (k > 0 && _data[k-1] === '/');
-					stop = k + 1;
-					mode = '';
-					break;
-				}
-				else if(_data[k] === '\'' || _data[k] === '"')
-				{
-					mode = 'value';
-					quote = _data[k];
-					raw = '';
-				}
-				else if(mode === 'key')
-				{
-					if(_data[k] === '=')
-					{
-						mode = 'value';
-					}
-					else if(_data[k].isEmpty())
-					{
-						if(key.length > 0)
-						{
-							result[key] = (value.length === 0 ? true : value);
-						}
-						else if(value.length > 0)
-						{
-							result[p++] = value;
-						}
-
-						key = '';
-						value = '';
-					}
-					else
-					{
-						key += _data[k];
-					}
-				}
-				else if(mode === 'value')
-				{
-					if(_data[k] === ' ' || _data[k] === '\t')
-					{
-						if(key.length > 0)
-						{
-							result[key] = (value.length === 0 ? true : value);
-						}
-						else if(value.length > 0)
-						{
-							result[p++] = value;
-						}
-
-						key = '';
-						value = '';
-						mode = 'key';
-					}
-					else
-					{
-						value += _data[k];
-					}
-				}
-				else if(_data[k] === '\'' || _data[k] === '"')
-				{
-					quote = _data[k];
-					raw = '';
-				}
-			}
-
-			//
-			if(raw.length > 0)
-			{
-				if(mode === 'key')
-				{
-					key += raw;
-				}
-				else if(mode === 'value')
-				{
-					value += raw;
-				}
-			}
-
-			if(key.length > 0)
-			{
-				result[key] = (value.length === 0 ? true : value);
-			}
-			else if(value.length > 0)
-			{
-				result.push(value);
-			}
-
-			//
-			const origStop = (stop === -1 ? _data.length - 1 : stop);
-
-			if(! fin)
-			{
-				for(var k = stop; k < _data.length; ++k)
-				{
-					if(_data.at(k, `</${_type}>`, false))
-					{
-						stop = k + 9;
-						break;
-					}
-				}
-			}
-
-			if(stop === -1)
-			{
-				stop = origStop;
-			}
-
-			//
-			result.PARAMS = _data.substring(start, origStop - 1);
-
-			if(fin)
-			{
-				result.INNER = '';
-			}
-			else if(origStop > -1)
-			{
-				result.INNER = _data.substring(origStop, stop - 9);
-			}
-
-			result.OUTER = _data.substring(0, stop);
-
-			//
-			return result;
 		}
 
 		static loadFile(_url, _callback, _options)

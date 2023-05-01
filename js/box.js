@@ -751,35 +751,35 @@
 		
 		static onpointerdown(_event, _target = _event.target)
 		{
-			if(was(_target, 'Box'))
+			/*if(was(_target, 'Box'))
 			{
 				if(! _target.classList.contains('move'))
 				{
 					_target.startMove(_target.updatePointer(_event));
 				}
-			}
+			}*/
 		}
 		
 		static onpointerup(_event, _target = _event.target)
 		{
-			for(const box of Box._INDEX)
+			/*for(const box of Box._INDEX)
 			{
 				if(box.classList.contains('move'))
 				{
 					box.stopMove(box.updatePointer(_event));
 				}
-			}
+			}*/
 		}
 		
 		static onpointermove(_event, _target = _event.target)
 		{
-			for(const box of Box._INDEX)
+			/*for(const box of Box._INDEX)
 			{
 				if(box.classList.contains('move'))
 				{
 					box.move(box.updatePointer(_event));
 				}
-			}
+			}*/
 		}
 
 		static onkeydown(_event, _target = _event.target)

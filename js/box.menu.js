@@ -16,16 +16,6 @@
 			this.identifyAs('menu');
 		}
 
-		static onpointerup(_event, _target = _event.target, _callback)
-		{
-			if(_event.pointerType === 'mouse')
-			{
-				return;
-			}
-
-			return Menu.onpointerout(_event, _target, _callback);
-		}
-
 		static outItems(_event, _callback, ... _exclude)
 		{
 			//
@@ -1160,7 +1150,7 @@
 				return;
 			}
 
-			return Menu.onpointerover({ type: 'pointerdown', pointerType: 'manu', target: _target }, _target, _callback);
+			return Menu.Item.onpointerover({ type: 'pointerdown', pointerType: 'manu', target: _target }, _target, _callback);
 		}
 
 		static onpointerover(_event, _target = _event.target, _callback, _out_items = true)
@@ -1173,6 +1163,12 @@
 			{
 				return false;
 			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onpointerover(_event, _target, _callback, false);
+				}, _target);
+			}
 			else if(_target._state === 'animating')
 			{
 				return false;
@@ -1183,21 +1179,13 @@
 			}
 			else if(_target.OVER)
 			{
-				return _target.OVER.stop(() => {
-					return Menu.Item.onpointerover(_event, _target, _callback);
-				});
+				return _target.OVER;
 			}
 			else if(_target.OUT)
 			{
 				return _target.OUT.stop(() => {
 					return Menu.Item.onpointerover(_event, _target, _callback);
 				});
-			}
-			else if(_out_items)
-			{
-				return Menu.outItems(_event, () => {
-					return Menu.Item.onpointerover(_event, _target, _callback, false);
-				}, _target);
 			}
 			else
 			{
@@ -1326,9 +1314,7 @@
 			}
 			else if(_target.OUT)
 			{
-				return _target.OUT.stop(() => {
-					return Menu.Item.onpointerout(_event, _target, _callback);
-				});
+				return _target.OUT;
 			}
 			else if(_target.OVER)
 			{
@@ -1452,11 +1438,25 @@
 			return _target.OUT;
 		}
 
+		static onpointerup(_event, _target = _event.target, _callback)
+		{
+			if(_event.pointerType !== 'mouse' && _event.type !== 'click')
+			{
+				return Menu.Item.onpointerout(_event, _target, _callback);
+			}
+		}
+
 		static onclick(_event, _target = _event.target, _callback, _out_items = true)
 		{
 			if(_target.isShowing || _target.isHiding)
 			{
 				return false;
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onclick(_event, _target, _callback, false);
+				}, _target);
 			}
 			else if(_target.BLINK)
 			{
@@ -1465,12 +1465,6 @@
 			else if(_target._state === 'animating')
 			{
 				return null;
-			}
-			else if(_out_items)
-			{
-				return Menu.outItems(_event, () => {
-					return Menu.Item.onclick(_event, _target, _callback, false);
-				}, _target);
 			}
 			else
 			{
@@ -1530,11 +1524,14 @@
 					if(fin >= 2 && !(_target.OVER || _target.OUT))
 					{
 						delete _target._originalPointerStyle;
+						Menu.Item.onpointerup(_event, _target, _callback);
 					}
-
-					call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
+					else
+					{
+						call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
 							target: _target, imageNode: _target.imageNode, textNode:
-							_target.textNode }, _f, _target, _event);
+								_target.textNode }, _f, _target, _event);
+					}
 				}
 			};
 
@@ -1561,6 +1558,7 @@
 				_item_node.addEventListener('pointerdown', _item_node._pointerDownEvent = (_e) => { return Menu.Item.onpointerdown(_e, _item_node); }, { capture: true, passive: true });
 				_item_node.addEventListener('pointerover', _item_node._pointerOverEvent = (_e) => { return Menu.Item.onpointerover(_e, _item_node); }, { capture: true, passive: true });
 				_item_node.addEventListener('pointerout', _item_node._pointerOutEvent = (_e) => { return Menu.Item.onpointerout(_e, _item_node); }, { capture: true, passive: true });
+				_item_node.addEventListener('pointerup', _item_node._pointerUpEvent = (_e) => { return Menu.Item.onpointerup(_e, _item_node); }, { capture: true, passive: true });
 				_item_node.addEventListener('click', _item_node._clickEvent = (_e) => { return Menu.Item.onclick(_e, _item_node); }, { capture: true });
 			}
 
@@ -1589,6 +1587,9 @@
 
 				_item_node.removeEventListener('pointerout', _item_node._pointerOutEvent);
 				delete _item_node._pointerOutEvent;
+
+				_item_node.removeEventListener('pointerup', _item_node._pointerUpEvent);
+				delete _item_node._pointerUpEvent;
 
 				_item_node.removeEventListener('click', _item_node._clickEvent);
 				delete _item_node._clickEvent;
@@ -2039,9 +2040,6 @@
 
 		return result;
 	}});
-	
-	//
-	window.addEventListener('pointerup', Menu.onpointerup.bind(Menu));
 	
 	//
 	Menu.ROOT = null;

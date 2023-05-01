@@ -185,18 +185,7 @@ a-popup, .popup
 a-grid, .grid, a-grid-card, .gridCard
 {
 	display: grid;
-	grid-template-columns: repeat(
-		auto-fit,
-		/* fluid columns, but max out at 3 */
-		minmax(min(100%, max(10rem, 100%/4)), 1fr)
-	);
-	gap: 2.5rem;
-}
-
-a-grid-card.selected, .gridCard.selected
-{
-	order: -1;
-	grid-column: 1 / -1;
-	font-size: 1.4em;
+	grid-template-columns: repeat(auto-fit, minmax(40ch, 1fr));
+	grid-gap: 10px;
 }
 

@@ -953,7 +953,18 @@ throw new Error('TODO');
 
 		for(var i = 0, j = 0, f = 0; i < _string.length; ++i)
 		{
-			if(quote.length > 0)
+			if(_string[i] === '\\')
+			{
+				if(i < (_string.length - 1))
+				{
+					result[j] += _string[++i];
+				}
+				else
+				{
+					result[j] += '\\';
+				}
+			}
+			else if(quote.length > 0)
 			{
 				if(_string[i] === quote)
 				{
@@ -1083,17 +1094,6 @@ throw new Error('TODO');
 			else if(_string[i] === ';')
 			{
 				break;
-			}
-			else if(_string[i] === '\\')
-			{
-				if(i < (_string.length - 1))
-				{
-					result[j] += _string[++i];
-				}
-				else
-				{
-					result[j] += '\\';
-				}
 			}
 			else if(_string[i] === '\'' || _string[i] === '"' || _string[i] === '`')
 			{
