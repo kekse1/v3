@@ -42,6 +42,7 @@
 
 	"box",
 	"box.osd",
+	"box.grid",
 	"box.menu",
 	"box.popup",
 	"box.context",

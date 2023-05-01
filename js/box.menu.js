@@ -308,14 +308,16 @@
 				case 'forwards':
 					for(var i = 0; i < childNodes.length; ++i)
 					{
-						setTimeout(() => { loop(i); }, 0);
+						const index = i;
+						setTimeout(() => { loop(index); }, 0);
 					}
 					break;
 				case 'backwards':
 				default:
 					for(var i = childNodes.length - 1; i >= 0; --i)
 					{
-						setTimeout(() => { loop(i); }, 0);
+						const index = i;
+						setTimeout(() => { loop(index); }, 0);
 					}
 					break;
 			}

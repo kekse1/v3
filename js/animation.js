@@ -1560,10 +1560,18 @@ throw new Error('TODO');
 			duration: this.getVariable('blink-duration', true),
 			count: this.getVariable('blink-count', true),
 			persist: false, state: false,
-			opacity: true, transform: true, scale: true,
-			colors: true, color: true, backgroundColor: true, complement: true,
-			border: true, borderRadius: true, borderWidth: true, borderColor: true,
-			filter: true, blur: true,
+			opacity: this.getVariable('opacity', true),
+			transform: this.getVariable('transform', true),
+			scale: this.getVariable('scale', true),
+			colors: this.getVariable('colors', true),
+			color: this.getVariable('color'),
+			backgroundColor: this.getVariable('background-color'),
+			complement: this.getVariable('complement'),
+			border: this.getVariable('border', true),
+			borderRadius: this.getVariable('border-radius'),
+			borderWidth: this.getVariable('border-width'),
+			borderColor: this.getVariable('border-color'),
+			filter: this.getVariable('filter', true), blur: this.getVariable('blur', true),
 			show: Math.random.bool()
 		}, _options));
 
@@ -1701,13 +1709,12 @@ throw new Error('TODO');
 			{
 				if(_options.borderRadius !== false)
 				{
-					keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, this.getVariable('blink-border-radius')),
-						computedStyle.borderRadius ];
+					keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, '0px'), computedStyle.borderRadius];
 				}
 				
 				if(_options.borderWidth !== false)
 				{
-					keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, this.getVariable('blink-border-width')), computedStyle.borderWidth ];
+					keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, '0px'), computedStyle.borderWidth ];
 				}
 				
 				if(_options.borderColor !== false)
@@ -1752,7 +1759,7 @@ throw new Error('TODO');
 						end = 'blur(0)';
 					}
 
-					keyframes.filter = [ 'blur(' + tryValue(_options.blur, this.getVariable('blink-blur')) + ')', end ];
+					keyframes.filter = [ 'blur(' + tryValue(_options.blur, '0') + ')', end ];
 				}
 			}
 

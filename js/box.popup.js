@@ -92,10 +92,27 @@
 			//
 			return result;
 		}
+		
+		disconnectedCallback()
+		{
+			if(Popup.INDEX.length <= 1)
+			{
+				Popup.pause = false;
+			}
+			
+			return super.disconnectedCallback();
+		}
 	
 		open(_event, _callback, _re = false)
 		{
-			this.move(_event);
+			if(this.pause || Popup.pause)
+			{
+				return;
+			}
+			else
+			{
+				this.move(_event);
+			}
 			
 			if(this.isOpen)
 			{
@@ -136,7 +153,14 @@
 		close(_event, _callback, _force_destroy = false, _re = false)
 		{
 			//
-			this.move(_event);
+			if(this.pause || Popup.pause)
+			{
+				return;
+			}
+			else
+			{
+				this.move(_event);
+			}
 			
 			//
 			if(this.isClosed)
@@ -183,6 +207,12 @@
 
 		move(_event_x, _y, _animate = this.getVariable('pointer-animation', true), _callback, _throw = DEFAULT_THROW)
 		{
+			//
+			if(this.pause || Popup.pause)
+			{
+				return;
+			}
+			
 			//
 			var x, y;
 			
@@ -455,7 +485,12 @@ throw new Error('TODO');
 
 		static onpointerup(_event, _callback)
 		{
-			if(_event.pointerType === 'mouse')
+			//
+			if(Popup.pause)
+			{
+				return;
+			}
+			else if(_event.pointerType === 'mouse')
 			{
 				return;
 			}
@@ -487,6 +522,12 @@ throw new Error('TODO');
 		
 		static onpointermove(_event)
 		{
+			//
+			if(Popup.pause)
+			{
+				return;
+			}
+			
 			//
 			const index = [ ... Popup.INDEX ];
 			
@@ -520,10 +561,6 @@ throw new Error('TODO');
 		
 		static onkeydown(_event)
 		{
-			//
-			//TODO/!!
-			//w/ osd, see altes popup..js..
-			//
 			switch(_event.key)
 			{
 				case 'Control':
@@ -534,10 +571,6 @@ throw new Error('TODO');
 
 		static onkeyup(_event)
 		{
-			//
-			//TODO/!!
-			//w/ osd, see altes popup..js..
-			//
 			switch(_event.key)
 			{
 				case 'Control':
@@ -545,15 +578,48 @@ throw new Error('TODO');
 					break;
 			}
 		}
+		
+		static blink(_options)
+		{
+			const index = Popup.INDEX;
+			
+			for(const p of index)
+			{
+				p.blink(_options);
+			}
+			
+			return index.length;
+		}
+
+		//static clear(..
 
 		static get pause()
 		{
-throw new Error('TODO');
+			return Popup.paused;
 		}
-
+		
 		static set pause(_value)
 		{
-throw new Error('TODO');
+			if(Popup.INDEX.length === 0)
+			{
+				Popup.paused = false;
+				return null;
+			}
+			else if(Popup.paused === (_value = !!_value))
+			{
+				return false;
+			}
+			else if(_value)
+			{
+				osd(pauseON);
+			}
+			else
+			{
+				osd(pauseOFF);
+			}
+			
+			Popup.blink();
+			return Popup.paused = _value;
 		}
 
 		get pause()
@@ -563,7 +629,11 @@ throw new Error('TODO');
 
 		set pause(_value)
 		{
-			if(_value = !!_value)
+			if(this.pause === (_value = !!_value))
+			{
+				return false;
+			}
+			else if(_value = !!_value)
 			{
 				this.setAttribute('pause', '');
 			}
@@ -572,9 +642,17 @@ throw new Error('TODO');
 				this.removeAttribute('pause');
 			}
 
+			this.blink();
 			return _value;
 		}
 	}
+	
+	//
+	const pauseON = '<span style="font-size: 0.7em; color: green;">ON</span><span style="font-size: 0.4em; color: blue;">freeze</span>';
+	const pauseOFF = '<span style="font-size: 0.7em; color: red;">OFF</span><span style="font-size: 0.4em; color: blue;">freeze</span>';
+	
+	//
+	Popup.paused = false;
 	
 	//
 	if(! customElements.get('a-popup'))
