@@ -3,7 +3,6 @@
 
 	//
 	const DEFAULT_THROW = true;
-	const DEFAULT_OUT_ITEMS = false;
 
 	//
 	Menu = Box.Menu = class Menu extends Box
@@ -24,10 +23,7 @@
 				return;
 			}
 
-			if(DEFAULT_OUT_ITEMS)
-			{
-				return Menu.outItems({ clientX: _event.clientX, clientY: _event.clientY, type: 'pointerup', pointerType: 'manu', target: _target, event: _event }, _callback);
-			}
+			return Menu.onpointerout(_event, _target, _callback);
 		}
 
 		static outItems(_event, _callback, ... _exclude)
@@ -66,8 +62,6 @@
 			{
 				switch(index[i]._state)
 				{
-					case 'out':
-					case 'outing':
 					case 'over':
 					case 'overing':
 						yes = true;
@@ -83,11 +77,17 @@
 					{
 						continue;
 					}
-					else if(Menu.Item.onpointerout(_event, _event.target = index[i], cb))
+					else if(Menu.Item.onpointerout(_event, _event.target = index[i], cb, false))
 					{
+						++count;
 						++result;
 					}
 				}
+			}
+		
+			if(result === 0)
+			{
+				cb();
 			}
 
 			return result;
@@ -1178,15 +1178,27 @@
 			{
 				return false;
 			}
+			else if(_target._state.startsWith('over'))
+			{
+				return null;
+			}
 			else if(_target.OVER)
 			{
-				return _target.OVER;
+				return _target.OVER.stop(() => {
+					return Menu.Item.onpointerover(_event, _target, _callback);
+				});
 			}
 			else if(_target.OUT)
 			{
 				return _target.OUT.stop(() => {
 					return Menu.Item.onpointerover(_event, _target, _callback);
 				});
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onpointerover(_event, _target, _callback, false);
+				}, _target);
 			}
 			else
 			{
@@ -1196,12 +1208,6 @@
 			if(typeof _callback !== 'function')
 			{
 				_callback = null;
-			}
-
-			//
-			if(_out_items)
-			{
-				Menu.outItems(_event, null, _target);
 			}
 
 			//
@@ -1303,11 +1309,11 @@
 
 		static onpointerout(_event, _target = _event.target, _callback)
 		{
-			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu')
+			/*if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu')
 			{
 				return false;
 			}
-			else if(_target.parentNode.isShowing || _target.parentNode.isHiding)
+			else*/ if(_target.parentNode.isShowing || _target.parentNode.isHiding)
 			{
 				return false;
 			}
@@ -1315,9 +1321,15 @@
 			{
 				return false;
 			}
+			else if(_target._state.startsWith('out'))
+			{
+				return null;
+			}
 			else if(_target.OUT)
 			{
-				return _target.OUT;
+				return _target.OUT.stop(() => {
+					return Menu.Item.onpointerout(_event, _target, _callback);
+				});
 			}
 			else if(_target.OVER)
 			{
@@ -1441,7 +1453,7 @@
 			return _target.OUT;
 		}
 
-		static onclick(_event, _target = _event.target, _callback)
+		static onclick(_event, _target = _event.target, _callback, _out_items = true)
 		{
 			if(_target.isShowing || _target.isHiding)
 			{
@@ -1454,6 +1466,12 @@
 			else if(_target._state === 'animating')
 			{
 				return null;
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onclick(_event, _target, _callback, false);
+				}, _target);
 			}
 			else
 			{

@@ -14,12 +14,6 @@ The real/full version of all the JavaScript's is available in the
 ### prompt.sh
 ![prompt.sh](docs/prompt.sh.png)
 
-## Issues
-
-### Performance
-Currently the performance is somewhat going down when playing
-around with the animated menu bar.. goin' to fix it soon. ^_^
-
 ## Next steps
 
 #### Responsible Design
