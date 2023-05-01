@@ -1,14 +1,13 @@
+.
 ├── Arbeitsspeicher
-│   ├── Kingston HyperX (HX430C15PB3)
-│   │   └── Specifications.pdf
-│   └── Patriot Viper Steel
-│       ├── computeruniverse.net.txt
-│       ├── details.txt
-│       ├── herstellernummer.txt
-│       ├── hersteller.txt
-│       ├── name.txt
-│       ├── preis.txt
-│       └── summe.txt
+│   ├── Kingston FURY Renegade (4x)
+│   │   ├── amazon.txt
+│   │   ├── modell.txt
+│   │   ├── preis.txt
+│   │   └── specifications.pdf
+│   └── Kingston HyperX (4x)
+│       ├── modell.txt
+│       └── Specifications.pdf
 ├── Autoradio
 │   ├── JVC KD-DB98BT (Handbuch).pdf
 │   └── JVC KD-DB98BT.txt
@@ -253,3 +252,4 @@
 └── USB-Stick
     └── ADATA UE700 Pro (256 GB)
 
+85 directories, 167 files
