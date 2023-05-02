@@ -17,6 +17,7 @@ define('COOKIE', 'timestamp');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
 define('COOKIE_HTTP_ONLY', true);
+define('COOKIE_SECURE', !!$_SERVER['HTTPS']);
 
 //
 function secureHost($_hostname)
@@ -81,7 +82,7 @@ function makeCookie()
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
 		'domain' => HOSTNAME,
-		//'secure' => !!$_SERVER['HTTPS'],
+		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
 		'httponly' => COOKIE_HTTP_ONLY
