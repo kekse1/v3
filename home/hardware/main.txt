@@ -10,7 +10,6 @@
 ├── Autoradio
 │   ├── JVC KD-DB98BT (Handbuch).pdf
 │   └── JVC KD-DB98BT.txt
-├── date.now
 ├── Drucker
 │   ├── Canon PIXMA ix6850
 │   │   ├── Debian-Treiber (cnijfilter-ix6800series-4.10-1-deb).tar.gz
@@ -19,6 +18,8 @@
 │   │   └── TODO:Manual
 │   ├── Lexmark MB2236adw
 │   │   ├── Anleitungen für Papier und Spezialdruckmedien.pdf
+│   │   ├── B222000.txt -> Toner/B222000.txt
+│   │   ├── B222H00.txt -> Toner/B222H00.txt
 │   │   ├── Benutzerhandbuch.pdf
 │   │   ├── Broschüre.pdf
 │   │   ├── Druckertreiber für UNIX- und Linux-Systeme.pdf
@@ -29,7 +30,11 @@
 │   │   ├── Printer Languages and Interfaces Technical Reference.pdf
 │   │   ├── Produktinformationen.pdf
 │   │   ├── Support-Website.txt
-│   │   └── TONER.txt
+│   │   ├── Toner
+│   │   │   ├── B222000.txt
+│   │   │   ├── B222H00.txt
+│   │   │   └── info.txt
+│   │   └── Toner.txt -> Toner/info.txt
 │   └── Toner -> ../Toner/
 ├── Einplatinencomputer
 │   ├── Banana Pi M64.txt
@@ -55,7 +60,10 @@
 │       ├── support.txt
 │       └── teil#.txt
 ├── Gehaeuse
-│   └── Thermaltake Level 20 XT Cube.txt (??)
+│   └── Thermaltake Level 20 XT (Cube)
+│       ├── catalogue.pdf
+│       ├── hersteller.txt
+│       └── manual.pdf
 ├── Grafikkarte
 │   ├── ASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)
 │   │   ├── Hersteller-Website.txt
@@ -160,9 +168,6 @@
 ├── Prozessor
 │   ├── Intel Core i7-3820.txt
 │   └── Intel Core i7-7800X.txt
-├── Radio
-│   └── Karcher DAB 7000i
-│       └── amazon.txt
 ├── RAM -> Arbeitsspeicher
 ├── Satelliten-Finder
 │   └── DUR-line SF 4000 BT
@@ -203,7 +208,6 @@
 │   ├── Samsung Galaxy S23 Ultra
 │   │   └── website.txt
 │   └── WALLPAPER.png
-├── Smartphone-Hülle.txt -> Smartphone/HUAWEI Mate20 Pro/HUELLE.txt
 ├── SSD -> Festplatte
 ├── Streaming
 │   └── NOKIA Streaming Box 8000
@@ -216,15 +220,11 @@
 │   ├── EMPIRE Gaming K300
 │   │   ├── Handbuch.pdf
 │   │   └── Hersteller-Website.txt
+│   ├── Razer BlackWidow
 │   └── Roccat Vulcan TKL Pro
 │       ├── amazon.de.txt
 │       ├── hersteller.txt
 │       └── Quick Installation Guide.pdf
-├── Toner
-│   ├── Drucker -> ../Drucker/
-│   └── Lexmark MB2236adw
-│       ├── B222000.txt
-│       └── B222H00.txt
 ├── TV
 │   ├── LG 55NANO779PA
 │   │   ├── Benutzeranleitung.pdf
@@ -251,4 +251,4 @@
 └── USB-Stick
     └── ADATA UE700 Pro (256 GB)
 
-85 directories, 167 files
+82 directories, 171 files
