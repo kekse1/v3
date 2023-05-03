@@ -168,22 +168,26 @@
 		}
 	}
 
-	Object.defineProperty(String, 'entities', { get: () => { return entities; } });
+	if(! entities)
+	{
+		//TODO/same style as in DEFAULT_ENTITIES{,_URL} .json..
+		entities = {
+			'&amp;': '&',
+			'&lt;': '<',
+			'&gt;': '>',
+			'&quot;': '\'',
+			'&apos;': '"'
+		};
+	}
+
+	Object.defineProperty(String, 'entities', { get: function()
+	{
+		return { ... entities };
+	}});
 
 	Object.defineProperty(String.prototype, 'text', { get: function()
 	{
-		if(! String.entities)
-		{
-			var msg = 'Got no \'entities.json\'';
-
-			if(DEFAULT_ENTITIES_URL)
-			{
-				msg += ' (see \'' + DEFAULT_ENTITIES_URL + '\')';
-			}
-
-			throw new Error(msg);
-		}
-throw new Error('TODO');//zzz
+throw new Error('TODO');
 	}});
 
 	Object.defineProperty(String.prototype, 'textLength', { get: function()
