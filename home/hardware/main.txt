@@ -1,10 +1,10 @@
 ├── Arbeitsspeicher
-│   ├── Kingston FURY Renegade (4x)
+│   ├── Kingston FURY Renegade (4x16GB)
 │   │   ├── amazon.txt
 │   │   ├── modell.txt
 │   │   ├── preis.txt
 │   │   └── specifications.pdf
-│   └── Kingston HyperX (4x)
+│   └── Kingston HyperX (4x8GB)
 │       ├── modell.txt
 │       └── Specifications.pdf
 ├── Autoradio
