@@ -180,9 +180,9 @@
 	};
 
 	//
-	Object.defineProperty(EventTarget.prototype, 'emit', { value: function(_event, _options, _which)
+	Object.defineProperty(EventTarget.prototype, 'emit', { value: function(_event, _options, _which, _next_frame = DEFAULT_NEXT_FRAME)
 	{
-		return Event.emit(this, _event, _options, _which);
+		return Event.emit(this, _event, _options, _which, _next_frame);
 	}});
 
 	Object.defineProperty(Event.prototype, 'stop', { value: function(_prevent_default = true, _stop_propagation = true, _throw = DEFAULT_THROW)
@@ -198,4 +198,3 @@
 	//
 
 })();
-

@@ -688,13 +688,13 @@
 				}
 				while(item._state !== 'animating');
 
-				return item.imageNode.animate({
+				return item.imageNode.randomAnimation = item.imageNode.animate({
 					transform: [ 'none', 'rotateZ(' + (Math.random.bool() ? '+' : '-') + '720deg)' ]
 				}, {
 					duration, delay: 0, state: false, persist: false, origin: 'center'
 				}, (_e, _f) => {
 					//
-					//item.imageNode.style.setProperty('transform-origin', item.imageNode.getVariable('transform-origin'));
+					delete item.imageNode.randomAnimation;
 
 					//
 					if(item._state === 'animating')
@@ -1163,12 +1163,6 @@
 			{
 				return false;
 			}
-			else if(_out_items)
-			{
-				return Menu.outItems(_event, () => {
-					return Menu.Item.onpointerover(_event, _target, _callback, false);
-				}, _target);
-			}
 			else if(_target._state === 'animating')
 			{
 				return false;
@@ -1184,8 +1178,14 @@
 			else if(_target.OUT)
 			{
 				return _target.OUT.stop(() => {
-					return Menu.Item.onpointerover(_event, _target, _callback);
+					return Menu.Item.onpointerover(_event, _target, _callback, _out_items);
 				});
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onpointerover(_event, _target, _callback, false);
+				}, _target);
 			}
 			else
 			{
@@ -1294,7 +1294,7 @@
 			return _target.OVER;
 		}
 
-		static onpointerout(_event, _target = _event.target, _callback)
+		static onpointerout(_event, _target = _event.target, _callback, _out_items = true)
 		{
 			/*if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu')
 			{
@@ -1319,8 +1319,14 @@
 			else if(_target.OVER)
 			{
 				return _target.OVER.stop(() => {
-					return Menu.Item.onpointerout(_event, _target, _callback);
+					return Menu.Item.onpointerout(_event, _target, _callback, _out_items);
 				});
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onpointerout(_event, _target, _callback, false);
+				}, _target, _event.relatedTarget);
 			}
 			else
 			{
@@ -1452,19 +1458,21 @@
 			{
 				return false;
 			}
-			else if(_out_items)
-			{
-				return Menu.outItems(_event, () => {
-					return Menu.Item.onclick(_event, _target, _callback, false);
-				}, _target);
-			}
 			else if(_target.BLINK)
 			{
 				return _target.BLINK;
 			}
 			else if(_target._state === 'animating')
 			{
-				return null;
+				return _target.imageNode.randomAnimation.cancel(() => {
+					return Menu.Item.onclick(_event, _target, _callback, _out_items);
+				});
+			}
+			else if(_out_items)
+			{
+				return Menu.outItems(_event, () => {
+					return Menu.Item.onclick(_event, _target, _callback, false);
+				}, _target);
 			}
 			else
 			{
@@ -1521,17 +1529,10 @@
 					
 					delete _target.BLINK;
 
-					if(fin >= 2 && !(_target.OVER || _target.OUT))
-					{
-						delete _target._originalPointerStyle;
-						Menu.Item.onpointerup(_event, _target, _callback);
-					}
-					else
-					{
-						call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
-							target: _target, imageNode: _target.imageNode, textNode:
-								_target.textNode }, _f, _target, _event);
-					}
+					//Menu.Item.onpointerup(_event, _target, _callback, true);
+
+					call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
+						target: _target, imageNode: _target.imageNode, textNode: _target.textNode }, _f, _target, _event);
 				}
 			};
 
