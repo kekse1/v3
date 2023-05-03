@@ -9,6 +9,10 @@
 	const DEFAULT_SPLIT_REST = false;
 	const DEFAULT_COUNT_ONCE = false;
 	const DEFAULT_INT = false;
+	const DEFAULT_LESS_AMP = false;
+	const DEFAULT_TEXT_ERROR = true;
+	const DEFAULT_ENTITIES = 'json/entities.json';
+	const DEFAULT_ENTITIES_URL = 'https://html.spec.whatwg.org/entities.json';
 
 	//
 	Object.defineProperty(String.prototype, 'print', { value: function(_object, ... _args)
@@ -138,6 +142,50 @@
 	}});
 
 	//
+	var entities = null;
+
+	if(DEFAULT_ENTITIES)
+	{
+		try
+		{
+			entities = require(DEFAULT_ENTITIES, null, null, false, true);
+		}
+		catch(_error)
+		{
+			entities = null;
+		}
+	}
+
+	if(! entities && DEFAULT_ENTITIES_URL)
+	{
+		try
+		{
+			entities = require(DEFAULT_ENTITIES_URL, null, null, false, true);
+		}
+		catch(_error)
+		{
+			entities = null;
+		}
+	}
+
+	Object.defineProperty(String, 'entities', { get: () => { return entities; } });
+
+	Object.defineProperty(String.prototype, 'text', { get: function()
+	{
+		if(! String.entities)
+		{
+			var msg = 'Got no \'entities.json\'';
+
+			if(DEFAULT_ENTITIES_URL)
+			{
+				msg += ' (see \'' + DEFAULT_ENTITIES_URL + '\')';
+			}
+
+			throw new Error(msg);
+		}
+throw new Error('TODO');//zzz
+	}});
+
 	Object.defineProperty(String.prototype, 'textLength', { get: function()
 	{
 		if(this.length === 0)
@@ -171,11 +219,17 @@
 			else if(this[i] === '&')
 			{
 				open = ';';
+				++result;
 			}
 			else
 			{
 				++result;
 			}
+		}
+
+		if(DEFAULT_TEXT_ERROR && open.length > 0)
+		{
+			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
 		}
 
 		return result;
@@ -215,7 +269,7 @@
 			{
 				open = '>';
 			}
-			else if(this[i] === '&')
+			else if(DEFAULT_LESS_AMP && this[i] === '&')
 			{
 				open = ';';
 			}
@@ -223,6 +277,11 @@
 			{
 				result += this[i];
 			}
+		}
+
+		if(DEFAULT_TEXT_ERROR && open.length > 0)
+		{
+			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
 		}
 
 		return result;
@@ -1140,7 +1199,7 @@
 			{
 				negative = !negative;
 			}
-			else if(! text[i].isEmpty())
+			else if(! text[i].isEmpty)
 			{
 				text = text.substr(i);
 				break;
@@ -1186,7 +1245,7 @@
 						hadPoint = true;
 					}
 				}
-				else if(! text[i].isEmpty())
+				else if(! text[i].isEmpty)
 				{
 					hadValue = true;
 					--i;
@@ -1253,57 +1312,15 @@
 	}});
 
 	//
-	Object.defineProperty(String.prototype, 'isEmpty', { value: function(... _args)
+	Object.defineProperty(String.prototype, 'isEmpty', { get: function()
 	{
 		if(this.length === 0)
 		{
 			return true;
 		}
-		
-		var CASE_SENSITIVE = true;
-
-		if(_args.length === 0)
+		else for(var i = 0; i < this.length; ++i)
 		{
-			_args[0] = ' ';
-			_args[1] = '\t';
-			_args[2] = '\r';
-			_args[3] = '\n';
-		}
-		else
-		{
-			for(var i = 0; i < _args.length; ++i)
-			{
-				if(typeof _args[i] === 'boolean')
-				{
-					CASE_SENSITIVE = _args.splice(i--, 1)[0];
-				}
-				else if(! isString(_args[i], false))
-				{
-					throw new Error('Invalid ..._args[' + i + '] (no non-empty String)');
-				}
-			}
-
-			_args.uniq();
-			_args.lengthSort(false);
-		}
-
-		var found;
-
-		for(var i = 0; i < this.length; ++i)
-		{
-			found = false;
-
-			for(var j = 0; j < _args.length; ++j)
-			{
-				if(this.at(i, _args[j], CASE_SENSITIVE))
-				{
-					i += (_args[j].length - 1);
-					found = true;
-					break;
-				}
-			}
-
-			if(! found)
+			if(this.charCodeAt(i) > 32)
 			{
 				return false;
 			}
@@ -1315,4 +1332,3 @@
 	//
 
 })();
-

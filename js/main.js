@@ -1063,7 +1063,21 @@ throw new Error('TODO');
 		}
 		else if(_path.length > 0 && !(_id.startsWith(_path)))
 		{
-			_id = (_path + '/' + _id);
+			var addPath;
+
+			if(location.protocols)
+			{
+				addPath = !!(_path.startsWith(false, ... location.protocols));
+			}
+			else
+			{
+				addPath = true;
+			}
+
+			if(addPath)
+			{
+				_id = (_path + '/' + _id);
+			}
 		}
 
 		//

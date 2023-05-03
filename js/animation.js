@@ -2324,10 +2324,6 @@ var c=0;
 					{
 						rot[idx] = Math.random.int(rot[idx], -rot[idx], true) + 'deg';
 					}
-					else if(isString(rot[idx], false))
-					{
-						//
-					}
 					else if(isArray(rot[idx], false))
 					{
 						if(rot[idx][0][1] === rot[idx][1][1])
@@ -2336,10 +2332,10 @@ var c=0;
 						}
 						else
 						{
-							throw new Error('Your \'' + rotate + idx + '\' option differs in it\'s unit suffix');
+							throw new Error('Your \'rotate' + idx + '\' option differs in it\'s unit suffix');
 						}
 					}
-					else
+					else if(! isString(rot[idx], false))
 					{
 						delete rot[idx];
 					}

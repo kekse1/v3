@@ -600,7 +600,7 @@ throw new Error('TODO');
 					result[++j] = '';
 				}
 			}
-			else if(! _string[i].isEmpty())
+			else if(! _string[i].isEmpty)
 			{
 				hadMark = false;
 				result[j] += _string[i];
@@ -1003,7 +1003,7 @@ throw new Error('TODO');
 										res[++l] = '';
 									}
 								}
-								else if(result[j][k].isEmpty())
+								else if(result[j][k].isEmpty)
 								{
 									if(res[l].length > 0 && res[l][res[l].length - 1] !== ' ' && res[l][res[l].length - 1] !== ',')
 									{
@@ -1088,7 +1088,7 @@ throw new Error('TODO');
 				result[j] = '';
 				open = ')';
 			}
-			else if(_string[i].isEmpty())
+			else if(_string[i].isEmpty)
 			{
 				if(result[j].length > 0)
 				{

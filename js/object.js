@@ -511,7 +511,7 @@
 			{
 				CASE_SENSITIVE = _args.splice(i--, 1)[0];
 			}
-			else if(! isString(_args[i], false))
+			else if(typeof _args[i] !== 'string' || _args[i].length === 0)
 			{
 				throw new Error('Invalid ..._args[' + i + '] (not a non-empty String)');
 			}
@@ -522,9 +522,12 @@
 			if(! CASE_SENSITIVE) for(var i = 0; i < _args.length; ++i)
 			{
 				_args[i] = _args[i].toLowerCase();
-			}
 
-			_args.uniq();
+				if(_args.lastIndexOf(_args[i]) > i)
+				{
+					_args.splice(i--, 1);
+				}
+			}
 		}
 
 		const result = [];
