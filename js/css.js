@@ -783,11 +783,13 @@ throw new Error('TODO');
 				case 'none':
 				case 'false':
 				case 'no':
+				case 'off':
 					_value = false;
 					break;
 				case 'auto':
 				case 'true':
 				case 'yes':
+				case 'on':
 					_value = true;
 					break;
 				case 'null':
@@ -805,30 +807,6 @@ throw new Error('TODO');
 		return _value;
 	};
 
-	/*const toArray = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
-		if(typeof _string !== 'string')
-		{
-			if(isArray(_string, true))
-			{
-				//
-			}
-			else if(_throw)
-			{
-				throw new Error('Neither _string nor array defined');
-			}
-			else
-			{
-				return _string;
-			}
-		}
-		else if(typeof _string === 'string' && (_string = _string.trim()).length === 0)
-		{
-			return [];
-		}
-		
-		const array = (typeof _string === 'string' ? _string.split('
-	};*/
-	
 	const fromArray = (_array, _render = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(! isArray(_array, true))
 		{
