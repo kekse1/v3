@@ -1065,7 +1065,12 @@ throw new Error('TODO');
 		{
 			var addPath;
 
-			if(location.protocols)
+			//TODO: (if!)path.resolve() w/ '~' $HOME..
+			if(_id[0] === '/')
+			{
+				addPath = false;
+			}
+			else if(location.protocols)
 			{
 				addPath = !!(_path.startsWith(false, ... location.protocols));
 			}
