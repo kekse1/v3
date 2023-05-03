@@ -2045,17 +2045,23 @@
 	Menu.ROOT = null;
 
 	//
-	if(isObject(config.menu) && isString(config.menu.data, false) && config.menu.enabled)
-	{
-		window.addEventListener('ready', () => {
-			Menu.ROOT = Menu.load(config.menu.data, { id: 'MENU' });
-			BODY._appendChild(Menu.ROOT);
-		}, { once: true });
+	if(document.getVariable('menu', true) === true)
+  	{
+		const data = document.getVariable('menu-data');
+	
+		if(data.length > 0)
+		{
+			Menu.ROOT = Menu.load(data, { id: 'MENU', parent: BODY });
+		}
+		else
+		{
+			MAIN.style.left = '-1px';
+		}
 	}
 	else
 	{
 		MAIN.style.left = '-1px';
 	}
-	
+
 })();
 

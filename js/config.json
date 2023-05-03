@@ -15,12 +15,6 @@
 		[ "<kekse.biz>", 9600 ]
 	],
 
-	"animation": {
-		"duration": 1.0,
-		"delay": 1.0,
-		"textDuration": 1.0
-	},
-
 	"init": {
 		"query": {
 			"www": false,
@@ -31,13 +25,6 @@
 				"fbclid"
 			]
 		}
-	},
-
-	"menu": {
-		"enabled": true,
-		"data": "json/menu.json",
-		"max": 192,
-		"min": 32
 	},
 
 	"context": {
@@ -51,3 +38,4 @@
 	}
 
 }
+

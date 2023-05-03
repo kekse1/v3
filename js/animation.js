@@ -1904,23 +1904,14 @@ throw new Error('TODO');
 		}
 
 		//
-		if(isObject(config.animation))
+	  	const animationDurationData = document.getVariable('animation-duration-data', true);
+
+		if(isNumber(animationDurationData))
 		{
-			if(isNumber(config.animation.textDuration))
-			{
-				_duration = Math.round(_duration * config.animation.textDuration);
-			}
-			else if(isNumber(config.animation.duration))
-			{
-				_duration = Math.round(_duration * config.animation.duration);
-			}
-			else
-			{
-				_duration = Math.round(_duration);
-			}
+			_duration = Math.round(_duration * animationDurationData);
 		}
 		else
-		{
+	  	{
 			_duration = Math.round(_duration);
 		}
 
@@ -2847,17 +2838,25 @@ var c=0;
 			}
 		}
 
-		if(isObject(config.animation) && (isNumber(result.duration) || isNumber(result.delay)))
-		{
-			if(isNumber(result.duration) && isNumber(config.animation.duration))
-			{
-				result.duration = Math.round(result.duration * config.animation.duration);
-			}
+	  	const animationDuration = document.getVariable('animation-duration', true);
+		const animationDelay = document.getVariable('animation-delay', true);
 
-			if(isNumber(result.delay) && isNumber(config.animation.delay))
-			{
-				result.delay = Math.round(result.delay * config.animation.delay);
-			}
+		if(isNumber(animationDuration))
+	  	{
+			result.duration = Math.round(result.duration * animationDuration);
+		}
+		else
+	  	{
+			result.duration = Math.round(result.duration);
+		}
+
+	  	if(isNumber(animationDelay))
+	  	{
+			result.delay = Math.round(result.delay * animationDelay);
+		}
+	 	else
+	   	{
+			result.delay = Math.round(result.delay);
 		}
 
 		return result;

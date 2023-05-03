@@ -35,3 +35,17 @@
 	--callback-timeout: auto;
 }
 
+:root
+{
+	--menu: auto;
+	--menu-data: json/menu.json;
+	/*--menu-icon: 192px 32px;*/
+}
+
+:root
+{
+	--animation-duration: 1.0;
+	--animation-duration-data: 1.0;
+	--animation-delay: 1.0;
+}
+
