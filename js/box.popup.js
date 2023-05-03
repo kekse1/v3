@@ -1,21 +1,9 @@
-
-	//
-	//TODO/..
-	//
-	//--arrange: auto
-	//--duration: 1600
-	//--delay: 0
-	//--pointer-duration: 1200
-	//--data-duration: 1200
-	//
-
 (function()
 {
 
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PARENT = HTML;
-	const DEFAULT_RE = null;
 		
 	//
 	Popup = Box.Popup = class Popup extends Box
@@ -103,7 +91,7 @@
 			return super.disconnectedCallback();
 		}
 	
-		open(_event, _callback, _re = false)
+		open(_event, _callback)
 		{
 			if(this.pause || Popup.pause)
 			{
@@ -125,7 +113,7 @@
 			else if(this.OUT)
 			{
 				return this.OUT.stop(() => {
-					return this.open(_event, _callback, DEFAULT_RE);
+					return this.open(_event, _callback);
 				});
 			}
 			else if(this.forceDestroy)
@@ -143,14 +131,13 @@
 			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
 
 			return this.in({
-				duration: this.getVariable('duration', true), delay: 0,
-				rotate: (_re !== true)
+				duration: this.getVariable('duration', true), delay: 0
 			}, (_e, _f) => {
 				call(_callback, { type: 'open', event: _e, finish: _f }, _f);
 			});
 		}
 		
-		close(_event, _callback, _force_destroy = false, _re = false)
+		close(_event, _callback, _force_destroy = false)
 		{
 			//
 			if(this.pause || Popup.pause)
@@ -179,7 +166,7 @@
 			else if(this.IN)
 			{
 				return this.IN.stop(() => {
-					return this.close(_event, _callback, _force_destroy, DEFAULT_RE);
+					return this.close(_event, _callback, _force_destroy);
 				});
 			}
 
@@ -191,8 +178,7 @@
 			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
 			
 			return this.out({
-				duration: this.getVariable('duration', true), delay: 0,
-				rotate: (_re !== true)
+				duration: this.getVariable('duration', true), delay: 0
 			}, (_e, _f) => {
 				if(_f || this.forceDestroy)
 				{
@@ -205,7 +191,7 @@
 			});
 		}
 
-		move(_event_x, _y, _animate = this.getVariable('pointer-animation', true), _callback, _throw = DEFAULT_THROW)
+		move(_event_x, _y)
 		{
 			//
 			if(this.pause || Popup.pause)
@@ -236,45 +222,8 @@
 			}
 			
 			//
-			this.style.right = this.style.bottom = 'auto';
-
-			if(!! _animate)
-			{
-				[ x, y ] = this.getPosition(x, y, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
-
-				const keyframes = {
-					right: [ 'auto' ],
-					bottom: [ 'auto' ],
-					left: [ setValue(x, 'px', true) ],
-					top: [ setValue(y, 'px', true) ]
-				};
-				
-				const options = {
-					duration: ((isInt(_animate) && _animate >= 0) ? _animate : this.getVariable('pointer-duration', true)),
-					delay: 0, persist: true, state: false
-				};
-				
-				const moveIt = () => {
-					return this.MOVE = this.animate(keyframes, options, (_e, _f) => {
-						delete this.MOVE;
-						call(_callback, { type: 'move', event: _e, finish: _f }, _f);
-					});
-				}
-				
-				if(this.MOVE)
-				{
-					this.MOVE.finish(moveIt);
-				}
-				else
-				{
-					moveIt();
-				}
-			}
-			else
-			{
-				this.x = x;
-				this.y = y;
-			}
+			this.x = x;
+			this.y = y;
 
 			//
 			return [ x, y ]
