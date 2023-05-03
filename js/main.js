@@ -1070,6 +1070,10 @@ throw new Error('TODO');
 			{
 				addPath = false;
 			}
+			else if(_id.startsWith('./') || _id.startsWith('../'))
+			{
+				addPath = false;
+			}
 			else if(location.protocols)
 			{
 				addPath = !!(_path.startsWith(false, ... location.protocols));
