@@ -675,42 +675,6 @@
 	}});
 
 	//
-	Object.defineProperty(Object.prototype, 'only', { value: function(... _properties)
-	{
-		const result = Object.create(null);
-
-		if(_properties.length === 0)
-		{
-			return result;
-		}
-		else for(var i = 0; i < _properties.length; ++i)
-		{
-			if(! isString(_properties[i], false))
-			{
-				throw new Error('Invalid ..._properties[' + i + '] (no non-empty String)');
-			}
-		}
-
-		const props = Object.getOwnPropertyNames(this);
-
-		for(const p of props)
-		{
-			if(_properties.includes(p))
-			{
-				continue;
-			}
-			else
-			{
-				result[p] = this[p];
-			}
-
-			delete this[p];
-		}
-
-		return result;
-	}});
-
-	//
 	Object.defineProperty(Object, 'isNull', { value: function(... _args)
 	{
 		if(_args.length === 0)
