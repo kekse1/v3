@@ -54,7 +54,12 @@
 			}
 
 			//
-			const result = new Popup();
+			const result = new Popup({
+				left: setValue(_event.clientX, 'px', true),
+				top: setValue(_event.clientY, 'px', true)
+			});
+
+			Box._INDEX.pushUnique(result);
 
 			//
 			result.innerHTML = _target.dataset.popup;
@@ -67,10 +72,6 @@
 			_target.isPopup = false;
 			_target.hasPopup = true;
 			_target.popup = result;
-			
-			//
-			result.x = _event.clientX;
-			result.y = _event.clientY;
 
 			//
 			DEFAULT_PARENT.appendChild(result, null, () => {
@@ -97,11 +98,11 @@
 			{
 				return;
 			}
-			else
+			else if(_event)
 			{
 				this.move(_event);
 			}
-			
+
 			if(this.isOpen)
 			{
 				return null;
@@ -116,7 +117,12 @@
 					return this.open(_event, _callback);
 				});
 			}
-			else if(this.forceDestroy)
+			else
+			{
+				this.isClosed = false;
+			}
+
+			if(this.forceDestroy)
 			{
 				if(this.OUT)
 				{
@@ -128,11 +134,10 @@
 				return this.close(_event, _callback, true);
 			}
 
-			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
-
 			return this.in({
 				duration: this.getVariable('duration', true), delay: 0
 			}, (_e, _f) => {
+				this.isOpen = _f;
 				call(_callback, { type: 'open', event: _e, finish: _f }, _f);
 			});
 		}
@@ -144,7 +149,7 @@
 			{
 				return;
 			}
-			else
+			else if(_event)
 			{
 				this.move(_event);
 			}
@@ -169,6 +174,10 @@
 					return this.close(_event, _callback, _force_destroy);
 				});
 			}
+			else
+			{
+				this.isOpen = false;
+			}
 
 			//
 			const callback = (_e, _f) => {
@@ -180,6 +189,8 @@
 			return this.out({
 				duration: this.getVariable('duration', true), delay: 0
 			}, (_e, _f) => {
+				this.isClosed = _f;
+
 				if(_f || this.forceDestroy)
 				{
 					this.destroy(_event, callback);
@@ -432,6 +443,16 @@ throw new Error('TODO');
 			return Popup.test(_event_x, _y, this, _throw);
 		}
 
+		static onpointerdown(_event, _callback)
+		{
+			if(Popup.pause)
+			{
+				return;
+			}
+			//TODO/
+			//popup.clear(false, _callback); ..
+		}
+
 		static onpointerup(_event, _callback)
 		{
 			//
@@ -479,21 +500,14 @@ throw new Error('TODO');
 			
 			//
 			const index = [ ... Popup.INDEX ];
-			
+
 			for(const p of index)
 			{
 				if(p.test(_event))
 				{
-					if(p.isOpen)
-					{
-						p.move(_event);
-					}
-					else
-					{
-						p.open(_event);
-					}
+					p.open(_event);
 				}
-				else if(! p.isClosed)
+				else
 				{
 					p.close(_event);
 				}
@@ -629,6 +643,7 @@ throw new Error('TODO');
 	const on = {};
 
 	on.pointermove = Popup.onpointermove.bind(Popup);
+	on.pointerdown = Popup.onpointerdown.bind(Popup);
 	on.pointerup = Popup.onpointerup.bind(Popup);
 	on.keydown = Popup.onkeydown.bind(Popup);
 	on.keyup = Popup.onkeyup.bind(Popup);

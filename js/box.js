@@ -17,6 +17,9 @@
 			super();
 
 			//
+			this.__INIT = true;
+
+			//
 			this.options = Object.assign(... _args);
 
 			//
@@ -57,6 +60,7 @@
 			//
 			setTimeout(() => {
 				this.apply();
+				this.__INIT = false;
 
 				if(parent)
 				{
@@ -145,6 +149,34 @@
 			return this.help;
 		}
 
+		get animateStyle()
+		{
+			if(this.__INIT)
+			{
+				return false;
+			}
+			else if(typeof this.options.animateStyle === 'boolean')
+			{
+				return this.options.animateStyle;
+			}
+
+			return DEFAULT_ANIMATE_STYLE;
+		}
+
+		set animateStyle(_value)
+		{
+			if(typeof _value === 'boolean')
+			{
+				this.options.animateStyle = _value;
+			}
+			else
+			{
+				delete this.options.animateStyle;
+			}
+
+			return this.animateStyle;
+		}
+
 		apply(_options = this.options)
 		{
 			if(! _options)
@@ -170,11 +202,6 @@
 					delete this[camel.enable(keys[i])];
 					delete this[camel.disable(keys[i])];
 				}
-			}
-		
-			if(! ('animateStyle' in _options))
-			{
-				this.animateStyle = DEFAULT_ANIMATE_STYLE;
 			}
 
 			if(! ('movable' in _options))
