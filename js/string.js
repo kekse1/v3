@@ -161,6 +161,7 @@
 		try
 		{
 			entities = require(DEFAULT_ENTITIES_URL, null, null, false, true);
+			console.warn('String.entities catched by URL..');
 		}
 		catch(_error)
 		{
@@ -178,6 +179,8 @@
 			'&quot;': '\'',
 			'&apos;': '"'
 		};
+
+		console.warn('No real String.entities loaded');
 	}
 
 	Object.defineProperty(String, 'entities', { get: function()
