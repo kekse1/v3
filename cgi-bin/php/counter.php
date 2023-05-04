@@ -18,6 +18,10 @@ define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
 define('COOKIE_HTTP_ONLY', true);
 define('COOKIE_SECURE', !!$_SERVER['HTTPS']);
+define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
+
+//
+header('Content-Type: ' . CONTENT_TYPE);
 
 //
 function secureHost($_hostname)
@@ -115,8 +119,11 @@ if(testCookie())
 makeCookie();
 
 //
-header('Content-Type: text/plain;charset=UTF-8');
+$count = (string)$count;
+header('Content-Length: ' . strlen($count));
 echo $count;
+
+//
 exit();
 
 ?>
