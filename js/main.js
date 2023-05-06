@@ -4,7 +4,6 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PATH = 'js';
-	const DEFAULT_EVAL = false;
 	const DEFAULT_CHARSET = 'utf-8';
 	const DEFAULT_DEFER = true;
 	const DEFAULT_TIMEOUT = 10000;
@@ -996,7 +995,11 @@ throw new Error('TODO');
 	};
 
 	//
-	require = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = DEFAULT_EVAL) => {
+	library = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+		return require(_id, _callback, _path, _reload, _throw, _options, true);
+	};
+
+	require = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
@@ -1026,7 +1029,7 @@ throw new Error('TODO');
 
 		if(typeof _eval !== 'boolean')
 		{
-			_eval = DEFAULT_EVAL;
+			_eval = false;
 		}
 
 		if(Array.isArray(_id))
@@ -1178,7 +1181,11 @@ throw new Error('TODO');
 		return result;
 	};
 
-	require.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = DEFAULT_EVAL) => {
+	library.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+			return require.progress(_callback, _path, _reload, _throw, _options, true);
+	};
+
+	require.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1209,7 +1216,7 @@ throw new Error('TODO');
 
 		if(typeof _eval !== 'boolean')
 		{
-			_eval = DEFAULT_EVAL;
+			_eval = false;
 		}
 
 		if(require.QUEUE.length === 0)
@@ -1273,7 +1280,17 @@ throw new Error('TODO');
 	};
 
 	//
-	require.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = DEFAULT_EVAL) => {
+	module = {
+		exports: undefined,
+		id: null
+	};
+
+	//
+	library.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+		return require.js(_id, _callback, _reload, _throw, _options, true);
+	};
+
+	require.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1294,28 +1311,45 @@ throw new Error('TODO');
 		}
 
 		//
-		if(require.CACHE[_id])
+		if(_id in require.CACHE)
 		{
 			const res = require.CACHE[_id];
 
-			if(res.parentNode !== HEAD)
+			if(_reload)
 			{
-				throw new Error('Unexpected (.parentNode) at id \'' + _id + '\'');
-			}
-			else if(_reload)
-			{
-				res.parentNode.removeChild(res);
+				if(typeof res === 'object' && res !== null)
+				{
+					if(! res.__EVAL)
+					{
+						if(res.parentNode && res.parentNode === HEAD)
+						{
+							res.parentNode.removeChild(res, null);
+						}
+						else
+						{
+							delete require.CACHE[_id];
+
+							if(_throw)
+							{
+								throw new Error('Unexpected .parentNode');
+							}
+
+							return undefined;
+						}
+					}
+				}
+
 				delete require.CACHE[_id];
 			}
 			else
 			{
 				if(_callback)
 				{
-					_callback({ id: _id,
-						type: 'js',
+					_callback({ type: 'require', id: _id,
+						type: 'js', cached: true,
 						module: res,
 						error: false
-					});
+					}, res);
 				}
 
 				return res;
@@ -1330,8 +1364,6 @@ throw new Error('TODO');
 		{
 			//
 			const handle = (_request, _event = null) => {
-				var res = _request.responseText;
-
 				if(_request.statusClass !== 2)
 				{
 					if(_throw)
@@ -1347,16 +1379,16 @@ throw new Error('TODO');
 				}
 
 				//
-				const originalModule = {
-					id: module.id,
-					exports: module.exports };
+				var res = _request.responseText;
+
+				//
+				const originalModule = module;
+				module = { id: _id };
 
 				//
 				try
 				{
-					module.id = _id;
 					module.exports = undefined;
-
 					res = eval.call(null, res);
 
 					if(typeof module.exports !== 'undefined')
@@ -1364,7 +1396,9 @@ throw new Error('TODO');
 						res = module.exports;
 					}
 					
+					module.exports = res;
 					require.CACHE[_id] = res;
+					require.CACHE[_id].__EVAL = true;
 				}
 				catch(_error)
 				{
@@ -1372,15 +1406,18 @@ throw new Error('TODO');
 					{
 						throw _error;
 					}
+					else
+					{
+						delete require.CACHE[_id];
+					}
 
 					res = undefined;
 				}
-				finally
-				{
-					module.id = originalModule.id;
-					module.exports = originalModule.exports;
-				}
 				
+				//setTimeout(() => {
+					module = originalModule;
+				//}, 0);
+
 				return res;
 			};
 			
@@ -1449,6 +1486,7 @@ throw new Error('TODO');
 			const onload = () => {
 				//
 				require.CACHE[_id] = result;
+				require.CACHE[_id].__EVAL = false;
 
 				//
 				if(_callback)

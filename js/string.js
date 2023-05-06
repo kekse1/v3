@@ -171,16 +171,30 @@
 
 	if(! entities)
 	{
-		//TODO/same style as in DEFAULT_ENTITIES{,_URL} .json..
 		entities = {
-			'&amp;': '&',
-			'&lt;': '<',
-			'&gt;': '>',
-			'&quot;': '\'',
-			'&apos;': '"'
+			'&amp;': {
+				codepoints: [38],
+				characters: '\u0026'
+			},
+			'&lt;': {
+				codepoints: [60],
+				characters: '\u003C'
+			},
+			'&gt;': {
+				codepoints: [62],
+				characters: '\u003E'
+			},
+			'&quot;': {
+				codepoints: [34],
+				characters: '\u0022'
+			},
+			'&apos;': {
+				codepoints: [39],
+				characters: '\u0027'
+			}
 		};
 
-		console.warn('No real String.entities loaded');
+		console.error('No real String.entities loaded');
 	}
 
 	Object.defineProperty(String, 'entities', { get: function()
@@ -190,7 +204,119 @@
 
 	Object.defineProperty(String.prototype, 'text', { get: function()
 	{
-throw new Error('TODO');
+throw new Error('TODO: TEST!!!');
+		if(this.length === 0)
+		{
+			return '';
+		}
+
+		const hex = radix.getAlphabet(16);
+		var result = '';
+		var open = false;
+		var h, orig;
+		var sub;
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(this[i] === '\\')
+			{
+				if(i < (this.length - 1))
+				{
+					result += this[++i];
+				}
+				else
+				{
+					result += '\\';
+				}
+			}
+			else if(open)
+			{
+				if(this[i] === ';')
+				{
+					orig = '&' + sub + ';';
+					open = false;
+
+					if(sub.length <= 1)
+					{
+						result += orig;
+					}
+					else if(sub[0] === '#')
+					{
+						if(sub[1].toLowerCase() === 'x')
+						{
+							h = true;
+							sub = sub.substr(2);
+						}
+						else
+						{
+							h = false;
+							sub = sub.substr(1);
+						}
+
+						if(sub.length === 0)
+						{
+							result += orig;
+						}
+						else if(h)
+						{
+							for(var j = 0; j < sub.lengtg; ++j)
+							{
+								if(! hex.includes(sub[j]))
+								{
+									h = false;
+									break;
+								}
+							}
+
+							if(!h)
+							{
+								result += orig;
+							}
+							else
+							{
+								result += String.fromCodePoint(parseInt(sub, 16));
+							}
+						}
+						else if(isNaN(sub))
+						{
+							result += orig;
+						}
+						else
+						{
+							result += String.fromCodePoint(Number(sub));
+						}
+					}
+					else if(orig in entities)
+					{
+						result += entities[orig].characters;
+					}
+					else
+					{
+						result += orig;
+					}
+				}
+				else
+				{
+					sub += this[i];
+				}
+			}
+			else if(this[i] === '&')
+			{
+				open = true;
+				sub = '';
+			}
+			else
+			{
+				result += this[i];
+			}
+		}
+
+		if(DEFAULT_TEXT_ERROR && open)
+		{
+			throw new Error('Invalid data (is open at it\'s end)');
+		}
+		
+		return result;
 	}});
 
 	Object.defineProperty(String.prototype, 'textLength', { get: function()
@@ -205,18 +331,22 @@ throw new Error('TODO');
 
 		for(var i = 0; i < this.length; ++i)
 		{
-			if(open.length > 0)
+			if(this[i] === '\\')
+			{
+				if(i < (this.length - 1))
+				{
+					result += this[++i];
+				}
+				else
+				{
+					result += '\\';
+				}
+			}
+			else if(open.length > 0)
 			{
 				if(this[i] === open)
 				{
 					open = '';
-				}
-			}
-			else if(this[i] === '\\')
-			{
-				if(i < (this.length - 1))
-				{
-					++i;
 				}
 			}
 			else if(this[i] === '<')
