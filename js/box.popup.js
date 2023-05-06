@@ -4,6 +4,7 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PARENT = HTML;
+	const DEFAULT_ESCAPE_FORCE_DESTROY = true;
 		
 	//
 	Popup = Box.Popup = class Popup extends Box
@@ -100,7 +101,7 @@
 			}
 			else if(_event)
 			{
-				this.move(_event);
+				this.move(_event, null, false);
 			}
 
 			if(this.forceDestroy)
@@ -156,9 +157,10 @@
 					return false;
 				}
 			}
-			else if(_event)
+			
+			if(_event)
 			{
-				this.move(_event);
+				this.move(_event, null, false);
 			}
 			
 			//
@@ -207,12 +209,17 @@
 			});
 		}
 
-		move(_event_x, _y)
+		move(_event_x, _y, _throw = DEFAULT_THROW)
 		{
 			//
 			if(this.pause || Popup.pause)
 			{
 				return;
+			}
+			else if(typeof _y === 'boolean')
+			{
+				_throw = _y;
+				_y = null;
 			}
 			
 			//
@@ -522,7 +529,14 @@ throw new Error('TODO');
 			{
 				if(! _excludes.includes(index[i]))
 				{
-					if(_force_destroy || !index[i].pause)
+					if(index[i].forceDestroy)
+					{
+						if(! index[i].OUT)
+						{
+							index[i].close(_event, callback, true);
+						}
+					}
+					else if(_force_destroy || !index[i].pause)
 					{
 						++result;
 						index[i].close(_event, callback, _force_destroy);
@@ -629,6 +643,13 @@ throw new Error('TODO');
 			{
 				case 'Control':
 					Popup.pause = true;
+					_event.preventDefault();
+					break;
+				case 'Escape':
+					if(Popup.clear(_event, DEFAULT_ESCAPE_FORCE_DESTROY) > 0)
+					{
+						_event.preventDefault();
+					}
 					break;
 			}
 		}
