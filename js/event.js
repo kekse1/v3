@@ -127,9 +127,21 @@
 		}
 
 		//
-		if(typeof _options.type === 'string')
+		if(typeof _options.type === 'string' && _options.type !== _event.type)
 		{
+			//
+			//todo/check if(_event.type) is already defined here!
+			//
+			if(typeof (_event.originalType = _event.type) !== 'string' || _event.originalType.length === 0)
+			{
+				throw new Error('DEBUG (is _event.type defined here??)');
+			}
+
 			Object.defineProperty(_event, 'type', { value: _options.type });
+		}
+		else
+		{
+			_event.originalType = null;
 		}
 
 		//
