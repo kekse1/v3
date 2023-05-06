@@ -1,4 +1,3 @@
-.
 ├── Arbeitsspeicher
 │   ├── Kingston FURY Renegade (4x16GB)
 │   │   ├── amazon.txt
