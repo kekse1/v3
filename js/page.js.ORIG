@@ -375,13 +375,6 @@
 				
 				//
 				var data = _request.responseText;
-				
-				//
-				if(_type === 'html')
-				{
-					//const extracted = html.extract(data, [ 'script', 'style', 'link' ], 1, _throw);
-//FIXME/TODO/..
-				}
 
 				//
 				if(document.getVariable('bionic', true) && _type === 'html')
@@ -587,10 +580,6 @@
 				{
 			throw new Error('DEBUG');
 					return;
-				}
-				
-				if(_type === 'html')
-				{
 				}
 				
 				return animateIf(_request);

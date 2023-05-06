@@ -42,16 +42,12 @@
 
 			if(_tag.length === 0)
 			{
-				return null;
+				_tag = null;
 			}
-		}
-		else if(_throw)
-		{
-			throw new Error('Invalid _tag argument');
 		}
 		else
 		{
-			return null;
+			_tag = null;
 		}
 
 		//
@@ -65,13 +61,13 @@
 		}
 
 		//
-		const result = [''];
-		var outer = '';
+		const result = [];
+		const data = [''];
 		var open = 0;
 		var c;
 
 		//
-		for(var i = 0; i < _data.length; ++i)
+		for(var i = 0, j = 0; i < _data.length; ++i)
 		{
 			if(_data[i] === '\\')
 			{
@@ -84,54 +80,69 @@
 					c = '\\';
 				}
 
-				if(open > 0)
-				{
-					result[j] += c;
-				}
-				else
-				{
-					outer += c;
-				}
+				data[Math.min(open, _depth)] += c;
 			}
 			else if(open > 0)
 			{
-	throw new Error('TODO');
-				if(_data[i] === '>')
-				{
-					--open;
-					//fixme/zusammen klappen?
-				}
-				else if(_data[i] === '<' && open < _depth)
-				{
-					result[++open] = '';
-				}
-				else
-				{
-					result[open] += _data[i];
-				}
+throw new Error('TODO');
 			}
 			else if(_data[i] === '<')
 			{
-				if(result.length <= (open = 1))
+				c = -1;
+				
+				if(_tag) for(var k = 0; k < _tag.length; ++k)
 				{
-					result[open] = '';
+					if(_data.at(i + 1, _tag[k], false))
+					{
+						c = _tag[k].length;
+						break;
+					}
 				}
+				else
+				{
+					c = 0;
+				}
+				
+				if(c > -1)
+				{
+					if(data.length <= (open = 1))
+					{
+						data[open] = '';
+					}
+				}
+				else
+				{
+					open = 0;
+				}
+
+				--i;
 			}
 			else
 			{
-				result[0] += _data[i];
+				data[0] += _data[i];
 			}
 		}
 
 		//
-		if(_throw && open > 0)
+		if(open > 0)
 		{
-			throw new Error('Invalid _data (malformed HTML: opening bracket \'<\' has not been closed)');
+			if(_throw && document.getVariable('data-error', true))
+			{
+				throw new Error('Invalid _data (malformed HTML: opening bracket \'<\' has not been closed)');
+			}
+			
+			return null;
 		}
-		else for(var i = 1; i < result.length; ++i)
+		else for(var i = data.length - 1; i >= 0; --i)
 		{
-	throw new Error('TODO (strings between \'<\' and \'>\' to data objects!)');
+			result.unshift(data[i]);
 		}
+alert(Object.debug(result));
+		/*
+		for(var i = 1; i < result.length; ++i)
+		{
+			//
+		}*/
 
 		//
 		return result;

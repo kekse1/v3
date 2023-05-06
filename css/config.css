@@ -49,3 +49,8 @@
 	--animation-delay: 1.0;
 }
 
+:root
+{
+	--data-error: auto;
+}
+

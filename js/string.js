@@ -10,7 +10,6 @@
 	const DEFAULT_COUNT_ONCE = false;
 	const DEFAULT_INT = false;
 	const DEFAULT_LESS_AMP = false;
-	const DEFAULT_TEXT_ERROR = false;
 	const DEFAULT_ENTITIES = 'json/entities.json';
 	const DEFAULT_ENTITIES_URL = 'https://html.spec.whatwg.org/entities.json';
 	const DEFAULT_HTML_ALL = true;
@@ -319,7 +318,7 @@
 			}
 		}
 
-		if(DEFAULT_TEXT_ERROR && open)
+		if(open && document.getVariable('data-error', true))
 		{
 			throw new Error('Invalid data (is open at it\'s end)');
 		}
@@ -372,7 +371,7 @@
 			}
 		}
 
-		if(DEFAULT_TEXT_ERROR && open.length > 0)
+		if(open.length > 0 && document.getVariable('data-error', true))
 		{
 			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
 		}
@@ -424,7 +423,7 @@
 			}
 		}
 
-		if(DEFAULT_TEXT_ERROR && open.length > 0)
+		if(open.length > 0 && document.getVariable('data-error', true))
 		{
 			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
 		}
