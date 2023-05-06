@@ -59,7 +59,7 @@
 		"image": "img/menu/hardware.png",
 		"data": "Hardware",
 		"description": "The hardware I'm using",
-		"href": "#~hardware.txt",
+		"href": "#~hardware",
 		"popup": "That's all the hardware I'm using or used to use"
 	},
 	{
