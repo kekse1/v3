@@ -1446,9 +1446,13 @@
 
 		static onpointerup(_event, _target = _event.target, _callback)
 		{
-			if(_event.pointerType !== 'mouse' && _event.type !== 'click')
+			/*if(_event.pointerType !== 'mouse' && _event.type !== 'click')
 			{
 				return Menu.Item.onpointerout(_event, _target, _callback);
+			}*/
+			if(_event.pointerType !== 'mouse' && Menu.outItems(_event) > 0)
+			{
+				_event.preventDefault();
 			}
 		}
 
@@ -1529,7 +1533,12 @@
 					
 					delete _target.BLINK;
 
-					//Menu.Item.onpointerup(_event, _target, _callback, true);
+					if(_event.pointerType !== 'mouse')
+					{
+						setTimeout(() => {
+							Menu.outItems(_event, null);
+						}, 0);
+					}
 
 					call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
 						target: _target, imageNode: _target.imageNode, textNode: _target.textNode }, _f, _target, _event);
