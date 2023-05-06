@@ -259,7 +259,7 @@ throw new Error('TODO: TEST!!!');
 						}
 						else if(h)
 						{
-							for(var j = 0; j < sub.lengtg; ++j)
+							for(var j = 0; j < sub.length; ++j)
 							{
 								if(! hex.includes(sub[j]))
 								{
