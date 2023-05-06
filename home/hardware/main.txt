@@ -1,174 +1,60 @@
+hardware/
 ├── Arbeitsspeicher
 │   ├── Kingston FURY Renegade (4x16GB)
-│   │   ├── amazon.txt
-│   │   ├── modell.txt
-│   │   ├── preis.txt
-│   │   └── specifications.pdf
 │   └── Kingston HyperX (4x8GB)
-│       ├── Specifications.pdf
-│       └── modell.txt
 ├── Autoradio
-│   ├── JVC KD-DB98BT (Handbuch).pdf
-│   └── JVC KD-DB98BT.txt
 ├── CPU -> Prozessor
 ├── Drucker
 │   ├── Canon PIXMA ix6850
-│   │   ├── Debian-Treiber (cnijfilter-ix6800series-4.10-1-deb).tar.gz
-│   │   ├── GENTOO.txt
-│   │   ├── Linux-Treiber (cnijfilter-source-4.10-1).tar.gz
-│   │   └── TODO:Manual
-│   ├── Lexmark MB2236adw
-│   │   ├── Anleitungen für Papier und Spezialdruckmedien.pdf
-│   │   ├── B222000.txt -> Toner/B222000.txt
-│   │   ├── B222H00.txt -> Toner/B222H00.txt
-│   │   ├── Benutzerhandbuch.pdf
-│   │   ├── Broschüre.pdf
-│   │   ├── Druckertreiber für UNIX- und Linux-Systeme.pdf
-│   │   ├── Hersteller-Website.txt
-│   │   ├── Infocenter-Website.txt
-│   │   ├── Kurzanleitung.pdf
-│   │   ├── Netzwerk-Scannertreiber Benutzerhandbuch.pdf
-│   │   ├── Printer Languages and Interfaces Technical Reference.pdf
-│   │   ├── Produktinformationen.pdf
-│   │   ├── Support-Website.txt
-│   │   ├── Toner
-│   │   │   ├── B222000.txt
-│   │   │   ├── B222H00.txt
-│   │   │   └── info.txt
-│   │   └── Toner.txt -> Toner/info.txt
-│   └── Toner -> ../Toner/
+│   └── Lexmark MB2236adw
+│       └── Toner
 ├── Einplatinencomputer
-│   ├── Banana Pi M64.txt
-│   ├── ODROID-C2 (Handbuch).pdf
-│   └── ODROID-C2.txt
 ├── Fernseher -> TV
 ├── Festplatte
 │   ├── Sabrent 256 GB
-│   │   ├── MANUAL.pdf
-│   │   ├── ROCKET-SERIES-MANUAL-2batch.pdf
-│   │   ├── ROCKET-SERIES-MANUAL-GERMANY-copy.pdf
-│   │   ├── ROCKET-SERIES-MANUAL.pdf
-│   │   ├── SECTOR-SIZE-CONVERTER-MANUAL.pdf
-│   │   ├── amazon.de.txt
-│   │   ├── bezeichnung.txt
-│   │   └── website.txt
 │   └── WD_BLACK SN770
-│       ├── amazon.txt
-│       ├── bezeichnung.txt
-│       ├── hersteller.txt
-│       ├── preis.txt
-│       ├── product-brief-wd-black-sn770-nvme-ssd.pdf
-│       ├── support.txt
-│       └── teil#.txt
 ├── Gehaeuse
 │   └── Thermaltake Level 20 XT (Cube)
-│       ├── catalogue.pdf
-│       ├── hersteller.txt
-│       └── manual.pdf
 ├── Grafikkarte
 │   ├── ASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)
-│   │   ├── Hersteller-Website.txt
-│   │   ├── Q15607a_Graphics_SpeedSetupGuide_v9.pdf
-│   │   ├── Q16458_VGA_Warranty_Card_110x85mm_v8_WEB.pdf
-│   │   ├── RECOMMENDED_PSU_TABLE.pdf
-│   │   └── UserManual_20170426.pdf
 │   └── ASUS Strix GeForce GTX 970 (STRIXGTX970DC2OC4GD5)
-│       ├── Bedienungsanleitung (2017-04-26).pdf
-│       └── Hersteller-Website.txt
 ├── Keyboard -> Tastatur
 ├── Laptop
 │   └── Fujitsu Lifebook A3511
-│       ├── Datenblatt.pdf
-│       ├── bezeichnung.txt
-│       ├── computeruniverse.net
-│       ├── hersteller.txt
-│       ├── pos-notebooks.pdf
-│       ├── pos_mobile_accessories.pdf
-│       ├── preis.txt
-│       └── support.txt
 ├── Lautsprecher
 │   ├── Creative Inspire T6300
-│   │   ├── Datenblatt.pdf
-│   │   └── Handbuch.pdf
 │   └── auna Areal 525 DG
-│       ├── Bedienungsanleitung.pdf
-│       ├── amazon.txt
-│       ├── hersteller.txt
-│       └── preis.txt
 ├── Lüfter
-│   └── Cooler Master MasterLiquid ML240R ARGB.txt
 ├── Mainboard
 │   ├── ASUS ROG RAMPAGE VI EXTREME
-│   │   ├── Downloads (Treiber und Hilfsprogramme).txt
-│   │   ├── Hersteller-Website.txt
-│   │   ├── Knowledge Base (Wissenswertes).txt
-│   │   ├── Quick Start Guide.pdf
-│   │   ├── User Manual (English).pdf
-│   │   ├── User Manual (German).pdf
-│   │   └── quad-channel-ram.txt
 │   └── Gigabyte GA-X79-UP4
-│       ├── Gigabyte GA-X79-UP4 (Handbuch).pdf
-│       ├── Gigabyte GA-X79-UP4 (Installation).pdf
-│       └── Gigabyte GA-X79-UP4.txt
 ├── Maus
 │   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
-│   │   ├── amazon.txt
-│   │   └── preis.txt
 │   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
 ├── Mauspad -> Pointer/Mauspad/
 ├── Monitor
 │   ├── LG 55NANO779PA -> ../TV/LG 55NANO779PA/
 │   ├── Monitor-Halterung
 │   │   ├── HUANUO HNDSK3
-│   │   │   ├── Schreibtisch.jpg
-│   │   │   ├── amazon.de.txt
-│   │   │   └── short-facts.txt
 │   │   └── MYW HL 17 L
-│   │       ├── amazon.de.txt
-│   │       ├── reichelt.de.txt
-│   │       └── short-facts.txt
 │   ├── ODROID SHOW2
-│   │   └── ODROID SHOW2.txt
 │   └── Samsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)
-│       ├── Benutzerhandbuch.pdf
-│       ├── Datenblatt.pdf
-│       ├── amazon.de.txt
-│       └── website.txt
 ├── Monitor-Halterung -> Monitor/Monitor-Halterung/
 ├── Netzteil
 │   └── be quiet! Straight Power E7 (600 Watt)
-│       ├── be quiet! Straight Power E7 (600 Watt) DATENBLATT.pdf
-│       └── be quiet! Straight Power E7 (600 Watt) HANDBUCH.pdf
 ├── Notebook -> Laptop
 ├── Pointer
 │   ├── Maus
 │   │   └── Cherry [MC 3000] XERO (White)
-│   │       ├── Handbuch.pdf
-│   │       ├── amazon.de.txt
-│   │       └── website.txt
 │   ├── Mauspad
 │   │   ├── Titanwolf 1200x600mm
-│   │   │   ├── amazon.txt
-│   │   │   ├── preis.txt
-│   │   │   └── xxxl.jpg
 │   │   └── Titanwolf XXL Speed Gaming Mauspad (90x40cm)
-│   │       ├── Gesamtansicht.jpg
-│   │       ├── Schreibtisch.jpg
-│   │       └── amazon.de.txt
 │   └── Trackball
 │       └── Perixx PERIMICE-517
-│           ├── Datenblatt.pdf
-│           ├── Handbuch.pdf
-│           └── Hersteller-Website.txt
 ├── Projektor
 │   └── Epson EB-U05
-│       ├── AMAZON.de.txt
-│       ├── Datenblatt.pdf
-│       ├── Handbuch A.pdf
-│       ├── Handbuch B.pdf
-│       └── WWW.txt
 ├── Prozessor
-│   ├── AMD K6-2 350 (MHz)
+│   ├── AMD K6-2 (350 MHz)
 │   ├── Cyrix 6x86MX PR200+ (166 MHz)
 │   ├── Intel Core 2 Quad Q6600 (2.4 GHz)
 │   ├── Intel Core i7-3820 (3.6-3.8 GHz)
@@ -181,81 +67,27 @@
 ├── SSD -> Festplatte
 ├── Satelliten-Finder
 │   └── DUR-line SF 4000 BT
-│       ├── Anleitung (25.07.2018).pdf
-│       ├── Hersteller-Website.txt
-│       └── Schnellanleitung.pdf
 ├── Saugroboter
 │   └── TechniSat TECHNIMAX SR1
-│       └── amazon.txt
 ├── Smartphone
 │   ├── HUAWEI Mate20 Pro
-│   │   ├── Benutzerhandbuch.pdf
-│   │   ├── EMUI 9.0.txt -> WWW/EMUI 9.0.txt
-│   │   ├── HUELLE.txt
-│   │   ├── HiSuite.txt -> WWW/HiSuite.txt
-│   │   ├── Schnellstartanleitung.pdf
-│   │   ├── Support.txt -> WWW/Support.txt
 │   │   └── WWW
-│   │       ├── BETA-Test.txt
-│   │       ├── EMUI 9.0.txt
-│   │       ├── Hersteller-Website.txt
-│   │       ├── HiSuite.txt
-│   │       ├── Support.txt
-│   │       ├── Technische Daten.txt
-│   │       └── Testberichte.txt
 │   ├── LG Q6 [LGM700n]
-│   │   ├── Handbuch.pdf
-│   │   └── Ice Platinum.txt
 │   ├── Samsung Galaxy S20+
-│   │   ├── Benutzerhandbuch (SM-G98X_UM_Open_QQ_Ger_Rev.1.1_200324).pdf
-│   │   ├── Hersteller-Apps
-│   │   │   ├── Find My Mobile.txt
-│   │   │   ├── Remote Service.txt
-│   │   │   ├── Samsung Health.txt
-│   │   │   └── Smart Switch.txt
-│   │   ├── Hersteller-Website.txt
-│   │   └── Sicherheitshandbuch (Safety_information_Rev.1.8.8_190821).pdf
-│   ├── Samsung Galaxy S23 Ultra
-│   │   └── website.txt
-│   └── WALLPAPER.png
+│   │   └── Hersteller-Apps
+│   └── Samsung Galaxy S23 Ultra
 ├── Streaming
 │   └── NOKIA Streaming Box 8000
-│       ├── Bedienungsanleitung.pdf
-│       ├── Installation.pdf
-│       ├── fernbedienung.txt
-│       ├── hersteller.txt
-│       └── support.txt
 ├── TV
 │   ├── LG 55NANO779PA
-│   │   ├── Benutzeranleitung.pdf
-│   │   ├── Benutzerhandbuch.pdf
-│   │   ├── Firmware.pdf
-│   │   ├── lg.com.txt
-│   │   └── support.txt
 │   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
 │   ├── Nokia Streaming Box 8000 (Android TV)
-│   │   ├── Bedienungsanleitung.pdf
-│   │   ├── Installationsanleitung.pdf
-│   │   ├── amazon.txt
-│   │   ├── fernbedienung.txt
-│   │   ├── hersteller.txt
-│   │   └── support.txt
 │   └── SHARP LC-55CUF8462ES (TV)
-│       ├── SHARP (TV) LC-55CUF8462ES (Handbuch).pdf
-│       └── SHARP (TV) LC-55CUF8462ES.txt
 ├── Tastatur
 │   ├── EMPIRE Gaming K300
-│   │   ├── Handbuch.pdf
-│   │   └── Hersteller-Website.txt
 │   ├── Razer BlackWidow
 │   └── Roccat Vulcan TKL Pro
-│       ├── Quick Installation Guide.pdf
-│       ├── amazon.de.txt
-│       └── hersteller.txt
 ├── USB-Stick
 │   └── ADATA UE700 Pro (256 GB)
-├── Uhr
-│   ├── TIMEX Intelligent Quartz
-│   │   ├── Timex T2P381.jpg
-│   │   └── User Guide.pdf
-│   └── Timex T2P381.jpg -> TIMEX Intelligent Quartz/Timex T2P381.jpg
+└── Uhr
+    └── TIMEX Intelligent Quartz
