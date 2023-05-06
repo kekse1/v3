@@ -24,6 +24,11 @@
 				type: 'pointerup', pointerType: 'manu',
 				target: null, event: _event };
 
+			if(typeof _callback !== 'function')
+			{
+				_callback = null;
+			}
+
 			//
 			const index = Menu.Item.INDEX;
 
@@ -54,18 +59,29 @@
 				{
 					case 'over':
 					case 'overing':
-						yes = true;
+					case 'blinking':
+						yes = index[i]._state;
 						break;
 					default:
-						yes = false;
+						yes = '';
 						break;
 				}
 
-				if(yes)
+				if(yes.length > 0)
 				{
 					if(_exclude.includes(index[i]))
 					{
 						continue;
+					}
+					else if(yes === 'blinking')
+					{
+						if(index[i].BLINK) for(const elem of index[i].BLINK)
+						{
+							if(typeof elem.cancel === 'function')
+							{
+								elem.cancel();
+							}
+						}
 					}
 					else if(Menu.Item.onpointerout(_event, _event.target = index[i], cb, false))
 					{
