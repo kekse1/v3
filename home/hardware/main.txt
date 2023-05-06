@@ -1,3 +1,4 @@
+.
 ├── Arbeitsspeicher
 │   ├── Kingston FURY Renegade (4x16GB)
 │   │   ├── amazon.txt
@@ -104,7 +105,8 @@
 │   │   ├── Knowledge Base (Wissenswertes).txt
 │   │   ├── Quick Start Guide.pdf
 │   │   ├── User Manual (English).pdf
-│   │   └── User Manual (German).pdf
+│   │   ├── User Manual (German).pdf
+│   │   └── quad-channel-ram.txt
 │   └── Gigabyte GA-X79-UP4
 │       ├── Gigabyte GA-X79-UP4 (Handbuch).pdf
 │       ├── Gigabyte GA-X79-UP4 (Installation).pdf
@@ -167,12 +169,12 @@
 │       ├── Handbuch B.pdf
 │       └── WWW.txt
 ├── Prozessor
-│   ├── AMD K6-2 350 MHz
+│   ├── AMD K6-2 350 (MHz)
 │   ├── Cyrix 6x86MX PR200+ (166 MHz)
-│   ├── Intel Core 2 Quad Q6600
-│   ├── Intel Core i7-3820
-│   ├── Intel Core i7-7800X
-│   ├── Intel Pentium 100
+│   ├── Intel Core 2 Quad Q6600 (2.4 GHz)
+│   ├── Intel Core i7-3820 (3.6-3.8 GHz)
+│   ├── Intel Core i7-7800X (3.5-4.0 GHz)
+│   ├── Intel Pentium 100 (MHz)
 │   ├── Intel Pentium III (1 GHz)
 │   ├── Intel i486DX (33 MHz)
 │   └── Intel i486DX2 (66 MHz)
@@ -258,4 +260,3 @@
 │   │   ├── Timex T2P381.jpg
 │   │   └── User Guide.pdf
 │   └── Timex T2P381.jpg -> TIMEX Intelligent Quartz/Timex T2P381.jpg
-
