@@ -1135,6 +1135,9 @@
 			result.textNode.style.top = setValue(_parent.HEIGHT - textHeight);
 
 			//
+			_parent.HEIGHT += result.getVariable('space', ['px']);
+
+			//
 			//result.style.height = setValue(_parent.HEIGHT);
 
 			//

@@ -84,7 +84,30 @@
 			}
 			else if(open > 0)
 			{
-throw new Error('TODO');
+				c = open;
+				
+				if(_data[i] === '<')
+				{
+					data[Math.min(open++, _depth)] += '<';
+					
+					if(data.length <= open)
+					{
+						data[open] = '';
+					}
+				}
+				else if(_data[i] === '>')
+				{
+					data[Math.min(open--, _depth)] += '>';
+				}
+				else
+				{
+					data[Math.min(open, _depth)] += _data[i];
+				}
+
+				if(open < c)
+				{
+					result[j++] = data.splice(i--, 1)[0];
+				}
 			}
 			else if(_data[i] === '<')
 			{
@@ -107,22 +130,24 @@ throw new Error('TODO');
 				{
 					if(data.length <= (open = 1))
 					{
-						data[open] = '';
+						data[open] = '<';
+					}
+					else
+					{
+						data[open] += '<';
 					}
 				}
 				else
 				{
 					open = 0;
 				}
-
-				--i;
 			}
 			else
 			{
 				data[0] += _data[i];
 			}
 		}
-
+alert('(open: ' + open + ')\n\n\n' + Object.debug(result));
 		//
 		if(open > 0)
 		{
@@ -137,7 +162,7 @@ throw new Error('TODO');
 		{
 			result.unshift(data[i]);
 		}
-alert(Object.debug(result));
+
 		/*
 		for(var i = 1; i < result.length; ++i)
 		{

@@ -177,6 +177,10 @@
 					{
 						_item = r[0];
 					}
+					else if(! isNaN(_item))
+					{
+						_item = Number(_item);
+					}
 					else
 					{
 						_item = r;

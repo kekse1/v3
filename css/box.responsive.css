@@ -21,7 +21,7 @@
 
 	a-menu-item, .menuItem
 	{
-		margin-top: 20px;
+		--space: 4px;
 	}
 
 	.menuItemText
@@ -42,8 +42,7 @@
 
 	a-menu-item, .menuItem
 	{
-		margin-top: 18px;
-		margin-left: 12px;
+		--space: 2px;
 	}
 
 	.menuItemText
@@ -60,6 +59,11 @@
 		--min: 10px;
 		--max: 40px;
 		top: 3px;
+	}
+
+	a-menu-item, .menuItem
+	{
+		--space: 0px;
 	}
 
 	.menuItemText
