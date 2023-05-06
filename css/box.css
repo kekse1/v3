@@ -107,6 +107,7 @@ a-menu-item, .menuItem
 	border-color: rgba(255, 255, 255, 0.5);
 	border-width: 2px;
 	background-color: rgba(255, 255, 255, 0.2);
+	z-index: 64;
 }
 
 .menuItemText
@@ -117,19 +118,14 @@ a-menu-item, .menuItem
 	padding: 2px;
 	position: fixed;
 	height: 0.9rem;
-	font-size: 0.8rem;
-	/*height: 1.00rem;*/
-	/*text-shadow: 3px 3px 9px white;
-	color: rgba(240, 240, 240, 0.8);
-	/*padding-top: 2px;
-	padding-bottom: 3px;*/
-	z-index: 128;
+	font-size: 0.95rem;
 	user-select: none;
 	background-color: transparent;
 	user-select: none;
 	pointer-events: none;
 	text-shadow: inherit;
 	color: inherit;
+	z-index: 64;
 }
 
 a-context, .context

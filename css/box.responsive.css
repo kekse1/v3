@@ -9,6 +9,11 @@
 	{
 		--space: 9px;
 	}
+
+	.menuItemText
+	{
+		font-size: 0.9rem;
+	}
 }
 
 @media only screen and (max-width: 767px)
@@ -27,8 +32,7 @@
 
 	.menuItemText
 	{
-		margin-bottom: -8px;
-		font-weight: normal;
+		font-size: 0.8rem;
 	}
 }
 
@@ -48,7 +52,6 @@
 
 	.menuItemText
 	{
-		margin-bottom: -12px;
 		font-size: 0.75rem;
 	}
 }
