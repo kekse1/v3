@@ -5,8 +5,9 @@
 		top: 128px;
 	}
 
-	.menuItemText
+	a-menu-item, .menuItem
 	{
+		--space: 9px;
 	}
 }
 
@@ -21,7 +22,7 @@
 
 	a-menu-item, .menuItem
 	{
-		--space: 4px;
+		--space: 6px;
 	}
 
 	.menuItemText
@@ -42,7 +43,7 @@
 
 	a-menu-item, .menuItem
 	{
-		--space: 2px;
+		--space: 4px;
 	}
 
 	.menuItemText
@@ -63,7 +64,7 @@
 
 	a-menu-item, .menuItem
 	{
-		--space: 0px;
+		--space: 2px;
 	}
 
 	.menuItemText
