@@ -265,7 +265,12 @@
 		}
 		
 		const context = (typeof _callback.context === 'undefined' ? DEFAULT_CONTEXT : _callback.context);
-		const timeout = (('timeout' in _callback) ? _callback.timeout : document.getVariable('callback-timeout', true));
+		var timeout = (('timeout' in _callback) ? _callback.timeout : document.getVariable('callback-timeout', true));
+
+		if(typeof timeout === 'boolean')
+		{
+			timeout = (timeout ? 0 : null);
+		}
 
 		if(isInt(timeout) && timeout >= 0)
 		{

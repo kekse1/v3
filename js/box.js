@@ -112,7 +112,7 @@
 		{
 			if(this.parentNode)
 			{
-				this.parentNode.removeChild(this, _animate, (_e, _f) => {
+				return this.parentNode.removeChild(this, _animate, (_e, _f) => {
 					this.destroyed = true;
 					call(_callback, { type: 'destroy', event: _e, finish: _f }, _f);
 				});
@@ -121,8 +121,8 @@
 			{
 				this.destroyed = true;
 			}
-
-			return call(_callback, { type: 'destroy' });
+			
+			call(_callback, { type: 'destroy' });
 		}
 
 		get help()

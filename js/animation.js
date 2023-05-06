@@ -77,7 +77,7 @@
 		//
 		if((_options.none && this.getVariable('none', true)) || none)
 		{
-			if(_callback) _callback({
+			if(_callback) call(callback, {
 				this: this, element: this,
 				type: 'animate',
 				finish: true, 

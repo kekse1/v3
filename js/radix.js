@@ -122,7 +122,47 @@
 		return result;
 	};
 
-	radix.getAlphabet = (_radix, _throw = DEFAULT_THROW) => {
+	//
+	// this is to optimize alphabet-includes-checks.
+	// zeitkomplexitaet von "O(n^2)" auf "O(n)" reduziert wohl..
+	//
+	radix.getAlphabetSet = (_radix, _throw = DEFAULT_THROW) => {
+		return radix.getAlphabet(_radix, true, _throw);
+	};
+
+	radix.checkAlphabetSet = (_string_char, _set, _throw = DEFAULT_THROW) => {
+		if(! isString(_string_char, false))
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _string_char argument (no non-empty String)');
+			}
+
+			return null;
+		}
+		else if(! is(_set, 'Set'))
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _set argument (maybe use \'radix.getAlphabetSet(..)\'?)');
+			}
+
+			return null;
+		}
+
+		for(var i = 0; i < _string_char.length; ++i)
+		{
+			if(! _set.has(_string_char[i]))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	//
+	radix.getAlphabet = (_radix, _set = false, _throw = DEFAULT_THROW) => {
 		if(! radix.isValid(_radix))
 		{
 			if(_throw)
@@ -186,6 +226,18 @@
 		if(negative)
 		{
 			result = result.reverse();
+		}
+
+		if(_set)
+		{
+			const s = new Set();
+
+			for(var i = 0; i < result.length; ++i)
+			{
+				s.add(result[i]);
+			}
+
+			result = s;
 		}
 
 		return result;

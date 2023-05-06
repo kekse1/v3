@@ -10,9 +10,11 @@
 	const DEFAULT_COUNT_ONCE = false;
 	const DEFAULT_INT = false;
 	const DEFAULT_LESS_AMP = false;
-	const DEFAULT_TEXT_ERROR = true;
+	const DEFAULT_TEXT_ERROR = false;
 	const DEFAULT_ENTITIES = 'json/entities.json';
 	const DEFAULT_ENTITIES_URL = 'https://html.spec.whatwg.org/entities.json';
+	const DEFAULT_HTML_ALL = true;
+	const DEFAULT_HTML_HEX = true;
 
 	//
 	Object.defineProperty(String.prototype, 'print', { value: function(_object, ... _args)
@@ -202,19 +204,48 @@
 		return { ... entities };
 	}});
 
-	Object.defineProperty(String.prototype, 'text', { get: function()
+	Object.defineProperty(String.prototype, 'toHTML', { value: function(_all = DEFAULT_HTML_ALL, _hex = DEFAULT_HTML_HEX)
 	{
-throw new Error('TODO: TEST!!!');
 		if(this.length === 0)
 		{
 			return '';
 		}
 
-		const hex = radix.getAlphabet(16);
+		var result = '';
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(_all)
+			{
+				if(_hex)
+				{
+					result += '&#x' + this.charCodeAt(i).toString(16) + ';';
+				}
+				else
+				{
+					result += '&#' + this.charCodeAt(i).toString() + ';';
+				}
+			}
+			else
+			{
+	throw new Error('TODO (using entities)');
+			}
+		}
+
+		return result;
+	}});
+
+	Object.defineProperty(String.prototype, 'text', { get: function()
+	{
+		if(this.length === 0)
+		{
+			return '';
+		}
+
 		var result = '';
 		var open = false;
 		var h, orig;
-		var sub;
+		var sub = '';
 
 		for(var i = 0; i < this.length; ++i)
 		{
@@ -253,37 +284,13 @@ throw new Error('TODO: TEST!!!');
 							sub = sub.substr(1);
 						}
 
-						if(sub.length === 0)
-						{
-							result += orig;
-						}
-						else if(h)
-						{
-							for(var j = 0; j < sub.length; ++j)
-							{
-								if(! hex.includes(sub[j]))
-								{
-									h = false;
-									break;
-								}
-							}
-
-							if(!h)
-							{
-								result += orig;
-							}
-							else
-							{
-								result += String.fromCodePoint(parseInt(sub, 16));
-							}
-						}
-						else if(isNaN(sub))
-						{
+					  	if(isNaN(sub = parseInt(sub, (h ? 16 : 10))))
+					  	{
 							result += orig;
 						}
 						else
 						{
-							result += String.fromCodePoint(Number(sub));
+							result += String.fromCodePoint(sub);
 						}
 					}
 					else if(orig in entities)
@@ -294,6 +301,8 @@ throw new Error('TODO: TEST!!!');
 					{
 						result += orig;
 					}
+
+					sub = '';
 				}
 				else
 				{
@@ -303,7 +312,6 @@ throw new Error('TODO: TEST!!!');
 			else if(this[i] === '&')
 			{
 				open = true;
-				sub = '';
 			}
 			else
 			{

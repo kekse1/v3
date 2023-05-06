@@ -103,7 +103,11 @@
 				this.move(_event);
 			}
 
-			if(this.isOpen)
+			if(this.forceDestroy)
+			{
+				return null;
+			}
+			else if(this.isOpen)
 			{
 				return null;
 			}
@@ -147,7 +151,10 @@
 			//
 			if(this.pause || Popup.pause)
 			{
-				return;
+				if(! _force_destroy)
+				{
+					return false;
+				}
 			}
 			else if(_event)
 			{
@@ -184,8 +191,6 @@
 				call(_callback, { type: (_f ? 'destroy' : 'close'), event: _e, finish: _f }, _f);
 			};
 
-			const [ x, y ] = this.getPosition(_event.clientX, _event.clientY, this.offsetWidth, this.offsetHeight, this.getVariable('arrange', true), true);
-			
 			return this.out({
 				duration: this.getVariable('duration', true), delay: 0
 			}, (_e, _f) => {
@@ -257,7 +262,7 @@
 				}
 			
 				//
-				call(_callback, { type: 'destroy', this: this });
+				call(_callback, { type: 'destroy', this: this }, true);
 			});
 		}
 		
@@ -442,6 +447,96 @@ throw new Error('TODO');
 		{
 			return Popup.test(_event_x, _y, this, _throw);
 		}
+		
+		static clear(_event, _force_destroy = false, _callback = null, ... _excludes)
+		{
+			const index = Popup.INDEX;
+			
+			if(index.length === 0)
+			{
+				return 0;
+			}
+
+			if(is(_callback, 'Popup'))
+			{
+				_excludes.unshift(_callback);
+				_callback = null;
+			}
+			else if(typeof _callback !== 'function')
+			{
+				_callback = null;
+			}
+			
+			if(is(_force_destroy, 'Popup'))
+			{
+				_excludes.unshift(_force_destroy);
+				_force_destroy = false;
+			}
+			else if(typeof _force_destroy !== 'boolean')
+			{
+				_force_destroy = false;
+			}
+
+			if(is(_event, 'Popup'))
+			{
+				_excludes.unshift(_event);
+				_event = null;
+			}
+			else if(! _event)
+			{
+				_event = null;
+			}
+
+			var result = 0;
+			var count = 0;
+			var fin = 0;
+			
+			const callback = (_e, _f) => {
+				if(_f)
+				{
+					++fin;
+				}
+				
+				if(++count >= result)
+				{ 
+					if(fin >= result)
+					{
+						fin = true;
+					}
+					else
+					{
+						fin = (fin / result);
+					}
+
+					call(_callback, { type: 'clear', event: _e, finish: fin, count: result }, fin);
+				}
+			};
+
+			if(Popup.pause && !_force_destroy)
+			{
+				callback(null, true);
+				return 0;
+			}
+			
+			for(var i = 0; i < index.length; ++i)
+			{
+				if(! _excludes.includes(index[i]))
+				{
+					if(_force_destroy || !index[i].pause)
+					{
+						++result;
+						index[i].close(_event, callback, _force_destroy);
+					}
+				}
+			}
+			
+			if(result === 0)
+			{
+				call(_callback, { type: 'clear', count: 0, event: null, finish: true }, true);
+			}
+			
+			return result;
+		}
 
 		static onpointerdown(_event, _callback)
 		{
@@ -449,8 +544,10 @@ throw new Error('TODO');
 			{
 				return;
 			}
-			//TODO/
-			//popup.clear(false, _callback); ..
+			else if(Popup.clear(_event, false, _callback) > 0)
+			{
+				_event.preventDefault();
+			}
 		}
 
 		static onpointerup(_event, _callback)
@@ -460,31 +557,35 @@ throw new Error('TODO');
 			{
 				return;
 			}
-			else if(_event.pointerType === 'mouse')
-			{
-				return;
-			}
 			
+			var result = 0;
 			var count = 0;
+
 			const cb = () => {
-				if(--count <= 0)
+				if(++count >= result)
 				{
-					call(_callback, { type: 'pointerup', closed: result, event: _event }, _event);
+					call(_callback, { type: 'pointerup', result, event: _event }, _event);
 				}
 			};
 
 			const index = Popup.INDEX;
-			var result = 0;
 
 			for(var i = 0; i < index.length; ++i)
 			{
-				++count;
-
-				if(index[i].close({ clientX: _event.clientX, clientY: _event.clientY, target: index[i], type: 'pointerup', pointerType: 'mouse' }, cb))
+				if(! index[i].pause)
 				{
-					_event.preventDefault();
 					++result;
+
+					if(index[i].open(_event, cb))
+					{
+						_event.preventDefault();
+					}
 				}
+			}
+
+			if(result === 0)
+			{
+				cb();
 			}
 
 			return result;
@@ -553,8 +654,6 @@ throw new Error('TODO');
 			
 			return index.length;
 		}
-
-		//static clear(..
 
 		static get pause()
 		{

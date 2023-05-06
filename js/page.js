@@ -66,14 +66,20 @@
 
 						if(! found)
 						{
-							if(link[link.length - 1] === '.')
+							//
+							//verlass auf '.htaccess/httpd-conf' @ 'DirectoryIndex'! ^_^
+							//=> set to 'main.html main.txt' first! :)~
+							//
+							link += '/';
+
+							/*if(link[link.length - 1] === '.')
 							{
 								link += homeConfig.extension[0].substr(1);
 							}
 							else
 							{
 								link += homeConfig.extension[0];
-							}
+							}*/
 						}
 					}
 
