@@ -17,6 +17,11 @@
 
 @media only screen and (max-width: 767px)
 {
+	#MENU
+	{
+		top: 16px;
+	}
+
 	#COPYRIGHT
 	{
 		right: 16px;
@@ -32,6 +37,11 @@
 
 @media only screen and (max-width: 479px)
 {
+	#MENU
+	{
+		top: 8px;
+	}
+
 	#COPYRIGHT
 	{
 		font-size: 1.0rem;
