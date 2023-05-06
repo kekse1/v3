@@ -3,50 +3,55 @@
 
 	//
 	const DEFAULT_THROW = true;
+
 	const DEFAULT_PARENT = document.documentElement;
 
+	const DEFAULT_DURATION = 1400;
+	const DEFAULT_TIMEOUT = 1800;
+	const DEFAULT_DELAY = 0;
+
 	//
-	osd = OSD = Box.OSD = (_data, _callback, _throw = DEFAULT_THROW) => {
+	osd = OSD = Box.OSD = (_data, _options, _callback, _throw = DEFAULT_THROW) => {
 		if(typeof _data !== 'string' || _data.length === 0)
 		{
-			return osd.close(_callback, _throw);
+			return osd.close(_options, _callback, _throw);
 		}
 
-		return osd.open(_data, _callback, _throw);
+		return osd.open(_options, _data, _callback, _throw);
 	};
 
 	//
-	osd.open = (_data, _callback, _throw = DEFAULT_THROW) => {
+	osd.open = (_options, _data, _callback, _throw = DEFAULT_THROW) => {
 		if(typeof _data !== 'string' || _data.length === 0)
 		{
-			return osd.close(_callback, _throw);
+			return osd.close(_options, _callback, _throw);
 		}
 
 		var result;
 
 		if(osd.box === null)
 		{
-			result = create(_data, _callback, _throw);
+			result = create(_options, _data, _callback, _throw);
 		}
 		else
 		{
-			result = update(_data, _callback, _throw);
+			result = update(_options, _data, _callback, _throw);
 		}
 
 		return result;
 	};
 
-	osd.close = (_callback, _throw = DEFAULT_THROW) => {
+	osd.close = (_options, _callback, _throw = DEFAULT_THROW) => {
 		if(osd.box === null)
 		{
 			return null;
 		}
 		
-		return destroy(_callback, _throw);
+		return destroy(_options, _callback, _throw);
 	};
 
 	//
-	const create = (_data, _callback, _throw = DEFAULT_THROW) => {
+	const create = (_options, _data, _callback, _throw = DEFAULT_THROW) => {
 		if(typeof _data !== 'string')
 		{
 			if(_throw)
@@ -58,32 +63,37 @@
 		}
 		else if(_data.length === 0)
 		{
-			return destroy(_callback, _throw);
+			return destroy(_options, _callback, _throw);
 		}
 		else if(osd.box !== null)
 		{
-			return update(_data, _callback, _throw);
+			return update(_options, _data, _callback, _throw);
 		}
 		else if(osd.timeout !== null)
 		{
 			clearTimeout(osd.timeout);
 			osd.timeout = null;
 		}
-		
+
 		const callback = (_e) => {
+			//
+			_options = getOptions(_options, result);
+
+			//
 			osd.box = result;
-			osd.timeout = setTimeout(() => { destroy(); }, result.getVariable('timeout', true));
+			osd.timeout = setTimeout(() => { destroy(); }, _options.timeout);
 			
 			const cb = (_e, _f) => {
 				delete result.IN;
-				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: result.getVariable('timeout', true) }, _f, result);
+				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, result);
+				window.emit('osd', { type: 'create', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: _options.delay });
 			};
 
 			result.IN = result.animate({
 				opacity: [ '1' ],
 				transform: [ 'scale(0)', 'scale(1.3)', 'scale(0.7)', 'scale(1)' ]
 			}, {
-				duration: result.getVariable('duration', true), delay: 0
+				duration: _options.duration, delay: _options.delay
 			}, cb);
 
 			return result;
@@ -94,7 +104,31 @@
 		return osd.box = result;
 	};
 
-	const destroy = (_callback, _throw = DEFAULT_THROW) => {
+	const getOptions = (_options, _element) => {
+		if(! isObject(_options, true))
+		{
+			_options = {};
+		}
+
+		if(! (isInt(_options.duration) && _options.duration >= 0))
+		{
+			_options.duration = (_element ? _element.getVariable('duration', true) : DEFAULT_DURATION);
+		}
+
+		if(! (isInt(_options.timeout) && _options.timeout >= 0))
+		{
+			_options.timeout = (_element ? _element.getVariable('timeout', true) : DEFAULT_TIMEOUT);
+		}
+
+		if(! (isInt(_options.delay) && _options.delay >= 0))
+		{
+			_options.delay = (_element ? _element.getVariable('delay', true) : DEFAULT_DELAY);
+		}
+
+		return _options;
+	};
+
+	const destroy = (_options, _callback, _throw = DEFAULT_THROW) => {
 		if(osd.box === null)
 		{
 			return null;
@@ -115,25 +149,32 @@
 				if(box.parentNode)
 				{
 					box.parentNode.removeChild(box, null, () => {
-						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
+						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
 					});
 				}
 				else
 				{
-					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
+					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
 				}
 
 				osd.box = null;
 			}
 			else
 			{
-				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box }, _f, box);
+				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
 			}
+
+			window.emit('osd', { type: 'destroy', event: _e, finish: _f });
 		};
 
 		if(box.OUT)
 		{
+			//TODO?cb()?!??
 			return box;
+		}
+		else
+		{
+			_options = getOptions(_options, osd.box);
 		}
 		
 		const animate = () => {
@@ -141,7 +182,7 @@
 				opacity: [ '0' ],
 				transform: [ null, 'scale(0.7)', 'scale(1.3)', 'scale(0)' ]
 			}, {
-				duration: osd.box.getVariable('duration', true), delay: 0
+				duration: _options.duration, delay: _options.delay
 			}, cb);
 		};
 		
@@ -159,14 +200,14 @@
 		return box;
 	};
 
-	const update = (_data, _callback, _throw = DEFAULT_THROW) => {
+	const update = (_options, _data, _callback, _throw = DEFAULT_THROW) => {
 		if(typeof _data !== 'string' || _data.length === 0)
 		{
-			return destroy(_callback, _throw);
+			return destroy(_options, _callback, _throw);
 		}
 		else if(osd.box === null)
 		{
-			return create(_data, _callback, _throw);
+			return create(_options, _data, _callback, _throw);
 		}
 		else if(osd.timeout !== null)
 		{
@@ -175,15 +216,19 @@
 		}
 
 		//
+		_options = getOptions(_options, osd.box);
+
+		//
 		const box = osd.box;
 
 		box.innerHTML = _data;
-		osd.timeout = setTimeout(() => { destroy(); }, box.getVariable('timeout', true));
+		osd.timeout = setTimeout(() => { destroy(); }, _options.timeout);
 
 		//
 		const cb = (_e, _f) => {
 			delete box.IN;
-			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box }, _f, box);
+			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
+			window.emit('osd', { type: 'update', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: _options.delay });
 		};
 		
 		if(box.IN)
@@ -196,7 +241,7 @@
 				opacity: [ null, '1' ],
 				transform: [ null, 'scale(1)' ]
 			}, {
-				duration: box.getVariable('duration', true), delay: 0
+				duration: _options.duration, delay: _options.delay
 			}, cb);
 		};
 		

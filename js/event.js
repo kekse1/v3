@@ -127,6 +127,12 @@
 		}
 
 		//
+		if(typeof _options.type === 'string')
+		{
+			Object.defineProperty(_event, 'type', { value: _options.type });
+		}
+
+		//
 		if(typeof _options.nextFrame === 'boolean')
 		{
 			_next_frame = _options.nextFrame;
