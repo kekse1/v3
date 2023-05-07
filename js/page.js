@@ -377,13 +377,109 @@
 				var data = _request.responseText;
 				
 				//
-				if(_type === 'html')
+				var script = '';
+				var style = '';
+				const scripts = [];
+				const styles = [];
+				var extracted;
+				
+				if(_type === 'html' && local)
 				{
-					const extracted = html.extract(data, [ 'script', 'style', 'link' ], true, 1, _throw);
-//FIXME/TODO/..
-					console.warn(Object.debug(extracted));
+					extracted = html.extract(data, [ 'script', 'style', 'link' ], true, 1, _throw);
 					data = extracted.shift();
-//					console.log('data: ' + data.quote());
+					var item;
+					
+					for(var i = 0, src = 0, href = 0; i < extracted.length; ++i)
+					{
+						switch(extracted[i]['*'])
+						{
+							case 'link':
+								if(! isString(extracted[i].href, false))
+								{
+									if(_throw)
+									{
+										throw new Error('A <link> tag needs to have a .href value');
+									}
+									else
+									{
+										extracted.splice(i--, 1);
+									}
+								}
+								else
+								{
+									styles[href++] = extracted[i].href;
+								}
+								break;
+							case 'style':
+								if(isString((item = extracted.splice(i--, 1)[0]).style, false))
+								{
+									style += item.style;
+								}
+								else if(_throw)
+								{
+									throw new Error('A <style> tag needs to have a payload');
+								}
+								break;
+							case 'script':
+								if(! isString(extracted[i].src, false))
+								{
+									if(isString((item = extracted.splice(i--, 1)[0]).script, false))
+									{
+										script += item.script;
+									}
+									else if(_throw)
+									{
+										throw new Error('Invalid <script> (got neither a .src nor data)');
+									}
+								}
+								else
+								{
+									scripts[src++] = extracted[i].src;
+								}
+								break;
+							default:
+								if(_throw)
+								{
+									throw new Error('Only <link/style/script> is allowed to be extracted, not \'' + extracted[i]['*'] + '\')');
+								}
+
+								script = style = '';
+								scripts.length = 0;
+								styles.length = 0;
+								break;
+						}
+					}
+					
+					extracted = true;
+				}
+				else
+				{
+					extracted = false;
+					script = style = '';
+					scripts.length = 0;
+					styles.length = 0;
+				}
+if(extracted) {
+console.warn('scripts:\n' + Object.debug(scripts));
+console.warn('styles:\n' + Object.debug(styles));
+console.warn('script: ' + script.quote('"'));
+console.warn('style: ' + style.quote('"'));
+}
+				//
+				if(extracted)
+				{
+					for(var i = 0; i < extracted.length; ++i)
+					{
+						if(isString(extracted[i].src, false))
+						{
+							extracted[i].src = path.resolve(extracted[i].src);
+						}
+
+						if(isString(extracted[i].href, false))
+						{
+							extracted[i].href = path.resolve(extracted[i].href);
+						}
+					}
 				}
 
 				//
