@@ -3,12 +3,156 @@
 
 	//
 	const DEFAULT_THROW = true;
+	const DEFAULT_PARSE = true;
 
 	//
 	html = { entities: String.entities };
+	
+	//
+	html.parse = (_data, _throw = DEFAULT_THROW) => {
+		//
+		if(typeof _data !== 'string')
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _data argument (not a String)');
+			}
+			
+			return null;
+		}
+		else if(_data.length === 0)
+		{
+			return {};
+		}
+		else
+		{
+			_data = _data.slice(1, -1);
+		}
+		
+		//
+		var tag = '';
+		
+		for(var i = 0; i < _data.length; ++i)
+		{
+			if(_data[i].isEmpty || _data[i] === '>')
+			{
+				break;
+			}
+			else
+			{
+				tag += _data[i];
+			}
+		}
+
+		if(_data.endsWith('</' + tag, false))
+		{
+			_data = _data.slice(0, -(2 + tag.length));
+		}
+
+		//
+		const sub = { key: '', value: '' };
+		const result = {};
+		var type = 'key';
+		var quote = '';
+		var pause = 0;
+		var c;
+		
+		//
+		if(_data.at(0, '<' + tag + '>', false))
+		{
+			pause = 1;
+			_data = _data.substr(2 + tag.length);
+		}
+		
+		//
+		result['*'] = tag;
+		result[tag] = '';
+		
+		//
+		for(var i = 0; i < _data.length; ++i)
+		{
+			//
+			if(pause > 0)
+			{
+				if(_data[i] === '<')
+				{
+					++pause;
+				}
+				else if(_data[i] === '>')
+				{
+					if(--pause <= 0)
+					{
+						pause = 0;
+					}
+				}
+				
+				result[tag] += _data[i];
+			}
+			else if(_data[i] === '\\')
+			{
+				if(i < (_data.length - 1))
+				{
+					sub[type] += _data[++i];
+				}
+				else
+				{
+					sub[type] += _data[i];
+				}
+			}
+			else if(quote.length > 0)
+			{
+				if(_data[i] === quote)
+				{
+					quote = '';
+				}
+				else
+				{
+					sub[type] += _data[i];
+				}
+			}
+			else if(_data[i] === '\'' || _data[i] === '"' || _data[i] === '`')
+			{
+				quote = _data[i];
+			}
+			else if(_data[i] === '>')
+			{
+				++pause;
+				type = 'value';
+
+				if((sub.key = sub.key.trim()).length > 0)
+				{
+					result[sub.key] = sub.value;
+					sub.key = sub.value = '';
+				}
+			}
+			else if(_data[i] === '<')
+			{
+				++pause;
+				result[tag] += '<';
+				type = 'key';
+			}
+			else if(_data[i] === '=')
+			{
+				type = 'value';
+			}
+			else if(_data[i].isEmpty)
+			{
+				type = 'key';
+				result[sub.key.trim()] = sub.value.trim();
+				sub.key = sub.value = '';
+			}
+			else
+			{
+				sub[type] += _data[i];
+			}
+		}
+
+		//
+		return result;
+	};
 
 	//
-	html.extract = (_data, _tag, _depth, _throw = DEFAULT_THROW, _current_depth = 0) => {
+	html.extract = (_data, _tag, _parse = DEFAULT_PARSE, _depth = 1, _throw = DEFAULT_THROW, _current_depth = 0) => {
 		if(typeof _data !== 'string')
 		{
 			if(_throw)
@@ -65,6 +209,7 @@
 		const data = [''];
 		var open = 0;
 		var c, tag;
+		var quote = '';
 
 		//
 		for(var i = 0, j = 0; i < _data.length; ++i)
@@ -81,6 +226,20 @@
 				}
 
 				data[open] += c;
+			}
+			else if(quote.length > 0)
+			{
+				data[open] += _data[i];
+				
+				if(_data[i] === quote)
+				{
+					quote = '';
+				}
+			}
+			else if(_data[i] === '\'' || _data[i] === '"' || _data[i] === '`')
+			{
+				quote = _data[i];
+				data[open] += _data[i];
 			}
 			else if(open > 0)
 			{
@@ -168,29 +327,21 @@
 			result.unshift(data.pop());
 		}
 
-//alert(Object.debug(result));
-//
-//TODO/inner parsing to objects w/ attribs, etc..
-//and use result[0] as rest-data...!
-//
-
-		/*
-		for(var i = 1; i < result.length; ++i)
+		if(_parse) for(var i = 1; i < result.length; ++i)
 		{
-			//
-		}*/
-
-		//
+			result[i] = html.parse(result[i], _throw);
+		}
+		
 		return result;
 	};
 
 	//
-	html.extract.script = (_data, _depth = 1, _throw = DEFAULT_THROW) => {
-		return html.extract(_data, 'script', _depth, _throw);
+	html.extract.script = (_data, _parse = DEFAULT_PARSE, _depth = 1, _throw = DEFAULT_THROW) => {
+		return html.extract(_data, 'script', _parse, _depth, _throw);
 	};
 	
-	html.extract.style = (_data, _depth = 1, _throw = DEFAULT_THROW) => {
-		return html.extract(_data, ['style','link'], _depth, _throw);
+	html.extract.style = (_data, _parse = DEFAULT_PARSE, _depth = 1, _throw = DEFAULT_THROW) => {
+		return html.extract(_data, ['style','link'], _parse, _depth, _throw);
 	};
 	
 	//
