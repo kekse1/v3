@@ -407,7 +407,7 @@
 								}
 								else
 								{
-									styles[href++] = extracted[i].href;
+									styles[href++] = extracted[i];
 								}
 								break;
 							case 'style':
@@ -434,7 +434,7 @@
 								}
 								else
 								{
-									scripts[src++] = extracted[i].src;
+									scripts[src++] = extracted[i];
 								}
 								break;
 							default:
