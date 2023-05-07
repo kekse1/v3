@@ -128,12 +128,12 @@ a-menu-item, .menuItem
 	z-index: 64;
 }
 
-a-context, .context
+/*a-context, .context
 {
 	z-index: 256;
 	position: fixed;
 	display: table-cell;
-	/*background-color: gray;*/
+	/*background-color: gray;*//*
 	color: black;
 	text-shadow: 1px 1px 6px white;
 	user-select: none;
@@ -144,10 +144,11 @@ a-context, .context
 	--movable: none;
 	--width: auto;
 	--height: auto;
-}
+}*/
 
 a-popup, .popup
 {
+	--single: auto;
 	--arrange: auto;
 	--duration: 1800;
 	--delay: 0;

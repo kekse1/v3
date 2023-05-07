@@ -615,25 +615,37 @@ throw new Error('TODO');
 			
 			//
 			const index = [ ... Popup.INDEX ];
+			var opened = 0;
 
 			for(const p of index)
 			{
 				if(p.test(_event))
 				{
-					p.open(_event);
+					if(p.open(_event))
+					{
+					//	_event.preventDefault();
+					}
 				}
 				else
 				{
 					p.close(_event);
 				}
 			}
-			
+
 			//
 			const elements = Popup.lookup(_event);
 
-			for(const e of elements)
+			for(var e of elements)
 			{
-				Popup.create({ clientX: _event.clientX, clientY: _event.clientY, target: e }, e);
+				if(e = Popup.create({ clientX: _event.clientX, clientY: _event.clientY, target: e }, e))
+				{
+					_event.preventDefault();
+
+					if(e.getVariable('single', true))
+					{
+						break;
+					}
+				}
 			}
 		}
 		
