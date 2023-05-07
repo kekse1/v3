@@ -76,21 +76,15 @@ the future there's going to be a real class for this, to handle any `transform` 
 instance, so you can switch on/off them, etc.. ^_^
 
 #### Scrolling
-This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some
-on-screen-display a short time.
+This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some on-screen-display a short time.
 
-<<<<<<< HEAD
+#### OSD (On Screen Display)
+...
+
 #### Web Animations API
 Extended the base functionality massively, and fixed some things that seem like bugs! See 'animation.js' (and it's still in progress).
 
 ## Documentation!??
-=======
-#### OSD
-//
-
-### Documentation!??
->>>>>>> d9b94b863a4ee1fe5d6b50122cb13bff69d928a0
-
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
 but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
 for yourself - I'd be happy about your commits here! :)~
