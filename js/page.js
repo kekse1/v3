@@ -459,36 +459,11 @@
 					scripts.length = 0;
 					styles.length = 0;
 				}
-if(extracted) {
-console.warn('scripts:\n' + Object.debug(scripts));
-console.warn('styles:\n' + Object.debug(styles));
-console.warn('script: ' + script.quote('"'));
-console.warn('style: ' + style.quote('"'));
-}
+
 				//
 				if(extracted)
 				{
-					//
-					//todo/resolve, v.a. aber pfade ab jew.
-					//home-sub-path beginnen.. dass in den
-					//home-pages codierte .src sowie .href
-					//von den jew. sub-pfaden ausgehen! ^_^
-					//
-					/*for(var i = 0; i < extracted.length; ++i)
-					{
-						if(isString(extracted[i].src, false))
-						{
-							extracted[i].src = path.resolve(extracted[i].src);
-						}
-
-						if(isString(extracted[i].href, false))
-						{
-							extracted[i].href = path.resolve(extracted[i].href);
-						}
-					}*/
-
-					// erzeuge nodes mit attribs by extraction
-					var node, test;
+					var node;
 
 					for(var i = 0; i < styles.length; ++i)
 					{
@@ -512,13 +487,7 @@ console.warn('style: ' + style.quote('"'));
 
 						if(! node.id)
 						{
-							node.id = _request.responseURL + '[' + i + '.css]';
-						}
-
-						if(test = document.getElementById(node.id))
-						{
-							test.parentNode.removeChild(test);
-							delete Page.ID[node.id];
+							node.id = _request.responseURL + '#css[' + i + ']';
 						}
 
 						styles[i] = node;
@@ -540,19 +509,13 @@ console.warn('style: ' + style.quote('"'));
 							}
 							else
 							{
-								node.setAttribute(idx, styles[i][idx]);
+								node.setAttribute(idx, scripts[i][idx]);
 							}
 						}
 
 						if(! node.id)
 						{
-							node.id = _request.responseURL + '[' + i + '.js]';
-						}
-
-						if(test = document.getElementById(node.id))
-						{
-							test.parentNode.removeChild(test);
-							delete Page.ID[node.id];
+							node.id = _request.responseURL + '#js[' + i + ']';
 						}
 
 						scripts[i] = node;
@@ -561,18 +524,22 @@ console.warn('style: ' + style.quote('"'));
 					if(style.length > 0)
 					{
 						node = document.createElement('style');
-						node.id = _request.responseURL + '.css';
+						node.id = _request.responseURL + '#css';
 						node.innerHTML = style;
-						styles.unshift(node);
-						style = null;
+						styles.push(node);
 					}
+
+					style = null;
 
 					if(script.length > 0)
 					{
 						node = document.createElement('script');
-						node.id = _request.responseURL + '.js';
+						node.id = _request.responseURL + '#js';
 						node.innerHTML = script;
-						scripts.unshift(node);
+						script = node;
+					}
+					else
+					{
 						script = null;
 					}
 				}
@@ -603,23 +570,107 @@ console.warn('style: ' + style.quote('"'));
 						if(Page.ID[idx].parentNode)
 						{
 							Page.ID[idx].parentNode.removeChild(Page.ID[idx]);
+							console.warn(idx);
 						}
 
 						delete Page.ID[idx];
 					}
 
 					//
-					for(var i = 0; i < styles.length; ++i)
+					const cb = (_elem, _error) => {
+						if(_elem)
+						{
+							_elem.removeEventListener('load', _elem._load);
+							delete _elem._load;
+							_elem.removeEventListener('error', _elem._error);
+							delete _elem._error;
+						}
+
+						if(_error)
+						{
+							if(_elem)
+							{
+								_elem.parentNode.removeChild(_elem);
+							}
+
+							if(_throw)
+							{
+								throw new Error('Failed loading style \'' + _elem.href + '\'');
+							}
+						}
+						else if(_elem)
+						{
+							Page.ID[_elem.id] = _elem;
+						}
+					};
+
+					if(styles.length === 0)
 					{
-						HEAD.appendChild(Page.ID[styles[i].id] = styles[i]);
+						cb(null, null);
+					}
+					else for(var i = 0; i < styles.length; ++i)
+					{
+						const s = styles[i];
+
+						s.addEventListener('load', s._load = () => { cb(s, false); }, { once: true });
+						s.addEventListener('error', s._error = () => { cb(s, true); }, { once: true });
+
+						HEAD.appendChild(s);
 					}
 
 					//
 					setValue(_request, _type, data, doAnimate, (_e) => {
 						//
-						for(var i = 0; i < scripts.length; ++i)
+						var rest = scripts.length;
+						const cb = (_elem, _error) => {
+							if(_elem)
+							{
+								_elem.removeEventListener('load', _elem._load);
+								delete _elem._load;
+								_elem.removeEventListener('error', _elem._error);
+								delete _elem._error;
+							}
+
+							if(_error)
+							{
+								if(_elem)
+								{
+									_elem.parentNode.removeChild(_elem);
+								}
+
+								if(_throw)
+								{
+									throw new Error('Failed loading script \'' + _elem.src + '\'');
+								}
+							}
+							else if(_elem)
+							{
+								Page.ID[_elem.id] = _elem;
+							}
+
+							if(--rest <= 0)
+							{
+								if(script)
+								{
+									HEAD.appendChild(script);
+									Page.ID[script.id] = script;
+									script = null;
+								}
+							}
+						};
+
+						if(scripts.length === 0)
 						{
-							HEAD.appendChikd(Page.ID[scripts[i].id] = scripts[i]);
+							cb(null, null);
+						}
+						else for(var i = 0; i < scripts.length; ++i)
+						{
+							const s = scripts[i];
+
+							s.addEventListener('load', s._load = () => { cb(s, false); }, { once: true });
+							s.addEventListener('error', s._error = () => { cb(s, true); }, { once: true });
+
+							HEAD.appendChild(s);
 						}
 
 						//
