@@ -468,7 +468,13 @@ console.warn('style: ' + style.quote('"'));
 				//
 				if(extracted)
 				{
-					for(var i = 0; i < extracted.length; ++i)
+					//
+					//todo/resolve, v.a. aber pfade ab jew.
+					//home-sub-path beginnen.. dass in den
+					//home-pages codierte .src sowie .href
+					//von den jew. sub-pfaden ausgehen! ^_^
+					//
+					/*for(var i = 0; i < extracted.length; ++i)
 					{
 						if(isString(extracted[i].src, false))
 						{
@@ -479,6 +485,95 @@ console.warn('style: ' + style.quote('"'));
 						{
 							extracted[i].href = path.resolve(extracted[i].href);
 						}
+					}*/
+
+					// erzeuge nodes mit attribs by extraction
+					var node, test;
+
+					for(var i = 0; i < styles.length; ++i)
+					{
+						node = document.createElement('link');
+
+						for(const idx in styles[i])
+						{
+							if(idx === '*')
+							{
+								continue;
+							}
+							else if(idx === styles[i]['*'])
+							{
+								node.innerHTML = styles[i][styles[i]['*']];
+							}
+							else
+							{
+								node.setAttribute(idx, styles[i][idx]);
+							}
+						}
+
+						if(! node.id)
+						{
+							node.id = _request.responseURL + '[' + i + '.css]';
+						}
+
+						if(test = document.getElementById(node.id))
+						{
+							test.parentNode.removeChild(test);
+							delete Page.ID[node.id];
+						}
+
+						styles[i] = node;
+					}
+
+					for(var i = 0; i < scripts.length; ++i)
+					{
+						node = document.createElement('script');
+
+						for(const idx in scripts[i])
+						{
+							if(idx === '*')
+							{
+								continue;
+							}
+							else if(idx === scripts[i]['*'])
+							{
+								node.innerHTML = scripts[i][scripts[i]['*']];
+							}
+							else
+							{
+								node.setAttribute(idx, styles[i][idx]);
+							}
+						}
+
+						if(! node.id)
+						{
+							node.id = _request.responseURL + '[' + i + '.js]';
+						}
+
+						if(test = document.getElementById(node.id))
+						{
+							test.parentNode.removeChild(test);
+							delete Page.ID[node.id];
+						}
+
+						scripts[i] = node;
+					}
+
+					if(style.length > 0)
+					{
+						node = document.createElement('style');
+						node.id = _request.responseURL + '.css';
+						node.innerHTML = style;
+						styles.unshift(node);
+						style = null;
+					}
+
+					if(script.length > 0)
+					{
+						node = document.createElement('script');
+						node.id = _request.responseURL + '.js';
+						node.innerHTML = script;
+						scripts.unshift(node);
+						script = null;
 					}
 				}
 
@@ -503,19 +598,34 @@ console.warn('style: ' + style.quote('"'));
 				//
 				setTimeout(() => {
 					//
-					//_target.innerHTML = data;
-					//applyStyles();
-					//applyScripts();
-					//_target.innerHTML = '';
+					for(const idx in Page.ID)
+					{
+						if(Page.ID[idx].parentNode)
+						{
+							Page.ID[idx].parentNode.removeChild(Page.ID[idx]);
+						}
+
+						delete Page.ID[idx];
+					}
 
 					//
-					setTimeout(() => {
+					for(var i = 0; i < styles.length; ++i)
+					{
+						HEAD.appendChild(Page.ID[styles[i].id] = styles[i]);
+					}
+
+					//
+					setValue(_request, _type, data, doAnimate, (_e) => {
 						//
-						setValue(_request, _type, data, doAnimate, (_e) => {
-							call(_callback, { type: 'page', href: _request.responseURL, event: _e, type: _type, local });
-							window.emit('page', { type: 'page', event: _e, href: _request.responseURL, type: _type, local });
-						});
-					}, 0);
+						for(var i = 0; i < scripts.length; ++i)
+						{
+							HEAD.appendChikd(Page.ID[scripts[i].id] = scripts[i]);
+						}
+
+						//
+						call(_callback, { type: 'page', href: _request.responseURL, event: _e, type: _type, local });
+						window.emit('page', { type: 'page', event: _e, href: _request.responseURL, type: _type, local });
+					});
 				});
 
 				//
@@ -984,6 +1094,9 @@ console.warn('style: ' + style.quote('"'));
 
 	//
 	Page.History = [];
+
+	//
+	Page.ID = {};
 
 	//
 	window.addEventListener('hashchange', Page.onhashchange.bind(Page));
