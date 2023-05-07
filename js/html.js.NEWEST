@@ -87,15 +87,15 @@ _depth = 1;
 			{
 				if(_data.at(i, '</' + tag + '>', false))
 				{
-					data[open] += _data.substr(i, 3 + tag.length);
-					result[j++] = data.splice(open--, 1)[0];
+					data[open] += '</' + tag + '>';
+					result[j++] = data.splice(--open, 1)[0];
 					i += 2 + tag.length;
 				}
-				else if(_data.at(i, '/>'))
+				else if(_data.at(i, ' />'))
 				{
-					data[open] += '/>';
-					result[j++] = data.splice(open--, 1)[0];
-					++i;
+					data[open] += ' />';
+					result[j++] = data.splice(--open, 1)[0];
+					i += 2;
 				}
 				else
 				{
@@ -146,6 +146,11 @@ _depth = 1;
 					
 					data[open] += '<' + tag;
 					i += tag.length;
+					
+					if(_data[i + tag.length + 2] === '>')
+					{
+					alert("TEST");
+					}
 				}
 			}
 			else
@@ -155,7 +160,7 @@ _depth = 1;
 		}
 
 		//
-		if(open > 0)
+		if(false&&open > 0)
 		{
 			if(_throw && document.getVariable('data-error', true))
 			{
@@ -164,9 +169,9 @@ _depth = 1;
 			
 			result = [ _data ];
 		}
-		else while(data.length > 0)
+		else if(data.length > 0) for(var i = 0; i < data.length; ++i)
 		{
-			result.unshift(data.pop());
+			result.unshift(data[i]);
 		}
 
 //alert(Object.debug(result));

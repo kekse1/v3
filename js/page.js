@@ -381,8 +381,9 @@
 				{
 					const extracted = html.extract(data, [ 'script', 'style', 'link' ], 1, _throw);
 //FIXME/TODO/..					
-					data = extracted.shift();
 					console.log(Object.debug(extracted));
+					data = extracted.shift();
+					console.log('data: ' + data.quote());
 				}
 
 				//
