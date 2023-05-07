@@ -7,6 +7,7 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_CONTEXT = null;
+	const DEFAULT_RELATIVE = true;
 	
 	//
 	Page = class Page
@@ -257,6 +258,38 @@
 			return result;
 		}
 
+		static adaptPath(_path, _dirname = null, _response_url)
+		{
+			//
+	console.log('path: ' + _path);
+	console.log('dirname: ' + _dirname);
+	console.log('response-url: ' + _response_url);
+
+			//
+			return _path;
+
+			//
+			if(path.isAbsolute(_path))
+			{
+				return _path;
+			}
+			else if(_path === '.' || _path === '..')
+			{
+				return _path;
+			}
+			else if(_path.startsWith('./') || _path.startsWith('../'))
+			{
+				return _path;
+			}
+			else if(! isString(_dirname, false))
+			{
+				return _path;
+			}
+
+			//TODO/ZZZZZzzzzz/
+		throw new Error('TODO');
+		}
+
 		static getLink(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delay = document.getVariable('data-delay', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
 		{
 			if(typeof _throw !== 'boolean')
@@ -389,6 +422,8 @@
 					data = extracted.shift();
 					var item;
 					
+					const dirname = (DEFAULT_RELATIVE ? path.dirname(_request.responseURL) : null);
+
 					for(var i = 0, src = 0, href = 0; i < extracted.length; ++i)
 					{
 						switch(extracted[i]['*'])
@@ -407,6 +442,10 @@
 								}
 								else
 								{
+									//
+									extracted[i].href = Page.adaptPath(extracted[i].href, dirname, _request.responseURL);
+
+									//
 									styles[href++] = extracted[i];
 								}
 								break;
@@ -434,6 +473,10 @@
 								}
 								else
 								{
+									//
+									extracted[i].src = Page.adaptPath(extracted[i].src, dirname, _request.responseURL);
+
+									//
 									scripts[src++] = extracted[i];
 								}
 								break;

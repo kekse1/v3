@@ -11,6 +11,46 @@
 	path = { sep: '/', delim: ':' };
 
 	//
+	path.isAddress = (_string, _throw = DEFAULT_THROW) => {
+		if(typeof _string !== 'string')
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _string argument');
+			}
+
+			return null;
+		}
+		else if(_path.startsWith(false, ... location.protocols))
+		{
+			return true;
+		}
+
+		return false;
+	};
+
+	path.isAbsolute = (_string, _throw = DEFAULT_THROW) => {
+		if(typeof _string !== 'string')
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _string argument');
+			}
+
+			return null;
+		}
+		else if(_string[0] === '/')
+		{
+			return true;
+		}
+		else if(path.isAddress(_string, _throw))
+		{
+			return true;
+		}
+
+		return false;
+	};
+
 	const checkURL = (_string_url, _resolve = DEFAULT_RESOLVE, _throw = DEFAULT_THROW) => {
 		const result = Object.create(null);
 
@@ -142,15 +182,21 @@
 			return path.sep;
 		}
 
-		const idx = _path.lastIndexOf('/');
+		var idx = _path.lastIndexOf('/');
 
-		if(idx === -1)
+		if(idx > -1)
 		{
-			return _path;
-		}
-		else
-		{
-			_path = _path.substr(0, idx);
+			if(idx === (_path.length - 1))
+			{
+				if((idx = (_path = _path.slice(0, -1)).lastIndexOf('/')) > -1)
+				{
+					_path = _path.substr(idx + 1);
+				}
+			}
+			else
+			{
+				_path = _path.substr(0, idx);
+			}
 		}
 
 		return path.normalize(_path);
