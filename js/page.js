@@ -277,10 +277,10 @@
 			{
 				return _path;
 			}
-			else if(_path.startsWith('./') || _path.startsWith('../'))
+			/*else if(_path.startsWith('./') || _path.startsWith('../'))
 			{
 				return _path;
-			}
+			}*/
 			else if(! isString(_dirname, false))
 			{
 				return _path;

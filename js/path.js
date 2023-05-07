@@ -190,7 +190,7 @@
 			{
 				if((idx = (_path = _path.slice(0, -1)).lastIndexOf('/')) > -1)
 				{
-					_path = _path.substr(idx + 1);
+					_path = _path.substr(0, idx);
 				}
 			}
 			else
