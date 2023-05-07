@@ -381,6 +381,51 @@
 	}});
 
 	//
+	Object.defineProperty(Array.prototype, 'search', { value: function(_depth = null, ... _args)
+	{
+		if(_args.length === 0)
+		{
+			return null;
+		}
+		else if(! (isInt(_depth) && _depth >= 0))
+		{
+			_depth = null;
+		}
+
+		const result = [];
+		var index = 0;
+		var found;
+
+		const traverse = (_array, ... _path) => {
+			for(var i = 0; i < _array.length; ++i)
+			{
+				found = false;
+
+				for(var j = 0; j < _args.length; ++j)
+				{
+					if(_array[i] === _args[j])
+					{
+						result[index++] = [ _array[i], [ ... _path, i ] ];
+						found = true;
+					}
+				}
+
+				if(! found && isArray(_array[i], false))
+				{
+					if(_depth === null || _path.length < _depth)
+					{
+						traverse(_array[i], ... _path, i);
+					}
+				}
+			}
+
+			return result;
+		};
+
+		return traverse(this);
+	}});
+
+	//
 
 })();
 

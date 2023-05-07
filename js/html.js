@@ -8,7 +8,7 @@
 	html = { entities: String.entities };
 
 	//
-	html.extract = (_data, _tag, _depth, _throw = DEFAULT_THROW) => {
+	html.extract = (_data, _tag, _depth, _throw = DEFAULT_THROW, _current_depth = 0) => {
 		if(typeof _data !== 'string')
 		{
 			if(_throw)
@@ -51,8 +51,7 @@
 		}
 
 		//
-_depth = 1;
-		if(! (isInt(_depth) && _depth >= 0))
+		if(_depth !== null && !(isInt(_depth) && _depth >= 0))
 		{
 			_depth = 1;
 		}
