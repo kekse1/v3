@@ -379,8 +379,10 @@
 				//
 				if(_type === 'html')
 				{
-					//const extracted = html.extract(data, [ 'script', 'style', 'link' ], 1, _throw);
-//FIXME/TODO/..
+					const extracted = html.extract(data, [ 'script', 'style', 'link' ], 1, _throw);
+//FIXME/TODO/..					
+					data = extracted.shift();
+					console.log(Object.debug(extracted));
 				}
 
 				//

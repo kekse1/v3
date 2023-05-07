@@ -51,6 +51,7 @@
 		}
 
 		//
+_depth = 1;
 		if(! (isInt(_depth) && _depth >= 0))
 		{
 			_depth = 1;
@@ -61,10 +62,10 @@
 		}
 
 		//
-		const result = [];
+		var result = [];
 		const data = [''];
 		var open = 0;
-		var c;
+		var c, tag;
 
 		//
 		for(var i = 0, j = 0; i < _data.length; ++i)
@@ -80,74 +81,79 @@
 					c = '\\';
 				}
 
-				data[Math.min(open, _depth)] += c;
+				data[open] += c;
 			}
 			else if(open > 0)
 			{
-				c = open;
-				
-				if(_data[i] === '<')
+				if(_data.at(i, '</' + tag + '>', false))
 				{
-					data[Math.min(open++, _depth)] += '<';
-					
-					if(data.length <= open)
-					{
-						data[open] = '';
-					}
+					data[open] += _data.substr(i, 3 + tag.length);
+					result[j++] = data.splice(open--, 1)[0];
+					i += 2 + tag.length;
 				}
-				else if(_data[i] === '>')
+				else if(_data.at(i, '/>'))
 				{
-					data[Math.min(open--, _depth)] += '>';
+					data[open] += '/>';
+					result[j++] = data.splice(open--, 1)[0];
+					++i;
 				}
 				else
 				{
-					data[Math.min(open, _depth)] += _data[i];
-				}
-
-				if(open < c)
-				{
-					result[j++] = data.splice(i--, 1)[0];
+					data[open] += _data[i];
 				}
 			}
 			else if(_data[i] === '<')
 			{
-				c = -1;
+				tag = '';
 				
 				if(_tag) for(var k = 0; k < _tag.length; ++k)
 				{
 					if(_data.at(i + 1, _tag[k], false))
 					{
-						c = _tag[k].length;
+						tag = _tag[k];
 						break;
 					}
 				}
 				else
 				{
-					c = 0;
+					for(var k = i + 1; k < _data.length; ++k)
+					{
+						if(_data[k].isEmpty)
+						{
+							break;
+						}
+						else if(_data[k] === '>')
+						{
+							break;
+						}
+						else
+						{
+							tag += _data[k];
+						}
+					}
 				}
-				
-				if(c > -1)
+
+				if(tag.length === 0)
 				{
-					if(data.length <= (open = 1))
-					{
-						data[open] = '<';
-					}
-					else
-					{
-						data[open] += '<';
-					}
+					data[open = 0] += '<';
 				}
 				else
 				{
-					open = 0;
+					if(data.length <= (open = 1))
+					{
+						data[open] = '';
+					}
+					
+					data[open] += '<' + tag;
+					i += tag.length;
 				}
 			}
 			else
 			{
-				data[0] += _data[i];
+				data[open = 0] += _data[i];
 			}
 		}
-alert('(open: ' + open + ')\n\n\n' + Object.debug(result));
+
 		//
 		if(open > 0)
 		{
@@ -156,12 +162,18 @@ alert('(open: ' + open + ')\n\n\n' + Object.debug(result));
 				throw new Error('Invalid _data (malformed HTML: opening bracket \'<\' has not been closed)');
 			}
 			
-			return null;
+			result = [ _data ];
 		}
-		else for(var i = data.length - 1; i >= 0; --i)
+		else if(data.length > 0) for(var i = 0; i < data.length; ++i)
 		{
 			result.unshift(data[i]);
 		}
+
+//alert(Object.debug(result));
+//
+//TODO/inner parsing to objects w/ attribs, etc..
+//and use result[0] as rest-data...!
+//
 
 		/*
 		for(var i = 1; i < result.length; ++i)
