@@ -570,7 +570,6 @@
 						if(Page.ID[idx].parentNode)
 						{
 							Page.ID[idx].parentNode.removeChild(Page.ID[idx]);
-							console.warn(idx);
 						}
 
 						delete Page.ID[idx];
