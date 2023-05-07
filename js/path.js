@@ -21,7 +21,7 @@
 
 			return null;
 		}
-		else if(_path.startsWith(false, ... location.protocols))
+		else if(_string.startsWith(false, ... location.protocols))
 		{
 			return true;
 		}
@@ -181,25 +181,22 @@
 		{
 			return path.sep;
 		}
+		else
+		{
+			_path = path.normalize(_path);
+		}
 
 		var idx = _path.lastIndexOf('/');
 
 		if(idx > -1)
 		{
-			if(idx === (_path.length - 1))
-			{
-				if((idx = (_path = _path.slice(0, -1)).lastIndexOf('/')) > -1)
-				{
-					_path = _path.substr(0, idx);
-				}
-			}
-			else
+			if(idx < (_path.length - 1))
 			{
 				_path = _path.substr(0, idx);
 			}
 		}
 
-		return path.normalize(_path);
+		return _path;
 	};
 
 	path.name = (_path) => {
