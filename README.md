@@ -41,7 +41,9 @@ the one-byte-characters)! :D~
 Here's my current implementation (which is going to be ported to here!):
 * https://libjs.de/lib/lib.js/ext/numeric.js
 
-#### Contents
+## Features
+
+### Contents / 'page.js'/'menu.js'..
 The menu (`js/box.menu.js`) is using `js/page.js` to load the ressources under './**home**/' (see
 also the `json/config.json` - which is, btw, going to be completely replaced by CSS custom properties!
 
@@ -53,6 +55,9 @@ to embed `<script>` or `<style>` tags, so I manually filtered them out, to bring
 own (against cross-site-attacs or smth. like this it's only allowed for HTTP requests to the current
 `location.host[name?]` ;)~ ..
 
+#### Relativity
+Now also supporting relative URLs.. just `<.. src/href="../test.css"...>` to load `home/test.css` (in
+case you loaded a page via 'page.js', e.g. from the menu bar. :)~
 
 ## Modules
 
@@ -73,6 +78,9 @@ instance, so you can switch on/off them, etc.. ^_^
 #### Scrolling
 This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some
 on-screen-display a short time.
+
+#### OSD
+//
 
 ### Documentation!??
 

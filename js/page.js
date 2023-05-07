@@ -258,36 +258,52 @@
 			return result;
 		}
 
-		static adaptPath(_path, _dirname = null, _response_url)
+		static adaptPath(_path, _dirname = null, _response_url, _throw = DEFAULT_THROW)
 		{
 			//
-	console.log('path: ' + _path);
-	console.log('dirname: ' + _dirname);
-	console.log('response-url: ' + _response_url);
+			if(typeof _path !== 'string')
+			{
+				if(_throw)
+				{
+					throw new Error('Invalid _path argument');
+				}
+
+				return null;
+			}
+			else if(_path.length === 0)
+			{
+				return '/';
+			}
+			else if(path.isAddress(_path, _throw))
+			{
+				_path = path.normalize(_path);
+			}
 
 			//
-			return _path;
+			if(! isString(_dirname, false))
+			{
+				_dirname = null;
+			}
+			else if(_dirname[_dirname.length - 1] !== '/')
+			{
+				_dirname += '/';
+			}
 
 			//
-			if(path.isAbsolute(_path))
+			if(_dirname === null)
+			{
+				return _path;
+			}
+			else if(path.isAbsolute(_path))
 			{
 				return _path;
 			}
 			else if(_path === '.' || _path === '..')
 			{
-				return _path;
-			}
-			/*else if(_path.startsWith('./') || _path.startsWith('../'))
-			{
-				return _path;
-			}*/
-			else if(! isString(_dirname, false))
-			{
-				return _path;
+				return _path + '/';
 			}
 
-			//TODO/ZZZZZzzzzz/
-		throw new Error('TODO');
+			return path.normalize(_dirname + _path);
 		}
 
 		static getLink(_link, _target = Page.target, _callback, _options, _type = document.getVariable('page-fallback-type'), _animate = document.getVariable('page-data-duration', true), _delay = document.getVariable('data-delay', true), _delete_mul = document.getVariable('page-data-delete-mul', true), _throw = DEFAULT_THROW)
@@ -418,11 +434,10 @@
 				
 				if(_type === 'html' && local)
 				{
+					const dirname = (DEFAULT_RELATIVE ? path.dirname(_request.responseURL) : null);
 					extracted = html.extract(data, [ 'script', 'style', 'link' ], true, 1, _throw);
 					data = extracted.shift();
 					var item;
-					
-					const dirname = (DEFAULT_RELATIVE ? path.dirname(_request.responseURL) : null);
 
 					for(var i = 0, src = 0, href = 0; i < extracted.length; ++i)
 					{
@@ -530,7 +545,8 @@
 
 						if(! node.id)
 						{
-							node.id = _request.responseURL + '#css[' + i + ']';
+							node.id = node.href + '#css[' + i + ']';
+							//node.id = _request.responseURL + '#css[' + i + ']';
 						}
 
 						styles[i] = node;
@@ -558,7 +574,8 @@
 
 						if(! node.id)
 						{
-							node.id = _request.responseURL + '#js[' + i + ']';
+							node.id = node.src + '#js[' + i + ']';
+							//node.id = _request.responseURL + '#js[' + i + ']';
 						}
 
 						scripts[i] = node;
@@ -567,7 +584,8 @@
 					if(style.length > 0)
 					{
 						node = document.createElement('style');
-						node.id = _request.responseURL + '#css';
+						node.id = Page.adaptPath(_request.responseURL, null, null, _throw) + '#css';
+						//node.id = _request.responseURL + '#css';
 						node.innerHTML = style;
 						styles.push(node);
 					}
@@ -577,7 +595,8 @@
 					if(script.length > 0)
 					{
 						node = document.createElement('script');
-						node.id = _request.responseURL + '#js';
+						node.id = Page.adaptPath(_request.responseURL, null, null, _throw) + '#js';
+						//node.id = _request.responseURL + '#js';
 						node.innerHTML = script;
 						script = node;
 					}
