@@ -2,6 +2,7 @@
 {
 
 	//
+	const DEFAULT_THROW = true;
 	const DEFAULT_DURATION_IN = 3000;
 	const DEFAULT_DURATION_OUT = 1500;
 	const DEFAULT_DELAY_IN = 0;
@@ -177,97 +178,88 @@
 			return this.animateStyle;
 		}
 
-		apply(_options = this.options)
+		apply(_options = this.options, _throw = DEFAULT_THROW)
 		{
 			if(! _options)
 			{
-				throw new Error('Invalid _options argument');
+				if(_throw)
+				{
+					throw new Error('Invalid _options argument');
+				}
+				else if(! (_options = this.options))
+				{
+					return null;
+				}
 			}
 
 			const keys = Object.keys(_options);
-			const result = [];
-
-			for(var i = 0, j = 0; i < keys.length; ++i)
+			
+			if(keys.includes('center'))
 			{
-				if((keys[i] = camel.enable(keys[i])) in this)
+				if(! keys.includes('centerX'))
 				{
-					this[keys[i]] = _options[result[j++] = keys[i]];
+					_options.centerX = _options.center;
 				}
-				else if(HTMLElement.isStyle(keys[i]))
+				
+				if(! keys.includes('centerY'))
 				{
-					this.style.setProperty(result[j++] = camel.disable(keys[i]), _options[keys[i]]);
+					_options.centerY = _options.center;
+				}
+				
+				delete _options.center;
+				keys.remove('center');
+			}
+			
+			if(keys.includes('top') && keys.includes('bottom'))
+			{
+				delete _options.height;
+				keys.remove('height');
+				delete _options.centerY;
+				keys.remove('centerY');
+			}
+			else if(keys.includes('top') || keys.includes('bottom'))
+			{
+				delete _options.centerY;
+				keys.remove('centerY');
+			}
+			else if(_options.centerY && !keys.includes('height'))
+			{
+				_options.height = this.getVariable('height', ['px']);
+				keys.push('height');
+			}
+			
+			if(keys.includes('left') && keys.includes('right'))
+			{
+				delete _options.width;
+				keys.remove('width');
+				delete _options.centerX;
+				keys.remove('centerX');
+			}
+			else if(keys.includes('left') || keys.includes('right'))
+			{
+				delete _options.centerX;
+				keys.remove('centerX');
+			}
+			else if(_options.centerX && !keys.includes('width'))
+			{
+				_options.width = this.getVariable('width', ['px']);
+				keys.push('width');
+			}
+
+			//			
+			for(var i = 0; i < keys.length; ++i)
+			{
+				if(keys[i] in this)
+				{
+					this[keys[i]] = _options[keys[i]];
+				}
+				else if(keys[i] in this.style)
+				{
+					this.style.setProperty(keys[i], _options[keys[i]]);
 				}
 				else
 				{
-					delete this[camel.enable(keys[i])];
-					delete this[camel.disable(keys[i])];
-				}
-			}
-
-			if(! ('movable' in _options))
-			{
-				const movable = this.getVariable('movable');
-
-				switch(movable)
-				{
-					case 'auto':
-						this.movable = true;
-						break;
-					case 'none':
-						this.movable = false;
-						break;
-					default:
-						this.movable = null;
-						break;
-				}
-			}
-			
-			if(! ('width' in _options))
-			{
-				this.width = this.getVariable('width', ['px']);
-			}
-			
-			if(! ('height' in _options))
-			{
-				this.height = this.getVariable('height', ['px']);
-			}
-
-			if(! ('center' in _options))
-			{
-				if(! ('centerX' in _options))
-				{
-					const centerX = this.getVariable('center-x', null).toLowerCase();
-					
-					switch(centerX)
-					{
-						case 'auto':
-							this.centerX = true;
-							break;
-						case 'none':
-							this.centerX = false;
-							break;
-						default:
-							this.centerX = null;
-							break;
-					}
-				}
-				
-				if(! ('centerY' in _options))
-				{
-					const centerY = this.getVariable('center-y', null).toLowerCase();
-					
-					switch(centerY)
-					{
-						case 'auto':
-							this.centerY = true;
-							break;
-						case 'none':
-							this.centerY = false;
-							break;
-						default:
-							this.centerY = null;
-							break;
-					}
+					delete _options[keys[i]];
 				}
 			}
 
@@ -276,7 +268,7 @@
 				this.centerFunction(this.centerX, this.centerY);
 			}
 
-			return result;
+			return this.options;
 		}
 		
 		centerFunction(_x = this.centerX, _y = this.centerY)

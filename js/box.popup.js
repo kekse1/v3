@@ -4,6 +4,7 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PARENT = HTML;
+	const DEFAULT_SINGLE = true;
 	const DEFAULT_ESCAPE_FORCE_DESTROY = true;
 		
 	//
@@ -614,41 +615,51 @@ throw new Error('TODO');
 			}
 			
 			//
+			const elements = Popup.lookup(_event);
 			const index = [ ... Popup.INDEX ];
-			var opened = 0;
-
-			for(const p of index)
+			
+			for(var i = index.length - 1; i >= 0; --i)
 			{
-				if(p.test(_event))
+				if(! index[i].test(_event))
 				{
-					if(p.open(_event))
+					if(index.splice(i, 1)[0].close(_event))
 					{
-					//	_event.preventDefault();
+						_event.preventDefault();
 					}
 				}
 				else
 				{
-					p.close(_event);
-				}
-			}
-
-			//
-			const elements = Popup.lookup(_event);
-
-			for(var e of elements)
-			{
-				if(e = Popup.create({ clientX: _event.clientX, clientY: _event.clientY, target: e }, e))
-				{
-					_event.preventDefault();
-
-					if(e.getVariable('single', true))
+					if(index[i].open(_event))
 					{
+						_event.preventDefault();
+					}
+					
+					if(DEFAULT_SINGLE)
+					{
+						elements.length = 0;
 						break;
 					}
 				}
 			}
+			
+			if(elements.length > 0)
+			{
+				for(var i = 0; i < elements.length; ++i)
+				{
+					if(Popup.create(_event, elements[i]))
+					{
+						_event.preventDefault();
+						
+						if(DEFAULT_SINGLE)
+						{
+							index.length = 0;
+							break;
+						}
+					}
+				}
+			}
 		}
-		
+
 		static onkeydown(_event)
 		{
 			switch(_event.key)

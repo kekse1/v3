@@ -148,7 +148,6 @@ a-menu-item, .menuItem
 
 a-popup, .popup
 {
-	--single: auto;
 	--arrange: auto;
 	--duration: 1800;
 	--delay: 0;
