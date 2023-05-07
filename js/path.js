@@ -126,11 +126,85 @@
 
 	//
 	const normalize = (_path) => {
-//TODO/!!
-		return _path.trim().replaces('/./', '/', null).replaces('//', '/', null).trim();
+		//
+		if(_path.length === 0)
+		{
+			return '.';
+		}
+
+		//
+		const absolute = (_path[0] === '/');
+		const directory = (_path[_path.length - 1] === '/');
+
+		//
+		_path = _path.split('/');
+		const result = [];
+		var minus = 0;
+
+		//
+		var item;
+
+		while(_path.length > 0)
+		{
+			switch(item = _path.shift())
+			{
+				case '':
+				case '.':
+					break;
+				case '..':
+					if(result.length === 0)
+					{
+						++minus;
+					}
+					else
+					{
+						result.pop();
+					}
+					break;
+				default:
+					result.push(item);
+					break;
+			}
+		}
+
+		if(absolute)
+		{
+			result.unshift('');
+		}
+		else while(--minus >= 0)
+		{
+			result.unshift('..');
+		}
+
+		if(directory)
+		{
+			result.push('');
+		}
+
+		//
+		return result.join('/');
 	};
 
 	path.normalize = (_path, _resolve = false, _throw = DEFAULT_THROW) => {
+		//
+		if(typeof _path !== 'string')
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _path argument');
+			}
+
+			return null;
+		}
+		else if(_path.length === 0)
+		{
+			return '.';
+		}
+		else if(! path.isAddress(_path))
+		{
+			return normalize(_path);
+		}
+
 		//
 		const address = checkURL(_path, _resolve, _throw);
 		_path = normalize(address.path);

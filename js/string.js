@@ -203,37 +203,6 @@
 		return { ... entities };
 	}});
 
-	Object.defineProperty(String.prototype, 'toHTML', { value: function(_all = DEFAULT_HTML_ALL, _hex = DEFAULT_HTML_HEX)
-	{
-		if(this.length === 0)
-		{
-			return '';
-		}
-
-		var result = '';
-
-		for(var i = 0; i < this.length; ++i)
-		{
-			if(_all)
-			{
-				if(_hex)
-				{
-					result += '&#x' + this.charCodeAt(i).toString(16) + ';';
-				}
-				else
-				{
-					result += '&#' + this.charCodeAt(i).toString() + ';';
-				}
-			}
-			else
-			{
-	throw new Error('TODO (using entities)');
-			}
-		}
-
-		return result;
-	}});
-
 	Object.defineProperty(String.prototype, 'text', { get: function()
 	{
 		if(this.length === 0)

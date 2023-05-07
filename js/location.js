@@ -96,7 +96,7 @@ throw new Error('TODO');
 	//
 	Object.defineProperty(location, 'protocols', { get: function()
 	{
-		return [ 'http:', 'https:', 'file:', 'blob:' ];
+		return [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:' ];
 	}});
 
 	Object.defineProperty(location, 'isURL', { value: function(... _args)
