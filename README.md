@@ -74,7 +74,10 @@ instance, so you can switch on/off them, etc.. ^_^
 This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some
 on-screen-display a short time.
 
-### Documentation!??
+#### Web Animations API
+Extended the base functionality massively, and fixed some things that seem like bugs! See 'animation.js' (and it's still in progress).
+
+## Documentation!??
 
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
 but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
