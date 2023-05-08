@@ -10,7 +10,7 @@
 		"image": "img/menu/tools.128px.png",
 		"data": "Tools",
 		"description": "Some nifty tools (JavaScript, maybe PHP)",
-		"href": "#~tools.txt",
+		"href": "#~tools",
 		"popup": "Some nifty tools, maybe a helping hand for you.."
 	},
 	{
