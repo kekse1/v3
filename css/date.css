@@ -1,0 +1,22 @@
+:root
+{
+	--date: best;/*default|text|..*/
+}
+
+:root
+{
+	--date-now: '%H:%M:%S.%s';
+	--date-time: '%H:%M:%S';
+	--date-date: '%y-%m-%d';
+	--date-default: '%y-%m-%d (%H:%M:%S)';
+	--date-best: '%y-%m-%d (%H:%M:%S.%s)';
+	--date-console: '%y-%m-%d %H:%M:%S.%s';
+	--date-full: '%W, %y-%m-%d (%H:%M:%S)';
+	--date-text: '%W, %d. %N %y (%H:%M:%S)';
+	--date-text-full: '%W, %d. %N %y (%H:%M:%S.%s)';
+	--date-year: '%D (%w)';
+	--date-ms: '%x';
+	--date-unix: '%X';
+	--date-gmt: auto;
+}
+

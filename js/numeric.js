@@ -190,15 +190,28 @@
 		}
 
 		//
-		const alphabet = (typeof _radix === 'string' ? _radix : (radix.getSpecialSigns({ radix: _radix }) + radix.getAlphabet(_radix, _throw)));
+		const alphabetString = (typeof _radix === 'string' ? _radix : (radix.getSpecialSigns({ radix: _radix }) + radix.getAlphabet(_radix, false, _throw)));
 
-		if(alphabet === null)
+		if(alphabetString === null)
 		{
+			if(_throw)
+			{
+				throw new Error('Couldn\'t create alphabet string');
+			}
+
 			return null;
 		}
-		else for(var i = 0; i < this.length; ++i)
+
+		const alphabetSet = new Set();
+
+		for(var i = 0; i < alphabetString.length; ++i)
 		{
-			if(! alphabet.includes(this.at(i)))
+			alphabetSet.add(alphabetString[i]);
+		}
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(! radix.checkAlphabetSet(this[i], alphabetSet, _throw))
 			{
 				return false;
 			}
@@ -224,7 +237,7 @@
 
 	Object.defineProperty(String.prototype, 'isBigInt', { value: function(_radix = 10, _throw = DEFAULT_THROW)
 	{
-		if(this.slice(0, -1).isNumber((radix.getSpecialSigns({ radix: _radix, big: true }) + radix.getAlphabet(_radix, _throw)), _throw, true))
+		if(this.slice(0, -1).isNumber((radix.getSpecialSigns({ radix: _radix, big: true }) + radix.getAlphabet(_radix, false, _throw)), _throw, true))
 		{
 			return (this[this.length - 1] === 'n');
 		}

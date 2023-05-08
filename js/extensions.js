@@ -599,6 +599,25 @@
 		for(var i = 0; i < _args.length; ++i)
 		{
 			result[_args[i]] = css.parse.value(computedStyle.getPropertyValue('--' + _args[i]), GET_VALUE);
+
+			if(isString(result[_args[i]], 2))
+			{
+				const start = result[_args[i]][0];
+				const end = result[_args[i]][result[_args[i]].length - 1];
+
+				if(start === '\'' && end === '\'')
+				{
+					result[_args[i]] = result[_args[i]].slice(1, -1);
+				}
+				else if(start === '"' && end === '"')
+				{
+					result[_args[i]] = result[_args[i]].slice(1, -1);
+				}
+				else if(start === '`' && end === '`')
+				{
+					result[_args[i]] = result[_args[i]].slice(1, -1);
+				}
+			}
 		}
 
 		if(_args.length === 0)

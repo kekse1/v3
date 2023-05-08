@@ -847,7 +847,7 @@ throw new Error('TODO');
 			}
 			else if(_array[i].includes(' ') || _array[i].includes('\t') || _array[i].includes('\n') || _array[i].includes('\r'))
 			{
-				result += _array[i].quote('\'');
+//				result += _array[i].quote('\'');
 			}
 			else
 			{

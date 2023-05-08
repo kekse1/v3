@@ -84,10 +84,28 @@ This is covered by the `box.osd.js`, so you gonna see the scrolling progress via
 #### Web Animations API
 Extended the base functionality massively, and fixed some things that seem like bugs! See 'animation.js' (and it's still in progress).
 
-## Documentation!??
+#### Date
+Extensions ready. .. including own format strings, and more. :)~
+
+#### Cookie
+Some extensions to handle cookies better than via 'document.cookie' (manually coded)..
+
+#### Popups
+See 'box.popup.js'. Just set a string to the `.dataset.popup` of any HTML-Element, and it will magically be animated in/out/..
+Including freeze mode/pause, better positioning, .. all (in the whole system!) with the modern 'Pointer Events API'.
+
+#### Timing(.js)
+Synchronized seconds, so many clocks (e.g.) will tick at the same time (so within a 1000ms threshold). You can manage multiple
+timing elements, with some 'modulo'-argument to switch, e.g., every (%60) seconds. etc.
+
+## Documentation...
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
 but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
 for yourself - I'd be happy about your commits here! :)~
+
+## Configuration
+A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
+via my `{document,element}.{get,set,has,*}Variable()` extensions. Take a look at the 'css/' path in here. :)~
 
 ## Links
 
