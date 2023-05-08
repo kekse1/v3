@@ -88,6 +88,8 @@ Has some templates for nice time/date formats, but also support '%*' modifiers t
 Beneath some more functions, these are only the real '%' modifiers for format strings.
 I tried to make them one single char only, .. otherwise we could extend the list, but no..
 
+| Modifier | Time component / value |
+| -------- | ---------------------: |
 | %D | .dayInYear() |
 | %y | .getFullYear() |
 | %m |  month |
