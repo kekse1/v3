@@ -61,7 +61,7 @@ hardware/
 │   ├── Intel Core i7-7800X (3.5-4.0 GHz)
 │   ├── Intel Pentium 100 (MHz)
 │   ├── Intel Pentium III (1 GHz)
-│   ├── Intel i486DX (33 MHz)
+│   ├── Intel i486SX (33 MHz)
 │   └── Intel i486DX2 (66 MHz)
 ├── RAM -> Arbeitsspeicher
 ├── SSD -> Festplatte
