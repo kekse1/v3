@@ -219,7 +219,7 @@ throw new Error('TODO');
 			}
 			else if(typeof _value === 'string')
 			{
-				return fromString(_value, _parse, _throw);
+				return css.fromString(_value, _parse, _throw);
 			}
 		}
 		else if(! isObject(_value, true))
@@ -244,13 +244,13 @@ throw new Error('TODO');
 			{
 				if(typeof _value[i] === 'string')
 				{
-					_value[i] = fromString(_value[i], _parse, _throw);
+					_value[i] = css.fromString(_value[i], _parse, _throw);
 				}
 				else if(isArray(_value[i], false)) for(var j = 0; j < _value[i].length; ++j)
 				{
 					if(typeof _value[i][j] === 'string')
 					{
-						_value[i][j] = fromString(_value[i][j], _parse, _throw);
+						_value[i][j] = css.fromString(_value[i][j], _parse, _throw);
 					}
 				}
 			}
@@ -259,13 +259,13 @@ throw new Error('TODO');
 			{
 				if(typeof _value[keys[i]] === 'string')
 				{
-					_value[keys[i]] = fromString(_value[keys[i]], _parse, _throw);
+					_value[keys[i]] = css.fromString(_value[keys[i]], _parse, _throw);
 				}
 				else if(isArray(_value[keys[i]], false)) for(var j = 0; j < _value[keys[i]].length; ++j)
 				{
 					if(typeof _value[keys[i]][j] === 'string')
 					{
-						_value[keys[i]][j] = fromString(_value[keys[i]][j], _parse, _throw);
+						_value[keys[i]][j] = css.fromString(_value[keys[i]][j], _parse, _throw);
 					}
 				}
 			}
@@ -694,10 +694,10 @@ throw new Error('TODO');
 	};
 	
 	//
-	const toString = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.toString = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _value === 'string')
 		{
-			return _value.trim();
+			_value = _value.trim();
 		}
 		else if(typeof _value === 'boolean')
 		{
@@ -727,15 +727,15 @@ throw new Error('TODO');
 		{
 			throw new Error('Unsupported type \'' + typeOf(_value) + '\'');
 		}
-		else
+		/*else
 		{
 			return null;//null//undefined/..;
-		}
+		}*/
 
 		return _value;
 	};
 	
-	const fromItem = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.fromItem = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		var result;
 		
 		if(! _parse)
@@ -744,29 +744,29 @@ throw new Error('TODO');
 		}
 		else if(typeof _value === 'string')
 		{
-			result = fromString(_value, _parse, _throw);
+			result = css.fromString(_value, _parse, _throw);
 		}
 		else if(isArray(_value, true))
 		{
-			result = fromArray(_value, _parse, _throw);
+			result = css.fromArray(_value, _parse, _throw);
 		}
 		else if(isObject(_value, true))
 		{
-			result = fromObject(_value, _parse, _throw);
+			result = css.fromObject(_value, _parse, _throw);
 		}
 		else if(_throw)
 		{
 			throw new Error('Invalid _value (neither String nor Array nor Object)');
 		}
-		else
+		/*else
 		{
 			return null;
-		}
+		}*/
 		
 		return result;
 	};
 	
-	const fromString = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.fromString = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _value !== 'string')
 		{
 			if(_throw)
@@ -804,10 +804,26 @@ throw new Error('TODO');
 			}
 		}
 
+		if(isString(_value, 2))
+		{
+			if(_value[0] === '\'' && _value[_value.length - 1] === '\'')
+			{
+				_value = _value.slice(1, -1);
+			}
+			else if(_value[0] === '"' && _value[_value.length - 1] === '"')
+			{
+				_value = _value.slice(1, -1);
+			}
+			else if(_value[0] === '`' && _value[_value.length - 1] === '`')
+			{
+				_value = _value.slice(1, -1);
+			}
+		}
+
 		return _value;
 	};
 
-	const fromArray = (_array, _render = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.fromArray = (_array, _render = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(! isArray(_array, true))
 		{
 			if(typeof _array === 'string')
@@ -834,7 +850,7 @@ throw new Error('TODO');
 			{
 				if(_render)
 				{
-					result += toString(_array[i], _render, _throw);
+					result += css.toString(_array[i], _render, _throw);
 				}
 				else
 				{
@@ -865,7 +881,7 @@ throw new Error('TODO');
 		return result;
 	};
 	
-	const fromObject = (_object, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.fromObject = (_object, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(! isObject(_value, true))
 		{
 			if(_throw)
@@ -893,7 +909,7 @@ throw new Error('TODO');
 		}
 		else for(var i = 0; i < keys.length; ++i)
 		{
-			result += keys[i] + ': ' + toString(_object[keys[i]], _parse, _throw) + '\n';
+			result += keys[i] + ': ' + css.toString(_object[keys[i]], _parse, _throw) + '\n';
 		}
 		
 		if(result.length > 0)

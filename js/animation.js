@@ -1258,18 +1258,15 @@
 			{
 				throw new Error('Invalid _child, or it\'s .parentNode is not this element');
 			}
-			else
-			{
-				call(_callback, { type: 'appendChild', this: this, child: (_child || null), error: true, animated: null });
-			}
 			
+			call(_callback, { type: 'appendChild', this: this, child: (_child || null), error: true, animated: null });
 			return null;
 		}
-		else if('getAnimateOptions' in _child)
+		else if(('getAnimateOptions' in _child) && _child.hasVariable('duration'))
 		{
 			_options = _child.getAnimateOptions(_options);
 		}
-		else if('getAnimateOptions' in this)
+		else if(('getAnimateOptions' in this) && this.hasVariable('duration'))
 		{
 			_options = this.getAnimateOptions(_options);
 		}
@@ -1320,11 +1317,11 @@
 			
 			return null;
 		}
-		else if('getAnimateOptions' in _child)
+		else if(('getAnimateOptions' in _child) && _child.hasVariable('duration'))
 		{
 			_options = _child.getAnimateOptions(_options);
 		}
-		else if('getAnimateOptions' in this)
+		else if(('getAnimateOptions' in this) && this.hasVariable('duration'))
 		{
 			_options = this.getAnimateOptions(_options);
 		}
@@ -1371,11 +1368,11 @@
 			call(_callback, { type: 'insertBefore', this: this, child: (_child || null), reference: (_reference || null), error: true, animated: null });
 			return null;
 		}
-		else if('getAnimateOptions' in _child)
+		else if(('getAnimateOptions' in _child) && _child.hasVariable('duration'))
 		{
 			_options = _child.getAnimateOptions(_options);
 		}
-		else if('getAnimateOptions' in this)
+		else if(('getAnimateOptions' in this) && this.hasVariable('duration'))
 		{
 			_options = this.getAnimateOptions(_options);
 		}
@@ -1432,11 +1429,11 @@
 			call(_callback, { type: 'replaceChild', this: this, child: (_child || null), reference: (_reference || null), error: true, animated: null });
 			return null;
 		}
-		else if('getAnimateOptions' in _child)
+		else if(('getAnimateOptions' in _child) && _child.hasVariable('duration'))
 		{
 			_options = _child.getAnimateOptions(_options);
 		}
-		else if('getAnimateOptions' in this)
+		else if(('getAnimateOptions' in this) && this.hasVariable('duration'))
 		{
 			_options = this.getAnimateOptions(_options);
 		}
@@ -2703,7 +2700,7 @@ var c=0;
 	//
 	Object.defineProperty(HTMLElement.prototype, 'getAnimateOptions', { value: function(... _args)
 	{
-		if(_args[0] === false)
+		if(_args[0] === false || _args[0] === null)
 		{
 			return null;
 		}

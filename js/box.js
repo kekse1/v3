@@ -57,7 +57,7 @@
 
 			//
 			this.identifyAs('box');
-			
+
 			//
 			setTimeout(() => {
 				this.apply();
@@ -65,15 +65,17 @@
 
 				if(parent)
 				{
-					parent._appendChild(this, animate, () => {
-						call(callback, { type: 'create', this: this, parent });
-					});
+					setTimeout(() => {
+						return parent.appendChild(this, true, () => {
+							call(callback, { type: 'create', parent });
+						});
+					}, 0);
 				}
 				else
 				{
 					call(callback, { type: 'create', this: this, parent: null });
 				}
-			}, (typeof sleep === 'number' ? sleep : 0));
+			}, ((isInt(sleep) && sleep >= 0) ? sleep : 0));
 		}
 
 		pointerWithin(_x, _y)
@@ -256,6 +258,10 @@
 				else if(keys[i] in this.style)
 				{
 					this.style.setProperty(keys[i], _options[keys[i]]);
+				}
+				else if(keys[i].startsWith('--'))
+				{
+					this.setVariable(keys[i], _options[keys[i]]);
 				}
 				else
 				{
@@ -1055,21 +1061,27 @@
 			{
 				if(this.parentNode === _value)
 				{
-					return;
+					return _value;
+				}
+				else if(this.parentNode)
+				{
+					this.parentNode.removeChild(this, true, () => {
+						_value.appendChild(this, true);
+					});
 				}
 				else
 				{
-					this.apply();
+					_value.appendChild(this, true);
 				}
 
-				return _value.appendChild(this);
+				return _value;
 			}
 			else if(this.parentNode)
 			{
-				this.parentNode.removeChild(this);
+				this.parentNode.removeChild(this, true);
 			}
 
-			return this.parent;
+			return null;
 		}
 	}
 

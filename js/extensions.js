@@ -598,25 +598,9 @@
 
 		for(var i = 0; i < _args.length; ++i)
 		{
-			result[_args[i]] = css.parse.value(computedStyle.getPropertyValue('--' + _args[i]), GET_VALUE);
-
-			if(isString(result[_args[i]], 2))
+			if(typeof (result[_args[i]] = css.parse.value(computedStyle.getPropertyValue('--' + _args[i]), GET_VALUE)) === 'string')
 			{
-				const start = result[_args[i]][0];
-				const end = result[_args[i]][result[_args[i]].length - 1];
-
-				if(start === '\'' && end === '\'')
-				{
-					result[_args[i]] = result[_args[i]].slice(1, -1);
-				}
-				else if(start === '"' && end === '"')
-				{
-					result[_args[i]] = result[_args[i]].slice(1, -1);
-				}
-				else if(start === '`' && end === '`')
-				{
-					result[_args[i]] = result[_args[i]].slice(1, -1);
-				}
+				result[_args[i]] = css.fromString(result[_args[i]], GET_VALUE, false);
 			}
 		}
 
@@ -731,13 +715,17 @@
 		return result;
 	}});
 
-	Object.defineProperty(HTMLElement.prototype, 'setVariable', { value: function(_variables, _value, _ext = 'px', _int = (_ext === true || _ext === 'px'), _throw = DEFAULT_THROW)
+	Object.defineProperty(HTMLElement.prototype, 'setVariable', { value: function(_variables, _value, _ext = '', _int = (_ext === true || _ext === 'px'), _throw = DEFAULT_THROW)
 	{
 		if(typeof _variables === 'string')
 		{
 			if(_variables.length === 0)
 			{
 				throw new Error('Invalid _variables argument (neither non-empty String nor Array of these)');
+			}
+			else if(_variables.startsWith('--'))
+			{
+				_variables = [ _variables.substr(2) ];
 			}
 			else
 			{

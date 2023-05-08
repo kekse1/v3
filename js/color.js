@@ -866,25 +866,22 @@
 	};
 
 	//
-	window.addEventListener('ready', () => {
-		require(DEFAULT_COLOR_MAP, (_e) => {
-			if(isArray(_e.module, false))
-			{
-				color.MAP = _e.module;
-			}
-			else if(DEFAULT_THROW)
-			{
-				throw new Error('Couldn\'t load the \'color.map\' .json array (HTTP ' + _e.status + ': ' + _e.statusText + ')');
-			}
-			else
-			{
-				return null;
-			}
+	require(DEFAULT_COLOR_MAP, (_e) => {
+		if(isArray(_e.module, false))
+		{
+			color.MAP = _e.module;
+		}
+		else if(DEFAULT_THROW)
+		{
+			throw new Error('Couldn\'t load the \'color map\' .json array (HTTP ' + _e.status + ': ' + _e.statusText + ')');
+		}
+		else
+		{
+			return null;
+		}
 
-			window.emit('color', { type: 'color', map: [ ... color.MAP ] });
-			return color.MAP;
-		}, null, false, false, null, null);
-	}, { once: true });
+		return color.MAP;
+	}, null, false, false, null, null);
 
 	//
 	
