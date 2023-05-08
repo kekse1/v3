@@ -14,161 +14,6 @@
 	SIZE[''] = [ 'B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' ];
 
 	//
-	Math.size = (_value, _precision = DEFAULT_PRECISION, _base = DEFAULT_BASE, _long = DEFAULT_LONG) => {
-		//
-		if(isObject(_value))
-		{
-			if('precision' in _value)
-			{
-				_precision = _value.precision;
-			}
-
-			if(isInt(_value.base))
-			{
-				_base = _value.base;
-			}
-			
-			if(typeof _value.long === 'boolean')
-			{
-				_long = _value.long;
-			}
-
-			_value = _value.value;
-		}
-		
-		//
-		if(! (isInt(_value) && _value >= 0))
-		{
-			throw new Error('Invalid _value (not a positive Integer)');
-		}
-
-		//
-		if(isObject(_precision))
-		{
-			if(_precision.min !== null && !(isInt(_precision.min) && _precision.min >= 0))
-			{
-				_precision.min = null;
-			}
-
-			if(_precision.max !== null && !(isInt(_precision.max) && _precision.max >= 0))
-			{
-				_precision.max = null;
-			}
-
-			if(_precision.min === null && _precision.max === null)
-			{
-				_precision = undefined;
-			}
-		}
-		else if(isInt(_precision) && _precision >= 0)
-		{
-			_precision = { min: _precision, max: _precision };
-		}
-		else
-		{
-			_precision = DEFAULT_PRECISION;
-		}
-		
-		if(typeof _precision === 'undefined')
-		{
-			if(isInt(_precision = DEFAULT_PRECISION) && _precision >= 0)
-			{
-				_precision = { min: _precision, max: _precision };
-			}
-			else
-			{
-				_precision = null;
-			}
-		}
-
-		if(! isInt(_base))
-		{
-			_base = DEFAULT_BASE;
-		}
-
-		if(typeof _long !== 'boolean')
-		{
-			_long = DEFAULT_LONG;
-		}
-
-		//
-		if(_value < _base)
-		{
-			return (_value + (_long ? (' Byte' + (_value === 1 ? '' : 's')) : ' B'));
-		}
-
-		const units = ((_base in Math.size.unit) ? Math.size.unit[_base] : Math.size.unit['']);
-		var index = 0;
-
-		if(_value >= _base)
-		{
-			while(index < (units.length - 1) && (_value /= _base) >= _base)
-			{
-				index++;
-			}
-
-			if(index < (units.length - 1))
-			{
-				index++;
-			}
-		}
-
-		//
-		var unit = units[index];
-		
-		if(_precision !== null)
-		{
-			const opts = {};
-			
-			if(_precision.min !== null)
-			{
-				opts.minimumFractionDigits = _precision.min;
-			}
-			
-			if(_precision.max !== null)
-			{
-				opts.maximumFractionDigits = _precision.max;
-			}
-			
-			_value = _value.toLocaleString(LANGUAGE, opts);
-		}
-		else
-		{
-			_value = _value.toLocaleString(LANGUAGE);
-		}
-		
-		if(_long && index === 0)
-		{
-			unit += 'yte';
-			
-			if(_value !== 1)
-			{
-				unit += 's';
-			}
-		}
-		
-		//
-		return (_value + ' ' + unit);
-	};
-
-	Object.defineProperty(Math.size, 'unit', { get: function()
-	{
-		const result = Object.create(null);
-
-		for(var idx in SIZE)
-		{
-			result[idx] = new Array(SIZE[idx].length);
-
-			for(var i = 0; i < SIZE[idx].length; i++)
-			{
-				result[idx][i] = SIZE[idx][i];
-			}
-		}
-
-		return result;
-	}});
-
-	//
 	const _round = Math.round;
 	const _floor = Math.floor;
 	const _ceil = Math.ceil;
@@ -407,7 +252,7 @@
 	};
 
 	Math.random.byte = () => {
-		return Math.random.int(255, 0);
+		return Math.random.int(255, 0, true);
 	};
 
 	Math.random.bool = () => {
@@ -719,6 +564,161 @@
 		const func = (_knuth ? Math.gcd.knuth : Math.gcd.euclidean);
 		return (((_a * _b) / func(_a, _b)) || 0);
 	};
+
+	/*//
+	Math.size = (_value, _precision = DEFAULT_PRECISION, _base = DEFAULT_BASE, _long = DEFAULT_LONG) => {
+		//
+		if(isObject(_value))
+		{
+			if('precision' in _value)
+			{
+				_precision = _value.precision;
+			}
+
+			if(isInt(_value.base))
+			{
+				_base = _value.base;
+			}
+			
+			if(typeof _value.long === 'boolean')
+			{
+				_long = _value.long;
+			}
+
+			_value = _value.value;
+		}
+		
+		//
+		if(! (isInt(_value) && _value >= 0))
+		{
+			throw new Error('Invalid _value (not a positive Integer)');
+		}
+
+		//
+		if(isObject(_precision))
+		{
+			if(_precision.min !== null && !(isInt(_precision.min) && _precision.min >= 0))
+			{
+				_precision.min = null;
+			}
+
+			if(_precision.max !== null && !(isInt(_precision.max) && _precision.max >= 0))
+			{
+				_precision.max = null;
+			}
+
+			if(_precision.min === null && _precision.max === null)
+			{
+				_precision = undefined;
+			}
+		}
+		else if(isInt(_precision) && _precision >= 0)
+		{
+			_precision = { min: _precision, max: _precision };
+		}
+		else
+		{
+			_precision = DEFAULT_PRECISION;
+		}
+		
+		if(typeof _precision === 'undefined')
+		{
+			if(isInt(_precision = DEFAULT_PRECISION) && _precision >= 0)
+			{
+				_precision = { min: _precision, max: _precision };
+			}
+			else
+			{
+				_precision = null;
+			}
+		}
+
+		if(! isInt(_base))
+		{
+			_base = DEFAULT_BASE;
+		}
+
+		if(typeof _long !== 'boolean')
+		{
+			_long = DEFAULT_LONG;
+		}
+
+		//
+		if(_value < _base)
+		{
+			return (_value + (_long ? (' Byte' + (_value === 1 ? '' : 's')) : ' B'));
+		}
+
+		const units = ((_base in Math.size.unit) ? Math.size.unit[_base] : Math.size.unit['']);
+		var index = 0;
+
+		if(_value >= _base)
+		{
+			while(index < (units.length - 1) && (_value /= _base) >= _base)
+			{
+				index++;
+			}
+
+			if(index < (units.length - 1))
+			{
+				index++;
+			}
+		}
+
+		//
+		var unit = units[index];
+		
+		if(_precision !== null)
+		{
+			const opts = {};
+			
+			if(_precision.min !== null)
+			{
+				opts.minimumFractionDigits = _precision.min;
+			}
+			
+			if(_precision.max !== null)
+			{
+				opts.maximumFractionDigits = _precision.max;
+			}
+			
+			_value = _value.toLocaleString(navigator.language, opts);
+		}
+		else
+		{
+			_value = _value.toLocaleString(navigator.language);
+		}
+		
+		if(_long && index === 0)
+		{
+			unit += 'yte';
+			
+			if(_value !== 1)
+			{
+				unit += 's';
+			}
+		}
+		
+		//
+		return (_value + ' ' + unit);
+	};
+
+	Object.defineProperty(Math.size, 'unit', { get: function()
+	{
+		const result = Object.create(null);
+
+		for(var idx in SIZE)
+		{
+			result[idx] = new Array(SIZE[idx].length);
+
+			for(var i = 0; i < SIZE[idx].length; i++)
+			{
+				result[idx][i] = SIZE[idx][i];
+			}
+		}
+
+		return result;
+	}});*/
 
 	//
 	

@@ -346,7 +346,7 @@
 	remove = Object.remove;
 
 	//
-	isObject = (_item, _empty = false, _array = true, _array_empty = true) => {
+	isObject = (_item, _empty = true, _array = true, _array_empty = true) => {
 		if(typeof _item === 'object' && _item !== null)
 		{
 			if(Array.isArray(_item, true))

@@ -5,9 +5,9 @@
 	"numeric",
 	"string",
 	"array",
-	"math",
 	"date",
-
+	"math",
+	"math.units",
 	"radix",
 
 	"window",

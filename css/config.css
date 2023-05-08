@@ -54,3 +54,8 @@
 	--data-error: auto;
 }
 
+:root
+{
+	--base: 1024;/*1000/..*/
+}
+
