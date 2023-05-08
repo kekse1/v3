@@ -7,7 +7,7 @@
 	"array",
 	"date",
 	"math",
-	"math.units",
+	"math.unit",
 	"radix",
 
 	"window",
@@ -34,6 +34,7 @@
 	"timing",
 	"dynamic",
 	"dynamic.module",
+	"uptime",
 
 	"uniform",
 	"sort",
@@ -52,6 +53,7 @@
 	"box.context",
 	"box.progress",
 
-	"uptime"
+	"geo",
+	"levenshtein"
 
 ]

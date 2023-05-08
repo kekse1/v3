@@ -1557,16 +1557,8 @@ throw new Error('TODO');
 		result.addEventListener('load', callback, { once: true });
 		result.addEventListener('error', callback, { once: true });
 
-		if(defer)
-		{
-			result.async = false;
-			result.defer = true;
-		}
-		else
-		{
-			result.async = true;
-			result.defer = false;
-		}
+		result.async = false;
+		result.defer = !!defer;
 
 		result.start = Date.now();
 		result.charset = DEFAULT_CHARSET;

@@ -41,25 +41,21 @@ the one-byte-characters)! :D~
 Here's my current implementation (which is going to be ported to here!):
 * https://libjs.de/lib/lib.js/ext/numeric.js
 
-## Features
+## Features / Modules
 
-### Contents / 'page.js'/'menu.js'..
-The menu (`js/box.menu.js`) is using `js/page.js` to load the ressources under './**home**/' (see
-also the `json/config.json` - which is, btw, going to be completely replaced by CSS custom properties!
+#### [class] Page, Box.Menu, home.
+My pages are lying in the 'home/' directory and will be loaded (by the menu atm) by using a hash
+'#~page'. This will show the contents of .txt and .html (animated, if wished) in the #MAIN element.
 
-... utilizing the '#' hash/fragment of the URL, there's no necessity of reloading everything to
-navigate through all the pages.
+`<link> <script> <style>` elements will be extracted and created as DOM nodes; as it wasn't possible
+for me to embed `<script>` (won't be executed, but '<' escaped). Such ressources can reside under the
+'home/$page/' directory, and being embedded with '$CWD' (I'm altering the path for this relativity,
+see also 'path.js' [verified path.normalize(), and it also works with URLs and their .pathname]);
 
-I also didn't forgot about `.txt` files beneath `.html`.. for the last doc-type, it wasn't possible
-to embed `<script>` or `<style>` tags, so I manually filtered them out, to bring them to live on my
-own (against cross-site-attacs or smth. like this it's only allowed for HTTP requests to the current
-`location.host[name?]` ;)~ ..
+Beware: only local scripts/styles can be loaded this way. Remote doesn't do anything (filtered out
+this elements..) due to potential CORS attacks. :)~
 
-#### Relativity
-Now also supporting relative URLs.. just `<.. src/href="../test.css"...>` to load `home/test.css` (in
-case you loaded a page via 'page.js', e.g. from the menu bar. :)~
-
-## Modules
+And the menu bar is animated, and got some Math.sin() movement. ;)~
 
 #### CSS
 See `css.js` and `css.matrix.js`.. the first one is implementing the base, to handle CSS on my own
@@ -75,19 +71,60 @@ I just did it by trying out and comparing the resulting matrices after changing 
 the future there's going to be a real class for this, to handle any `transform` style with an
 instance, so you can switch on/off them, etc.. ^_^
 
-#### Scrolling
-This is covered by the `box.osd.js`, so you gonna see the scrolling progress via showing up some on-screen-display a short time.
-
-#### OSD (On Screen Display)
-...
+#### Scrolling / OSD (On Screen Display)
+It's combined, but the 'box.osd.js' can be used everywhere. Looks like the volume meter on old CRTs
+(non-flat TVs ;)~ .. fading/animating in/out, disappearing after some time, .. big font size, etc. :)~
 
 #### Web Animations API
 Extended the base functionality massively, and fixed some things that seem like bugs! See 'animation.js' (and it's still in progress).
 
 #### Date
 Extensions ready. .. including own format strings, and more. :)~
+Has some templates for nice time/date formats, but also support '%*' modifiers to declare a format by hand.
 
-#### Cookie
+##### ..format();
+
+###### Single char modifiers
+Beneath some more functions, these are only the real '%' modifiers for format strings.
+I tried to make them one single char only, .. otherwise we could extend the list, but no..
+
+| %D | .dayInYear() |
+| %y | .getFullYear() |
+| %m |  month |
+| %d |  day |
+| %k | .weekInYear |
+| %H |  hours |
+| %h |  hours (%12) |
+| %M |  minutes |
+| %S |  seconds |
+| %s |  milliseconds |
+| %X |  unix timestamp (ms/1000) |
+| %t |  'am'/'pm' |
+| %T |  'AM'/'PM' |
+| %N |  Name of month |
+| %n |  Short name of month |
+| %W |  Name of weekday |
+| %w |  Short name of weekday |
+
+###### Pre-defined formats (see 'css/date.css');
+
+```css
+	--date-now: '%H:%M:%S.%s';
+	--date-time: '%H:%M:%S';
+	--date-date: '%y-%m-%d';
+	--date-default: '%y-%m-%d (%H:%M:%S)';
+	--date-best: '%y-%m-%d (%H:%M:%S.%s)';
+	--date-console: '%y-%m-%d %H:%M:%S.%s';
+	--date-full: '%W, %y-%m-%d (%H:%M:%S)';
+	--date-text: '%W, %d. %N %y (%H:%M:%S)';
+	--date-text-full: '%W, %d. %N %y (%H:%M:%S.%s)';
+	--date-year: '%D (%w)';
+	--date-ms: '%x';
+	--date-unix: '%X';
+	--date-gmt: auto;
+```
+
+#### Cookies
 Some extensions to handle cookies better than via 'document.cookie' (manually coded)..
 
 #### Popups
@@ -98,10 +135,28 @@ Including freeze mode/pause, better positioning, .. all (in the whole system!) w
 Synchronized seconds, so many clocks (e.g.) will tick at the same time (so within a 1000ms threshold). You can manage multiple
 timing elements, with some 'modulo'-argument to switch, e.g., every (%60) seconds. etc.
 
+#### math.js / math.unit.js
+Got some nice functions in here.
+
+The 'math.unit.js' is for converting/parsing/rendering/.. file sizes or time durations, etc. It can convert size strings (MiB, mb,
+..) to their byte count, or such to any size/unit (automatically recognized or manually defined). It can create a table{} of both,
+absolute and relative parts of such numbers (like system/radix conversion), or render some times to a string/text form, or bring
+them to a table{} form of absolute and/or relative [ day{,s}, month{,s}, minute{,s}, ... ].
+
+Is being improved from time to time.
+
+#### geo.js
+:)~
+
+#### levenshtein.js
+;)~
+
 ## Documentation...
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
 but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
 for yourself - I'd be happy about your commits here! :)~
+
+For now I'm trying, just a lil' bit, to explain everything a bit here in this 'README.md' markdown document.. ^_^
 
 ## Configuration
 A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
@@ -132,4 +187,3 @@ see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
 
 * https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html
 * https://bionic-reading.com/
-

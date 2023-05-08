@@ -59,3 +59,9 @@
 	--base: 1024;/*1000/..*/
 }
 
+:root
+{
+	--geo-distance: haversine;
+	/*--geo-distance: sphericalLawOfCosines;*/
+}
+
