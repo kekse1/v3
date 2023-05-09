@@ -318,7 +318,6 @@
 			else if(this[i] === '<')
 			{
 				open = '>';
-				++result;
 				sub = 0;
 			}
 			else if(this[i] === '&')
