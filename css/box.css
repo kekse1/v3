@@ -49,6 +49,28 @@ a-box.move, .box.move, a-box.resize, .box.resize, .move, .resize
 	box-shadow: 0px 20px 0px -10px #FFFFFF, 0px -20px 0px -10px #FFFFFF, 20px 0px 0px -10px #FFFFFF, -20px 0px 0px -10px #FFFFFF, 0px 0px 0px 10px #FF0000, 5px 5px 15px 5px rgba(0,0,0,0);
 }
 
+a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
+{
+	--hide: backwards;/*forwards*/
+	--animate: auto;
+	--sin: 1.6;
+	--image-sin: 44px;
+	--text-sin: 11px;
+	--min: 24px;
+	--max: 72px;
+	--duration: 600;
+	--delay: 300;
+	--blink-duration: 2100;
+	--blink-count: 1;
+	--data-delay: 0;
+	--data-duration: 800;
+	--random-animation: auto;
+	--random-animation-delay: 8400 1200;
+	--random-animation-duration: 4800 1200;
+	--callback: auto;
+	--transform-origin: -60% 60%;
+}
+
 a-menu, .menu
 {
 	display: table-cell;
@@ -61,6 +83,7 @@ a-menu, .menu
 	user-select: none;
 	left: 16px;
 	top: 64px;
+	--wait: 2000;
 }
 
 a-menu-item, .menuItem

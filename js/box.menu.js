@@ -769,7 +769,7 @@
 			//
 			setTimeout(() => {
 				this.show();
-			}, 0);
+			}, this.getVariable('wait', true));
 		}
 
 		disconnectedCallback()
@@ -907,7 +907,9 @@
 						//
 						if(this.isConnected)
 						{
-							this.show();
+							setTimeout(() => {
+								this.show();
+							}, this.getVariable('wait', true));
 						}
 
 						//
