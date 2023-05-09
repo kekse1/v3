@@ -71,6 +71,11 @@
 		return result;
 	}});
 
+	Object.defineProperty(geo, 'algorithms', { get: function()
+	{
+		return Object.keys(geo.distance);
+	}});
+
 	//
 	geo.distance = (_lat1, _lon1, _lat2, _lon2, _geo_distance = geo.algorithm, _unit_lang) => {
 		if(! isString(_geo_distance, false))
