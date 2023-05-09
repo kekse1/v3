@@ -222,7 +222,7 @@
 			};
 
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, blur: '4px', persist: true, opacity: true } : null);
+			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, persist: true } : null);
 			var abort = false;
 			const animations = [];
 
@@ -471,7 +471,7 @@
 
 			const SCALE = 0.5;
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, blur: '4px', persist: true, opacity: false } : null);
+			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, persist: true } : null);
 			this.clear(null, null);
 			var abort = false;
 			const animations = [];
