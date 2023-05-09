@@ -375,7 +375,8 @@
 						{
 							if(! (textNode.finishDataAnimation()))
 							{
-								textNode.innerHTML = '';
+								//TODO/ist das noetig??
+								//textNode.innerHTML = '';
 							}
 						}
 						else
