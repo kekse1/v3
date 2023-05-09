@@ -162,6 +162,7 @@
 
 			var rest = 0;
 			const callback = (_node, _item, _text, _index) => {
+alert('hide-cb rest: ' + rest);
 				_node._state = '';
 				_node.isHiding = false;
 
@@ -225,7 +226,7 @@
 			};
 
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, persist: true } : null);
+			var options = (_animate ? { duration: this.getVariable('duration', true), delay: this.getVariable('wait-out', true), persist: true } : null);
 			var abort = false;
 			const animations = [];
 
@@ -282,7 +283,7 @@
 								imageNode.style.opacity = '1';
 							}
 
-							call(callback, node, imageNode, textNode, index);
+							callback(node, imageNode, textNode, index);
 						});
 					}
 					else
@@ -292,7 +293,7 @@
 
 						if(textNode) textNode.innerHTML = imageNode.data;
 
-						call(callback, node, imageNode, textNode, index);
+						callback(node, imageNode, textNode, index);
 					}
 				};
 
@@ -473,7 +474,7 @@
 
 			const SCALE = 0.5;
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: 0, persist: true } : null);
+			var options = (_animate ? { duration: this.getVariable('duration', true), delay: this.getVariable('wait-in', true), persist: true } : null);
 			this.clear(null, null);
 			var abort = false;
 			const animations = [];
@@ -547,7 +548,7 @@
 								textNode.setHTML(null, imageNode.data, this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 							}
 
-							call(callback, node, imageNode, textNode, index);
+							callback(node, imageNode, textNode, index);
 						});
 					}
 					else
@@ -558,7 +559,7 @@
 
 						textNode.innerHTML = imageNode.data;
 
-						call(callback, node, imageNode, textNode, index);
+						callback(node, imageNode, textNode, index);
 					}
 				};
 
@@ -730,7 +731,7 @@
 				});
 			};
 			
-			call(callback);
+			callback();
 		}
 		
 		connectedCallback()

@@ -69,6 +69,11 @@ a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
 	--random-animation-duration: 4800 1200;
 	--callback: auto;
 	--transform-origin: -60% 60%;
+	--wait: 2000;
+	--wait-in: 380;
+	--wait-out: 240;
+	--width: auto;
+	--height: auto;
 }
 
 a-menu, .menu
@@ -77,13 +82,10 @@ a-menu, .menu
 	position: fixed;
 	backdrop-filter: none;
 	z-index: 32;
-	--width: auto;
-	--height: auto;
 	background-color: transparent;
 	user-select: none;
 	left: 16px;
 	top: 64px;
-	--wait: 2000;
 }
 
 a-menu-item, .menuItem
