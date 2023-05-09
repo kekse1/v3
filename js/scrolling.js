@@ -503,20 +503,12 @@
 		}
 
 		//
-		if(xValue === null)
-		{
-			xValue = (100).toFixed(DEFAULT_OSD_ROUND);
-		}
-		else
+		if(xValue !== null)
 		{
 			xValue = xValue.toFixed(DEFAULT_OSD_ROUND);
 		}
 
-		if(yValue === null)
-		{
-			yValue = (100).toFixed(DEFAULT_OSD_ROUND);
-		}
-		else
+		if(yValue !== null)
 		{
 			yValue = yValue.toFixed(DEFAULT_OSD_ROUND);
 		}

@@ -206,12 +206,14 @@
 throw new Error('TODO');
 	};
 	
+	//wrong: make 'css.NEW.js'!!
 	css.parse.value = (_value, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _value === 'string')
 		{
+			//wrong! make 'css.NEW.js'!
 			if(_parse === null)
 			{
-				return _value.trim();
+				return css.fromString(_value, _parse, _throw);
 			}
 			else if((_value = processValue(_value, _throw)) === null)
 			{
@@ -776,7 +778,12 @@ throw new Error('TODO');
 			
 			return _value;
 		}
-		else if(_parse)
+		else
+		{
+			_value = _value.trim();
+		}
+
+		if(_parse)
 		{
 			switch(_value.toLowerCase())
 			{

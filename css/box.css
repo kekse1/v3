@@ -60,7 +60,7 @@ a-menu, .menu
 	background-color: transparent;
 	user-select: none;
 	left: 16px;
-	top: 32px;
+	top: 64px;
 }
 
 a-menu-item, .menuItem
@@ -126,6 +126,7 @@ a-menu-item, .menuItem
 	text-shadow: inherit;
 	color: inherit;
 	z-index: 64;
+	white-space: nowrap;
 }
 
 /*a-context, .context

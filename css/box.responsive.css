@@ -2,7 +2,7 @@
 {
 	a-menu, .menu, #MENU
 	{
-		top: 128px;
+		top: 32px;
 	}
 
 	a-menu-item, .menuItem
@@ -22,7 +22,7 @@
 	{
 		--min: 64px;
 		--max: 64px;
-		top: 64px;
+		top: 16px;
 	}
 
 	a-menu-item, .menuItem
@@ -42,7 +42,7 @@
 	{
 		--min: 20px;
 		--max: 50px;
-		top: 32px;
+		top: 8px;
 	}
 
 	a-menu-item, .menuItem
@@ -62,7 +62,7 @@
 	{
 		--min: 10px;
 		--max: 40px;
-		top: 3px;
+		top: 4px;
 	}
 
 	a-menu-item, .menuItem

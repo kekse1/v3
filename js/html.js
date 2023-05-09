@@ -110,7 +110,7 @@
 					sub[type] += _data[i];
 				}
 			}
-			else if(_data[i] === '\'' || _data[i] === '"' || _data[i] === '`')
+			else if(String.quote.includes(_data[i]))
 			{
 				quote = _data[i];
 			}
@@ -236,7 +236,7 @@
 					quote = '';
 				}
 			}
-			else if(_data[i] === '\'' || _data[i] === '"' || _data[i] === '`')
+			else if(String.quote.includes(_data[i]))
 			{
 				quote = _data[i];
 				data[open] += _data[i];

@@ -1085,6 +1085,7 @@
 
 			//
 			const textNode = document.createElement('div');
+			textNode.className = 'menuItemText';
 			textNode.innerHTML = this.data;
 
 			this.style.opacity = '0';
@@ -1115,7 +1116,6 @@
 
 			//
 			textNode.innerHTML = '';
-			textNode.className = 'menuItemText';
 
 			//
 			result.style.top = setValue(_parent.HEIGHT);

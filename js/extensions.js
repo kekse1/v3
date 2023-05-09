@@ -598,10 +598,7 @@
 
 		for(var i = 0; i < _args.length; ++i)
 		{
-			if(typeof (result[_args[i]] = css.parse.value(computedStyle.getPropertyValue('--' + _args[i]), GET_VALUE)) === 'string')
-			{
-				result[_args[i]] = css.fromString(result[_args[i]], GET_VALUE, false);
-			}
+			result[_args[i]] = css.parse.value(computedStyle.getPropertyValue('--' + _args[i]), GET_VALUE);
 		}
 
 		if(_args.length === 0)
