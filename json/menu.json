@@ -28,7 +28,7 @@
 		"popup": "I'm working on some things.."
 	},
 	{
-		"image": "img/menu/home.128px.png",
+		"image": "img/menu/linux.128px.png",
 		"data": "Linux",
 		"description": "Linux specific part",
 		"href": "#~linux",
