@@ -14,6 +14,9 @@
 
 			//
 			this.identifyAs('menu');
+
+			//
+			this.isShowing = this.isHiding = false;
 		}
 
 		static outItems(_event, _callback, ... _exclude)
@@ -241,9 +244,6 @@
 
 			const loop = (_index) => {
 				//
-				++rest;
-
-				//
 				const index = _index;
 
 				const node = childNodes[index];
@@ -314,6 +314,7 @@
 				case 'forwards':
 					for(var i = 0; i < childNodes.length; ++i)
 					{
+						++rest;
 						const index = i;
 						setTimeout(() => { loop(index); }, 0);
 					}
@@ -322,6 +323,7 @@
 				default:
 					for(var i = childNodes.length - 1; i >= 0; --i)
 					{
+						++rest;
 						const index = i;
 						setTimeout(() => { loop(index); }, 0);
 					}
