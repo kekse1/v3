@@ -1,0 +1,94 @@
+hardware/
+├── Arbeitsspeicher
+│   ├── Kingston FURY Renegade (4x16GB)
+│   └── Kingston HyperX (4x8GB)
+├── Autoradio
+│   └── JVC KD-DB98BT
+├── CPU -> Prozessor
+├── Drucker
+│   ├── Canon PIXMA ix6850
+│   └── Lexmark MB2236adw
+│       └── Toner
+├── Einplatinencomputer
+├── Fernseher -> TV
+├── Festplatte
+│   ├── Sabrent 256 GB
+│   └── WD_BLACK SN770
+├── Gehaeuse
+│   └── Thermaltake Level 20 XT (Cube)
+├── Grafikkarte
+│   ├── ASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)
+│   └── ASUS Strix GeForce GTX 970 (STRIXGTX970DC2OC4GD5)
+├── Keyboard -> Tastatur
+├── Laptop
+│   └── Fujitsu Lifebook A3511
+├── Lautsprecher
+│   ├── auna Areal 525 DG
+│   └── Creative Inspire T6300
+├── Lüfter
+├── Mainboard
+│   ├── ASUS ROG RAMPAGE VI EXTREME
+│   └── Gigabyte GA-X79-UP4
+├── Maus
+│   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
+│   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
+├── Mauspad -> Pointer/Mauspad/
+├── Monitor
+│   ├── LG 55NANO779PA -> ../TV/LG 55NANO779PA/
+│   ├── Monitor-Halterung
+│   │   ├── HUANUO HNDSK3
+│   │   └── MYW HL 17 L
+│   ├── ODROID SHOW2
+│   └── Samsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)
+├── Monitor-Halterung -> Monitor/Monitor-Halterung/
+├── Netzteil
+│   └── be quiet! Straight Power E7 (600 Watt)
+├── Notebook -> Laptop
+├── Pointer
+│   ├── Maus
+│   │   └── Cherry [MC 3000] XERO (White)
+│   ├── Mauspad
+│   │   ├── Titanwolf 1200x600mm
+│   │   └── Titanwolf XXL Speed Gaming Mauspad (90x40cm)
+│   └── Trackball
+│       └── Perixx PERIMICE-517
+├── Projektor
+│   └── Epson EB-U05
+├── Prozessor
+│   ├── AMD K6-2 (350 MHz)
+│   ├── Cyrix 6x86MX PR200+ (166 MHz)
+│   ├── Intel Core 2 Quad Q6600 (2.4 GHz)
+│   ├── Intel Core i7-3820 (3.6-3.8 GHz)
+│   ├── Intel Core i7-7800X (3.5-4.0 GHz)
+│   ├── Intel i486DX2 (66 MHz)
+│   ├── Intel i486SX (33 MHz)
+│   ├── Intel Pentium 100 (MHz)
+│   └── Intel Pentium III (1 GHz)
+├── RAM -> Arbeitsspeicher
+├── Satelliten-Finder
+│   └── DUR-line SF 4000 BT
+├── Saugroboter
+│   └── TechniSat TECHNIMAX SR1
+├── Smartphone
+│   ├── HUAWEI Mate20 Pro
+│   │   └── WWW
+│   ├── LG Q6 [LGM700n]
+│   ├── Samsung Galaxy S20+
+│   │   └── Hersteller-Apps
+│   └── Samsung Galaxy S23 Ultra
+├── SSD -> Festplatte
+├── Streaming
+│   └── NOKIA Streaming Box 8000
+├── Tastatur
+│   ├── EMPIRE Gaming K300
+│   ├── Razer BlackWidow
+│   └── Roccat Vulcan TKL Pro
+├── TV
+│   ├── LG 55NANO779PA
+│   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
+│   ├── Nokia Streaming Box 8000 (Android TV)
+│   └── SHARP LC-55CUF8462ES (TV)
+├── Uhr
+│   └── TIMEX Intelligent Quartz
+└── USB-Stick
+    └── ADATA UE700 Pro (256 GB)

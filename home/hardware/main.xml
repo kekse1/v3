@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tree>
+  <directory name="hardware/">
+    <directory name="Arbeitsspeicher">
+      <directory name="Kingston FURY Renegade (4x16GB)">
+      </directory>
+      <directory name="Kingston HyperX (4x8GB)">
+      </directory>
+    </directory>
+    <directory name="Autoradio">
+      <directory name="JVC KD-DB98BT">
+      </directory>
+    </directory>
+    <link name="CPU" target="Prozessor"></link>
+    <directory name="Drucker">
+      <directory name="Canon PIXMA ix6850">
+      </directory>
+      <directory name="Lexmark MB2236adw">
+        <directory name="Toner">
+        </directory>
+      </directory>
+    </directory>
+    <directory name="Einplatinencomputer">
+    </directory>
+    <link name="Fernseher" target="TV"></link>
+    <directory name="Festplatte">
+      <directory name="Sabrent 256 GB">
+      </directory>
+      <directory name="WD_BLACK SN770">
+      </directory>
+    </directory>
+    <directory name="Gehaeuse">
+      <directory name="Thermaltake Level 20 XT (Cube)">
+      </directory>
+    </directory>
+    <directory name="Grafikkarte">
+      <directory name="ASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)">
+      </directory>
+      <directory name="ASUS Strix GeForce GTX 970 (STRIXGTX970DC2OC4GD5)">
+      </directory>
+    </directory>
+    <link name="Keyboard" target="Tastatur"></link>
+    <directory name="Laptop">
+      <directory name="Fujitsu Lifebook A3511">
+      </directory>
+    </directory>
+    <directory name="Lautsprecher">
+      <directory name="auna Areal 525 DG">
+      </directory>
+      <directory name="Creative Inspire T6300">
+      </directory>
+    </directory>
+    <directory name="Lüfter">
+    </directory>
+    <directory name="Mainboard">
+      <directory name="ASUS ROG RAMPAGE VI EXTREME">
+      </directory>
+      <directory name="Gigabyte GA-X79-UP4">
+      </directory>
+    </directory>
+    <directory name="Maus">
+      <directory name="KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten">
+      </directory>
+      <link name="Vertikale Maus" target="KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten"></link>
+    </directory>
+    <link name="Mauspad" target="Pointer/Mauspad/"></link>
+    <directory name="Monitor">
+      <link name="LG 55NANO779PA" target="../TV/LG 55NANO779PA/"></link>
+      <directory name="Monitor-Halterung">
+        <directory name="HUANUO HNDSK3">
+        </directory>
+        <directory name="MYW HL 17 L">
+        </directory>
+      </directory>
+      <directory name="ODROID SHOW2">
+      </directory>
+      <directory name="Samsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)">
+      </directory>
+    </directory>
+    <link name="Monitor-Halterung" target="Monitor/Monitor-Halterung/"></link>
+    <directory name="Netzteil">
+      <directory name="be quiet! Straight Power E7 (600 Watt)">
+      </directory>
+    </directory>
+    <link name="Notebook" target="Laptop"></link>
+    <directory name="Pointer">
+      <directory name="Maus">
+        <directory name="Cherry [MC 3000] XERO (White)">
+        </directory>
+      </directory>
+      <directory name="Mauspad">
+        <directory name="Titanwolf 1200x600mm">
+        </directory>
+        <directory name="Titanwolf XXL Speed Gaming Mauspad (90x40cm)">
+        </directory>
+      </directory>
+      <directory name="Trackball">
+        <directory name="Perixx PERIMICE-517">
+        </directory>
+      </directory>
+    </directory>
+    <directory name="Projektor">
+      <directory name="Epson EB-U05">
+      </directory>
+    </directory>
+    <directory name="Prozessor">
+      <directory name="AMD K6-2 (350 MHz)">
+      </directory>
+      <directory name="Cyrix 6x86MX PR200+ (166 MHz)">
+      </directory>
+      <directory name="Intel Core 2 Quad Q6600 (2.4 GHz)">
+      </directory>
+      <directory name="Intel Core i7-3820 (3.6-3.8 GHz)">
+      </directory>
+      <directory name="Intel Core i7-7800X (3.5-4.0 GHz)">
+      </directory>
+      <directory name="Intel i486DX2 (66 MHz)">
+      </directory>
+      <directory name="Intel i486SX (33 MHz)">
+      </directory>
+      <directory name="Intel Pentium 100 (MHz)">
+      </directory>
+      <directory name="Intel Pentium III (1 GHz)">
+      </directory>
+    </directory>
+    <link name="RAM" target="Arbeitsspeicher"></link>
+    <directory name="Satelliten-Finder">
+      <directory name="DUR-line SF 4000 BT">
+      </directory>
+    </directory>
+    <directory name="Saugroboter">
+      <directory name="TechniSat TECHNIMAX SR1">
+      </directory>
+    </directory>
+    <directory name="Smartphone">
+      <directory name="HUAWEI Mate20 Pro">
+        <directory name="WWW">
+        </directory>
+      </directory>
+      <directory name="LG Q6 [LGM700n]">
+      </directory>
+      <directory name="Samsung Galaxy S20+">
+        <directory name="Hersteller-Apps">
+        </directory>
+      </directory>
+      <directory name="Samsung Galaxy S23 Ultra">
+      </directory>
+    </directory>
+    <link name="SSD" target="Festplatte"></link>
+    <directory name="Streaming">
+      <directory name="NOKIA Streaming Box 8000">
+      </directory>
+    </directory>
+    <directory name="Tastatur">
+      <directory name="EMPIRE Gaming K300">
+      </directory>
+      <directory name="Razer BlackWidow">
+      </directory>
+      <directory name="Roccat Vulcan TKL Pro">
+      </directory>
+    </directory>
+    <directory name="TV">
+      <directory name="LG 55NANO779PA">
+      </directory>
+      <link name="LG 55NANO779PA NANOCELL TV" target="LG 55NANO779PA"></link>
+      <directory name="Nokia Streaming Box 8000 (Android TV)">
+      </directory>
+      <directory name="SHARP LC-55CUF8462ES (TV)">
+      </directory>
+    </directory>
+    <directory name="Uhr">
+      <directory name="TIMEX Intelligent Quartz">
+      </directory>
+    </directory>
+    <directory name="USB-Stick">
+      <directory name="ADATA UE700 Pro (256 GB)">
+      </directory>
+    </directory>
+  </directory>
+</tree>
