@@ -55,6 +55,17 @@
 				result = geo.radius.feet;
 			}
 		}
+		else if(isString(result = document.getVariable('geo-unit'), false))
+		{
+			if((result = result.toLowerCase()) in geo.radius)
+			{
+				result = geo.radius[result];
+			}
+			else
+			{
+				result = geo.radius[DEFAULT_RADIUS];
+			}
+		}
 		else
 		{
 			result = geo.radius[DEFAULT_RADIUS];
