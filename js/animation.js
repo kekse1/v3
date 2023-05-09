@@ -2238,17 +2238,17 @@ var c=0;
 	
 	Object.defineProperty(Node.prototype, 'finishDataAnimation', { value: function()
 	{
-		return finishDataAnimation();
+		return finishDataAnimation(this);
 	}});
 	
 	Object.defineProperty(Element.prototype, 'finishDataAnimation', { value: function()
 	{
-		return finishDataAnimation();
+		return finishDataAnimation(this);
 	}});
 	
 	Object.defineProperty(HTMLElement.prototype, 'finishDataAnimation', { value: function()
 	{
-		return finishDataAnimation();
+		return finishDataAnimation(this);
 	}});
 
 	//

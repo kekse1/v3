@@ -373,12 +373,10 @@
 
 						if(textNode._resetTextAnimation)
 						{
-							const text = textNode._dataAnimation;
-
-							delete textNode._dataAnimation;
-							delete textNode._dataAnimationProperty;
-
-							textNode.innerHTML = text;
+							if(! (textNode.finishDataAnimation()))
+							{
+								textNode.innerHTML = '';
+							}
 						}
 						else
 						{
