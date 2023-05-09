@@ -324,7 +324,6 @@
 			else if(this[i] === '&')
 			{
 				open = ';';
-				sub = 0;
 				++result;
 				sub = 0;
 			}
