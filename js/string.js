@@ -288,6 +288,61 @@
 	}});
 
 	//
+	Object.defineProperty(String.prototype, 'textLength', { get: function()
+	{
+		var result = 0;
+		var open = '';
+		var sub = 0;
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(this[i] === '\\')
+			{
+				if(i < (this.length - 1))
+				{
+					++i;
+				}
+
+				++result;
+			}
+			else if(open.length > 0)
+			{
+				++sub;
+
+				if(this[i] === open)
+				{
+					open = '';
+					sub = 0;
+				}
+			}
+			else if(this[i] === '<')
+			{
+				open = '>';
+				++result;
+				sub = 0;
+			}
+			else if(this[i] === '&')
+			{
+				open = ';';
+				sub = 0;
+				++result;
+				sub = 0;
+			}
+			else
+			{
+				++result;
+			}
+		}
+
+		if(open.length > 0)
+		{
+			result += sub;
+		}
+
+		return result;
+	}});
+
+	//
 	// text w/o <> original &*;
 	//
 	Object.defineProperty(String.prototype, 'less', { get: function()
@@ -404,6 +459,7 @@
 					}
 					
 					open = '';
+					sub = '';
 				}
 			}
 			else if(this[i] === '<')
@@ -476,6 +532,7 @@
 				{
 					result += String.html(sub);
 					open = false;
+					sub = '';
 				}
 			}
 			else if(this[i] === '&')
