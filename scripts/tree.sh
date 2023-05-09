@@ -7,7 +7,7 @@ fi
 
 dirname="$(realpath ./)"
 cd ~/git/
-tree -d --charset=UTF-8 --nolinks --noreport -- hardware/ >"$dirname/main.txt"
-tree -d --charset=UTF-8 --nolinks --noreport -X -- hardware/ >"$dirname/main.xml"
-tree -d --charset=UTF-8 --nolinks --noreport -J -- hardware/ >"$dirname/main.json"
+tree -d --charset=UTF-8 --nolinks --noreport -o "$dirname/main.txt" -- hardware/
+tree -d --charset=UTF-8 --nolinks --noreport -o "$dirname/main.xml" -X -- hardware/
+tree -d --charset=UTF-8 --nolinks --noreport -o "$dirname/main.json" -J -- hardware/
 
