@@ -9,7 +9,6 @@
 	const DEFAULT_SPLIT_REST = false;
 	const DEFAULT_COUNT_ONCE = false;
 	const DEFAULT_INT = false;
-	const DEFAULT_LESS_AMP = false;
 	const DEFAULT_ENTITIES = 'json/entities.json';
 	const DEFAULT_ENTITIES_URL = 'https://html.spec.whatwg.org/entities.json';
 	const DEFAULT_HTML_ALL = true;
@@ -198,30 +197,128 @@
 		console.error('No real String.entities loaded');
 	}
 
+	//
 	Object.defineProperty(String, 'entities', { get: function()
 	{
 		return { ... entities };
 	}});
+	
+	const htmlByNumber = (_code) => {
+		//
+		const orig = _code;
+		
+		if(_code[0] === '#')
+		{
+			_code = _code.substr(1);
+		}
 
-	Object.defineProperty(String.prototype, 'text', { get: function()
+		//
+		var radix;
+		
+		if(_code[0].toLowerCase() === 'x')
+		{
+			radix = 16;
+			_code = _code.substr(1);
+		}
+		else
+		{
+			radix = 10;
+		}
+		
+		//
+		var result;
+		
+		if(isNaN(result = parseInt(_code, radix)))
+		{
+			return null;
+		}
+		
+		return String.fromCodePoint(result);
+	};
+	
+	const htmlByName = (_code) => {
+		const query = '&' + _code + ';';
+		
+		if(query in entities)
+		{
+			return entities[query].characters;
+		}
+		
+		return null;
+	};
+	
+	Object.defineProperty(String, 'html', { value: function(_code)
+	{
+		if(typeof _code !== 'string')
+		{
+			throw new Error('Invalid _code argument');
+		}
+		
+		const orig = _code;
+		
+		if(_code[0] === '&')
+		{
+			_code = _code.substr(1);
+		}
+		
+		if(_code[_code.length - 1] === ';')
+		{
+			_code = _code.slice(0, -1);
+		}
+
+		var result;
+		
+		if(_code.length === 0)
+		{
+			result = orig;
+		}
+		else if(_code[0] === '#')
+		{
+			if((result = htmlByNumber(_code)) === null)
+			{
+				result = orig;
+			}
+		}
+		else if((result = htmlByName(_code)) === null)
+		{
+			result = orig;
+		}
+		
+		return result;
+	}});
+
+	//
+	// text w/o <> original &*;
+	//
+	Object.defineProperty(String.prototype, 'less', { get: function()
 	{
 		if(this.length === 0)
 		{
 			return '';
 		}
-
+		
 		var result = '';
 		var open = false;
-		var h, orig;
-		var sub = '';
-
+		var sub;
+		
 		for(var i = 0; i < this.length; ++i)
 		{
 			if(this[i] === '\\')
 			{
 				if(i < (this.length - 1))
 				{
-					result += this[++i];
+					if(open)
+					{
+						sub += this[++i];
+					}
+					else
+					{
+						result += this[++i];
+					}
+				}
+				else if(open)
+				{
+					sub += '\\';
 				}
 				else
 				{
@@ -230,55 +327,17 @@
 			}
 			else if(open)
 			{
-				if(this[i] === ';')
+				sub += this[i];
+				
+				if(this[i] === '>')
 				{
-					orig = '&' + sub + ';';
 					open = false;
-
-					if(sub.length <= 1)
-					{
-						result += orig;
-					}
-					else if(sub[0] === '#')
-					{
-						if(sub[1].toLowerCase() === 'x')
-						{
-							h = true;
-							sub = sub.substr(2);
-						}
-						else
-						{
-							h = false;
-							sub = sub.substr(1);
-						}
-
-					  	if(isNaN(sub = parseInt(sub, (h ? 16 : 10))))
-					  	{
-							result += orig;
-						}
-						else
-						{
-							result += String.fromCodePoint(sub);
-						}
-					}
-					else if(orig in entities)
-					{
-						result += entities[orig].characters;
-					}
-					else
-					{
-						result += orig;
-					}
-
 					sub = '';
 				}
-				else
-				{
-					sub += this[i];
-				}
 			}
-			else if(this[i] === '&')
+			else if(this[i] === '<')
 			{
+				sub = '<';
 				open = true;
 			}
 			else
@@ -286,32 +345,47 @@
 				result += this[i];
 			}
 		}
-
-		if(open && document.getVariable('data-error', true))
+		
+		if(open)
 		{
-			throw new Error('Invalid data (is open at it\'s end)');
+			result += sub;
 		}
 		
 		return result;
 	}});
-
-	Object.defineProperty(String.prototype, 'textLength', { get: function()
+	
+	//
+	// text w/o <> replaced &*;
+	//
+	Object.defineProperty(String.prototype, 'text', { get: function()
 	{
 		if(this.length === 0)
 		{
-			return 0;
+			return '';
 		}
-
-		var result = 0;
+		
+		var result = '';
 		var open = '';
-
+		var sub;
+		
 		for(var i = 0; i < this.length; ++i)
 		{
 			if(this[i] === '\\')
 			{
 				if(i < (this.length - 1))
 				{
-					result += this[++i];
+					if(open)
+					{
+						sub += this[++i];
+					}
+					else
+					{
+						result += this[++i];
+					}
+				}
+				else if(open)
+				{
+					sub += '\\';
 				}
 				else
 				{
@@ -320,83 +394,106 @@
 			}
 			else if(open.length > 0)
 			{
+				sub += this[i];
+				
 				if(this[i] === open)
 				{
+					if(open === ';')
+					{
+						result += String.html(sub);
+					}
+					
 					open = '';
 				}
 			}
 			else if(this[i] === '<')
 			{
 				open = '>';
+				sub = '<';
 			}
 			else if(this[i] === '&')
 			{
 				open = ';';
-				++result;
-			}
-			else
-			{
-				++result;
-			}
-		}
-
-		if(open.length > 0 && document.getVariable('data-error', true))
-		{
-			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
-		}
-
-		return result;
-	}});
-
-	Object.defineProperty(String.prototype, 'less', { get: function()
-	{
-		if(this.length === 0)
-		{
-			return '';
-		}
-
-		var result = '';
-		var open = '';
-
-		for(var i = 0; i < this.length; ++i)
-		{
-			if(open.length > 0)
-			{
-				if(this[i] === open)
-				{
-					open = '';
-				}
-			}
-			else if(this[i] === '\\')
-			{
-				if(i < (this.length - 1))
-				{
-					result += this[++i];
-				}
-				else
-				{
-					result += '\\';
-				}
-			}
-			else if(this[i] === '<')
-			{
-				open = '>';
-			}
-			else if(DEFAULT_LESS_AMP && this[i] === '&')
-			{
-				open = ';';
+				sub = '&';
 			}
 			else
 			{
 				result += this[i];
 			}
 		}
-
-		if(open.length > 0 && document.getVariable('data-error', true))
+		
+		if(open.length > 0)
 		{
-			throw new Error('Invalid data (opened \'' + open + '\' is not closed)');
+			result += sub;
 		}
+		
+		return result;
+	}});
 
+	//
+	// text w/ <> replaced &*;
+	//
+	Object.defineProperty(String.prototype, 'data', { get: function()
+	{
+		if(this.length === 0)
+		{
+			return '';
+		}
+		
+		var result = '';
+		var open = false;
+		var sub;
+		
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(this[i] === '\\')
+			{
+				if(i < (this.length - 1))
+				{
+					if(open)
+					{
+						sub += this[++i];
+					}
+					else
+					{
+						result += this[++i];
+					}
+				}
+				else if(open)
+				{
+					sub += '\\';
+				}
+				else
+				{
+					result += '\\';
+				}
+			}
+			else if(open)
+			{
+				sub += this[i];
+				
+				if(this[i] === ';')
+				{
+					result += String.html(sub);
+					open = false;
+				}
+			}
+			else if(this[i] === '&')
+			{
+				sub = '&';
+				open = true;
+			}
+			else
+			{
+				result += this[i];
+			}
+		}
+		
+		if(open)
+		{
+			result += sub;
+		}
+		
 		return result;
 	}});
 

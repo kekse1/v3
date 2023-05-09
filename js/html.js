@@ -315,7 +315,7 @@
 		//
 		if(open > 0)
 		{
-			if(_throw && document.getVariable('data-error', true))
+			if(_throw)
 			{
 				throw new Error('Invalid _data (malformed HTML: opening bracket \'<\' has not been closed)');
 			}

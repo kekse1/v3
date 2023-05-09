@@ -1914,15 +1914,17 @@ throw new Error('TODO');
 
 		//
 		const original = _element[_property];
-		const totalTextLength = (original.textLength + _data.textLength);
+		const origLessLen = original.less.length;
+		const dataLessLen = _data.less.length;
+		const totalTextLength = (origLessLen + dataLessLen);
 		const dataLength = _data.length;
 		const charTime = (_duration / totalTextLength);
 		var charTimeAdd, charTimeSub;
 		
 		if(_delete_mul === null)
 		{
-			charTimeSub = (charTime * original.textLength / totalTextLength);
-			charTimeAdd = (charTime * _data.textLength / totalTextLength);
+			charTimeSub = (charTime * origLessLen / totalTextLength);
+			charTimeAdd = (charTime * dataLessLen / totalTextLength);
 		}
 		else
 		{

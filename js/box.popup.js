@@ -561,7 +561,7 @@ throw new Error('TODO');
 			}
 			else if(Popup.clear(_event, false, _callback) > 0)
 			{
-				_event.preventDefault();
+				//
 			}
 		}
 
@@ -593,7 +593,7 @@ throw new Error('TODO');
 
 					if(index[i].open(_event, cb))
 					{
-						_event.preventDefault();
+						//
 					}
 				}
 			}
@@ -624,14 +624,14 @@ throw new Error('TODO');
 				{
 					if(index.splice(i, 1)[0].close(_event))
 					{
-						_event.preventDefault();
+						//
 					}
 				}
 				else
 				{
 					if(index[i].open(_event))
 					{
-						_event.preventDefault();
+						//
 					}
 					
 					if(DEFAULT_SINGLE)
@@ -648,7 +648,7 @@ throw new Error('TODO');
 				{
 					if(Popup.create(_event, elements[i]))
 					{
-						_event.preventDefault();
+						//
 						
 						if(DEFAULT_SINGLE)
 						{
@@ -791,9 +791,20 @@ throw new Error('TODO');
 	on.keydown = Popup.onkeydown.bind(Popup);
 	on.keyup = Popup.onkeyup.bind(Popup);
 
+	var passive;
 	for(const idx in on)
 	{
-		window.addEventListener(idx, on[idx], { passive: false, capture: true });
+		switch(idx)
+		{
+			case 'keydown':
+				passive = false;
+				break;
+			default:
+				passive = true;
+				break;
+		}
+
+		window.addEventListener(idx, on[idx], { passive, capture: true });
 	}
 
 	//

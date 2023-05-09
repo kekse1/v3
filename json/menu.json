@@ -3,98 +3,84 @@
 		"image": "img/favicon.128px.png",
 		"data": "Home",
 		"description": "World Wide Home",
-		"href": "#~home",
-		"popup": "The INDEX/HOME page of this web presence"
+		"href": "#~home"
 	},
 	{
 		"image": "img/menu/tools.128px.png",
 		"data": "Tools",
 		"description": "Some nifty tools (JavaScript, maybe PHP)",
-		"href": "#~tools",
-		"popup": "Some nifty tools, maybe a helping hand for you.."
+		"href": "#~tools"
 	},
 	{
 		"image": "img/menu/events.128px.png",
 		"data": "Events",
 		"description": "Messaging and other (remote) events, all real-time! ^_^",
-		"href": "#~events",
-		"popup": "Everything which goes real-time here.. ^_^"
+		"href": "#~events"
 	},
 	{
 		"image": "img/menu/projects.128px.png",
 		"data": "Projects",
 		"description": "Some of my projects",
-		"href": "#~projects",
-		"popup": "I'm working on some things.."
+		"href": "#~projects"
 	},
 	{
 		"image": "img/menu/linux.128px.png",
 		"data": "Linux",
 		"description": "Linux specific part",
-		"href": "#~linux",
-		"popup": "The only OS I'm using"
+		"href": "#~linux"
 	},
 	{
 		"image": "img/menu/documents.128px.png",
 		"data": "Documents",
 		"description": "Documents of Interest",
-		"href": "#~documents",
-		"popup": "I've collected many useful documents, papers and other resources which looked interesting."
+		"href": "#~documents"
 	},
 	{
 		"image": "img/menu/gallery.128px.png",
 		"data": "Gallery",
 		"description": "My own gallery",
-		"href": "#~gallery",
-		"popup": "Images and other media I do like"
+		"href": "#~gallery"
 	},
 	{
 		"image": "img/menu/downloads.128px.png",
 		"data": "Downloads",
 		"description": "Download area",
-		"href": "#~downloads",
-		"popup": "Interesting binary data which doesn't fit into gallery or documents."
+		"href": "#~downloads"
 	},
 	{
 		"image": "img/menu/bookmarks.128px.png",
 		"data": "Bookmarks",
 		"description": "Bookmark collection",
-		"href": "#~bookmarks",
-		"popup": "Since a long time I'm bookmarking many resources in the world wide web (my browser history, kinda ;)~"
+		"href": "#~bookmarks"
 	},
 	{
 		"image": "img/menu/hardware.128px.png",
 		"data": "Hardware",
 		"description": "The hardware I'm using",
-		"href": "#~hardware",
-		"popup": "That's all the hardware I'm using or used to use"
+		"href": "#~hardware"
 	},
 	{
 		"image": "img/menu/imprint.128px.png",
 		"data": "Imprint",
 		"description": "Necessary..",
-		"href": "#~imprint",
-		"popup": "The law wants it this way... ;/~"
+		"href": "#~imprint"
 	},
 	{
 		"image": "img/menu/news.128px.png",
 		"data": "News",
 		"description": "News for this Web site etc.",
-		"href": "#~news",
-		"popup": "Just for your info - what's new on this web site and here and so on.."
+		"href": "#~news"
 	},
 	{
 		"image": "img/menu/api.128px.png",
 		"data": "API / Test",
 		"description": "API access for this web project (or testing code atm)",
-		"href": "#~api",
-		"popup": "At least I'm <b>planning</b> to provide one, two alternative access methods.. still <i>TODO</i>! ^_^"
+		"href": "#~api"
 	},
 	{
 		"image": "img/menu/contact.128px.png",
 		"data": "Contact",
 		"description": "Way(s) to contact me",
-		"href": "#~contact",
-		"popup": "If you want to send me a message/letter/.. or anything; that's for you. :)~"
+		"href": "#~contact"
 	}
 ]
