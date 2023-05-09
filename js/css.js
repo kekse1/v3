@@ -868,9 +868,9 @@ throw new Error('TODO');
 			{
 				continue;
 			}
-			else if(_array[i].includes(' ') || _array[i].includes('\t') || _array[i].includes('\n') || _array[i].includes('\r'))
+			else if(_array[i].hasEmpty)
 			{
-//				result += _array[i].quote('\'');
+				result += _array[i].quote('\'');
 			}
 			else
 			{
