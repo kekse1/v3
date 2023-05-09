@@ -16,7 +16,6 @@
 	"document",
 
 	"intl",
-	"code",
 
 	"id",
 	"path",
@@ -37,7 +36,10 @@
 	"dynamic.module",
 	"uptime",
 
+	"code",
+	"area",
 	"uniform",
+
 	"sort",
 	"bionic",
 

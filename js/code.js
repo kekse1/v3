@@ -1,4 +1,4 @@
-window.customElements.define('a-code', HTMLCustomCodeElement = class extends HTMLElement
+if(!customElements.get('a-code')) customElements.define('a-code', HTMLCodeElement = class HTMLCodeElement extends HTMLElement
 {
 	constructor(... _args)
 	{
@@ -37,7 +37,7 @@ window.customElements.define('a-code', HTMLCustomCodeElement = class extends HTM
 			return '';
 		}
 
-		return HTMLCustomCodeElement.createInnerHTML(_string, _href, _target);
+		return HTMLCodeElement.createInnerHTML(_string, _href, _target);
 	}
 
 	static createInnerHTML(_string, _href, _target)
@@ -68,7 +68,7 @@ window.customElements.define('a-code', HTMLCustomCodeElement = class extends HTM
 
 		if(_string.toLowerCase().startsWith('<a '))
 		{
-			const err = 'Invalid HTML string in \'HTMLCustomCodeElement\'';
+			const err = 'Invalid HTML string in \'HTMLCodeElement\'';
 			var idx = _string.indexOf('>');
 
 			if(idx === -1)
