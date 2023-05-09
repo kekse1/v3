@@ -62,6 +62,10 @@
 		return intl(_lang, 'NumberFormat', _options).format(_value);
 	};
 
+	intl.UnitFormat = (_value, _lang, _options) => {
+		return intl(_lang, 'UnitFormat', _options).supportedValues(_value);
+	};
+
 	intl.Collator = (_value, _lang, _options) => {
 		return intl(_lang, 'Collator', _options).format(_value);
 	};
@@ -101,7 +105,7 @@
 	}});
 
 	//
-	intl.Currency = intl.currency = (_value, _currency, _lang) => {
+	intl.currency = (_value, _currency, _lang) => {
 		if(! isNumber(_value))
 		{
 			throw new Error('Invalid _value argument');
@@ -116,6 +120,23 @@
 		}
 
 		return new Intl.NumberFormat(_lang, { style: 'currency', currency: _currency }).format(_value);
+	};
+
+	intl.unit = (_value, _unit, _lang) => {
+		if(! isNumber(_value))
+		{
+			throw new Error('Invalid _value argument');
+		}
+		else if(! isString(_unit, false))
+		{
+			throw new Error('Invalid _unit argument');
+		}
+		else if(! isString(_lang, false))
+		{
+			_lang = navigator.language;
+		}
+
+		return new Intl.NumberFormat(_lang, { style: 'unit', unit: _unit }).format(_value);
 	};
 
 	//

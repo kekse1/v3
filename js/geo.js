@@ -8,9 +8,52 @@
 	// and φ/λ for latitude/longitude in radians – having found that mixing degrees & radians
 	// is often the easiest route to head-scratching bugs...
 	//
+	//
+	const DEFAULT_RADIUS = 'meter';
 
 	//
-	geo = module.exports = { RADIUS: 6371e3 }; // w/ earth's radius, in metres.. ^_^
+	geo = module.exports = {
+		radius: {
+			meter: 6371000,
+			kilometer: 6371,
+			mile: 3958.75,
+			yard: 6967389.31,
+			feet: 20902231.64,
+			inch: 250826907.1,
+			nautical: 3440.07
+		}
+	};
+
+	const getRadius = (_name_lang) => {
+		if(! isString(_name_lang, false))
+		{
+			_name_lang = navigator.language;
+		}
+		else
+		{
+			_name_lang = _name_lang.toLowerCase();
+		}
+		
+		if(_name_lang.toLowerCase() in geo.radius)
+		{
+			return geo.radius[_name_lang.toLowerCase()];
+		}
+		else if(_name_lang.startsWith('de'))
+		{
+			return geo.radius.meter;
+		}
+		else if(_name_lang.startsWith('en'))
+		{
+			if(_name_lang.length === 2 || _name_lang.includes('us'))
+			{
+				return geo.radius.feet;
+			}
+
+			return geo.radius.yard;
+		}
+
+		return geo.radius[DEFAULT_RADIUS];
+	};
 
 	Object.defineProperty(geo, 'algorithm', { get: function()
 	{
@@ -18,7 +61,7 @@
 	}});
 
 	//
-	geo.distance = (_lat1, _lon1, _lat2, _lon2, _geo_distance = geo.algorithm) => {
+	geo.distance = (_lat1, _lon1, _lat2, _lon2, _geo_distance = geo.algorithm, _unit_lang) => {
 		if(! isString(_geo_distance, false))
 		{
 			_geo_distance = geo.algorithm;
@@ -28,7 +71,7 @@
 		{
 			if(_geo_distance in geo.distance)
 			{
-				return geo.distance[_geo_distance](_lat1, _lon1, _lat2, _lon2);
+				return geo.distance[_geo_distance](_lat1, _lon1, _lat2, _lon2, _unit_lang);
 			}
 			
 			throw new Error('The distance algorithm \'' + _geo_distance + '\' is not available');
@@ -43,7 +86,7 @@
 	}});
 
 	//
-	geo.distance.haversine = (_lat1, _lon1, _lat2, _lon2) => {
+	geo.distance.haversine = (_lat1, _lon1, _lat2, _lon2, _unit_lang) => {
 		//
 		// φ is latitude, λ is longitude
 		// note that angles need to be in radians to pass to trig functions!
@@ -67,7 +110,7 @@
 		//
 		// d = R ⋅ c
 		//
-		const d = (geo.RADIUS * c); // in metres, too.
+		const d = (getRadius(_unit_lang) * c);
 
 		//
 		// in metres, too (see earth's radius R above)
@@ -75,7 +118,7 @@
 		return d;
 	};
 
-	geo.distance.sphericalLawOfCosines = (_lat1, _lon1, _lat2, _lon2) => {
+	geo.distance.sphericalLawOfCosines = (_lat1, _lon1, _lat2, _lon2, _unit_lang) => {
 		//
 		// d = acos( sin φ1 ⋅ sin φ2 + cos φ1 ⋅ cos φ2 ⋅ cos Δλ ) ⋅ R
 		//
@@ -84,7 +127,7 @@
 		const Δλ = ((_lon2 - _lon1) * Math.PI / 180);
 
 		const d = ((Math.acos(Math.sin(φ1) * Math.sin(φ2)
-			+ Math.cos(φ1) * Math.cos(φ2) * Math.cos(Δλ))) * geo.RADIUS);
+			+ Math.cos(φ1) * Math.cos(φ2) * Math.cos(Δλ))) * getRadius(_unit_lang));
 
 		//
 		return d;
