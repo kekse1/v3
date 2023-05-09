@@ -55,20 +55,17 @@
 				result = geo.radius.feet;
 			}
 		}
-		else if(isString(result = document.getVariable('geo-unit'), false))
+		else if((result = document.getVariable('geo-unit').toLowerCase()) in geo.radius)
 		{
-			if((result = result.toLowerCase()) in geo.radius)
-			{
-				result = geo.radius[result];
-			}
-			else
-			{
-				result = geo.radius[DEFAULT_RADIUS];
-			}
+			result = geo.radius(result);
+		}
+		else if(typeof DEFAULT_RADIUS === 'string' && (DEFAULT_RADIUS.toLowerCase() in geo.radius))
+		{
+			result = geo.radius[DEFAULT_RADIUS.toLowerCase()];
 		}
 		else
 		{
-			result = geo.radius[DEFAULT_RADIUS];
+			result = null;
 		}
 
 		return result;
