@@ -1211,8 +1211,18 @@
 	Page.ID = {};
 
 	//
-	window.addEventListener('hashchange', Page.onhashchange.bind(Page));
-	window.addEventListener('click', Page.onclick.bind(Page));
+	const on = {};
+
+	on.hashchange = Page.onhashchange.bind(Page);
+	on.click = Page.onclick.bind(Page);
+
+	for(const idx in on)
+	{
+		window.addEventListener(idx, on[idx], {
+			passive: false,
+			capture: true
+		});
+	}
 
 	//
 	window.addEventListener('ready', () => {
@@ -1227,7 +1237,6 @@
 
 		loc += hash.substr(1);
 		location.href = loc;
-		//Page.onhashchange({ oldURL: '', newURL: location.href });
 	}, { once: true });
 
 	//
