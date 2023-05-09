@@ -1427,11 +1427,7 @@
 	//
 	Object.defineProperty(String.prototype, 'isEmpty', { get: function()
 	{
-		if(this.length === 0)
-		{
-			return true;
-		}
-		else for(var i = 0; i < this.length; ++i)
+		for(var i = 0; i < this.length; ++i)
 		{
 			if(this.charCodeAt(i) > 32)
 			{
@@ -1440,6 +1436,19 @@
 		}
 
 		return true;
+	}});
+
+	Object.defineProperty(String.prototype, 'hasEmpty', { get: function()
+	{
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(this.charCodeAt(i) <= 32)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}});
 
 	//
