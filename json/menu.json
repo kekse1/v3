@@ -1,6 +1,6 @@
 [
 	{
-		"image": "img/menu/home.128px.png",
+		"image": "img/favicon.128px.png",
 		"data": "Home",
 		"description": "World Wide Home",
 		"href": "#~home",
@@ -26,6 +26,13 @@
 		"description": "Some of my projects",
 		"href": "#~projects",
 		"popup": "I'm working on some things.."
+	},
+	{
+		"image": "img/menu/home.128px.png",
+		"data": "Linux",
+		"description": "Linux specific part",
+		"href": "#~linux",
+		"popup": "The only OS I'm using"
 	},
 	{
 		"image": "img/menu/documents.128px.png",
