@@ -1,93 +1,94 @@
-hardware/
-├── Arbeitsspeicher
-│   ├── Kingston FURY Renegade (4x16GB)
-│   └── Kingston HyperX (4x8GB)
-├── Autoradio
-├── CPU -> Prozessor
-├── Drucker
-│   ├── Canon PIXMA ix6850
-│   └── Lexmark MB2236adw
-│       └── Toner
-├── Einplatinencomputer
-├── Fernseher -> TV
-├── Festplatte
-│   ├── Sabrent 256 GB
-│   └── WD_BLACK SN770
-├── Gehaeuse
-│   └── Thermaltake Level 20 XT (Cube)
-├── Grafikkarte
-│   ├── ASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)
-│   └── ASUS Strix GeForce GTX 970 (STRIXGTX970DC2OC4GD5)
-├── Keyboard -> Tastatur
-├── Laptop
-│   └── Fujitsu Lifebook A3511
-├── Lautsprecher
-│   ├── Creative Inspire T6300
-│   └── auna Areal 525 DG
-├── Lüfter
-├── Mainboard
-│   ├── ASUS ROG RAMPAGE VI EXTREME
-│   └── Gigabyte GA-X79-UP4
-├── Maus
-│   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
-│   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
-├── Mauspad -> Pointer/Mauspad/
-├── Monitor
-│   ├── LG 55NANO779PA -> ../TV/LG 55NANO779PA/
-│   ├── Monitor-Halterung
-│   │   ├── HUANUO HNDSK3
-│   │   └── MYW HL 17 L
-│   ├── ODROID SHOW2
-│   └── Samsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)
-├── Monitor-Halterung -> Monitor/Monitor-Halterung/
-├── Netzteil
-│   └── be quiet! Straight Power E7 (600 Watt)
-├── Notebook -> Laptop
-├── Pointer
-│   ├── Maus
-│   │   └── Cherry [MC 3000] XERO (White)
-│   ├── Mauspad
-│   │   ├── Titanwolf 1200x600mm
-│   │   └── Titanwolf XXL Speed Gaming Mauspad (90x40cm)
-│   └── Trackball
-│       └── Perixx PERIMICE-517
-├── Projektor
-│   └── Epson EB-U05
-├── Prozessor
-│   ├── AMD K6-2 (350 MHz)
-│   ├── Cyrix 6x86MX PR200+ (166 MHz)
-│   ├── Intel Core 2 Quad Q6600 (2.4 GHz)
-│   ├── Intel Core i7-3820 (3.6-3.8 GHz)
-│   ├── Intel Core i7-7800X (3.5-4.0 GHz)
-│   ├── Intel Pentium 100 (MHz)
-│   ├── Intel Pentium III (1 GHz)
-│   ├── Intel i486SX (33 MHz)
-│   └── Intel i486DX2 (66 MHz)
-├── RAM -> Arbeitsspeicher
-├── SSD -> Festplatte
-├── Satelliten-Finder
-│   └── DUR-line SF 4000 BT
-├── Saugroboter
-│   └── TechniSat TECHNIMAX SR1
-├── Smartphone
-│   ├── HUAWEI Mate20 Pro
-│   │   └── WWW
-│   ├── LG Q6 [LGM700n]
-│   ├── Samsung Galaxy S20+
-│   │   └── Hersteller-Apps
-│   └── Samsung Galaxy S23 Ultra
-├── Streaming
-│   └── NOKIA Streaming Box 8000
-├── TV
-│   ├── LG 55NANO779PA
-│   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
-│   ├── Nokia Streaming Box 8000 (Android TV)
-│   └── SHARP LC-55CUF8462ES (TV)
-├── Tastatur
-│   ├── EMPIRE Gaming K300
-│   ├── Razer BlackWidow
-│   └── Roccat Vulcan TKL Pro
-├── USB-Stick
-│   └── ADATA UE700 Pro (256 GB)
-└── Uhr
-    └── TIMEX Intelligent Quartz
+[01;34mhardware/[00m
+├── [01;34mArbeitsspeicher[00m
+│   ├── [01;34mKingston FURY Renegade (4x16GB)[00m
+│   └── [01;34mKingston HyperX (4x8GB)[00m
+├── [01;34mAutoradio[00m
+│   └── [01;34mJVC KD-DB98BT[00m
+├── [01;36mCPU[00m -> [01;34mProzessor[00m
+├── [01;34mDrucker[00m
+│   ├── [01;34mCanon PIXMA ix6850[00m
+│   └── [01;34mLexmark MB2236adw[00m
+│       └── [01;34mToner[00m
+├── [01;34mEinplatinencomputer[00m
+├── [01;36mFernseher[00m -> [01;34mTV[00m
+├── [01;34mFestplatte[00m
+│   ├── [01;34mSabrent 256 GB[00m
+│   └── [01;34mWD_BLACK SN770[00m
+├── [01;34mGehaeuse[00m
+│   └── [01;34mThermaltake Level 20 XT (Cube)[00m
+├── [01;34mGrafikkarte[00m
+│   ├── [01;34mASUS Dual Radeon RX 5700 EVO OC (DUAL-RX5700-O8G-EVO)[00m
+│   └── [01;34mASUS Strix GeForce GTX 970 (STRIXGTX970DC2OC4GD5)[00m
+├── [01;36mKeyboard[00m -> [01;34mTastatur[00m
+├── [01;34mLaptop[00m
+│   └── [01;34mFujitsu Lifebook A3511[00m
+├── [01;34mLautsprecher[00m
+│   ├── [01;34mauna Areal 525 DG[00m
+│   └── [01;34mCreative Inspire T6300[00m
+├── [01;34mLüfter[00m
+├── [01;34mMainboard[00m
+│   ├── [01;34mASUS ROG RAMPAGE VI EXTREME[00m
+│   └── [01;34mGigabyte GA-X79-UP4[00m
+├── [01;34mMaus[00m
+│   ├── [01;34mKINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten[00m
+│   └── [01;36mVertikale Maus[00m -> [01;34mKINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten[00m
+├── [01;36mMauspad[00m -> [01;34mPointer/Mauspad/[00m
+├── [01;34mMonitor[00m
+│   ├── [01;36mLG 55NANO779PA[00m -> [01;34m../TV/LG 55NANO779PA/[00m
+│   ├── [01;34mMonitor-Halterung[00m
+│   │   ├── [01;34mHUANUO HNDSK3[00m
+│   │   └── [01;34mMYW HL 17 L[00m
+│   ├── [01;34mODROID SHOW2[00m
+│   └── [01;34mSamsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)[00m
+├── [01;36mMonitor-Halterung[00m -> [01;34mMonitor/Monitor-Halterung/[00m
+├── [01;34mNetzteil[00m
+│   └── [01;34mbe quiet! Straight Power E7 (600 Watt)[00m
+├── [01;36mNotebook[00m -> [01;34mLaptop[00m
+├── [01;34mPointer[00m
+│   ├── [01;34mMaus[00m
+│   │   └── [01;34mCherry [MC 3000] XERO (White)[00m
+│   ├── [01;34mMauspad[00m
+│   │   ├── [01;34mTitanwolf 1200x600mm[00m
+│   │   └── [01;34mTitanwolf XXL Speed Gaming Mauspad (90x40cm)[00m
+│   └── [01;34mTrackball[00m
+│       └── [01;34mPerixx PERIMICE-517[00m
+├── [01;34mProjektor[00m
+│   └── [01;34mEpson EB-U05[00m
+├── [01;34mProzessor[00m
+│   ├── [01;34mAMD K6-2 (350 MHz)[00m
+│   ├── [01;34mCyrix 6x86MX PR200+ (166 MHz)[00m
+│   ├── [01;34mIntel Core 2 Quad Q6600 (2.4 GHz)[00m
+│   ├── [01;34mIntel Core i7-3820 (3.6-3.8 GHz)[00m
+│   ├── [01;34mIntel Core i7-7800X (3.5-4.0 GHz)[00m
+│   ├── [01;34mIntel i486DX2 (66 MHz)[00m
+│   ├── [01;34mIntel i486SX (33 MHz)[00m
+│   ├── [01;34mIntel Pentium 100 (MHz)[00m
+│   └── [01;34mIntel Pentium III (1 GHz)[00m
+├── [01;36mRAM[00m -> [01;34mArbeitsspeicher[00m
+├── [01;34mSatelliten-Finder[00m
+│   └── [01;34mDUR-line SF 4000 BT[00m
+├── [01;34mSaugroboter[00m
+│   └── [01;34mTechniSat TECHNIMAX SR1[00m
+├── [01;34mSmartphone[00m
+│   ├── [01;34mHUAWEI Mate20 Pro[00m
+│   │   └── [01;34mWWW[00m
+│   ├── [01;34mLG Q6 [LGM700n][00m
+│   ├── [01;34mSamsung Galaxy S20+[00m
+│   │   └── [01;34mHersteller-Apps[00m
+│   └── [01;34mSamsung Galaxy S23 Ultra[00m
+├── [01;36mSSD[00m -> [01;34mFestplatte[00m
+├── [01;34mStreaming[00m
+│   └── [01;34mNOKIA Streaming Box 8000[00m
+├── [01;34mTastatur[00m
+│   ├── [01;34mEMPIRE Gaming K300[00m
+│   ├── [01;34mRazer BlackWidow[00m
+│   └── [01;34mRoccat Vulcan TKL Pro[00m
+├── [01;34mTV[00m
+│   ├── [01;34mLG 55NANO779PA[00m
+│   ├── [01;36mLG 55NANO779PA NANOCELL TV[00m -> [01;34mLG 55NANO779PA[00m
+│   ├── [01;34mNokia Streaming Box 8000 (Android TV)[00m
+│   └── [01;34mSHARP LC-55CUF8462ES (TV)[00m
+├── [01;34mUhr[00m
+│   └── [01;34mTIMEX Intelligent Quartz[00m
+└── [01;34mUSB-Stick[00m
+    └── [01;34mADATA UE700 Pro (256 GB)[00m
