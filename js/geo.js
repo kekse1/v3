@@ -20,7 +20,11 @@
 
 	const getRadius = (_name_lang) => {
 		//
-		if(! isString(_name_lang, false))
+		if(_name_lang === null)
+		{
+			return null;
+		}
+		else if(! isString(_name_lang, false))
 		{
 			_name_lang = navigator.language;
 		}
@@ -77,7 +81,7 @@
 	}});
 
 	//
-	geo.distance = (_lat1, _lon1, _lat2, _lon2, _geo_distance = geo.algorithm, _unit_lang) => {
+	geo.distance = (_lat1, _lon1, _lat2, _lon2, _geo_distance = geo.algorithm, _unit_lang = null) => {
 		if(! isString(_geo_distance, false))
 		{
 			_geo_distance = geo.algorithm;
@@ -102,7 +106,7 @@
 	}});
 
 	//
-	geo.distance.haversine = (_lat1, _lon1, _lat2, _lon2, _unit_lang) => {
+	geo.distance.haversine = (_lat1, _lon1, _lat2, _lon2, _unit_lang = null) => {
 		//
 		// φ is latitude, λ is longitude
 		// note that angles need to be in radians to pass to trig functions!
@@ -126,15 +130,30 @@
 		//
 		// d = R ⋅ c
 		//
-		const d = (getRadius(_unit_lang) * c);
+		//const d = (getRadius(_unit_lang) * c);
+		
+		//
+		var result = getRadius(_unit_lang);
+
+		if(isNumber(result))
+		{
+			result *= c;
+		}
+		else
+		{
+			result = Object.create(null);
+
+			for(const idx in geo.radius)
+			{
+				result[idx] = (c * geo.radius[idx]);
+			}
+		}
 
 		//
-		// in metres, too (see earth's radius R above)
-		//
-		return d;
+		return result;
 	};
 
-	geo.distance.sphericalLawOfCosines = (_lat1, _lon1, _lat2, _lon2, _unit_lang) => {
+	geo.distance.sphericalLawOfCosines = (_lat1, _lon1, _lat2, _lon2, _unit_lang = null) => {
 		//
 		// d = acos( sin φ1 ⋅ sin φ2 + cos φ1 ⋅ cos φ2 ⋅ cos Δλ ) ⋅ R
 		//
@@ -142,11 +161,28 @@
 		const φ2 = (_lat2 * Math.PI / 180);
 		const Δλ = ((_lon2 - _lon1) * Math.PI / 180);
 
-		const d = ((Math.acos(Math.sin(φ1) * Math.sin(φ2)
-			+ Math.cos(φ1) * Math.cos(φ2) * Math.cos(Δλ))) * getRadius(_unit_lang));
+		const d = (Math.acos(Math.sin(φ1) * Math.sin(φ2)
+			+ Math.cos(φ1) * Math.cos(φ2) * Math.cos(Δλ)));
 
 		//
-		return d;
+		var result = getRadius(_unit_lang);
+
+		if(isNumber(result))
+		{
+			result *= d;
+		}
+		else
+		{
+			result = Object.create(null);
+
+			for(const idx in geo.radius)
+			{
+				result[idx] = (d * geo.radius[idx]);
+			}
+		}
+
+		//
+		return result;
 	};
 
 	//
