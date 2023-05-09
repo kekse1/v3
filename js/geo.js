@@ -2,14 +2,8 @@
 {
 
 	//
-
-	//
-	// Note in these scripts, I generally use lat/lon for latitude/longitude in degrees,
-	// and φ/λ for latitude/longitude in radians – having found that mixing degrees & radians
-	// is often the easiest route to head-scratching bugs...
-	//
-	//
-	const DEFAULT_RADIUS = 'meter';
+	const DEFAULT_RADIUS = 'feet';
+	const DEFAULT_ALGORITHM = 'haversine';
 
 	//
 	geo = module.exports = {
@@ -25,39 +19,56 @@
 	};
 
 	const getRadius = (_name_lang) => {
+		//
 		if(! isString(_name_lang, false))
 		{
 			_name_lang = navigator.language;
 		}
-		else
-		{
-			_name_lang = _name_lang.toLowerCase();
-		}
 		
+		//
+		_name_lang = _name_lang.toLowerCase();
+
+		//
+		var result;
+		
+		//
 		if(_name_lang.toLowerCase() in geo.radius)
 		{
-			return geo.radius[_name_lang.toLowerCase()];
+			result = geo.radius[_name_lang.toLowerCase()];
 		}
 		else if(_name_lang.startsWith('de'))
 		{
-			return geo.radius.meter;
+			result = geo.radius.meter;
 		}
 		else if(_name_lang.startsWith('en'))
 		{
-			if(_name_lang.length === 2 || _name_lang.includes('us'))
+			if(_name_lang.includes('gb'))
 			{
-				return geo.radius.feet;
+				result = geo.radius.yard;
 			}
-
-			return geo.radius.yard;
+			else
+			{
+				result = geo.radius.feet;
+			}
+		}
+		else
+		{
+			result = geo.radius[DEFAULT_RADIUS];
 		}
 
-		return geo.radius[DEFAULT_RADIUS];
+		return result;
 	};
 
 	Object.defineProperty(geo, 'algorithm', { get: function()
 	{
-		return document.getVariable('geo-distance');
+		const result = document.getVariable('geo-distance');
+
+		if(! isString(result, false))
+		{
+			return DEFAULT_ALGORITHM;
+		}
+
+		return result;
 	}});
 
 	//
