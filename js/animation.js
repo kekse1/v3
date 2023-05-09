@@ -1856,11 +1856,12 @@ throw new Error('TODO');
 		}
 		else if(! (isInt(_duration) && _duration > 0) && !(isInt((_duration = _element.getVariable('data-duration', true)) && _duration >= 0)))
 		{
-			return _element[_property] = _data;
+			return _element['_' + _property] = _data;
 		}
 		else if(_element._dataAnimation)
 		{
 			delete _element._dataAnimation;
+			delete _element._dataAnimationProperty;
 
 			setTimeout(() => {
 				return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, _element, _intermediate_callback, _throw);
@@ -1871,6 +1872,7 @@ throw new Error('TODO');
 		else
 		{
 			_element._dataAnimation = _data;
+			_element._dataAnimationProperty = _property;
 		}
 		
 		//
@@ -1955,8 +1957,12 @@ throw new Error('TODO');
 			if('_dataAnimation' in _element)
 			{
 				const all = _element._dataAnimation;
+				const prop = _element._dataAnimationProperty;
+
 				delete _element._dataAnimation;
-				_element.innerHTML = all;
+				delete _element._dataAnimationProperty;
+
+				_element['_' + prop] = all;
 			}
 
 			//
@@ -2017,7 +2023,7 @@ var c=0;
 
 				if(_element._dataAnimation)
 				{
-					_element[_property] = _data.substr(0, pos);
+					_element['_' + _property] = _data.substr(0, pos);
 
 					if(_intermediate_callback)
 					{
@@ -2072,7 +2078,7 @@ var c=0;
 				
 				if(_element._dataAnimation)
 				{
-					_element[_property] = _element[_property].slice(0, -pos);
+					_element['_' + _property] = _element[_property].slice(0, -pos);
 					
 					if(_intermediate_callback)
 					{
@@ -2136,8 +2142,6 @@ var c=0;
 		return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, this, _intermediate_callback, _throw);
 	}});
 	
-	Object.defineProperty(HTMLElement.prototype, 'setHTML', { value: Element.prototype.setHTML });
-	
 	Object.defineProperty(HTMLElement.prototype, 'setText', { value: function(_callback, _data, _duration = this.getVariable('data-duration', true), _delay = this.getVariable('data-delay', true), _delete_mul = this.getVariable('data-delete-mul', true), _intermediate_callback, _property = 'innerText', _throw = DEFAULT_THROW)
 	{
 		if(! isString(_property, false))
@@ -2153,6 +2157,101 @@ var c=0;
 		return animateData(_callback, _data, _duration, _delay, _delete_mul, _property, this, _intermediate_callback, _throw);
 	}});
 
+	//
+	const _nodeTextContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+	const _elementInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+	const _htmlElementInnerText = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText');
+	
+	Object.defineProperty(Node.prototype, '_textContent', _nodeTextContent);
+	Object.defineProperty(Element.prototype, '_innerHTML', _elementInnerHTML);
+	Object.defineProperty(HTMLElement.prototype, '_innerText', _htmlElementInnerText);
+
+	Object.defineProperty(Node.prototype, 'textContent', {
+		get: function()
+		{
+			return _nodeTextContent.get.call(this);
+		},
+		set: function(_value)
+		{
+			if(typeof this._dataAnimation === 'string')
+			{
+				delete this._dataAnimation;
+				delete this._dataAnimationProperty;
+			}
+			
+			return _nodeTextContent.set.call(this, _value);
+		}
+	});
+	
+	Object.defineProperty(Element.prototype, 'innerHTML', {
+		get: function()
+		{
+			return _elementInnerHTML.get.call(this);
+		},
+		set: function(_value)
+		{
+			if(typeof this._dataAnimation === 'string')
+			{
+				delete this._dataAnimation;
+				delete this._dataAnimationProperty;
+			}
+			
+			return _elementInnerHTML.set.call(this, _value);
+		}
+	});
+	
+	Object.defineProperty(HTMLElement.prototype, 'innerText', {
+		get: function()
+		{
+			return _htmlElementInnerText.get.call(this);
+		},
+		set: function(_value)
+		{
+			if(typeof this._dataAnimation === 'string')
+			{
+				delete this._dataAnimation;
+				delete this._dataAnimationProperty;
+			}
+			
+			return _htmlElementInnerText.set.call(this, _value);
+		}
+	});
+	
+	const finishDataAnimation = (_element) => {
+		if(! ('_dataAnimation' in _element))
+		{
+			return false;
+		}
+		else
+		{
+			const prop = _element._dataAnimationProperty;
+			const data = _element._dataAnimation;
+			
+			delete _element._dataAnimationProperty;
+			delete _element._dataAnimation;
+			
+			_element[prop] = data;
+		}
+		
+		return true;
+	};
+	
+	Object.defineProperty(Node.prototype, 'finishDataAnimation', { value: function()
+	{
+		return finishDataAnimation();
+	}});
+	
+	Object.defineProperty(Element.prototype, 'finishDataAnimation', { value: function()
+	{
+		return finishDataAnimation();
+	}});
+	
+	Object.defineProperty(HTMLElement.prototype, 'finishDataAnimation', { value: function()
+	{
+		return finishDataAnimation();
+	}});
+
+	//
 	Object.defineProperty(HTMLElement.prototype, 'setStyle', { value: function(_key, _value, _options, _callback, _throw = DEFAULT_THROW)
 	{
 		if(! isString(_key, false))
