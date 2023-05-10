@@ -1199,10 +1199,9 @@
 
 			if(DEFAULT_MENU_OUT_ITEMS)
 			{
-				if(_target.className === 'menuItem' && _target.name === 'item')
-				{
+				setTimeout(() => {
 					Menu.outItems(_event, null, _target);
-				}
+				}, 0);
 			}
 
 			url = new URL(url, location.href);
