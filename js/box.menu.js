@@ -32,6 +32,7 @@
 			var called = false;
 			var count = 0;
 			var result = 0;
+			var total = 0;
 			
 			const cb = (_force = false) => {
 				if(--count <= 0 || _force)
@@ -62,6 +63,7 @@
 				else
 				{
 					++count;
+					++total;
 				}
 				
 				const item = index[i].outItems(_event, () => { cb(false); }, ... _exclude);
@@ -72,23 +74,23 @@
 				}
 				else
 				{
-					--count;
+					cb(false);
 				}
 			}
 			
-			if(result === 0)
+			if(total === 0)
 			{
 				cb(true);
 			}
-			else
+			/*else
 			{
 				setTimeout(() => {
 					if(! called)
 					{
 						cb(true);
 					}
-				}, 0);
-			}
+				}, 200);
+			}*/
 
 			return result;
 		}
@@ -143,6 +145,7 @@
 			
 			var called = false;
 			var count = 0;
+			var total = 0;
 			
 			const cb = (_node, _force = false) => {
 				if(_node)
@@ -181,6 +184,7 @@
 				else
 				{
 					++count;
+					++total;
 				}
 				
 				if(! Menu.Item.onpointerout(_event, index[i], () => { cb(node, false); }, false, false))
@@ -189,19 +193,19 @@
 				}
 			}
 			
-			if(result.length === 0)
+			if(total === 0)
 			{
 				cb(null, true);
 			}
-			else
+			/*else
 			{
 				setTimeout(() => {
 					if(! called)
 					{
 						cb(null, true);
 					}
-				}, 0);
-			}
+				}, 200);
+			}*/
 			
 			return result;
 		}
@@ -601,7 +605,7 @@
 
 					//
 					node.style.setProperty('width', setValue(WIDTH, 'px'));
-					node.style.setProperty('left', '0');
+					//node.style.setProperty('left', '0');
 					
 					//
 					imageNode.style.setProperty('transform', 'none');
@@ -1171,7 +1175,7 @@
 
 			//
 			result.style.setProperty('top', setValue(_parent.HEIGHT, 'px'));
-			result.style.setProperty('left', '0');
+			//result.style.setProperty('left', '0');
 
 			//
 			result.style.setProperty('top', result.imageNode.style.top = setValue(_parent.HEIGHT, 'px'));

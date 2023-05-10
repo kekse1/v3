@@ -84,24 +84,21 @@ a-menu, .menu
 	z-index: 32;
 	background-color: transparent;
 	user-select: none;
-	left: 16px;
+	left: 8px;
 	top: 64px;
 }
 
 a-menu-item, .menuItem
 {
 	--space: 12px;
+	left: -6px;
 	position: fixed;
 	padding: 0;
 	margin: 0;
 	text-align: center;
 	display: table-cell;
-	/*width: auto;*/
-	/*margin-left: 8px;*/
 	position: fixed;
 	z-index: 64;
-	/*--width: auto;
-	--height: auto;*/
 	background-color: transparent;
 	user-select: none;
 	padding-right: 12px;
