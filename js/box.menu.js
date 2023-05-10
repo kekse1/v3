@@ -40,30 +40,42 @@
 				return 0;
 			}
 
+			var called = false;
 			var result = 0;
 			var count = 0;
 
-			const cb = () => {
-				if(--count <= 0)
+			const cb = (_force = false) => {
+				if(--count <= 0 || _force)
 				{
-					call(_callback, { type: 'outItems' });
+					if(! called)
+					{
+						call(_callback, { type: 'outItems' });
+						called = true;
+					}
 				}
 			};
 
 			_event.type = 'outItems';
-
 			delete _event.children;
 			delete _event.childNodes;
 			delete _event.items;
 
 			for(var i = 0; i < index.length; ++i)
 			{
-				Menu.Item.onpointerout(_event, _event.target = index[i], cb, false);
+				++count;
+
+				if(Menu.Item.onpointerout(
+					_event,
+					_event.target = index[i],
+					() => { cb(false); }, false)
+				) {
+					++result;
+				}
 			}
 		
 			if(result === 0)
 			{
-				cb();
+				cb(true);
 			}
 
 			return result;
