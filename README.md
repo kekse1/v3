@@ -43,7 +43,7 @@ Here's my current implementation (which is going to be ported to here!):
 
 ## Features / Modules
 
-#### [class] Page, Box.Menu, home.
+#### page.js, box.menu.js; ~home.
 My pages are lying in the 'home/' directory and will be loaded (by the menu atm) by using a hash
 '#~page'. This will show the contents of .txt and .html (animated, if wished) in the #MAIN element.
 
@@ -58,8 +58,8 @@ this elements..) due to potential CORS attacks. :)~
 And the menu bar is animated, and got some Math.sin() movement. ;)~
 
 BTW: All LOCAL links will be inserted into the #MAIN element, without reloading the whole page (so
-your pages should be only the `<body>` part ;)~ .. remote links are already opened in new tabs (as
-`.target` (attribute) will be automatically set to `_blank`. ^_^
+your pages should be only the `<body>` part ;)~ .. remote links are already opened in new tabs, as
+`.target` attribute will automatically be set to `_blank`. ^_^
 
 #### CSS
 See `css.js` and `css.matrix.js`.. the first one is implementing the base, to handle CSS on my own
@@ -152,10 +152,13 @@ them to a table{} form of absolute and/or relative [ day{,s}, month{,s}, minute{
 Is being improved from time to time.
 
 #### geo.js
-:)~
+ATM distance calculation between two latitude/longitude values. Implemented *two* algorithms: 'haversine' and 'spherical law of
+cosines'; output is either an object with all units in it, or (if defined) one of seven distance units.
 
 #### levenshtein.js
-;)~
+Calculation of word distances, regularily used to suggest nearest commands from a wrong command input.. also supports case-insensitive.
+Just define the input word plus a list of all available commands (if you don't use it for other reasons), maybe also max. two boolean
+types (to define CASE_SENSITIVE or WITH_DISTANCES = [] result, not only the words).
 
 ## Documentation...
 It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
