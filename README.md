@@ -152,7 +152,7 @@ them to a table{} form of absolute and/or relative [ day{,s}, month{,s}, minute{
 Is being improved from time to time.
 
 #### geo.js
-ATM distance calculation between two latitude/longitude values. Implemented *two* algorithms: 'haversine' and 'spherical law of
+ATM only distance calculation between two latitude/longitude values. Implemented *two* algorithms: 'haversine' and 'spherical law of
 cosines'; output is either an object with all units in it, or (if defined) one of seven distance units.
 
 #### levenshtein.js
