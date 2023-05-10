@@ -51,47 +51,14 @@
 			};
 
 			_event.type = 'outItems';
+
 			delete _event.children;
 			delete _event.childNodes;
 			delete _event.items;
 
-			var yes;
 			for(var i = 0; i < index.length; ++i)
 			{
-				switch(index[i]._state)
-				{
-					case 'over':
-					case 'overing':
-					case 'blinking':
-						yes = index[i]._state;
-						break;
-					default:
-						yes = '';
-						break;
-				}
-
-				if(yes.length > 0)
-				{
-					if(_exclude.includes(index[i]))
-					{
-						continue;
-					}
-					else if(yes === 'blinking')
-					{
-						if(index[i].BLINK) for(const elem of index[i].BLINK)
-						{
-							if(typeof elem.cancel === 'function')
-							{
-								elem.cancel();
-							}
-						}
-					}
-					else if(Menu.Item.onpointerout(_event, _event.target = index[i], cb, false))
-					{
-						++count;
-						++result;
-					}
-				}
+				Menu.Item.onpointerout(_event, _event.target = index[i], cb, false);
 			}
 		
 			if(result === 0)
@@ -121,7 +88,15 @@
 			}
 
 			//
-			//this.randomAnimations = false;
+			if(this.randomAnimations)
+			{
+				this.stopRandomAnimation();
+				this.randomAnimations.length = 0;
+			}
+			else
+			{
+				this.randomAnimations = [];
+			}
 
 			//
 			this.HEIGHT = this.offsetTop;
@@ -158,13 +133,17 @@
 			else
 			{
 				this.isHiding = true;
+				this.isShowing = false;
+
+				this.stopRandomAnimation();
 			}
 
 			var rest = 0;
 			const callback = (_node, _item, _text, _index) => {
-alert('hide-cb rest: ' + rest);
+				//
 				_node._state = '';
 				_node.isHiding = false;
+				_node.isShowing = false;
 
 				//
 				if(_node)
@@ -201,7 +180,7 @@ alert('hide-cb rest: ' + rest);
 
 					window.removeEventListener('keydown', onkeydown);
 
-					this.style.setProperty('height', setValue(this.HEIGHT = this.offsetTop));
+					this.style.setProperty('height', setValue(this.HEIGHT = this.offsetTop, 'px'));
 
 					call(_callback, { type: 'hide', items: [ ... this.items ], childNodes: [ ... this.childNodes ],
 						node: _node, item: _item, text: _text, index: _index }, _node, _item, _text, _index);
@@ -243,7 +222,7 @@ alert('hide-cb rest: ' + rest);
 
 			const childNodes = [ ... this.childNodes ];
 
-			const loop = (_index) => {
+			const loop = (_index, _rest = rest) => {
 				//
 				const index = _index;
 
@@ -256,57 +235,43 @@ alert('hide-cb rest: ' + rest);
 				node.isHiding = true;
 
 				//
-				const func = (_node, _imageNode, _textNode, _index) => {
+				const func = () => {
+					//
+					imageNode.style.setProperty('transform', 'none');
+					imageNode.style.setProperty('filter', 'none');
+					
 					//
 					if(options && !abort)
 					{
 						//
-						if(imageNode) imageNode._resetLeftAnimation = imageNode.setStyle('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)), { persist: true });
-						if(textNode) textNode._resetLeftAnimation = imageNode.setStyle('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)), { persist: true });
+						imageNode._makeLeftAnimation = imageNode.setStyle('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)), { persist: true });
+						textNode._makeLeftAnimation = imageNode.setStyle('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)), { persist: true });
+						textNode.setHTML(null, '', this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 
 						//
-						if(textNode) textNode._resetTextAnimation = textNode.setHTML(() => {
-							delete textNode._resetTextAnimation;
-							textNode.innerHTML = '';
-						}, '', this.getVariable('data-duration', true), this.getVariable('data-delay', true));
-
-						//
-						if(imageNode) imageNode.out(options, (_e, _f) => {
-							imageNode.style.filter = 'none';
-
-							if(_f)
-							{
-								imageNode.style.opacity = '0';
-							}
-							else
-							{
-								imageNode.style.opacity = '1';
-							}
-
+						imageNode.out(options, (_e, _f) => {
+							imageNode.style.setProperty('filter', 'none');
+							imageNode.style.setProperty('transform', 'none');
+							imageNode.style.setProperty('opacity', '0');
 							callback(node, imageNode, textNode, index);
 						});
 					}
 					else
 					{
-						if(imageNode) imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)));
-						if(textNode) textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)));
-
-						if(textNode) textNode.innerHTML = imageNode.data;
-
+						imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1), 'px'));
+						textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1), 'px'));
+						textNode.innerHTML = '';
 						callback(node, imageNode, textNode, index);
 					}
 				};
 
 				if(options && !abort)
 				{
-					animations.push([ setTimeout(() => { return func(node, imageNode, textNode, index); }, (DELAY += this.getVariable('delay', true))),
-						func, node, imageNode, textNode, index ]);
+					animations.push([ setTimeout(func, DELAY += this.getVariable('delay', true)), func, false ]);
 				}
 				else
 				{
-					animations.push([
-						null, () => { return func(node, imageNode, textNode, index); },
-						node, imageNode, textNode, index ]);
+					animations.push([ null, func, false ]);
 				}
 			};
 
@@ -315,84 +280,51 @@ alert('hide-cb rest: ' + rest);
 				case 'forwards':
 					for(var i = 0; i < childNodes.length; ++i)
 					{
-						++rest;
+						/*++rest;
 						const index = i;
-						setTimeout(() => { loop(index); }, 0);
+						setTimeout(() => { loop(index); }, 0);*/
+						loop(i, ++rest);
 					}
 					break;
 				case 'backwards':
 				default:
 					for(var i = childNodes.length - 1; i >= 0; --i)
 					{
-						++rest;
+						/*++rest;
 						const index = i;
-						setTimeout(() => { loop(index); }, 0);
+						setTimeout(() => { loop(index); }, 0);*/
+						loop(i, ++rest);
 					}
 					break;
 			}
 
 			if(abort || !options)
 			{
-				for(const a of animations)
+				for(var i = 0; i < animations.length; ++i)
 				{
 					//
-					const [ timeout, func, node, imageNode, textNode, index ] = [ ... a ];
-
+					const [ timeout, func, done ] = [ ... animations[i] ];
+					
+					//
+					if(done)
+					{
+						continue;
+					}
+					else
+					{
+						animations[i][2] = true;
+					}
+					
 					//
 					if(timeout !== null)
 					{
 						clearTimeout(timeout);
+						animations[i][0] = null;
 					}
-
-					//
-					if(imageNode)
-					{
-						if(imageNode._resetLeftAnimation)
-						{
-							imageNode._resetLeftAnimation.finish(() => {
-								delete imageNode._resetLeftAnimation;
-								imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)));
-							});
-						}
-						else
-						{
-							imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)));
-						}
-					}
-
-					if(textNode)
-					{
-						if(textNode._resetLeftAnimation)
-						{
-							textNode._resetLeftAnimation.finish(() => {
-								delete textNode._resetLeftAnimation;
-								textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)));
-							});
-						}
-						else
-						{
-							textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)));
-						}
-
-						if(textNode._resetTextAnimation)
-						{
-							if(! (textNode.finishDataAnimation()))
-							{
-								//TODO/ist das noetig??
-								//textNode.innerHTML = '';
-							}
-						}
-						else
-						{
-							textNode.innerHTML = '';
-						}
-					}
-
+					
 					//
 					func();
 				}
-
-				animations.length = 0;
 			}
 
 			return animations;
@@ -432,12 +364,14 @@ alert('hide-cb rest: ' + rest);
 			else
 			{
 				this.isShowing = true;
+				this.isHiding = false;
 			}
 
 			var rest = 0;
 			const callback = (_node, _item, _text, _index) => {
 				_node._state = 'out';
 				_node.isShowing = false;
+				_node.isHiding = false;
 
 				if(--rest <= 0)
 				{
@@ -513,11 +447,11 @@ alert('hide-cb rest: ' + rest);
 				textNode.leftOver = ((textNode.leftOut = TXT) * 2);
 
 				imageNode.style.setProperty('opacity', '0');
-
+				
 				//
-				const func = (_node, _imageNode, _textNode, _index) => {
+				const func = () => {
 					//
-					node.psin = (Math.psin(_index / this.items.length * 2.5 * SIN * Math.PI - 1.25));
+					node.psin = (Math.psin(index / this.items.length * 2.5 * SIN * Math.PI - 1.25));
 
 					imageNode.leftOut = Math.round(imageNode.leftOut * node.psin);
 					imageNode.leftOver = Math.round(imageNode.leftOver * node.psin);
@@ -525,12 +459,16 @@ alert('hide-cb rest: ' + rest);
 					textNode.leftOut = Math.round(textNode.leftOut * (1 - node.psin));
 					textNode.leftOver = Math.round(textNode.leftOver * (1 - node.psin));
 
-					imageNode.style.left = setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1));
-					textNode.style.left = setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1));
+					imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1), 'px'));
+					textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1), 'px'));
 
 					//
-					node.style.width = setValue(WIDTH);
-					node.style.left = '0';
+					node.style.setProperty('width', setValue(WIDTH, 'px'));
+					node.style.setProperty('left', '0');
+					
+					//
+					imageNode.style.setProperty('transform', 'none');
+					imageNode.style.setProperty('filter', 'none');
 
 					//
 					if(options && !abort)
@@ -540,10 +478,13 @@ alert('hide-cb rest: ' + rest);
 						textNode._makeLeftAnimation = textNode.setStyle('left', setValue(textNode.leftOut), Math.round(DELAY / 10));
 
 						imageNode.in(options, () => {
-							imageNode.style.filter = 'none';
-							imageNode.style.opacity = '1';
+							imageNode.style.setProperty('opacity', '1');
 
-							if(! abort)
+							if(abort)
+							{
+								textNode.innerHTML = imageNode.data;
+							}
+							else
 							{
 								textNode.setHTML(null, imageNode.data, this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 							}
@@ -554,93 +495,51 @@ alert('hide-cb rest: ' + rest);
 					else
 					{
 						imageNode.style.setProperty('opacity', '1');
-						imageNode.style.left = setValue(imageNode.leftOut);
-						textNode.style.left = setValue(textNode.leftOut);
-
+						imageNode.style.setProperty('left', setValue(imageNode.leftOut, 'px'));
+						imageNode.style.setProperty('filter', 'none');
+						textNode.style.setProperty('left', setValue(textNode.leftOut, 'px'));
 						textNode.innerHTML = imageNode.data;
-
 						callback(node, imageNode, textNode, index);
 					}
 				};
-
-				if(options && !abort) animations.push([ setTimeout(() => {
-						func(node, imageNode, textNode, index);
-					}, DELAY += this.getVariable('delay', true)),
-						func, node, imageNode, textNode, index ]);
-				else animations.push([ null, () => {
-						func(node, imageNode, textNode, index); },
-							node, imageNode, textNode, index ]);
+				
+				if(options && !abort)
+				{
+					animations.push([ setTimeout(func, DELAY += this.getVariable('delay', true)), func, false ]);
+				}
+				else
+				{
+					animations.push([ null, func, false ]);
+				}
 			}
 
 			if(abort || !options)
 			{
-				for(const a of animations)
+				for(var i = 0; i < animations.length; ++i)
 				{
 					//
-					const [ timeout, func, node, imageNode, textNode, index ] = [ ... a ];
-
+					const [ timeout, func, done ] = [ ... animations[i] ];
+					
+					//
+					if(done)
+					{
+						continue;
+					}
+					else
+					{
+						animations[i][2] = true;
+					}
+					
 					//
 					if(timeout !== null)
 					{
 						clearTimeout(timeout);
+						animations[i][0] = null;
 					}
-
-					//
-					if(textNode)
-					{
-						if(textNode._dataTimeout)
-						{
-							clearTimeout(textNode._dataTimeout);
-							delete textNode._dataTimeout;
-						}
-
-						textNode.innerHTML = imageNode.data;
-
-						if(textNode._makeLeftAnimation)
-						{
-							textNode._makeLeftAnimation.finish(() => {
-								delete textNode._makeLeftAnimation;
-								textNode.style.setProperty('left', setValue(textNode.leftOut));
-							});
-						}
-						else
-						{
-							textNode.style.setProperty('left', setValue(textNode.leftOut));
-						}
-					}
-
-					if(imageNode)
-					{
-						if(imageNode._makeLeftAnimation)
-						{
-							imageNode._makeLeftAnimation.finish(() => {
-								delete imageNode._makeLeftAnimation;
-								imageNode.style.setProperty('left', setValue(imageNode.leftOut));
-							});
-						}
-						else
-						{
-							imageNode.style.setProperty('left', setValue(imageNode.leftOut));
-						}
-
-						if(imageNode._makeOpacityAnimation)
-						{
-							imageNode._makeOpacityAnimation.finish(() => {
-								delete imageNode._makeOpacityAnimation;
-								imageNode.style.setProperty('opacity', '1');
-							});
-						}
-						else
-						{
-							imageNode.style.setProperty('opacity', '1');
-						}
-					}
-
+					
 					//
 					func();
 				}
-
-				animations.length = 0;
 			}
 
 			return animations;
@@ -648,12 +547,16 @@ alert('hide-cb rest: ' + rest);
 		
 		stopRandomAnimation()
 		{
-			if(this.randomAnimations)
+			if(this.randomAnimations.length === 0)
 			{
-				return !(this.randomAnimations = false);
+				return false;
 			}
-
-			return false;
+			else while(this.randomAnimations.length > 0)
+			{
+				clearTimeout(this.randomAnimations.shift());
+			}
+			
+			return true;
 		}
 
 		startRandomAnimation()
@@ -662,13 +565,9 @@ alert('hide-cb rest: ' + rest);
 			{
 				return false;
 			}
-			else if(this.randomAnimations)
+			else if(this.randomAnimations.length > 0)
 			{
-				return false;
-			}
-			else
-			{
-				this.randomAnimations = true;
+				this.stopRandomAnimation();
 			}
 			
 			const callback = () => {
@@ -715,23 +614,29 @@ alert('hide-cb rest: ' + rest);
 					duration, delay: 0, state: false, persist: false, origin: 'center'
 				}, (_e, _f) => {
 					//
-					delete item.imageNode.randomAnimation;
-
-					//
-					if(item._state === 'animating')
+					if(item)
 					{
-						item._state = 'out';
+						if(item._state === 'animating')
+						{
+							item._state = 'out';
+						}
+
+						if(item.imageNode)
+						{
+							delete item.imageNode.randomAnimation;
+						}
 					}
 
 					//
-					if(this.randomAnimations)
+					if(this.randomAnimations.length > 0)
 					{
-						setTimeout(callback, delay);
+						this.stopRandomAnimation();
+						this.randomAnimations.push(setTimeout(callback, delay));
 					}
 				});
 			};
 			
-			callback();
+			this.randomAnimations.push(setTimeout(callback, 0));
 		}
 		
 		connectedCallback()
@@ -780,6 +685,9 @@ alert('hide-cb rest: ' + rest);
 			{
 				window.removeEventListener('resize', this._windowResizeListener);
 			}
+			
+			//
+			this.stopRandomAnimation();
 
 			//
 			return super.disconnectedCallback();
@@ -1095,7 +1003,7 @@ alert('hide-cb rest: ' + rest);
 			textNode.className = 'menuItemText';
 			textNode.innerHTML = this.data;
 
-			this.style.opacity = '0';
+			this.style.setProperty('opacity', '0');
 
 			result.node = result;
 			result.textNode = textNode;
@@ -1105,7 +1013,7 @@ alert('hide-cb rest: ' + rest);
 			this.textNode = result.textNode;
 			this.imageNode = result.imageNode;
 
-			this.node.style.transformOrigin = this.textNode.style.transformOrigin = this.imageNode.style.transformOrigin = this.getVariable('transform-origin');
+			this.node.style.setProperty('transformOrigin', this.textNode.style.transformOrigin = this.imageNode.style.transformOrigin = this.getVariable('transform-origin'));
 
 			textNode.node = result;
 			textNode.imageNode = result.imageNode;
@@ -1125,27 +1033,21 @@ alert('hide-cb rest: ' + rest);
 			textNode.innerHTML = '';
 
 			//
-			result.style.top = setValue(_parent.HEIGHT);
-			result.style.left = '0';
-
-			//result.style.left = result.item.style.left = setValue(_parent.offsetLeft);
-			//result.data.style.left = '4px';
+			result.style.setProperty('top', setValue(_parent.HEIGHT, 'px'));
+			result.style.setProperty('left', '0');
 
 			//
-			result.style.top = result.imageNode.style.top = setValue(_parent.HEIGHT);
-			result.style.height = setValue(totalHeight);
+			result.style.setProperty('top', result.imageNode.style.top = setValue(_parent.HEIGHT, 'px'));
+			result.style.setProperty('height', setValue(totalHeight, 'px'));
 
 			//
 			_parent.HEIGHT += totalHeight;
-			//result.style.top = setValue(_parent.HEIGHT += totalHeight);
 
-			result.textNode.style.top = setValue(_parent.HEIGHT - textHeight);
+			//
+			result.textNode.style.setProperty('top', setValue(_parent.HEIGHT - textHeight, 'px'));
 
 			//
 			_parent.HEIGHT += result.getVariable('space', ['px']);
-
-			//
-			//result.style.height = setValue(_parent.HEIGHT);
 
 			//
 			result.removeEvents = (... _args) => {
@@ -1189,10 +1091,10 @@ alert('hide-cb rest: ' + rest);
 			{
 				return false;
 			}
-			else if(_target._state === 'animating')
+			/*else if(_target._state === 'animating')
 			{
 				return false;
-			}
+			}*/
 			else if(_target._state.startsWith('over'))
 			{
 				return null;
@@ -1330,10 +1232,10 @@ alert('hide-cb rest: ' + rest);
 			{
 				return false;
 			}
-			else if(_target._state === 'animating')
+			/*else if(_target._state === 'animating')
 			{
 				return false;
-			}
+			}*/
 			else if(_target._state.startsWith('out'))
 			{
 				return null;
@@ -1492,12 +1394,12 @@ alert('hide-cb rest: ' + rest);
 			{
 				return _target.BLINK;
 			}
-			else if(_target._state === 'animating')
+			/*else if(_target._state === 'animating')
 			{
 				return _target.imageNode.randomAnimation.cancel(() => {
 					return Menu.Item.onclick(_event, _target, _callback, _out_items);
 				});
-			}
+			}*/
 			else if(_out_items)
 			{
 				return Menu.outItems(_event, () => {
@@ -1535,12 +1437,12 @@ alert('hide-cb rest: ' + rest);
 
 				if(_e.element)
 				{
-					_e.element.style.transform = 'scale(2.5)';
+					_e.element.style.setProperty('transform', 'scale(2.5)');
 					delete _e.element.BLINK;
 				}
 				else if(_e.style || _e.BLINK)
 				{
-					_e.style.transform = 'scale(2.5)';
+					_e.style.setProperty('transform', 'scale(2.5)');
 					delete _e.BLINK;
 				}
 
@@ -1711,8 +1613,8 @@ alert('hide-cb rest: ' + rest);
 			const height = (this.naturalHeight * factor);
 			
 			//
-			this.style.setProperty('width', setValue(width));
-			this.style.setProperty('height', setValue(height));
+			this.style.setProperty('width', setValue(width, 'px'));
+			this.style.setProperty('height', setValue(height, 'px'));
 			
 			//
 			return { width, height, factor, naturalWidth: this.naturalWidth, naturalHeight: this.naturalHeight,
@@ -2091,12 +1993,12 @@ alert('hide-cb rest: ' + rest);
 		}
 		else
 		{
-			MAIN.style.left = '-1px';
+			MAIN.style.setProperty('left', '-1px');
 		}
 	}
 	else
 	{
-		MAIN.style.left = '-1px';
+		MAIN.style.setProperty('left', '-1px');
 	}
 
 })();

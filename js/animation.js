@@ -295,7 +295,18 @@
 			else
 			{
 				style = getStyle();
-				ending(_event, (_event.type === 'finish' ? resolvedStyle : (_options.persist !== false ? style : null)));
+				var finStyle;
+
+				if(_event.type === 'finish')
+				{
+					finStyle = resolvedStyle;
+				}
+				else
+				{
+					finStyle = style;
+				}
+
+				ending(_event, finStyle);
 			}
 
 			//
@@ -2281,10 +2292,7 @@ var c=0;
 		//
 		if(this.IN)
 		{
-			return this.IN.stop((_e, _f) => {
-				return this.in(_options, _callback, _throw);
-				//return this.in(Object.assign(_options, { fontSize: null }), _callback, _throw);
-			});
+			return this.IN;
 		}
 		else if(this.OUT)
 		{
@@ -2538,9 +2546,7 @@ var c=0;
 		//
 		if(this.OUT)
 		{
-			return this.OUT.stop((_e, _f) => {
-				return this.out(_options, _callback, _throw);
-			});
+			return this.OUT;
 		}
 		else if(this.IN)
 		{
