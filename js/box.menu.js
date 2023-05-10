@@ -1092,19 +1092,29 @@
 			return null;
 		}
 
-		static onpointerdown(_event, _target = _event.target, _callback)
+		static onpointerdown(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
 			if(_event.pointerType === 'mouse')
 			{
 				return;
 			}
 
-			return Menu.Item.onpointerover({ type: 'pointerdown', pointerType: 'manu', target: _target }, _target, _callback);
+			return Menu.Item.onpointerover({ type: 'pointerdown', pointerType: 'manu', target: _target }, _target, _callback, _out_items, _force);
 		}
 
-		static onpointerover(_event, _target = _event.target, _callback, _out_items = true)
+		static onpointerup(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
-			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu')
+			if(_event.pointerType === 'mouse')
+			{
+				return;
+			}
+
+			return Menu.Item.onpointerout({ type: 'pointerup', pointerType: 'manu', target: _target }, _target, _callback, _out_items, _force);
+		}
+
+		static onpointerover(_event, _target = _event.target, _callback, _out_items = true, _force = false)
+		{
+			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
 			{
 				return false;
 			}
@@ -1112,11 +1122,7 @@
 			{
 				return false;
 			}
-			/*else if(_target._state === 'animating')
-			{
-				return false;
-			}*/
-			else if(_target._state.startsWith('over'))
+			else if(_target._state.startsWith('over') && !_force)
 			{
 				return null;
 			}
@@ -1127,13 +1133,13 @@
 			else if(_target.OUT)
 			{
 				return _target.OUT.stop(() => {
-					return Menu.Item.onpointerover(_event, _target, _callback, _out_items);
+					return Menu.Item.onpointerover(_event, _target, _callback, _out_items, _force);
 				});
 			}
 			else if(_out_items)
 			{
 				return Menu.outItems(_event, () => {
-					return Menu.Item.onpointerover(_event, _target, _callback, false);
+					return Menu.Item.onpointerover(_event, _target, _callback, false, _force);
 				}, _target);
 			}
 			else
@@ -1246,21 +1252,17 @@
 			return _target.OVER;
 		}
 
-		static onpointerout(_event, _target = _event.target, _callback, _out_items = true)
+		static onpointerout(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
-			/*if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu')
+			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
 			{
 				return false;
 			}
-			else*/ if(_target.parentNode.isShowing || _target.parentNode.isHiding)
+			else if(_target.parentNode.isShowing || _target.parentNode.isHiding)
 			{
 				return false;
 			}
-			/*else if(_target._state === 'animating')
-			{
-				return false;
-			}*/
-			else if(_target._state.startsWith('out'))
+			else if(_target._state.startsWith('out') && !_force)
 			{
 				return null;
 			}
@@ -1271,13 +1273,13 @@
 			else if(_target.OVER)
 			{
 				return _target.OVER.stop(() => {
-					return Menu.Item.onpointerout(_event, _target, _callback, _out_items);
+					return Menu.Item.onpointerout(_event, _target, _callback, _out_items, _force);
 				});
 			}
 			else if(_out_items)
 			{
 				return Menu.outItems(_event, () => {
-					return Menu.Item.onpointerout(_event, _target, _callback, false);
+					return Menu.Item.onpointerout(_event, _target, _callback, false, _force);
 				}, _target, _event.relatedTarget);
 			}
 			else
@@ -1399,19 +1401,7 @@
 			return _target.OUT;
 		}
 
-		static onpointerup(_event, _target = _event.target, _callback)
-		{
-			/*if(_event.pointerType !== 'mouse' && _event.type !== 'click')
-			{
-				return Menu.Item.onpointerout(_event, _target, _callback);
-			}*/
-			if(_event.pointerType !== 'mouse' && Menu.outItems(_event) > 0)
-			{
-				_event.preventDefault();
-			}
-		}
-
-		static onclick(_event, _target = _event.target, _callback, _out_items = true)
+		static onclick(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
 			if(_target.isShowing || _target.isHiding)
 			{
@@ -1421,16 +1411,10 @@
 			{
 				return _target.BLINK;
 			}
-			/*else if(_target._state === 'animating')
-			{
-				return _target.imageNode.randomAnimation.cancel(() => {
-					return Menu.Item.onclick(_event, _target, _callback, _out_items);
-				});
-			}*/
 			else if(_out_items)
 			{
 				return Menu.outItems(_event, () => {
-					return Menu.Item.onclick(_event, _target, _callback, false);
+					return Menu.Item.onclick(_event, _target, _callback, false, _force);
 				}, _target);
 			}
 			else
@@ -1485,6 +1469,8 @@
 
 				if(--count <= 0)
 				{
+					Menu.Item.onpointerout(_event, _target, null, false, true);
+
 					if(_target._state === 'blinking')
 					{
 						_target._state = _target._originalState;
@@ -1492,13 +1478,6 @@
 					}
 					
 					delete _target.BLINK;
-
-					if(_event.pointerType !== 'mouse')
-					{
-						setTimeout(() => {
-							Menu.outItems(_event, null);
-						}, 0);
-					}
 
 					if(_callback)
 					{
