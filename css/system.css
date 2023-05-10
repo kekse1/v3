@@ -45,7 +45,7 @@ html, body
 	overflow-x: hidden;
 	overflow-y: auto;
 	background-color: rgba(240, 250, 255, 0.3);
-	border: 1px dotted rgba(20, 50, 80, 1.0);
+	border: 1px dotted rgb(0, 30, 60);
 	color: rgba(10, 30, 50, 1.0);
 	text-shadow: 1px 1px 6px white;
 	border-radius: 4px;

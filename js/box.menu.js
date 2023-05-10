@@ -1469,7 +1469,9 @@
 
 				if(--count <= 0)
 				{
-					Menu.Item.onpointerout(_event, _target, null, false, true);
+					setTimeout(() => {
+						Menu.Item.onpointerout(_event, _target, null, false, true);
+					}, 0);
 
 					if(_target._state === 'blinking')
 					{
