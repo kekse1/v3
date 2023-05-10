@@ -1113,7 +1113,7 @@
 			if(DEFAULT_MENU_OUT_ITEMS)
 			{
 				setTimeout(() => {
-					Menu.outItems();
+//					Menu.outItems();
 				}, 0);
 			}
 
@@ -1195,6 +1195,14 @@
 			else
 			{
 				return;
+			}
+
+			if(DEFAULT_MENU_OUT_ITEMS)
+			{
+				if(_target.className === 'menuItem' && _target.name === 'item')
+				{
+					Menu.outItems(_event, null, _target);
+				}
 			}
 
 			url = new URL(url, location.href);

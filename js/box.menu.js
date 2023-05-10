@@ -22,57 +22,60 @@
 		static outItems(_event, _callback, ... _exclude)
 		{
 			//
-			_event = {
-				clientX: (_event ? _event.clientX : null), clientY: (_event ? _event.clientY : null),
-				type: 'pointerup', pointerType: 'manu',
-				target: null, event: (_event || null) };
-
-			if(typeof _callback !== 'function')
-			{
-				_callback = null;
-			}
-
-			//
-			const index = Menu.Item.INDEX;
+			const index = [ ... Menu.INDEX ];
 
 			if(index.length === 0)
 			{
 				return 0;
 			}
-
+			
 			var called = false;
-			var result = 0;
 			var count = 0;
-
+			var result = 0;
+			
 			const cb = (_force = false) => {
 				if(--count <= 0 || _force)
 				{
-					if(! called)
+					if(typeof _callback === 'function')
 					{
-						call(_callback, { type: 'outItems' });
+						if(! called)
+						{
+							_callback({ type: 'outItems', count: result });
+							called = true;
+						}
+					}
+					else
+					{
 						called = true;
 					}
 				}
 			};
-
-			_event.type = 'outItems';
-			delete _event.children;
-			delete _event.childNodes;
-			delete _event.items;
-
+			
 			for(var i = 0; i < index.length; ++i)
 			{
-				++count;
-
-				if(Menu.Item.onpointerout(
-					_event,
-					_event.target = index[i],
-					() => { cb(false); }, false)
-				) {
-					++result;
+				const menu = index[i];
+				
+				if(_exclude.includes(menu))
+				{
+					continue;
+				}
+				else
+				{
+					++count;
+				}
+				
+				const item = index[i].outItems(_event, () => { cb(false); }, ... _exclude);
+				
+				if(isArray(item, false))
+				{
+					result += item.length;
+				}
+				else
+				{
+					--count;
 				}
 			}
-		
+			
 			if(result === 0)
 			{
 				cb(true);
@@ -87,6 +90,119 @@
 				}, 0);
 			}
 
+			return result;
+		}
+
+		outItems(_event, _callback, ... _exclude)
+		{
+			//
+			_event = {
+				clientX: (_event ? _event.clientX : null), clientY: (_event ? _event.clientY : null),
+				type: 'outItems', pointerType: 'manu', target: null, event: (_event || null) };
+
+			if(typeof _callback !== 'function')
+			{
+				_callback = null;
+			}
+
+			//
+			if(this._outItems)
+			{
+				_event.finish = false;
+				_event.count = -1;
+				
+				if(_callback)
+				{
+					_callback(_event);
+				}
+				
+				return null;
+			}
+			else
+			{
+				this._outItems = true;
+				_event.finish = true;
+			}
+
+			//
+			const index = [ ... this.children ];
+			const result = [];
+			
+			if(index.length === 0)
+			{
+				this._outItems = false;
+				
+				if(_callback)
+				{
+					_event.count = 0;
+					_callback(_event);
+				}
+				
+				return result;
+			}
+			
+			var called = false;
+			var count = 0;
+			
+			const cb = (_node, _force = false) => {
+				if(_node)
+				{
+					result.push(_node);
+				}
+
+				if(--count <= 0 || _force)
+				{
+					this._outItems = false;
+					_event.count = result.length;
+					
+					if(_callback)
+					{
+						if(! called)
+						{
+							_callback(_event);
+							called = true;
+						}
+					}
+					else
+					{
+						called = true;
+					}
+				}
+			};
+			
+			for(var i = 0; i < index.length; ++i)
+			{
+				const node = _event.target = index[i];
+				
+				if(_exclude.includes(node))
+				{
+					continue;
+				}
+				else
+				{
+					++count;
+				}
+				
+				if(! Menu.Item.onpointerout(_event, index[i], () => { cb(node, false); }, false, false))
+				{
+					cb(null, false);
+				}
+			}
+			
+			if(result.length === 0)
+			{
+				cb(null, true);
+			}
+			else
+			{
+				setTimeout(() => {
+					if(! called)
+					{
+						cb(null, true);
+					}
+				}, 0);
+			}
+			
 			return result;
 		}
 
@@ -1470,7 +1586,8 @@
 				if(--count <= 0)
 				{
 					setTimeout(() => {
-						Menu.Item.onpointerout(_event, _target, null, false, true);
+						Menu.outItems(_event, null);
+						//Menu.Item.onpointerout(_event, _target, null, false, true);
 					}, 0);
 
 					if(_target._state === 'blinking')
