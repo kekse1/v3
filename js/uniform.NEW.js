@@ -4,7 +4,7 @@ const DEFAULT_BRACKETS = true;
 const DEFAULT_ARROWS = false;
 
 //
-if(!customElements.get('a-uniform')) customElements.define('a-uniform', HTMLUniformElement = class HTMLUniformElement extends HTMLElement
+if(!customElements.get('a-uniform')) customElements.define('a-uniform', Uniform = HTMLUniformElement = class HTMLUniformElement extends HTMLElement
 {
 	constructor(_url, _options)
 	{
@@ -65,6 +65,21 @@ if(!customElements.get('a-uniform')) customElements.define('a-uniform', HTMLUnif
 		this.arrows = arrows;
 
 		//
+	}
+
+	static render(_href, _resolve, ... _args)
+	{
+		return new Uniform(URL.create(_href, _resolve)).render(... _args);
+	}
+
+	static create(_href, _resolve)
+	{
+		return new Uniform(URL.create(_href, _resolve));
+	}
+
+	static resolve(_href)
+	{
+		return new Uniform(URL.resolve(_href));
 	}
 
 	get href()

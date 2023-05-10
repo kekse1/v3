@@ -2,11 +2,36 @@
 {
 
 	//
-	//TODO/.render() for <a-uniform>.. ^_^
-	//
-	Object.defineProperty(URL.prototype, 'render', { value: function(_anchor, _brackets, _arrows)
+	Object.defineProperty(URL.prototype, 'render', { value: function(_options, ... _args)
 	{
-throw new Error('TODO');//a-uniform...
+		if(! isObject(_options))
+		{
+			_args.unshift(_options);
+			_options = null;
+		}
+
+		return new Uniform(this, _options).render(... _args);
+	}});
+
+	Object.defineProperty(URL, 'render', { value: function(_url, _resolve, ... _args)
+	{
+		return Uniform.create(_url, _resolve).render(... _args);
+	}});
+
+	//
+	Object.defineProperty(URL, 'resolve', { value: function(_href)
+	{
+		return new URL(_href, location.href);
+	}});
+
+	Object.defineProperty(URL, 'create', { value: function(_href, _resolve)
+	{
+		if(!!_resolve)
+		{
+			return URL.resolve(_href);
+		}
+		
+		return new URL(_href, location.origin);
 	}});
 
 	//

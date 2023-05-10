@@ -1,4 +1,4 @@
-if(!customElements.get('a-code')) customElements.define('a-code', HTMLCodeElement = class HTMLCodeElement extends HTMLElement
+if(!customElements.get('a-code')) customElements.define('a-code', Code = HTMLCodeElement = class HTMLCodeElement extends HTMLElement
 {
 	constructor(... _args)
 	{

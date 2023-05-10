@@ -15,6 +15,9 @@
 	"location",
 	"document",
 
+	"url",
+
+	"uniform",
 	"intl",
 
 	"id",
@@ -38,8 +41,6 @@
 
 	"code",
 	"area",
-	"uniform",
-	"url",
 
 	"sort",
 	"bionic",
