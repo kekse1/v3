@@ -1,0 +1,21 @@
+:root
+{
+	--page-history: auto;
+	--page-history-length: 32;
+	--page-scroll-inline: nearest;/*start*/
+	--page-scroll-block: start;
+	--page-fallback-type: text;/*html*/
+	--page-data-duration: 1800;
+	--page-data-delay: 0;
+	--page-data-delete-mul: null;
+	--page-blink-duration: 2000;
+	--page-blink-count: 1;
+	--page-callback: auto;
+	--page-target: MAIN;
+	--page-invalid-hash-clear: auto;
+	--page-text-white-space: pre;
+	--page-osd-duration: 1200;
+	--page-osd-timeout: 3600;
+	--page-osd-delay: 0;
+	--page-osd-font-size: 75%;
+}

@@ -898,17 +898,14 @@
 					}
 					else
 					{
-						if(document.getVariable('page-osd', true))
-						{
-							const err = '<span style="font-size: ' + document.getVariable('page-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>';
-							const opts = {
-								duration: document.getVariable('page-osd-duration', true),
-								timeout: document.getVariable('page-osd-timeout', true),
-								delay: document.getVariable('page-osd-delay', true)
-							};
+						const err = '<span style="font-size: ' + document.getVariable('page-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>';
+						const opts = {
+							duration: document.getVariable('page-osd-duration', true),
+							timeout: document.getVariable('page-osd-timeout', true),
+							delay: document.getVariable('page-osd-delay', true)
+						};
 
-							osd(err, opts);
-						}
+						osd(err, opts);
 						
 						if(_throw)
 						{
