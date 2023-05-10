@@ -1303,7 +1303,7 @@ throw new Error('TODO');
 		if(_id[_id.length - 1] === '!')
 		{
 			_id = _id.slice(0, -1);
-			defer = !DEFAULT_DEFER;
+			defer = false;
 		}
 		else
 		{
