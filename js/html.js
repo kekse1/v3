@@ -195,6 +195,7 @@
 		}
 
 		//
+_depth = 1;
 		if(_depth !== null && !(isInt(_depth) && _depth >= 0))
 		{
 			_depth = 1;
@@ -243,21 +244,23 @@
 			}
 			else if(open > 0)
 			{
+				const localOpen = Math.min(open, _depth);
+
 				if(_data.at(i, '</' + tag + '>', false))
 				{
-					data[open] += _data.substr(i, 3 + tag.length);
+					data[localOpen] += _data.substr(i, 3 + tag.length);
 					result[j++] = data.splice(open--, 1)[0];
 					i += 2 + tag.length;
 				}
 				else if(_data.at(i, '/>'))
 				{
-					data[open] += '/>';
+					data[localOpen] += '/>';
 					result[j++] = data.splice(open--, 1)[0];
 					++i;
 				}
 				else
 				{
-					data[open] += _data[i];
+					data[localOpen] += _data[i];
 				}
 			}
 			else if(_data[i] === '<')
@@ -313,7 +316,7 @@
 		}
 
 		//
-		if(open > 0)
+		/*if(open > 0)
 		{
 			if(_throw)
 			{
@@ -322,7 +325,7 @@
 			
 			result = [ _data ];
 		}
-		else while(data.length > 0)
+		else*/ while(data.length > 0)
 		{
 			result.unshift(data.pop());
 		}

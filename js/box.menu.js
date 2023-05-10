@@ -23,9 +23,9 @@
 		{
 			//
 			_event = {
-				clientX: _event.clientX, clientY: _event.clientY,
+				clientX: (_event ? _event.clientX : null), clientY: (_event ? _event.clientY : null),
 				type: 'pointerup', pointerType: 'manu',
-				target: null, event: _event };
+				target: null, event: (_event || null) };
 
 			if(typeof _callback !== 'function')
 			{
@@ -1114,11 +1114,11 @@
 
 		static onpointerover(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
-			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
+			/*if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
 			{
 				return false;
 			}
-			else if(_target.parentNode.isShowing || _target.parentNode.isHiding)
+			else*/ if(_target.parentNode.isShowing || _target.parentNode.isHiding)
 			{
 				return false;
 			}
@@ -1254,11 +1254,11 @@
 
 		static onpointerout(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
-			if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
+			/*if(_event.pointerType !== 'mouse' && _event.pointerType !== 'manu' && !_force)
 			{
 				return false;
 			}
-			else if(_target.parentNode.isShowing || _target.parentNode.isHiding)
+			else*/ if(_target.parentNode.isShowing || _target.parentNode.isHiding)
 			{
 				return false;
 			}

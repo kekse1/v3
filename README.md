@@ -57,6 +57,10 @@ this elements..) due to potential CORS attacks. :)~
 
 And the menu bar is animated, and got some Math.sin() movement. ;)~
 
+BTW: All LOCAL links will be inserted into the #MAIN element, without reloading the whole page (so
+your pages should be only the `<body>` part ;)~ .. remote links are already opened in new tabs (as
+`.target` (attribute) will be automatically set to `_blank`. ^_^
+
 #### CSS
 See `css.js` and `css.matrix.js`.. the first one is implementing the base, to handle CSS on my own
 (I'll be using this as some 'pre-processor' or so in the future); it became necessary due to some

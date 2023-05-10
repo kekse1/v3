@@ -62,5 +62,11 @@
 	--page-target: MAIN;
 	--page-invalid-hash-clear: auto;
 	--page-text-white-space: pre;
+	--page-osd: auto;
+	--page-osd-duration: 1200;
+	--page-osd-timeout: 3600;
+	--page-osd-delay: 0;
+	--page-osd-font-size: 75%;
 	--divide-css-selectors: auto;
 }
+

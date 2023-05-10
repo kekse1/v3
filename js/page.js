@@ -8,6 +8,8 @@
 	const DEFAULT_THROW = true;
 	const DEFAULT_CONTEXT = null;
 	const DEFAULT_RELATIVE = true;
+	const DEFAULT_MENU_OUT_ITEMS = true;
+	const DEFAULT_OSD = true;
 	
 	//
 	Page = class Page
@@ -23,7 +25,7 @@
 				
 				return null;
 			}
-			else if(_link[0] === '#')
+			else if(_link[0] === '#' && _link[1] !== '~')
 			{
 				return _link;
 			}
@@ -35,17 +37,13 @@
 			{
 				return _link;
 			}
-			else if(location.isURL(_link))
-			{
-				return _link;
-			}
 			else if(_link[0] === '~')
 			{
 				const homeConfig = Page.checkHomeConfig();
 				
 				if(homeConfig)
 				{
-					var link = homeConfig.path + '/' + _link.substr(1);
+					_link = homeConfig.path + '/' + _link.substr(1);
 
 					if(homeConfig.extension)
 					{
@@ -58,7 +56,7 @@
 
 						for(var i = 0; i < homeConfig.extension.length; ++i)
 						{
-							if(link.endsWith(homeConfig.extension[i]))
+							if(_link.endsWith(homeConfig.extension[i]))
 							{
 								found = true;
 								break;
@@ -71,7 +69,7 @@
 							//verlass auf '.htaccess/httpd-conf' @ 'DirectoryIndex'! ^_^
 							//=> set to 'main.html main.txt' first! :)~
 							//
-							link += '/';
+							_link += '/';
 
 							/*if(link[link.length - 1] === '.')
 							{
@@ -84,7 +82,8 @@
 						}
 					}
 
-					return link.replaces('//', '/');
+					//_link = _link.replaces('//', '/');
+					_link = path.resolve(_link);
 				}
 				/*else if(! DEFAULT_PAGES_FALLBACK)
 				{
@@ -96,6 +95,10 @@
 					return null;
 				}*/
 			}
+			/*else if(location.isURL(_link))
+			{
+				return _link;
+			}*/
 			
 			return _link;
 		}
@@ -893,9 +896,24 @@
 					{
 						location.hash = '';
 					}
-					else if(_throw)
+					else
 					{
-						throw new Error('Couldn\'t load link \'' + (_request.responseURL || _link) + '\': [' + _request.status + '] ' + _request.statusText);
+						if(document.getVariable('page-osd', true))
+						{
+							const err = '<span style="font-size: ' + document.getVariable('page-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>';
+							const opts = {
+								duration: document.getVariable('page-osd-duration', true),
+								timeout: document.getVariable('page-osd-timeout', true),
+								delay: document.getVariable('page-osd-delay', true)
+							};
+
+							osd(err, opts);
+						}
+						
+						if(_throw)
+						{
+							throw new Error('Couldn\'t load link \'' + (_request.responseURL || _link) + '\': [' + _request.status + '] ' + _request.statusText);
+						}
 					}
 					
 					return result.status;
@@ -1095,6 +1113,13 @@
 		
 		static nextURL(_value, _max_length = document.getVariable('page-history-length', true), _throw = DEFAULT_THROW)
 		{
+			if(DEFAULT_MENU_OUT_ITEMS)
+			{
+				setTimeout(() => {
+					Menu.outItems();
+				}, 0);
+			}
+
 			if(typeof _throw !== 'boolean')
 			{
 				_throw = DEFAULT_THROW;
@@ -1164,43 +1189,63 @@
 
 			const href = _target.href;
 			const attr = _target.getAttribute('href');
-			var url, link;
+			var url;
 
-			if(href.length === 0)
+			if(typeof attr === 'string' && attr.length > 0)
 			{
 				url = attr;
 			}
-			else if(attr.length === 0)
-			{
-				url = href;
-			}
-			else if(href === attr)
+			else if(typeof href === 'string' && href.length > 0)
 			{
 				url = href;
 			}
 			else
 			{
-	throw new Error('DEBUG: both, and not the same:\n\nhref: ' + href + '\nattr[href]: ' + attr);
+				throw new Error('Unexpected');
 			}
 
-			var local = location.protocol + '//' + location.host;
+			url = new URL(url, location.href);
 
-			if(url.length > local)
+			if(url.origin !== location.origin)
 			{
-				local += '/';
-			}
-
-			if(url.startsWith(local))
-			{
-				link = Page.getPath(url.substr(local.length));
+				_target.target = '_blank';
+				return url.href;
 			}
 			else
 			{
-				link = Page.getPath(url);
+				_event.preventDefault();
 			}
 
-			_event.preventDefault();
-			return Page.get(link);
+			if(url.hash.length > 2)
+			{
+				var a = url.pathname;
+				var b = location.pathname;
+
+				if(a[a.length - 1] === '/')
+				{
+					a = a.slice(0, -1);
+				}
+
+				if(b[b.length - 1] === '/')
+				{
+					b = b.slice(0, -1);
+				}
+
+				if(a === b)
+				{
+					url = url.hash;
+				}
+				else
+				{
+					url = url.href;
+				}
+			}
+			else
+			{
+				url = url.href;
+			}
+
+			return Page.get(url);
 		}
 	}
 
