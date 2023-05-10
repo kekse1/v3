@@ -1179,10 +1179,6 @@
 
 				return;
 			}
-			else if(! (isString(_target.href, false) || isString(_target.getAttribute('href'), false)))
-			{
-				return;
-			}
 
 			const href = _target.href;
 			const attr = _target.getAttribute('href');
@@ -1198,7 +1194,7 @@
 			}
 			else
 			{
-				throw new Error('Unexpected');
+				return;
 			}
 
 			url = new URL(url, location.href);
