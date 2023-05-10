@@ -77,7 +77,7 @@
 		//
 		if((_options.none && this.getVariable('none', true)) || none)
 		{
-			if(_callback) call(callback, {
+			if(_callback) _callback({
 				this: this, element: this,
 				type: 'animate',
 				finish: true, 
@@ -398,16 +398,12 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				setTimeout(() => {
-					_callback(e, e.finish);
-				}, 0);
+				_callback(e, e.finish);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				setTimeout(() => {
-					_cb(e, e.finish);
-				}, 0);
+				_cb(e, e.finish);
 			}
 
 			//
@@ -448,16 +444,12 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				setTimeout(() => {
-					_callback(e, e.finish);
-				}, 0);
+				_callback(e, e.finish);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				setTimeout(() => {
-					_cb(e, e.finish);
-				}, 0);
+				_cb(e, e.finish);
 			}
 
 			//
@@ -497,16 +489,12 @@
 			//
 			if(_orig_cb && _callback)
 			{
-				setTimeout(() => {
-					_callback(e, e.finish);
-				}, 0);
+				_callback(e, e.finish);
 			}
 
 			if(typeof _cb === 'function')
 			{
-				setTimeout(() => {
-					_cb(e, e.finish);
-				}, 0);
+				_cb(e, e.finish);
 			}
 			
 			//
@@ -546,9 +534,7 @@
 			//
 			if(typeof _cb === 'function')
 			{
-				setTimeout(() => {
-					_cb(e, e.finish);
-				}, 0);
+				_cb(e, e.finish);
 			}
 
 			//
@@ -2532,7 +2518,7 @@ var c=0;
 			//
 			if(_callback)
 			{
-				call(_callback, { type: 'in', event: _e, finish: _f, this: this }, _f);
+				_callback({ type: 'in', event: _e, finish: _f, this: this }, _f);
 			}
 
 			//
@@ -2795,7 +2781,10 @@ var c=0;
 			}
 			
 			//
-			call(_callback, { type: 'out', event: _e, finish: _f, this: this }, _f);
+			if(_callback)
+			{
+				_callback({ type: 'out', event: _e, finish: _f, this: this }, _f);
+			}
 			
 			//
 			this.emit('out', { type: 'out', subType: _e.type, options: _options, event: _e, finish: _f });

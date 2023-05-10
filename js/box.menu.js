@@ -77,6 +77,15 @@
 			{
 				cb(true);
 			}
+			else
+			{
+				setTimeout(() => {
+					if(! called)
+					{
+						cb(true);
+					}
+				}, 0);
+			}
 
 			return result;
 		}
@@ -1179,7 +1188,10 @@
 					delete _target.OUT;
 					delete _target.OVER;
 
-					call(_callback, { type: 'pointerover', target: _target, imageNode: _target.imageNode, textNode: _target.textNode, event: _event, finish: fin >= 2 }, fin >= 2, _target, _event);
+					if(_callback)
+					{
+						_callback({ type: 'pointerover', target: _target, imageNode: _target.imageNode, textNode: _target.textNode, event: _event, finish: fin >= 2 }, fin >= 2, _target, _event);
+					}
 				}
 			};
 
@@ -1215,9 +1227,9 @@
 
 						if(typeof _cb === 'function')
 						{
-							setTimeout(() => {
+							//setTimeout(() => {
 								_cb();
-							}, 0);
+							//}, 0);
 						}
 					}
 				};
@@ -1326,7 +1338,10 @@
 					delete _target.OUT;
 					delete _target.OVER;
 
-					call(_callback, { type: 'pointerout', target: _target, imageNode: _target.imageNode, textNode: _target.textNode, event: _event, finish: fin >= 2 }, fin >= 2, _target, _event);
+					if(_callback)
+					{
+						_callback({ type: 'pointerout', target: _target, imageNode: _target.imageNode, textNode: _target.textNode, event: _event, finish: fin >= 2 }, fin >= 2, _target, _event);
+					}
 				}
 			};
 
@@ -1365,9 +1380,9 @@
 
 						if(typeof _cb === 'function')
 						{
-							setTimeout(() => {
+							//setTimeout(() => {
 								_cb();
-							}, 0);
+							//}, 0);
 						}
 					}
 				};
@@ -1422,6 +1437,11 @@
 			{
 				_target._originalState = _target._state;
 				_target._state = 'blinking';
+			}
+
+			if(typeof _callback !== 'function')
+			{
+				_callback = null;
 			}
 			
 			//
@@ -1480,8 +1500,11 @@
 						}, 0);
 					}
 
-					call(_callback, { type: 'click', e: _e, event: _event, finish: fin >= 2,
+					if(_callback)
+					{
+						_callback({ type: 'click', e: _e, event: _event, finish: fin >= 2,
 						target: _target, imageNode: _target.imageNode, textNode: _target.textNode }, _f, _target, _event);
+					}
 				}
 			};
 
