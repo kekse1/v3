@@ -648,7 +648,13 @@ throw new Error('TODO');
 		return (rangeStatus || acceptRanges || contentRange);
 	};
 
-	ajax.size = (_url) => {
+	ajax.size = (_url, _callback) => {
+		if(typeof _callback !== 'function')
+		{
+			_callback = null;
+		}
+else throw new Error('TODO (w/ callback now)');
+
 		const request = ajax({ url: _url, method: 'HEAD', async: false });
 
 		if(! request)
@@ -672,6 +678,15 @@ throw new Error('TODO');
 		}
 
 		return Number(length);
+	};
+
+	ajax.exists = (_url, _callback) => {
+		if(typeof _callback !== 'function')
+		{
+			_callback = null;
+		}
+throw new Error('TODO');
+		//const request = ajax({ u
 	};
 
 	const responseStatusClass = (_request) => {
@@ -1456,7 +1471,7 @@ throw new Error('TODO');
 					_callback({ id: _id, url: _request.responseURL,
 						type: 'js', module: res, error: null,
 						request: _request, start: _request.start, stop: _request.stop, time: _request.time,
-						status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText });
+						status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText }, res);
 				}
 				
 				return res;
@@ -1496,7 +1511,7 @@ throw new Error('TODO');
 						module: result,
 						error: false,
 						start: result.start, stop: result.stop, time: result.time
-					});
+					}, result);
 				}
 
 				//
@@ -1595,7 +1610,7 @@ throw new Error('TODO');
 				{
 					_callback({ id: _id,
 						type: 'json', module: res,
-						request: null, error: false });
+						request: null, error: false }, res);
 				}
 
 				if(typeof window.emit === 'function')
@@ -1645,7 +1660,7 @@ throw new Error('TODO');
 			if(_callback)
 			{
 				_callback({ id: _id, type: 'json', module, data: result.responseText, error, request: _request, time: _request.time,
-					start: _request.start, stop: _request.stop, status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText });
+					start: _request.start, stop: _request.stop, status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText }, module);
 			}
 
 			if(! error && typeof window.emit === 'function')

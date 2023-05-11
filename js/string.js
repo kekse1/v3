@@ -143,34 +143,8 @@
 
 	//
 	var entities = null;
-
-	if(DEFAULT_ENTITIES)
-	{
-		try
-		{
-			entities = require(DEFAULT_ENTITIES, null, null, false, true);
-		}
-		catch(_error)
-		{
-			entities = null;
-		}
-	}
-
-	if(! entities && DEFAULT_ENTITIES_URL)
-	{
-		try
-		{
-			entities = require(DEFAULT_ENTITIES_URL, null, null, false, true);
-			console.warn('String.entities catched by URL..');
-		}
-		catch(_error)
-		{
-			entities = null;
-		}
-	}
-
-	if(! entities)
-	{
+	
+	const baseEntities = () => {
 		entities = {
 			'&amp;': {
 				codepoints: [38],
@@ -195,6 +169,52 @@
 		};
 
 		console.error('No real String.entities loaded');
+	};
+	
+	if(DEFAULT_ENTITIES)
+	{
+		require(DEFAULT_ENTITIES, (_e) => {
+			if(isObject(_e.module))
+			{
+				entities = _e.module;
+			}
+			else if(DEFAULT_ENTITIES_URL)
+			{
+				require(DEFAULT_ENTITIES_URL, (_e) => {
+					if(isObject(_e.module))
+					{
+						entities = _e.module;
+						console.warn('String.entities catched by URL..');
+					}
+					else
+					{
+						baseEntities();
+					}
+				}, null, false, true);
+			}
+			else
+			{
+				baseEntities();
+			}
+		}, null, false, true);
+	}
+	else if(DEFAULT_ENTITIES_URL)
+	{
+		require(DEFAULT_ENTITIES_URL, (_e) => {
+			if(isObject(_e.module))
+			{
+				entities = _e.module;
+				console.warn('String.entities catched by URL..');
+			}
+			else
+			{
+				baseEntities();
+			}
+		}, null, false, true);
+	}
+	else
+	{
+		baseEntities();
 	}
 
 	//
