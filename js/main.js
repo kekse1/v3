@@ -180,6 +180,109 @@
 
 	//
 	const ajaxCallbackIndices = [ 'load', 'progress', 'failure' ];
+	
+	const getOSD = (_request, _size, _show = true) => {
+		//
+		const status = _request.status;
+		
+		if(typeof status !== 'number')
+		{
+			return null;
+		}
+		else if(typeof _size !== 'string' || _size.length === 0)
+		{
+			_size = document.getVariable('ajax-osd-font-size');
+		}
+		
+		if(typeof _size !== 'string' || _size.length === 0)
+		{
+			_size = '80%';
+		}
+		
+		if(typeof _show !== 'boolean' && !isObject(_show))
+		{
+			_show = true;
+		}
+		
+		var statusText = _request.statusText;
+		var result = `<span style="font-size: ${_size};"><span style="color: red;">[<b>`;
+		
+		if(typeof statusText !== 'string')
+		{
+			statusText = '';
+		}
+
+		result += '</b>]</span>' + (statusText ? ' ' + statusText : '') + '</span>';
+		
+		//
+		if(_show)
+		{
+			osd(result, getOSD.getOptions(isObject(_show) ? _show : null));
+		}
+		
+		//
+		return result;
+	};
+	
+	getOSD.duration = 1200;
+	getOSD.timeout = 3600;
+	
+	getOSD.getOptions = (_options) => {
+		const result = {};
+		var item;
+		
+		if(isObject(_options))
+		{
+			if(isInt(_options.duration))
+			{
+				result.duration = _options.duration;
+			}
+			else if(typeof (item = document.getVariable('ajax-osd-duration', true)) === 'number')
+			{
+				result.duration = item;
+			}
+			else
+			{
+				result.duration = getOSD.duration;
+				
+			}
+
+			if(isInt(_options.timeout))
+			{
+				result.timeout = _options.timeout;
+			}
+			else if(typeof (item = document.getVariable('ajax-osd-timeout', true)) === 'number')
+			{
+				result.timeout = item;
+			}
+			else
+			{
+				result.timeout = getOSD.timeout;
+			}
+		}
+		else
+		{
+			if(typeof (item = document.getVariable('ajax-osd-duration', true)) === 'number')
+			{
+				result.duration = item;
+			}
+			else
+			{
+				result.duration = getOSD.duration;
+			}
+			
+			if(typeof (item = document.getVariable('ajax-osd-timeout', true)) === 'number')
+			{
+				result.timeout = item;
+			}
+			else
+			{
+				result.timeout = getOSD.timeout;
+			}
+		}
+		
+		return result;
+	};
 
 	//
 	ajax = (... _args) => {
