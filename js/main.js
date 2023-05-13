@@ -647,16 +647,21 @@
 	}});
 	
 	ajax.getAuthorization = (_username, _password) => {
+		if(typeof username !== 'string' || typeof _password !== 'string')
+		{
+			throw new Error('Invalid _username and/or _password argument (only Strings allowed)');
+		}
+		
 		return btoa(_username + ':' + _password);
 	};
 
-	ajax.rangeSupport = (_url, _type = 'bytes') => {
-throw new Error('TODO');
+	ajax.rangeSupport = (_callback, _url, _type = 'bytes') => {
 		if(typeof _url !== 'string' || _url.length === 0)
 		{
-			throw new Error('Invalid _url argument');
+			_url = '/';
 		}
-		else if(typeof _type !== 'string' || _type.length === 0)
+		
+		if(typeof _type !== 'string' || _type.length === 0)
 		{
 			_type = 'bytes';
 		}
@@ -664,45 +669,68 @@ throw new Error('TODO');
 		{
 			_type = _type.toLowerCase();
 		}
+		
+		if(typeof _callback !== 'function')
+		{
+			_callback = null;
+		}
+		
+		const handle = (_e) => {
+			var acceptRanges = _e.request.getResponseHeader('Accept-Ranges');
+			var contentRange = _e.request.getResponseHeader('Content-Range');
 
-		const request = ajax({ url: _url, method: 'HEAD', async: false });//, null, { method: 'HEAD', range: '0-0' }, null);
+			if(typeof acceptRanges === 'string')
+			{
+				acceptRanges = (acceptRanges.toLowerCase() === _type);
+			}
+			else
+			{
+				acceptRanges = false;
+			}
+			
+			if(typeof contentRange === 'string')
+			{
+				contentRange = !!(contentRange.toLowerCase().startsWith(_type + ' '));
+			}
+			else
+			{
+				contentRange = false;
+			}
+			
+			const result = (acceptRanges || contentRange);
+			
+			if(_callback)
+			{
+				_callback(result);
+			}
+			
+			return (acceptRanges || contentRange);
+		};
+
+		const request = ajax({
+			url: _url,
+			method: 'HEAD',
+			callback: (_callback ? handle : null),
+			throw: false });//, null, { method: 'HEAD', range: '0-0' }, null);
 
 		if(! request)
 		{
-			return null;
+	throw new Error('DEBUG/TODO');
 		}
-		else if(request.statusClass !== 2)
+		else if(_callback)
 		{
-			return null;
+			return;
 		}
-
-		const rangeStatus = (request.statusClass === 2);
-		var acceptRanges = request.getResponseHeader('Accept-Ranges');
-		var contentRange = request.getResponseHeader('Content-Range');
-
-		if(acceptRanges !== null)
-		{
-			acceptRanges = (acceptRanges.toLowerCase() === _type);
-		}
-		else
-		{
-			acceptRanges = false;
-		}
-
-		if(contentRange !== null)
-		{
-			contentRange = (contentRange.toLowerCase().startsWith(_type + ' '));
-		}
-		else
-		{
-			contentRange = false;
-		}
-
-		return (rangeStatus || acceptRanges || contentRange);
+		
+		return handle({ request });
 	};
 
 	ajax.size = (_url, _callback) => {
-		if(typeof _callback !== 'function')
+		if(typeof _url !== 'string')
+		{
+			throw new Error('Invalid _url argument');
+		}
+		else if(typeof _callback !== 'function')
 		{
 			_callback = null;
 		}
@@ -730,7 +758,7 @@ throw new Error('TODO');
 				{
 					const length = _e.request.getResponseHeader('Content-Length');
 					
-					if(length.length === 0 || isNaN(length))
+					if(typeof length !== 'string' || length.length === 0 || isNaN(length))
 					{
 						error = true;
 						result = length;
@@ -775,7 +803,11 @@ throw new Error('TODO');
 	};
 
 	ajax.exists = (_url, _callback) => {
-		if(typeof _callback !== 'function')
+		if(typeof _url !== 'string')
+		{
+			throw new Error('Invalid _url argument');
+		}
+		else if(typeof _callback !== 'function')
 		{
 			_callback = null;
 		}
@@ -1104,12 +1136,25 @@ throw new Error('TODO');
 				
 				if(! hasSize)
 				{
-					const contentLength = Number(_request.getResponseHeader('Content-Length'));
+					var contentLength = _request.getResponseHeader('Content-Length');
 					
-					if(! isNaN(contentLength))
+					if(typeof contentLength === 'string')
 					{
-						hasSize = true;
-						size = contentLength;
+						if(isNaN(contentLength = Number(contentLength)))
+						{
+							hasSize = false;
+							size = null;
+						}
+						else
+						{
+							hadSize = true;
+							size = contentLength;
+						}
+					}
+					else
+					{
+						hasSize = false;
+						size = null;
 					}
 				}
 			}
