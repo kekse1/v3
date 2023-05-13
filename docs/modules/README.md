@@ -1,3 +1,7 @@
+<div align="left">
+
+
+
 # API Documentation / Modules
 
 ## [animation.js.md](animation.js)
@@ -181,4 +185,9 @@ Wenn Ihre Bibliothek verschiedene Versionen hat, stellen Sie sicher, dass die Do
 
 ### Stil und Formatierung
 Verwenden Sie einen konsistenten Stil und eine kohM-CM-$rente Formatierung fM-CM-<r die gesamte Dokumentation. Dies erleichtert das Lesen und Verstehen. Betonen Sie wichtige Informationen und verwenden Sie geeignete AbsM-CM-$tze oder AufzM-CM-$hlungen, um den Text zu strukturieren.
+
+
+
  
+</div>
+
