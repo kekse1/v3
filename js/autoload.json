@@ -51,11 +51,12 @@
 
 	"box",
 	"box.osd",
-	"box.grid",
-	"box.menu",
 	"box.popup",
+	"box.dialog",
+	"box.menu",
 	"box.context",
 	"box.progress",
+	"box.grid",
 
 	"geo",
 	"levenshtein"

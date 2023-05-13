@@ -32,13 +32,16 @@ TODO
 ## [bionic](bionic.js.md)
 TODO
 
+## [box](box.js.md)
+TODO
+
 ## [box.context](box.context.js.md)
 TODO
 
-## [box.grid](box.grid.js.md)
+## [box.dialog](box.dialog.js.md)
 TODO
 
-## [box](box.js.md)
+## [box.grid](box.grid.js.md)
 TODO
 
 ## [box.menu](box.menu.js.md)
