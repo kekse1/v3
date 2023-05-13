@@ -231,13 +231,17 @@
 		
 		if(_method)
 		{
-			result += `<span style="font-size: ${options.fontSize.method}; color: ${textColor};">${_method}</span>`;
+			result += `<span style="font-size: ${options.fontSize.method}; color: ${textColor};">(${_method})</span>`;
 		}
 		
 		result += `<span style="color: ${textColor}; font-size: 60%;">[</span>`;
 		result += `<span style="font-size: ${options.fontSize.status}; font-weight: bold; color: ${statusColor};">${_status}</span>`;
 		result += `<span style="color: ${textColor}; font-size: 60%;">]</span>`;
-		result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};">${_status_text}</span>`;
+
+		if(_status_text)
+		{
+			result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};">${_status_text}</span>`;
+		}
 		
 		//
 		osd(result, options, _callback, false);
