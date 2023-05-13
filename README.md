@@ -11,7 +11,7 @@ The real/full version of all the JavaScript's is available in the
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/' directory as markdown (.md).. ^_^
-Until now here's only this general README.md, so l8rs I'll use: [./docs/modules/README.md](./docs/modules/README.md).
+Until now here's only this general README.md, so l8rs I'll use [modules.md](./docs/modules/README.md).
 
 ## Configuration
 A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
