@@ -1019,6 +1019,10 @@
 		{
 			return _request.statusClass = null;
 		}
+		else if(!__INIT && _request.options.osd !== false && document.getVariable('ajax-osd', true))
+		{
+			ajax.osd(_request.method, _request.status, _request.statusText, _request.responseURL, null);
+		}
 		
 		return _request.statusClass = Number(_request.status.toString()[0]);
 	};

@@ -259,7 +259,7 @@
 
 				//
 				result.busy = false;
-			});
+			}, { osd: false });
 
 			//
 			if(_args[0] !== true)
