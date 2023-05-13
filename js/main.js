@@ -1836,8 +1836,6 @@
 						}
 						else
 						{
-							delete require.CACHE[_id];
-
 							if(_throw)
 							{
 								throw new Error('Unexpected .parentNode');
@@ -1894,6 +1892,7 @@
 				//
 				const originalModule = module;
 				module = { id: _id };
+				var doThrow = null;
 
 				//
 				try
@@ -1916,21 +1915,23 @@
 				{
 					if(_throw)
 					{
-						throw _error;
+						doThrow = _error;
 					}
-					else
-					{
-						delete require.CACHE[_id];
-					}
-
+					
+					delete require.CACHE[_id];
 					res = undefined;
 					console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): couldn\'t evaluate');
 				}
-				
-				//setTimeout(() => {
+				finally
+				{
 					module = originalModule;
-				//}, 0);
+				}
 
+				if(doThrow !== null)
+				{
+					throw doThrow;
+				}
+				
 				return res;
 			};
 			
