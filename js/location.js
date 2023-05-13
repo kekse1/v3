@@ -94,63 +94,6 @@ throw new Error('TODO');
 	});
 
 	//
-	Object.defineProperty(location, 'protocols', { get: function()
-	{
-		return [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:' ];
-	}});
-
-	Object.defineProperty(location, 'isURL', { value: function(... _args)
-	{
-		if(_args.length === 0)
-		{
-			return null;
-		}
-
-		const protocols = location.protocols;
-		var found;
-
-		for(var i = 0; i < _args.length; ++i)
-		{
-			if(typeof _args[i] === 'string')
-			{
-				if(_args[i].length === 0)
-				{
-					return false;
-				}
-
-				found = false;
-
-				for(var j = 0; j < protocols.length; ++j)
-				{
-					if(_args[i].toLowerCase().startsWith(protocols[j] + '//'))
-					{
-						found = true;
-						break;
-					}
-				}
-
-				if(found)
-				{
-					if(_args[i].includes(String.fromCharCode(0)))
-					{
-						return false;
-					}
-				}
-				else if(! found)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				throw new Error('Invalid ..._args[' + i + '] (no String)');
-			}
-		}
-
-		return true;
-	}});
-
-	//
 	
 })();
 

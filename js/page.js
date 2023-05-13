@@ -82,23 +82,9 @@
 						}
 					}
 
-					//_link = _link.replaces('//', '/');
 					_link = path.resolve(_link);
 				}
-				/*else if(! DEFAULT_PAGES_FALLBACK)
-				{
-					if(_throw)
-					{
-						throw new Error('Missing/invalid config.home configuration, etc.');
-					}
-					
-					return null;
-				}*/
 			}
-			/*else if(location.isURL(_link))
-			{
-				return _link;
-			}*/
 			
 			return _link;
 		}
@@ -898,14 +884,13 @@
 					}
 					else
 					{
-						const err = '<span style="font-size: ' + document.getVariable('page-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>';
-						const opts = {
-							duration: document.getVariable('page-osd-duration', true),
-							timeout: document.getVariable('page-osd-timeout', true),
-							delay: document.getVariable('page-osd-delay', true)
-						};
-
-						osd(err, opts);
+						if(! document.getVariable('ajax-osd', true))
+						{
+							osd('<span style="font-size: ' + document.getVariable('ajax-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>', {
+								duration: document.getVariable('ajax-osd-duration', true),
+								timeout: document.getVariable('ajax-osd-timeout', true)
+							});
+						}
 						
 						if(_throw)
 						{

@@ -1,5 +1,6 @@
 /* main.css */
 @import url('css/config.css');
+@import url('css/config.responsive.css');
 @import url('css/scrollbars.css');
 @import url('css/fonts.css');
 @import url('css/osd.css');
@@ -10,6 +11,5 @@
 @import url('css/box.css');
 @import url('css/box.responsive.css');
 @import url('css/page.css');
-@import url('css/page.responsive.css');
 @import url('css/variables.css');
 

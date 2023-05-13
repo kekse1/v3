@@ -85,15 +85,15 @@
 			
 			const cb = (_e, _f) => {
 				delete result.IN;
-				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, result);
-				window.emit('osd', { type: 'create', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: _options.delay });
+				call(_callback, { type: 'create', event: _e, finish: _f, box: result, this: result, timeout: _options.timeout, duration: _options.duration, delay: 0 }, _f, result);
+				window.emit('osd', { type: 'create', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: 0 });
 			};
 
 			result.IN = result.animate({
 				opacity: [ '1' ],
 				transform: [ 'scale(0)', 'scale(1.3)', 'scale(0.7)', 'scale(1)' ]
 			}, {
-				duration: _options.duration, delay: _options.delay
+				duration: _options.duration, delay: 0
 			}, cb);
 
 			return result;
@@ -120,11 +120,6 @@
 			_options.timeout = (_element ? _element.getVariable('timeout', true) : DEFAULT_TIMEOUT);
 		}
 
-		if(! (isInt(_options.delay) && _options.delay >= 0))
-		{
-			_options.delay = (_element ? _element.getVariable('delay', true) : DEFAULT_DELAY);
-		}
-
 		return _options;
 	};
 
@@ -149,19 +144,19 @@
 				if(box.parentNode)
 				{
 					box.parentNode.removeChild(box, null, () => {
-						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
+						call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: 0 }, _f, box);
 					});
 				}
 				else
 				{
-					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
+					call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: 0 }, _f, box);
 				}
 
 				osd.box = null;
 			}
 			else
 			{
-				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
+				call(_callback, { type: 'destroy', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: 0 }, _f, box);
 			}
 
 			window.emit('osd', { type: 'destroy', event: _e, finish: _f });
@@ -182,7 +177,7 @@
 				opacity: [ '0' ],
 				transform: [ null, 'scale(0.7)', 'scale(1.3)', 'scale(0)' ]
 			}, {
-				duration: _options.duration, delay: _options.delay
+				duration: _options.duration, delay: 0
 			}, cb);
 		};
 		
@@ -227,8 +222,8 @@
 		//
 		const cb = (_e, _f) => {
 			delete box.IN;
-			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: _options.delay }, _f, box);
-			window.emit('osd', { type: 'update', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: _options.delay });
+			call(_callback, { type: 'update', event: _e, finish: _f, box, this: box, timeout: _options.timeout, duration: _options.duration, delay: 0 }, _f, box);
+			window.emit('osd', { type: 'update', event: _e, finish: _f, timeout: _options.timeout, duration: _options.duration, delay: 0 });
 		};
 		
 		if(box.IN)
@@ -241,7 +236,7 @@
 				opacity: [ null, '1' ],
 				transform: [ null, 'scale(1)' ]
 			}, {
-				duration: _options.duration, delay: _options.delay
+				duration: _options.duration, delay: 0
 			}, cb);
 		};
 		

@@ -21,7 +21,14 @@
 
 			return null;
 		}
-		else if(_string.startsWith(false, ... location.protocols))
+		else if(URL.protocols)
+		{
+			if(_string.startsWith(false, ... URL.protocols))
+			{
+				return true;
+			}
+		}
+		else if(_string.toLowerCase().includes('://'))
 		{
 			return true;
 		}

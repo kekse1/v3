@@ -9,7 +9,8 @@
 
 	//
 	address.isLocalhost = (_hostname) => {
-
+		//much TODO/
+		return (_hostname === 'localhost');
 	};
 
 	address.isIP = (_string) => {

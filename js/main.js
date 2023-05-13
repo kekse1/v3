@@ -184,6 +184,27 @@
 	//
 	ajax = (... _args) => {
 		const options = Object.assign(... _args);
+		var result;
+		
+		try
+		{
+			result = ajax.request(... _args);
+		}
+		catch(_error)
+		{
+			if(options.throw)
+			{
+				throw _error;
+			}
+			
+			result = null;
+		}
+		
+		return result;
+	};
+	
+	ajax.request = (... _args) => {
+		const options = Object.assign(... _args);
 
 		for(var i = 0; i < _args.length; ++i)
 		{
@@ -213,6 +234,11 @@
 
 				options.callbacks = _args.splice(i--, 1)[0];
 			}
+		}
+		
+		if(typeof options.throw !== 'boolean')
+		{
+			options.throw = DEFAULT_THROW;
 		}
 
 		if(! (isInt(options.callbacks) && options.callbacks >= 0))
@@ -520,9 +546,23 @@
 		}
 		
 		//
-		const result = new XMLHttpRequest();
-		result.start = Date.now();
-		result.open(options.method, options.url, options.async, options.username, options.password);
+		var result;
+		
+		try
+		{
+			result = new XMLHttpRequest();
+			result.start = Date.now();
+			result.open(options.method, options.url, options.async, options.username, options.password);
+		}
+		catch(_error)
+		{
+			if(options.throw)
+			{
+				throw _error;
+			}
+			
+			return null;
+		}
 		
 		if(options.async)
 		{
@@ -552,8 +592,21 @@
 			result.setRequestHeader(idx, options.headers[idx]);
 		}
 		
+
 		//
-		handleRequest(result, options).send(options.data);
+		try
+		{
+			handleRequest(result, options).send(options.data);
+		}
+		catch(_error)
+		{
+			if(_options.throw !== false)
+			{
+				throw _error;
+			}
+			
+			return null;
+		}
 		
 		//
 		if(! options.async)
@@ -653,31 +706,72 @@ throw new Error('TODO');
 		{
 			_callback = null;
 		}
-else throw new Error('TODO (w/ callback now)');
 
-		const request = ajax({ url: _url, method: 'HEAD', async: false });
-
+		const handle = (_e) => {
+			var result, error;
+			
+			if('type' in _e)
+			{
+				result = (_e.type === 'load');
+			}
+			else
+			{
+				result = true;
+			}
+			
+			if(result)
+			{
+				if(_e.request.statusClass !== 2)
+				{
+					result = null;
+					error = _e.request.status;
+				}
+				else
+				{
+					const length = _e.request.getResponseHeader('Content-Length');
+					
+					if(length.length === 0 || isNaN(length))
+					{
+						error = true;
+						result = length;
+					}
+					else
+					{
+						error = false;
+						result = Number(length);
+					}
+				}
+			}
+			else
+			{
+				error = true;
+				result = null;
+			}
+			
+			if(_callback)
+			{
+				_callback(result, error, _e.request, _e.request.responseURL);
+			}
+			
+			return result;
+		};
+		
+		const request = ajax({
+			url: _url,
+			method: 'HEAD',
+			callback: (_callback ? handle : null),
+			throw: false });
+		
 		if(! request)
 		{
-			return undefined;
+	throw new Error('DEBUG/TODO');
 		}
-		else if(request.statusClass !== 2)
+		else if(_callback)
 		{
-			return undefined;
+			return;
 		}
 
-		const length = request.getResponseHeader('Content-Length');
-
-		if(length === null)
-		{
-			return null;
-		}
-		else if(isNaN(length))
-		{
-			return length;
-		}
-
-		return Number(length);
+		return handle({ request });
 	};
 
 	ajax.exists = (_url, _callback) => {
@@ -685,8 +779,48 @@ else throw new Error('TODO (w/ callback now)');
 		{
 			_callback = null;
 		}
-throw new Error('TODO');
-		//const request = ajax({ u
+
+		const handle = (_e) => {
+			var result;
+
+			if('type' in _e)
+			{
+				result = (_e.type === 'load');
+			}
+			else
+			{
+				result = true;
+			}
+
+			if(result)
+			{
+				result = (_e.request.statusClass === 2);
+			}
+
+			if(_callback)
+			{
+				_callback(result, _e.request, _e.request.responseURL);
+			}
+			
+			return result;
+		};
+
+		const request = ajax({
+			url: _url,
+			method: 'HEAD',
+			callback: (_callback ? handle : null),
+			throw: false });
+
+		if(! request)
+		{
+	throw new Error('DEBUG/TODO');
+		}
+		else if(_callback)
+		{
+			return;
+		}
+		
+		return handle({ request });
 	};
 
 	const responseStatusClass = (_request) => {
@@ -699,6 +833,26 @@ throw new Error('TODO');
 	};
 	
 	const handleRequest = (_request, _options) => {
+		var result;
+		
+		try
+		{
+			result = handleRequest.handle(_request, _options);
+		}
+		catch(_error)
+		{
+			if(_options.throw !== false)
+			{
+				throw _error;
+			}
+			
+			result = null;
+		}
+		
+		return result;
+	};
+	
+	handleRequest.handle = (_request, _options) => {
 		//
 		_request.options = _options;
 		
@@ -1092,9 +1246,9 @@ throw new Error('TODO');
 			{
 				addPath = false;
 			}
-			else if(location.protocols)
+			else if(URL.protocols)
 			{
-				addPath = !!(_path.startsWith(false, ... location.protocols));
+				addPath = !!(_path.startsWith(false, ... URL.protocols));
 			}
 			else
 			{
