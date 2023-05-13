@@ -3,7 +3,7 @@ v3
 
 .. that's the base version, as I guess my **kekse.biz** had at least(!) two prior versions before.
 The real/full version of all the JavaScript's is available in the
-[version.json](https://raw.githubusercontent.com/kekse1/kekse.biz/main/json/version.json).
+[version.json](./blob/main/json/version.json).
 
 ## Preview
 * https://kekse.biz/v3/test.html
