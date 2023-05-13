@@ -400,6 +400,11 @@
 			options.throw = DEFAULT_THROW;
 		}
 
+		if(typeof options.osd !== 'boolean')
+		{
+			options.osd = true;
+		}
+
 		if(! (isInt(options.callbacks) && options.callbacks >= 0))
 		{
 			if(typeof options.callbacks === 'boolean')
