@@ -414,6 +414,7 @@ throw new Error('TODO');
 
 			var result;
 			const r = _popup.related;
+			const b = r.getBoundingClientRect();
 			
 			if(!r)
 			{
@@ -427,19 +428,19 @@ throw new Error('TODO');
 			{
 				result = false;
 			}
-			else if(x < r.offsetLeft)
+			else if(x < b.left)
 			{
 				result = false;
 			}
-			else if(y < r.offsetTop)
+			else if(y < b.top)
 			{
 				result = false;
 			}
-			else if(x > (r.offsetLeft + r.offsetWidth))
+			else if(x > b.right)
 			{
 				result = false;
 			}
-			else if(y > (r.offsetTop + r.offsetHeight))
+			else if(y > b.bottom)
 			{
 				result = false;
 			}
