@@ -979,7 +979,7 @@
 			url: _url,
 			method: 'HEAD',
 			callback: (_callback ? handle : null),
-			throw: false });//, null, { method: 'HEAD', range: '0-0' }, null);
+			throw: false, console: false, osd: false });//, null, { method: 'HEAD', range: '0-0' }, null);
 
 		if(! request)
 		{
@@ -1056,7 +1056,7 @@
 			url: _url,
 			method: 'HEAD',
 			callback: (_callback ? handle : null),
-			throw: false });
+			throw: false, console: false, osd: false });
 		
 		if(! request)
 		{
@@ -1109,7 +1109,7 @@
 			url: _url,
 			method: 'HEAD',
 			callback: (_callback ? handle : null),
-			throw: false });
+			throw: false, console: false, osd: false });
 
 		if(! request)
 		{
@@ -1977,7 +1977,8 @@
 			//
 			result = ajax({ url: _id,
 				callback: (_callback ? callback : null),
-				mime: 'application/javascript' });
+				mime: 'application/javascript',
+				console: false, osd: false });
 
 			if(!_callback)
 			{
