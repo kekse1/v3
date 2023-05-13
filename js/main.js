@@ -180,109 +180,6 @@
 
 	//
 	const ajaxCallbackIndices = [ 'load', 'progress', 'failure' ];
-	
-	const getOSD = (_request, _size, _show = true) => {
-		//
-		const status = _request.status;
-		
-		if(typeof status !== 'number')
-		{
-			return null;
-		}
-		else if(typeof _size !== 'string' || _size.length === 0)
-		{
-			_size = document.getVariable('ajax-osd-font-size');
-		}
-		
-		if(typeof _size !== 'string' || _size.length === 0)
-		{
-			_size = '80%';
-		}
-		
-		if(typeof _show !== 'boolean' && !isObject(_show))
-		{
-			_show = true;
-		}
-		
-		var statusText = _request.statusText;
-		var result = `<span style="font-size: ${_size};"><span style="color: red;">[<b>`;
-		
-		if(typeof statusText !== 'string')
-		{
-			statusText = '';
-		}
-
-		result += '</b>]</span>' + (statusText ? ' ' + statusText : '') + '</span>';
-		
-		//
-		if(_show)
-		{
-			osd(result, getOSD.getOptions(isObject(_show) ? _show : null));
-		}
-		
-		//
-		return result;
-	};
-	
-	getOSD.duration = 1200;
-	getOSD.timeout = 3600;
-	
-	getOSD.getOptions = (_options) => {
-		const result = {};
-		var item;
-		
-		if(isObject(_options))
-		{
-			if(isInt(_options.duration))
-			{
-				result.duration = _options.duration;
-			}
-			else if(typeof (item = document.getVariable('ajax-osd-duration', true)) === 'number')
-			{
-				result.duration = item;
-			}
-			else
-			{
-				result.duration = getOSD.duration;
-				
-			}
-
-			if(isInt(_options.timeout))
-			{
-				result.timeout = _options.timeout;
-			}
-			else if(typeof (item = document.getVariable('ajax-osd-timeout', true)) === 'number')
-			{
-				result.timeout = item;
-			}
-			else
-			{
-				result.timeout = getOSD.timeout;
-			}
-		}
-		else
-		{
-			if(typeof (item = document.getVariable('ajax-osd-duration', true)) === 'number')
-			{
-				result.duration = item;
-			}
-			else
-			{
-				result.duration = getOSD.duration;
-			}
-			
-			if(typeof (item = document.getVariable('ajax-osd-timeout', true)) === 'number')
-			{
-				result.timeout = item;
-			}
-			else
-			{
-				result.timeout = getOSD.timeout;
-			}
-		}
-		
-		return result;
-	};
 
 	//
 	ajax = (... _args) => {
@@ -305,7 +202,125 @@
 		
 		return result;
 	};
+
+	//
+	ajax.osd = (_method, _status, _status_text, _callback) => {
+		//
+		if(! (isInt(_status) && _status >= 0))
+		{
+			return null;
+		}
+		else if(typeof _status_text !== 'string' || _status_text.length === 0)
+		{
+			_status_text = (_status.toString()[0] === '2' ? 'Success' : 'Error');
+		}
+		
+		if(typeof _method !== 'string')
+		{
+			_method = '';
+		}
+		
+		//
+		const options = ajax.osd.getOptions();
+		const textColor = (_status.toString()[0] === '2' ? '' : options.color.error);
+		const statusColor = options.color.status;
+		delete options.color;
+		
+		//
+		var result = '';
+		
+		if(_method)
+		{
+			result += `<span style="font-size: ${options.fontSize.method}; color: ${textColor};">${_method}</span>`;
+		}
+		
+		result += `<span style="color: ${textColor}; font-size: 60%;">[</span>`;
+		result += `<span style="font-size: ${options.fontSize.status}; font-weight: bold; color: ${statusColor};">${_status}</span>`;
+		result += `<span style="color: ${textColor}; font-size: 60%;">]</span>`;
+		result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};">${_status_text}</span>`;
+		
+		//
+		osd(result, options, _callback, false);
+		
+		//
+		return result;
+	};
 	
+	ajax.osd.duration = 1200;
+	ajax.osd.timeout = 3600;
+	ajax.osd.fontSize = { status: '80%', statusText: '60%', method: '40%' };
+	ajax.osd.color = { error: 'red', status: 'blue' };
+	
+	ajax.osd.getOptions = () => {
+		const result = { duration: null, timeout: null, fontSize: { status: null, statusText: null, method: null }, color: { error: null, status: null } };
+		
+		if(document.hasVariable('ajax-osd-duration'))
+		{
+			result.duration = document.getVariable('ajax-osd-duration', true);
+		}
+		else
+		{
+			result.duration = ajax.osd.duration;
+		}
+		
+		if(document.hasVariable('ajax-osd-timeout'))
+		{
+			result.timeout = document.getVariable('ajax-osd-timeout', true);
+		}
+		else
+		{
+			result.timeout = ajax.osd.timeout;
+		}
+		
+		if(document.hasVariable('ajax-osd-font-size-status'))
+		{
+			result.fontSize.status = document.getVariable('ajax-osd-font-size-status');
+		}
+		else
+		{
+			result.fontSize.status = ajax.osd.fontSize.status;
+		}
+		
+		if(document.hasVariable('ajax-osd-font-size-status-text'))
+		{
+			result.fontSize.statusText = document.getVariable('ajax-osd-font-size-status-text');
+		}
+		else
+		{
+			result.fontSize.statusText = ajax.osd.fontSize.statusText;
+		}
+		
+		if(document.hasVariable('ajax-osd-font-size-method'))
+		{
+			result.fontSize.method = document.getVariable('ajax-osd-font-size-method');
+		}
+		else
+		{
+			result.fontSize.method = ajax.osd.fontSize.method;
+		}
+
+		if(document.hasVariable('ajax-osd-color-error'))
+		{
+			result.color.error = document.getVariable('ajax-osd-color-error');
+		}
+		else
+		{
+			result.color.error = ajax.osd.color.error;
+		}
+		
+		if(document.hasVariable('ajax-osd-color-status'))
+		{
+			result.color.status = document.getVariable('ajax-osd-color-status');
+		}
+		else
+		{
+			result.color.status = ajax.osd.color.status;
+		}
+		
+		return result;
+	};
+
+	//	
 	ajax.request = (... _args) => {
 		const options = Object.assign(... _args);
 

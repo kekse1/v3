@@ -882,20 +882,15 @@
 					{
 						location.hash = '';
 					}
-					else
+
+					if(!document.hasVariable('ajax-osd') || !document.getVariable('ajax-osd', true))
 					{
-						if(! document.getVariable('ajax-osd', true))
-						{
-							osd('<span style="font-size: ' + document.getVariable('ajax-osd-font-size') + ';"><span style="color: red;">[<b>' + _request.status + '</b>]</span> ' + (_request.statusText || 'Error') + '</span>', {
-								duration: document.getVariable('ajax-osd-duration', true),
-								timeout: document.getVariable('ajax-osd-timeout', true)
-							});
-						}
+						ajax.osd(_options.method, _request.status, (_request.statusText || 'Error'));
+					}
 						
-						if(_throw)
-						{
-							throw new Error('Couldn\'t load link \'' + (_request.responseURL || _link) + '\': [' + _request.status + '] ' + _request.statusText);
-						}
+					if(_throw)
+					{
+						throw new Error('Couldn\'t load link \'' + (_request.responseURL || _link) + '\': [' + _request.status + '] ' + _request.statusText);
 					}
 					
 					return result.status;
