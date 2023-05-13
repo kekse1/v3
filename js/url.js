@@ -41,5 +41,33 @@
 	}});
 
 	//
+	Object.defineProperty(URL.prototype, 'isLocalhost', { get: function()
+	{
+		return address.isLocalhost(this.hostname);
+	}});
+
+	Object.defineProperty(URL.prototype, 'isIP', { get: function()
+	{
+		return address.isIP(this.hostname);
+	}});
+	
+	Object.defineProperty(URL.prototype, 'isIPv4', { get: function()
+	{
+		return address.isIPv4(this.hostname);
+	}});
+
+	Object.defineProperty(URL.prototype, 'isIPv6', { get: function()
+	{
+		return address.isIPv6(this.hostname);
+	}});
+
+	Object.defineProperty(URL.prototype, 'isKnownProtocol', { get: function()
+	{
+		return address.isKnownProtocol(this.protocol);
+	}});
+
+	//
+	//TODO/@ path.js!!
+	//
 	
 })();

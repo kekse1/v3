@@ -163,11 +163,8 @@ Just define the input word plus a list of all available commands (if you don't u
 types (to define CASE_SENSITIVE or WITH_DISTANCES = [] result, not only the words).
 
 ## Documentation...
-It's too bad, but I didn't take care of neither a real documentation nor good comments in the code,
-but if you want to use all this at your own site (..really? ^_^), feel free to comment or extend it
-for yourself - I'd be happy about your commits here! :)~
-
-For now I'm trying, just a lil' bit, to explain everything a bit here in this 'README.md' markdown document.. ^_^
+I will try to write down the API documentation for my .js modules in the 'docs/' directory as markdown (.md).. ^_^
+Until now here's only this general README.md, so l8rs we'll use [./docs/modules.md](modules.md).
 
 ## Configuration
 A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
@@ -198,3 +195,4 @@ see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
 
 * https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html
 * https://bionic-reading.com/
+

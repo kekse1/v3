@@ -94,6 +94,27 @@ throw new Error('TODO');
 	});
 
 	//
+	Object.defineProperty(location, 'isLocalhost', { get: function()
+	{
+		return address.isLocalhost(location.hostname);
+	}});
+
+	Object.defineProperty(location, 'isIP', { get: function()
+	{
+		return address.isIP(location.hostname);
+	}});
+
+	Object.defineProperty(location, 'isIPv4', { get: function()
+	{
+		return address.isIPv4(location.hostname);
+	}});
+
+	Object.defineProperty(location, 'isIPv6', { get: function()
+	{
+		return address.isIPv6(location.hostname);
+	}});
+
+	//
 	
 })();
 
