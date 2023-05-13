@@ -35,7 +35,7 @@
 	}});
 
 	//
-	Object.defineProperty(URL, 'isKnownURL', { value: function(... _args)
+	Object.defineProperty(URL, 'isKnownProtocol', { value: function(... _args)
 	{
 		if(_args.length === 0)
 		{
