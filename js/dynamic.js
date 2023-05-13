@@ -259,7 +259,7 @@
 
 				//
 				result.busy = false;
-			}, { osd: false });
+			}, { osd: false, console: false });
 
 			//
 			if(_args[0] !== true)

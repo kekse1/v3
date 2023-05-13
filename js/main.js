@@ -2,6 +2,13 @@
 {
 
 	//
+	const CONSOLE_SIZE_BEFORE = '10px';
+	const CONSOLE_SIZE_AFTER = '12px';
+	const CONSOLE_COLOR_BEFORE = '#325a6e';
+	const CONSOLE_COLOR_AFTER = { log: null, info: '#5a7828', warn: '#be780a', error: '#b43c1e', debug: '#326e96' };
+	const CONSOLE_DEBUG_PASSTHRU = true;
+
+	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PATH = 'js';
 	const DEFAULT_CHARSET = 'utf-8';
@@ -15,6 +22,104 @@
 
 	//
 	Error.stackTraceLimit = DEFAULT_STACK_TRACE_LIMIT;
+
+	//
+	var SIZE = (CONSOLE_SIZE_BEFORE || '10px');
+	var COLOR = (CONSOLE_COLOR_BEFORE || '#325a6e');
+
+	const _log = console.log.bind(console);
+	const _info = console.info.bind(console);
+	const _warn = console.warn.bind(console);
+	const _error = console.error.bind(console);
+	const _debug = console.debug.bind(console);
+	
+	const getStyle = (_stream) => {
+		var result = 'font-size: ' + SIZE + '; color: ';
+		
+		if(typeof COLOR === 'string')
+		{
+			result += COLOR;
+		}
+		else switch(_stream)
+		{
+			case 'log':
+			case 'info':
+			case 'warn':
+			case 'error':
+			case 'debug':
+				result += (COLOR[_stream.toLowerCase()] || '');
+				break;
+			default:
+				throw new Error('Invalid _stream argument');
+		}
+		
+		return (result + ';');
+	};
+	
+	console.log = (... _args) => {
+		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		{
+			_args[0] = '%c' + _args[0];
+			_args.splice(1, 0, getStyle('log'));
+		}
+		
+		return _log(... _args);
+	};
+	
+	console._log = _log;
+	
+	console.info = (... _args) => {
+		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		{
+			_args[0] = '%c' + _args[0];
+			_args.splice(1, 0, getStyle('info'));
+		}
+
+		return _log(... _args);
+	};
+	
+	console._info = _info;
+	
+	console.warn = (... _args) => {
+		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		{
+			_args[0] = '%c' + _args[0];
+			_args.splice(1, 0, getStyle('warn'));
+		}
+
+		return _log(... _args);
+	};
+	
+	console._warn = _warn;
+	
+	console.error = (... _args) => {
+		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		{
+			_args[0] = '%c' + _args[0];
+			_args.splice(1, 0, getStyle('error'));
+		}
+
+		return _log(... _args);
+	};
+	
+	console._error = _error;
+	
+	console.debug = (... _args) => {
+		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		{
+			_args[0] = '%c' + _args[0];
+			_args.splice(1, 0, getStyle('debug'));
+		}
+		
+		if(CONSOLE_DEBUG_PASSTHRU)
+		{
+			return _log(... _args);
+		}
+		
+		return _debug(... _args);
+	};
+	
+	console._debug = _debug;
 
 	//
 	sleep = (_delay) => {
@@ -402,7 +507,12 @@
 
 		if(typeof options.osd !== 'boolean')
 		{
-			options.osd = true;
+			options.osd = (document.getVariable('ajax-osd', true) && !__INIT);
+		}
+
+		if(typeof options.console !== 'boolean')
+		{
+			options.console = !__INIT;
 		}
 
 		if(! (isInt(options.callbacks) && options.callbacks >= 0))
@@ -781,12 +891,6 @@
 			
 			//
 			responseStatusClass(result);
-			
-			//
-			/*if(result.statusClass === 2 && typeof result.responseText === 'string')
-			{
-				//ajax... stats.
-			}*/
 		}
 		
 		//
@@ -1024,12 +1128,34 @@
 		{
 			return _request.statusClass = null;
 		}
-		else if(!__INIT && _request.options.osd !== false && document.getVariable('ajax-osd', true))
+
+		var result = _request.status.toString()[0];
+
+		if(!result || isNaN(result))
 		{
-			ajax.osd(_request.method, _request.status, _request.statusText, _request.responseURL, null);
+			return _request.statusClass = null;
 		}
-		
-		return _request.statusClass = Number(_request.status.toString()[0]);
+		else
+		{
+			if(_request.options.osd !== false)
+			{
+				ajax.osd(_request.options.method, _request.status, _request.statusText, _request.responseURL, null);
+			}
+
+			if(_request.options.console !== false)
+			{
+				if(result[0] === '2')
+				{
+					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'Success') + ')');
+				}
+				else
+				{
+					console.error('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'Error') + ')');
+				}
+			}
+		}
+
+		return _request.statusClass = Number(result);
 	};
 	
 	const handleRequest = (_request, _options) => {
@@ -1722,9 +1848,12 @@
 				}
 
 				delete require.CACHE[_id];
+				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache was pruned');
 			}
 			else
 			{
+				console.info('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): loaded from cache');
+
 				if(_callback)
 				{
 					_callback({ type: 'require', id: _id,
@@ -1748,16 +1877,14 @@
 			const handle = (_request, _event = null) => {
 				if(_request.statusClass !== 2)
 				{
+					console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): http error [' +  _request.status + ']' + (_request.statusText ? ': ' + _request.statusText : ''));
+
 					if(_throw)
 					{
 						throw new Error('Unable to require(\'' + _request.responseURL + '\' (HTTP ' + _request.status + ': ' + _request.statusText + ')');
 					}
-					else
-					{
-						res = undefined;
-					}
-					
-					return res;
+
+					return _request.status;
 				}
 
 				//
@@ -1781,6 +1908,8 @@
 					module.exports = res;
 					require.CACHE[_id] = res;
 					require.CACHE[_id].__EVAL = true;
+					
+					console.info('[ ' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): ok');
 				}
 				catch(_error)
 				{
@@ -1794,6 +1923,7 @@
 					}
 
 					res = undefined;
+					console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): couldn\'t evaluate');
 				}
 				
 				//setTimeout(() => {
@@ -1871,6 +2001,9 @@
 				require.CACHE[_id].__EVAL = false;
 
 				//
+				console.info('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): ok');
+
+				//
 				if(_callback)
 				{
 					_callback({ id: _id,
@@ -1904,6 +2037,9 @@
 				//
 				HEAD.removeChild(result);
 				delete require.CACHE[_id];
+
+				//
+				console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): error loading <script>');
 
 				//
 				if(_throw)
@@ -1968,6 +2104,7 @@
 			if(_reload)
 			{
 				delete require.CACHE[_id];
+				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache was pruned');
 			}
 			else
 			{
@@ -1986,6 +2123,7 @@
 					window.emit(_id, { type: 'require', id: _id, type: 'json', module: res });
 				}
 
+				console.info('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): loaded from cache');
 				return res;
 			}
 		}
@@ -1995,6 +2133,7 @@
 			
 			if(_event.type === 'failure' || result.statusClass !== 2)
 			{
+				console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): error occured on request');
 				error = new Error('Couldn\'t fetch \'' + _id + '\' (HTTP ' + result.status + ': ' + result.statusText + ')');
 				
 				if(_throw)
@@ -2010,9 +2149,12 @@
 			{
 				module = JSON.parse(result.responseText);
 				error = null;
+				console.info('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): ok');
 			}
 			catch(_error)
 			{
+				console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): couldn\'t parse JSON data');
+
 				if(_throw)
 				{
 					throw _error;
@@ -2056,7 +2198,8 @@
 		var result = ajax(Object.assign({}, _options, {
 			url: _id,
 			callback: (_callback ? callback : null),
-			mime: 'application/json'
+			mime: 'application/json',
+			console: false, osd: false
 		}));
 
 		if(! _callback)
@@ -2080,6 +2223,8 @@
 			__INIT = null;
 			window.emit('ready', { type: 'ready', autoload: _autoload, config });
 			__INIT = false;
+			SIZE = CONSOLE_SIZE_AFTER;
+			COLOR = CONSOLE_COLOR_AFTER;
 		}, 0);
 	};
 

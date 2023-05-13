@@ -980,7 +980,7 @@
 				}
 			};
 			
-			const result = ajax(json, (callback ? rest : null), options);
+			const result = ajax(json, (callback ? rest : null), options, { osd: false, console: !__INIT });
 			
 			if(callback)
 			{
