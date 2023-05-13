@@ -9,6 +9,16 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/test.html
 * https://kekse.biz/v3/
 
+## Documentation...
+I will try to write down the API documentation for my .js modules in the 'docs/' directory as markdown (.md).. ^_^
+Until now here's only this general README.md, so l8rs I'll use: [./docs/modules/README.md](./docs/modules/README.md).
+
+## Configuration
+A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
+via my `{document,element}.{get,set,has,*}Variable()` extensions. Take a look at the 'css/' path in here. :)~
+
+Will be included in the documentation..
+
 ## scripts/
 
 ### prompt.sh
@@ -161,14 +171,6 @@ cosines'; output is either an object with all units in it, or (if defined) one o
 Calculation of word distances, regularily used to suggest nearest commands from a wrong command input.. also supports case-insensitive.
 Just define the input word plus a list of all available commands (if you don't use it for other reasons), maybe also max. two boolean
 types (to define CASE_SENSITIVE or WITH_DISTANCES = [] result, not only the words).
-
-## Documentation...
-I will try to write down the API documentation for my .js modules in the 'docs/' directory as markdown (.md).. ^_^
-Until now here's only this general README.md, so l8rs I'll use: [./docs/modules/README.md](./docs/modules/README.md).
-
-## Configuration
-A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
-via my `{document,element}.{get,set,has,*}Variable()` extensions. Take a look at the 'css/' path in here. :)~
 
 ## Links
 

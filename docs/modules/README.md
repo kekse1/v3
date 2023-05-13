@@ -1,4 +1,24 @@
+# Filesystem structure
+(explain it..)
+
+# Configuration
+
+## css/
+I'm massively using CSS "Custom Properties", also for the most configuration. That's good. :)~
+
+## config.json
+This is the configuration which can't be integrated into css/.. mostly because the 'css.js' and 'extensions.js' first
+need to be require()d. BUT some config variables may still be ported into the css/.. we'll see.
+
 # API Documentation / Modules
+Here I'll explain you the JavaScript modules. Respective it's accessable functions/props/.. etc. via their global
+name export, *not* the private members that can't be reached outside the module/file..
+
+This are on the one hand the direct '=' exports, on the other hand all the 'Object.defineProperty()' to these global
+modules (I'm using this many times, especially for the global module extensions (String, Number, etc..) - and btw.,
+here I'm never using any 'Reflection...' methods or so, jfyi..).
+
+Additionally, of course, some description of the modules will also been written down here. :)~
 
 ## [animation.js.md](animation.js)
 TODO
