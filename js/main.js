@@ -10,6 +10,7 @@
 
 	//
 	const DEFAULT_THROW = true;
+	const DEFAULT_THROW_REQUIRE = false;
 	const DEFAULT_PATH = 'js';
 	const DEFAULT_CHARSET = 'utf-8';
 	const DEFAULT_DEFER = true;
@@ -1503,11 +1504,11 @@
 	};
 
 	//
-	library = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+	library = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require(_id, _callback, _path, _reload, _throw, _options, true);
 	};
 
-	require = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
+	require = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
@@ -1532,7 +1533,7 @@
 
 		if(typeof _throw !== 'boolean')
 		{
-			_throw = DEFAULT_THROW;
+			_throw = DEFAULT_THROW_REQUIRE;
 		}
 
 		if(typeof _eval !== 'boolean')
@@ -1689,11 +1690,11 @@
 		return result;
 	};
 
-	library.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+	library.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 			return require.progress(_callback, _path, _reload, _throw, _options, true);
 	};
 
-	require.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
+	require.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1719,7 +1720,7 @@
 
 		if(typeof _throw !== 'boolean')
 		{
-			_throw = DEFAULT_THROW;
+			_throw = DEFAULT_THROW_REQUIRE;
 		}
 
 		if(typeof _eval !== 'boolean')
@@ -1794,11 +1795,11 @@
 	};
 
 	//
-	library.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options = null) => {
+	library.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require.js(_id, _callback, _reload, _throw, _options, true);
 	};
 
-	require.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options = null, _eval = false) => {
+	require.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -2036,7 +2037,7 @@
 
 			const onerror = () => {
 				//
-				HEAD.removeChild(result);
+				result.parentNode.removeChild(result);
 				delete require.CACHE[_id];
 
 				//
@@ -2082,12 +2083,17 @@
 		result.start = Date.now();
 		result.charset = DEFAULT_CHARSET;
 		result.src = _id;
+		result.id = _id;
+		result.name = 'required';
+
+		//
 		HEAD.appendChild(result);
 
-		return result;
+		//
+		return;
 	};
 
-	require.json = (_id, _callback, _reload = false, _throw = DEFAULT_THROW, _options, _eval) => {
+	require.json = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options, _eval) => {
 		_eval = null;
 
 		if(typeof _callback !== 'function')
