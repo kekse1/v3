@@ -20,151 +20,151 @@ here I'm never using any 'Reflection...' methods or so, jfyi..).
 
 Additionally, of course, some description of the modules will also been written down here. :)~
 
-## [animation.js](animation.js.md)
+## [animation](animation.js.md)
 TODO
 
-## [area.js](area.js.md)
+## [area](area.js.md)
 TODO
 
-## [array.js](array.js.md)
+## [array](array.js.md)
 TODO
 
-## [bionic.js](bionic.js.md)
+## [bionic](bionic.js.md)
 TODO
 
-## [box.context.js](box.context.js)
+## [box.context](box.context.js.md)
 TODO
 
-## [box.grid.js](box.grid.js)
+## [box.grid](box.grid.js.md)
 TODO
 
-## [box.js](box.js)
+## [box](box.js.md)
 TODO
 
-## [box.menu.js](box.menu.js)
+## [box.menu](box.menu.js.md)
 TODO
 
-## [box.osd.js](box.osd.js)
+## [box.osd](box.osd.js.md)
 TODO
 
-## [box.popup.js](box.popup.js)
+## [box.popup](box.popup.js.md)
 TODO
 
-## [box.progress.js](box.progress.js)
+## [box.progress](box.progress.js.md)
 TODO
 
-## [camel.js](camel.js)
+## [camel](camel.js.md)
 TODO
 
-## [code.js](code.js)
+## [code](code.js.md)
 TODO
 
-## [color.js](color.js)
+## [color](color.js.md)
 TODO
 
-## [css.js](css.js)
+## [css](css.js.md)
 TODO
 
-## [css.matrix.js](css.matrix.js)
+## [css.matrix](css.matrix.js.md)
 TODO
 
-## [date.js](date.js)
+## [date](date.js.md)
 TODO
 
-## [document.js](document.js)
+## [document](document.js.md)
 TODO
 
-## [dynamic.js](dynamic.js)
+## [dynamic](dynamic.js.md)
 TODO
 
-## [dynamic.module.js](dynamic.module.js)
+## [dynamic.module](dynamic.module.js.md)
 TODO
 
-## [event.js](event.js)
+## [event](event.js.md)
 TODO
 
-## [extensions.js](extensions.js)
+## [extensions](extensions.js.md)
 TODO
 
-## [favicon.js](favicon.js)
+## [favicon](favicon.js.md)
 TODO
 
-## [geo.js](geo.js)
+## [geo](geo.js.md)
 TODO
 
-## [html.js](html.js)
+## [html](html.js.md)
 TODO
 
-## [id.js](id.js)
+## [id](id.js.md)
 TODO
 
-## [init.js](init.js)
+## [init](init.js.md)
 TODO
 
-## [intl.js](intl.js)
+## [intl](intl.js.md)
 TODO
 
-## [levenshtein.js](levenshtein.js)
+## [levenshtein](levenshtein.js.md)
 TODO
 
-## [location.js](location.js)
+## [location](location.js.md)
 TODO
 
-## [main.js](main.js)
+## [main](main.js.md)
 TODO
 
-## [math.js](math.js)
+## [math](math.js.md)
 TODO
 
-## [math.unit.js](math.unit.js)
+## [math.unit](math.unit.js.md)
 TODO
 
-## [navigator.js](navigator.js)
+## [navigator](navigator.js.md)
 TODO
 
-## [network.js](network.js)
+## [network](network.js.md)
 TODO
 
-## [numeric.js](numeric.js)
+## [numeric](numeric.js.md)
 TODO
 
-## [object.js](object.js)
+## [object](object.js.md)
 TODO
 
-## [page.js](page.js)
+## [page](page.js.md)
 TODO
 
-## [path.js](path.js)
+## [path](path.js.md)
 TODO
 
-## [radix.js](radix.js)
+## [radix](radix.js.md)
 TODO
 
-## [scrolling.js](scrolling.js)
+## [scrolling](scrolling.js.md)
 TODO
 
-## [sort.js](sort.js)
+## [sort](sort.js.md)
 TODO
 
-## [string.js](string.js)
+## [string](string.js.md)
 TODO
 
-## [timing.js](timing.js)
+## [timing](timing.js.md)
 TODO
 
-## [title.js](title.js)
+## [title](title.js.md)
 TODO
 
-## [uniform.js](uniform.js)
+## [uniform](uniform.js.md)
 TODO
 
-## [uptime.js](uptime.js)
+## [uptime](uptime.js.md)
 TODO
 
-## [url.js](url.js)
+## [url](url.js.md)
 TODO
 
-## [window.js](window.js)
+## [window](window.js.md)
 TODO
 
 
