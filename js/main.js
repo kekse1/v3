@@ -65,6 +65,7 @@
 	};
 
 	//
+	__INIT = true;
 	__START = Date.now();
 	window.ready = false;
 
@@ -2031,7 +2032,9 @@
 	//
 	const afterAutoload = (_autoload, _event, _event_original) => {
 		setTimeout(() => {
+			__INIT = null;
 			window.emit('ready', { type: 'ready', autoload: _autoload, config });
+			__INIT = false;
 		}, 0);
 	};
 
