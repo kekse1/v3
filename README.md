@@ -164,7 +164,7 @@ types (to define CASE_SENSITIVE or WITH_DISTANCES = [] result, not only the word
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/' directory as markdown (.md).. ^_^
-Until now here's only this general README.md, so l8rs we'll use the (already prepared) [./docs/modules/README.md](modules.md).
+Until now here's only this general README.md, so l8rs we'll use the (already prepared) ./docs/modules/README.md.
 
 ## Configuration
 A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
