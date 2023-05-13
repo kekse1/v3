@@ -147,3 +147,38 @@ TODO
 ## [window.js.md](window.js)
 TODO
 
+
+
+
+### ChatGPT recommendations for Markdown (.md) documentations
+
+#### Markdown-Struktur
+Verwenden Sie eine klare Struktur, um die Dokumentation leicht lesbar und navigierbar zu machen. Verwenden Sie Überschriften, Absätze, Aufzählungen und Codeblöcke, um den Text übersichtlich zu gestalten.
+
+#### Codebeispiele
+Fügen Sie Codebeispiele hinzu, um die Verwendung der Bibliothek zu veranschaulichen. Verwenden Sie geeignete Formatierung für den Code, z. B. Einrückungen und Syntax-Hervorhebung, um ihn vom normalen Text abzuheben.
+
+#### Installation und Anforderungen
+Geben Sie klare Anweisungen zur Installation der Bibliothek sowie zu den erforderlichen Abhängigkeiten und Versionen an.
+
+#### API-Dokumentation
+Wenn Ihre Bibliothek eine API bereitstellt, dokumentieren Sie die verfügbaren Funktionen, ihre Parameter und Rückgabewerte. Erklären Sie auch die Verwendungszwecke und Besonderheiten jeder Funktion.
+
+#### Beispielprojekte
+Bieten Sie Beispielprojekte oder Tutorials an, um den Benutzern zu zeigen, wie sie Ihre Bibliothek in der Praxis einsetzen können.
+
+#### Dokumentation der Konfigurationsoptionen
+Wenn Ihre Bibliothek konfigurierbar ist, dokumentieren Sie die verfügbaren Optionen und ihre Auswirkungen. Geben Sie Beispiele für die Konfigurationsdateien oder -objekte an.
+
+#### FAQ oder häufig gestellte Fragen
+Sammeln Sie häufig gestellte Fragen und deren Antworten, um den Benutzern bei Problemen oder Unklarheiten zu helfen.
+
+#### Links und Ressourcen
+Fügen Sie Links zu relevanten Ressourcen hinzu, wie z. B. GitHub-Repository, Issue-Tracker, Support-Kanäle oder andere nützliche Artikel oder Tutorials.
+
+#### Versionskontrolle
+Wenn Ihre Bibliothek verschiedene Versionen hat, stellen Sie sicher, dass die Dokumentation für jede Version verfügbar ist. Geben Sie Anweisungen zum Wechseln zwischen den Versionen oder zum Anzeigen der Dokumentation für eine bestimmte Version an.
+
+#### Stil und Formatierung
+Verwenden Sie einen konsistenten Stil und eine kohärente Formatierung für die gesamte Dokumentation. Dies erleichtert das Lesen und Verstehen. Betonen Sie wichtige Informationen und verwenden Sie geeignete Absätze oder Aufzählungen, um den Text zu strukturieren.
+
