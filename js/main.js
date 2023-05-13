@@ -205,7 +205,7 @@
 	};
 
 	//
-	ajax.osd = (_method, _status, _status_text, _callback) => {
+	ajax.osd = (_method, _status, _status_text, _url, _callback) => {
 		//
 		if(! (isInt(_status) && _status >= 0))
 		{
@@ -220,11 +220,21 @@
 		{
 			_method = '';
 		}
+		else
+		{
+			_method = _method.toLowerCase();
+		}
+
+		if(typeof _url !== 'string')
+		{
+			_url = '';
+		}
 		
 		//
 		const options = ajax.osd.getOptions();
 		const textColor = (_status.toString()[0] === '2' ? '' : options.color.error);
 		const statusColor = options.color.status;
+		const urlColor = options.color.url;
 		delete options.color;
 		
 		//
@@ -232,7 +242,7 @@
 		
 		if(_method)
 		{
-			result += `<span style="font-size: ${options.fontSize.method}; color: ${textColor};">(${_method})</span>`;
+			result += `<span style="font-size: ${options.fontSize.method}; color: ${textColor};">${_method}</span>`;
 		}
 		
 		result += `<span style="color: ${textColor}; font-size: 60%;">[</span>`;
@@ -241,7 +251,12 @@
 
 		if(_status_text)
 		{
-			result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};">${_status_text}</span>`;
+			result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};"> ${_status_text}</span>`;
+		}
+
+		if(_url)
+		{
+			result += `<span style="font-size: ${options.fontSize.url}; color: ${urlColor};"><br />${_url}</span>`;
 		}
 		
 		//
@@ -253,11 +268,14 @@
 	
 	ajax.osd.duration = 1200;
 	ajax.osd.timeout = 3600;
-	ajax.osd.fontSize = { status: '80%', statusText: '60%', method: '40%' };
-	ajax.osd.color = { error: 'red', status: 'blue' };
+	ajax.osd.fontSize = { status: '80%', statusText: '60%', method: '40%', url: '20%' };
+	ajax.osd.color = { error: 'red', status: 'blue', url: 'rgb(96, 96, 96)' };
 	
 	ajax.osd.getOptions = () => {
-		const result = { duration: null, timeout: null, fontSize: { status: null, statusText: null, method: null }, color: { error: null, status: null } };
+		const result = { duration: null, timeout: null,
+			fontSize: { status: null, statusText: null, method: null, url: null },
+			color: { error: null, status: null, url: null }
+		};
 		
 		if(document.hasVariable('ajax-osd-duration'))
 		{
@@ -304,6 +322,15 @@
 			result.fontSize.method = ajax.osd.fontSize.method;
 		}
 
+		if(document.hasVariable('ajax-osd-font-size-url'))
+		{
+			result.fontSize.url = document.getVariable('ajax-osd-font-size-url');
+		}
+		else
+		{
+			result.fontSize.url = ajax.osd.fontSize.url;
+		}
+
 		if(document.hasVariable('ajax-osd-color-error'))
 		{
 			result.color.error = document.getVariable('ajax-osd-color-error');
@@ -320,6 +347,15 @@
 		else
 		{
 			result.color.status = ajax.osd.color.status;
+		}
+
+		if(document.hasVariable('ajax-osd-color-url'))
+		{
+			result.color.url = document.getVariable('ajax-osd-color-url');
+		}
+		else
+		{
+			result.color.url = ajax.osd.color.url;
 		}
 		
 		return result;

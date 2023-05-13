@@ -17,6 +17,7 @@
 	--ajax-osd-font-size-method: 25%;
 	--ajax-osd-font-size-status: 65%;
 	--ajax-osd-font-size-status-text: 35%;
+	--ajax-osd-font-size-url: 15%;
 }
 
 @media only screen and (max-width: 359px)

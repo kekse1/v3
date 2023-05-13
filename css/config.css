@@ -70,7 +70,9 @@
 	--ajax-osd-font-size-method: 40%;
 	--ajax-osd-font-size-status: 80%;
 	--ajax-osd-font-size-status-text: 50%;
+	--ajax-osd-font-size-url: 20%;
 	--ajax-osd-color-error: red;
 	--ajax-osd-color-status: blue;
+	--ajax-osd-color-url: yellow;
 }
 
