@@ -130,29 +130,63 @@
 		return radix.getAlphabet(_radix, true, _throw);
 	};
 
-	radix.checkAlphabetSet = (_string_char, _set, _throw = DEFAULT_THROW) => {
-		if(! isString(_string_char, false))
+	radix.checkAlphabetSet = (_string_char_byte, _set_rdx, _throw = DEFAULT_THROW) => {
+		if(typeof _string_char_byte !== 'string')
+		{
+			if(isInt(_string_char_byte))
+			{
+				_string_char_byte = String.fromCodePoint(_string_char_byte);
+			}
+			else if(_throw)
+			{
+				throw new Error('Invalid _string_char_byte argument (no non-empty String)');
+			}
+			else
+			{
+				return null;
+			}
+		}
+		else if(_string_char_byte.length === 0)
 		{
 			if(_throw)
 			{
-				throw new Error('Invalid _string_char argument (no non-empty String)');
+				throw new Error('Expecting correct first argument');
 			}
 
 			return null;
 		}
-		else if(! is(_set, 'Set'))
+
+		if(! is(_set_rdx, 'Set'))
+		{
+			if(isRadix(_set_rdx))
+			{
+				_set_rdx = radix.getAlphabetSet(_set_rdx, _throw);
+			}
+
+			if(! is(_set_rdx, 'Set'))
+			{
+				if(_throw)
+				{
+					throw new Error('Invalid _set_rdx argument (maybe use \'radix.getAlphabetSet(..)\'?)');
+				}
+
+				return null;
+			}
+		}
+		
+		if(_set_rdx.size < 2)
 		{
 			if(_throw)
 			{
-				throw new Error('Invalid _set argument (maybe use \'radix.getAlphabetSet(..)\'?)');
+				throw new Error('The _set_rdx needs at least two elements here');
 			}
 
 			return null;
 		}
 
-		for(var i = 0; i < _string_char.length; ++i)
+		for(var i = 0; i < _string_char_byte.length; ++i)
 		{
-			if(! _set.has(_string_char[i]))
+			if(! _set.has(_string_char_byte[i]))
 			{
 				return false;
 			}

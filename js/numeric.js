@@ -37,6 +37,41 @@
 		return false;
 	}
 
+	isByte = (_item, _radix = null) => {
+		if(isInt(_item))
+		{
+			return (_item >= 0 && _item <= 255);
+		}
+		else if(typeof _item === 'string')
+		{
+			if(typeof _radix === 'boolean')
+			{
+				_radix = (_radix ? 10 : null);
+			}
+
+			if(_radix === 10)
+			{
+				if(! isNaN(_item = Number(_item)))
+				{
+					return ((_item % 1) === 0
+						&& _item >= 0
+						&& _item < 256);
+				}
+			}
+			else if(_radix === 256 || _radix === -257)
+			{
+				return (_item.length <= 1);
+			}
+			else if(_radix !== null)
+			{
+	throw new Error('TODO');
+				return _item.isByte(_radix);
+			}
+		}
+
+		return false;
+	};
+
 	isNumber = (_item, _radix = null) => {
 		if(typeof _item === 'number')
 		{
@@ -155,7 +190,7 @@
 
 			_radix = 10;
 		}
-		else if(_radix === 256)
+		else if(_radix === 256 || _radix === -257)
 		{
 			return true;
 		}

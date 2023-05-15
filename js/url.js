@@ -37,7 +37,7 @@
 	//
 	Object.defineProperty(URL, 'protocols', { get: function()
 	{
-		return [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:', 'ftps:' ];
+		return [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:', 'ftps:', 'ws:', 'wss:' ];
 	}});
 
 	//
