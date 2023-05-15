@@ -125,6 +125,10 @@ A directory for all the menu bar icons (see 'json/menu.json' and 'js/box.menu.js
 I've created them in a size of 512x512px, so I can detail them if necessary. My recommendation for the 'menu[.json]' is
 the 128x128px version - that reduces the initial loading time!!
 
+### 'img/**context**'
+A symlink to the './**menu**/' directory. There'll be a '**box.context.js**' in the future, for own *Context Menu*s,
+and the default context menu will base on the default menu bar. This is why there's this symlink. ^_^
+
 ## '**js**/'
 See the whole 'JavaScript modules' section below, in the 'API Documentation' area.
 
@@ -352,6 +356,11 @@ TODO
 ### menu.json
 See 'js/box.menu.js'..
 TODO
+
+### context.json
+Same as in the '**img**/' directory: my default context menu (future(!) 'box.context.js') will be exactly
+like the main menu, with links to all my 'home/' pages.. so this is just a symlink right now (if it'll be
+replaced or not).
 
 ### version.json
 TODO
