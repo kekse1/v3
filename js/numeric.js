@@ -6,15 +6,7 @@
 
 	//
 	isNumeric = (_item, _radix = null) => {
-		if(typeof _item === 'bigint')
-		{
-			return true;
-		}
-		else if(isNumber(_item))
-		{
-			return true;
-		}
-		else if(typeof _item === 'string')
+		if(typeof _item === 'string')
 		{
 			if(typeof _radix === 'boolean')
 			{
@@ -23,26 +15,44 @@
 
 			if(_radix !== null)
 			{
-				if(_item.isNumber(_radix))
-				{
-					return true;
-				}
-				else if(_item.isBigInt(_radix))
-				{
-					return true;
-				}
+				return _item.isNumeric(_radix);
 			}
+		}
+		else if(isBigInt(_item, null))
+		{
+			return true;
+		}
+		else if(isNumber(_item, null))
+		{
+			return true;
 		}
 
 		return false;
 	}
 
-	isByte = (_item, _radix = null) => {
-		if(isInt(_item))
+	isBigInt = (_item, _radix = null) => {
+		if(typeof _item === 'string')
 		{
-			return (_item >= 0 && _item <= 255);
+			if(typeof _radix === 'boolean')
+			{
+				_radix = (_radix ? 10 : null);
+			}
+
+			if(_radix !== null)
+			{
+				return _item.isBigInt(_radix);
+			}
 		}
-		else if(typeof _item === 'string')
+		else if(typeof _item === 'bigint')
+		{
+			return true;
+		}
+
+		return false;
+	};
+
+	isByte = (_item, _radix = null) => {
+		if(typeof _item === 'string')
 		{
 			if(typeof _radix === 'boolean')
 			{
@@ -68,6 +78,10 @@
 				return _item.isByte(_radix);
 			}
 		}
+		else if(isInt(_item, null))
+		{
+			return (_item >= 0 && _item <= 255);
+		}
 
 		return false;
 	};
@@ -87,6 +101,8 @@
 			{
 				return false;
 			}
+
+			return true;
 		}
 		else if(typeof _item === 'string')
 		{
@@ -99,17 +115,9 @@
 			{
 				return _item.isNumber(_radix);
 			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
 		}
 
-		return true;
+		return false;
 	};
 
 	Object.defineProperty(Number, 'isNumber', { value: isNumber.bind(Number) });
@@ -300,9 +308,27 @@
 
 	Object.defineProperty(String.prototype, 'isBigInt', { value: function(_radix = 10, _throw = DEFAULT_THROW)
 	{
-		if(this.slice(0, -1).isNumber((radix.getSpecialSigns({ radix: _radix, big: true }) + radix.getAlphabet(_radix, false, _throw)), _throw, true))
+		if(this[this.length - 1] !== 'n')
 		{
-			return (this[this.length - 1] === 'n');
+			return false;
+		}
+		else if(this.slice(0, -1).isNumber((radix.getSpecialSigns({ radix: _radix, big: true }) + radix.getAlphabet(_radix, false, _throw)), _throw, true))
+		{
+			return true;
+		}
+
+		return false;
+	}});
+
+	Object.defineProperty(String.prototype, 'isNumeric', { value: function(_radix = 10, _throw = DEFAULT_THROW)
+	{
+		if(this[this.length - 1] === 'n')
+		{
+			return this.isBigInt(_radix, _throw);
+		}
+		else if(this.isNumber(_radix, _throw))
+		{
+			return true;
 		}
 
 		return false;
