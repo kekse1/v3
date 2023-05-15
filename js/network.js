@@ -25,11 +25,7 @@
 		}
 		else if(address.isHost(_string, _throw))
 		{
-			if(address === 'localhost')
-			{
-				return true;
-			}
-			else if(address.startsWith('localhost:'))
+			if(_string === 'localhost' || _string.startsWith('localhost:'))
 			{
 				return true;
 			}
@@ -66,7 +62,6 @@ throw new Error('TODO');
 	};
 
 	address.isIPv4 = address.isIP.v4 = (_string, _radix = 10, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -77,6 +72,10 @@ throw new Error('TODO');
 			return null;
 		}
 		else if(_string.length === 0)
+		{
+			return false;
+		}
+		else if(_string[0] === '.' || _string[_string.length - 1] === '.')
 		{
 			return false;
 		}
@@ -98,7 +97,7 @@ throw new Error('TODO');
 				{
 					return false;
 				}
-				else if(++count > 4)
+				else if(++count > 3)
 				{
 					return false;
 				}
@@ -123,11 +122,10 @@ throw new Error('TODO');
 		}
 		else throw new Error('TODO (*any* radix)');
 
-		return (count > 0);
+		return (count === 1 || count === 3);
 	};
 
 	address.isIPv6 = address.isIP.v6 = (_string, _radix = 16, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -150,6 +148,10 @@ throw new Error('TODO');
 		{
 			return true;
 		}
+		else if(_string[_string.length - 1] === ':')
+		{
+			return false;
+		}
 		else if(! (isInt(_radix) && _radix >= 2 && _radix <= 16) && _radix !== null)
 		{
 			_radix = 16;
@@ -166,20 +168,25 @@ throw new Error('TODO');
 			{
 				if(sub.length === 0)
 				{
-					if(double > -1)
+					if(count === 0 && i < (_string.length - 1) && _string[i + 1] !== ':')
 					{
 						return false;
 					}
-					else if(++count > 8)
+					else if(double > -1)
+					{
+						return false;
+					}
+					else if(++count > 7)
 					{
 						return false;
 					}
 					else
 					{
+						++i;
 						double = count;
 					}
 				}
-				else if(++count > 8)
+				else if(++count > 7)
 				{
 					return false;
 				}
@@ -204,20 +211,15 @@ throw new Error('TODO');
 		}
 		else throw new Error('TODO (*any* radix)');
 
-		if(double > -1)
+		if(count < 7)
 		{
-			//doppelter ':' nur im ersten oder letzten teil..
-			if(double > 1 && double < count)
-			{
-				return false;
-			}
+			return (double > -1);
 		}
 
-		return (count > 0);
+		return true;
 	};
 
 	address.isHost = (_string, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
 		if(typeof _string !== 'string')
 		{
 			if(_throw)

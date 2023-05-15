@@ -186,7 +186,7 @@
 
 		for(var i = 0; i < _string_char_byte.length; ++i)
 		{
-			if(! _set.has(_string_char_byte[i]))
+			if(! _set_rdx.has(_string_char_byte[i]))
 			{
 				return false;
 			}
