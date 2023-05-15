@@ -22,7 +22,7 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 
 ## '[.]/'
 
-* ./**[cgi-bin](#cgi-bin]**/
+* ./**[cgi-bin](#cgi-bin)**/
 * ./**[counter](#counter)**/
 * ./**[css](#css-1)**/
 * ./**[fonts](#fonts)**/
