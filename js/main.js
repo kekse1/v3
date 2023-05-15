@@ -347,7 +347,7 @@
 		delete options.color;
 		
 		//
-		var result = '';
+		var result = `<span style="font-size: ${options.fontSize.url}; color: ${urlColor};">${_url}</span><br>`;
 		
 		if(_method)
 		{
@@ -363,11 +363,6 @@
 			result += `<span style="font-size: ${options.fontSize.statusText}; color: ${textColor};"> ${_status_text}</span>`;
 		}
 
-		if(_url)
-		{
-			result += `<span style="font-size: ${options.fontSize.url}; color: ${urlColor};"><br />${_url}</span>`;
-		}
-		
 		//
 		osd(result, options, _callback, false);
 		
