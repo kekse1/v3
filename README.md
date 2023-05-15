@@ -21,7 +21,8 @@ It covers these sections:
 ## scripts/
 
 ### prompt.sh
-![prompt.sh](docs/prompt.sh.png)
+![$PS1](docs/prompt.sh.png)
+[prompt.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/prompt.sh)
 
 ## Next steps
 

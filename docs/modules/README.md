@@ -22,16 +22,16 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 
 ## '[.]/'
 
-* ./**cgi-bin**/
-* ./**counter**/
-* ./**css**/
-* ./**fonts**/
-* ./**home**/
-* ./**img**/
-* ./**js**/
-* ./**json**/
-* ./**scripts**/
-* ./**status**/
+* ./**[#cgi-bin](cgi-bin)**/
+* ./**[#counter](counter)**/
+* ./**[#css-1](css)**/
+* ./**[#fonts](fonts)**/
+* ./**[#home](home)**/
+* ./**[#img](img)**/
+* ./**[#js](js)**/
+* ./**[#json](json)**/
+* ./**[#scripts](scripts)**/
+* ./**[#status](status)**/
 * ./*favicon.ico*
 * ./*favicon.png*
 * ./*main.css*
@@ -184,9 +184,9 @@ A symlink to '../json/version.json'. You can imagine why this is 'important'. ^_
 ## JavaScript modules
 Here will the modules in 'js/' be explained (TODO), or rather I'll write down here their exports.
 
-'export' just means the public functions or properties for the globally accessable names. Real 'module.exports' can
-be reached via the `library()` function(s) in 'main.js', but this is untested an NOT THAT EFFICIENT (if used without
-callback, which makes async loading possible).
+'export' just means the public functions or properties for the globally accessable names. Real 'module.exports', like
+in [Node.js](https://nodejs.org/) can be used via the `library()` function(s) in 'main.js' (using a parameter to base
+`require()`), but this is yet UNTESTED an not that efficient (if used without callback, which makes async loading possible).
 
 So here follows an overview of functions etc., which are nearly described in their own (.md) files (also linked below),
 whereas every module created it's own (globally accessable) namespace.
@@ -343,6 +343,7 @@ TODO
 
 
 ## JSON modules
+Some helping hands..
 
 ### [autoload](autoload.json.md).json
 TODO
@@ -356,8 +357,10 @@ TODO
 
 ### [entities](entities.json.md).json
 See the link [https://html.spec.whatwg.org/entities.json] (downloaded here), for `String.entities`, used
-mainly by `String.prototype.text`.
-TODO
+mainly by `String.prototype.text`. Will be asynchronously `require()`'d in 'js/string.js'; if not found
+or smth. errornous happened, first the real URL will be tried, and if again an error (or the URL is not
+defined in 'DEFAULT_ENTITIES[_URL]'), the system will use a very reduced version of the five 'pre-defined
+entities' [ '&', '<', '>', '"', "'" ]..
 
 ### [menu](menu.json.md).json
 See also 'js/box.menu.js'.. etc.
