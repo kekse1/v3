@@ -2,12 +2,6 @@
 
 	"url": "https://kekse.biz/",
 
-	"home": {
-		"path": "home",
-		"extension": [ ".html", ".txt" ],
-		"enabled": true
-	},
-
 	"title": [
 		[ "kuchen`s", 7200 ],
 		[ "check one", 2400 ],

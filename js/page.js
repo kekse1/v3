@@ -65,21 +65,12 @@
 
 						if(! found)
 						{
-							//
-							//verlass auf '.htaccess/httpd-conf' @ 'DirectoryIndex'! ^_^
-							//=> set to 'main.html main.txt' first! :)~
-							//
 							_link += '/';
-
-							/*if(link[link.length - 1] === '.')
-							{
-								link += homeConfig.extension[0].substr(1);
-							}
-							else
-							{
-								link += homeConfig.extension[0];
-							}*/
 						}
+					}
+					else
+					{
+						_link += '/';
 					}
 
 					_link = path.resolve(_link);
@@ -88,47 +79,119 @@
 			
 			return _link;
 		}
-		
-		static checkHomeConfig()
-		{
-			if(! isObject(config.home))
-			{
-				return null;
-			}
-			else if(! config.home.enabled)
-			{
-				return null;
-			}
-			else if(typeof config.home.path !== 'string')
-			{
-				return null;
-			}
-			
-			const result = Object.create(null);
-			result.path = config.home.path;
-			
-			if(typeof config.home.extension === 'string')
-			{
-				config.home.extension = [ config.home.extension ];
-			}
 
-			if(isArray(config.home.extension, false))
+		static renderHomePath(_path, _throw = DEFAULT_THROW)
+		{
+			var home = Page.checkHomeConfig();
+			
+			if(home)
 			{
-				for(var i = 0; i < config.home.extension.length; ++i)
+				if((home = home.path)[home.length - 1] !== path.sep)
 				{
-					if(config.home.extension[i][0] !== '.')
-					{
-						config.home.extension[i] = '.' + config.home.extension[i];
-					}
+					home += path.sep;
 				}
-				
-				result.extension = config.home.extension;
 			}
 			else
 			{
-				result.extension = config.home.extension = [];
+				return _path;
 			}
-			
+
+			if(typeof _path === 'string')
+			{
+				_path = path.resolve(_path);
+			}
+			else if(_throw)
+			{
+				throw new Error('Invalid _path argument');
+			}
+			else
+			{
+				return null;
+			}
+
+			if(_path === home)
+			{
+				return '~';
+			}
+			else if(_path.startsWith(home))
+			{
+				return '~' + _path.substr(home.length - 1);
+			}
+
+			return _path;
+		}
+
+		static parseHomePath(_path)
+		{
+			var home = Page.checkHomeConfig();
+
+			if(home)
+			{
+				if((home = home.path)[home.length - 1] !== path.sep)
+				{
+					home += path.sep;
+				}
+			}
+			else
+			{
+				return _path;
+			}
+
+			if(typeof _path === 'string')
+			{
+				_path = path.normalize(_path);
+			}
+			else if(_throw)
+			{
+				throw new Error('Invalid _path argument');
+			}
+			else
+			{
+				return null;
+			}
+
+			if(_path === '~')
+			{
+				return home;
+			}
+			else if(_path.startsWith('~/'))
+			{
+				return home + _path.substr(2);
+			}
+
+			return _path;
+		}
+		
+		static checkHomeConfig()
+		{
+			if(! document.getVariable('home', true))
+			{
+				return null;
+			}
+
+			const result = Object.create(null);
+
+			if(result.path = document.getVariable('home-path'))
+			{
+				result.path = path.resolve(result.path, true);
+			}
+			else
+			{
+				return null;
+			}
+
+			if(isArray(result.extension = document.getVariable('home-extension', true)), false) for(var i = 0; i < result.extension.length; ++i)
+			{
+				if(result.extension[i][0] !== '.')
+				{
+					result.extension[i] = '.' + result.extension[i];
+				}
+			}
+			else
+			{
+				result.extension = null;
+			}
+
 			return result;
 		}
 

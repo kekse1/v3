@@ -10,6 +10,7 @@
 	--ajax-osd-font-size-method: 30%;
 	--ajax-osd-font-size-status: 70%;
 	--ajax-osd-font-size-status-text: 40%;
+	--ajax-osd-font-size-url: 25%;
 }
 
 @media only screen and (max-width: 479px)
@@ -17,7 +18,7 @@
 	--ajax-osd-font-size-method: 25%;
 	--ajax-osd-font-size-status: 65%;
 	--ajax-osd-font-size-status-text: 35%;
-	--ajax-osd-font-size-url: 15%;
+	--ajax-osd-font-size-url: 20%;
 }
 
 @media only screen and (max-width: 359px)
@@ -25,5 +26,6 @@
 	--ajax-osd-font-size-method: 20%;
 	--ajax-osd-font-size-status: 60%;
 	--ajax-osd-font-size-status-text: 30%;
+	--ajax-osd-font-size-url: 15%;
 }
 

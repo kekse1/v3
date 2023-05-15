@@ -338,6 +338,10 @@
 		{
 			_url = '';
 		}
+		else if(Page)
+		{
+			_url = Page.renderHomePath(_url);
+		}
 		
 		//
 		const options = ajax.osd.getOptions();
@@ -1637,6 +1641,8 @@
 		
 		return url.href;
 	};
+
+	require.resolve
 
 	//
 	require.QUEUE = [];
