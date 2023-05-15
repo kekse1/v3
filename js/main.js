@@ -573,6 +573,8 @@
 		}
 
 		delete options.path;
+		
+		options.url = resolvePath(options.url);
 
 		if(typeof options.async !== 'boolean')
 		{
@@ -1504,6 +1506,18 @@
 		id: undefined,
 		exports: undefined
 	};
+	
+	//
+	const resolvePath = (_path) => {
+		const url = new URL(_path, location.href);
+
+		if(url.origin === location.origin)
+		{
+			return url.pathname;
+		}
+		
+		return url.href;
+	};
 
 	//
 	library = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
@@ -1563,11 +1577,7 @@
 
 			return null;
 		}
-		else if(__INIT && !_id.startsWith(DEFAULT_PATH))
-		{
-			_id = DEFAULT_PATH + '/' + _id;
-		}
-//TODO/FIXME/zzzzzzzz/URL normalize!!
+
 		//
 		const mark = (_id[_id.length - 1] === '!');
 		var ext, type;
@@ -1593,6 +1603,15 @@
 		{
 			_id += (ext = '.js');
 			type = 'js';
+		}
+
+		if(__INIT)
+		{
+			_id = resolvePath(DEFAULT_PATH + '/' + _id);
+		}
+		else
+		{
+			_id = resolvePath(_id);
 		}
 
 		if(mark)
