@@ -1,18 +1,11 @@
 *
 {
-	font-family: inherit;
-	cursor: inherit;
 	scroll-behavior: inherit;
 	/*box-sizing: border-box;*/
 }
 
 html
 {
-	cursor: url('../pointer.png') 12 8, auto;
-	font-family: 'Candara', 'Open Sans', 'Source Code Pro', 'sans-serif', 'monospace';
-	color: black;
-	text-shadow: 1px 1px 6px white;
-	font-size: 16px;
 	scroll-behavior: smooth;
 	hyphens: auto;
 }
@@ -324,16 +317,6 @@ a:visited::before, .link:visited::before
 	margin-right: 8px;
 }
 
-.code
-{
-	font-family: 'Source Code Pro', 'monospace';
-}
-
-.text
-{
-	font-family: 'Candara', 'Open Sans', 'sans-serif';
-}
-
 img#FAVICON
 {
 	position: fixed;
@@ -352,43 +335,5 @@ img#FAVICON
 
 #CONTEXT
 {
-}
-
-a-code, .code
-{
-	display: inline;
-	border: 1px solid rgba(255, 255, 255, 0.5);
-	background-color: rgba(224, 224, 224, 0.5);
-	padding: 0;
-	margin: 0;
-	background-color: #708090aa;
-	color: #222;
-	margin-bottom: 4px;
-	padding-bottom: 4px;
-	margin-left: 8px;
-	margin-right: 8px;
-	padding-left: 4px;
-	padding-right: 4px;
-	font-size: 0.8rem;
-	font-family: 'Source Code Pro', monospace;
-	text-shadow: 2px 2px 6px white;
-}
-
-a-code::before, .code::before
-{
-	content: '`';
-	padding-right: 6px;
-	color: #fff;
-	font-weight: 700;
-	text-shadow: 2px 2px 6px black;
-}
-
-a-code::after, .code::after
-{
-	content: '`';
-	padding-left: 6px;
-	color: #fff;
-	font-weight: 700;
-	text-shadow: 2px 2px 6px black;
 }
 

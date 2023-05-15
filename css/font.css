@@ -1,0 +1,23 @@
+html
+{
+	font-family: 'Candara', 'Open Sans', 'Source Code Pro', 'sans-serif', 'monospace';
+	font-size: 16px;
+	color: black;
+	text-shadow: 1px 1px 6px white;
+}
+
+*
+{
+	font-family: inherit;
+}
+
+.code, textarea
+{
+	font-family: 'Source Code Pro', 'monospace';
+}
+
+.text
+{
+	font-family: 'Candara', 'Open Sans', 'sans-serif';
+}
+

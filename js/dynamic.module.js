@@ -13,7 +13,7 @@
 	const DEFAULT_COUNTER_URL = 'status/counter/' + location.host;
 	const DEFAULT_COUNTER_DELAY = (1000 * 60);
 
-	const DEFAULT_UPDATED_URL = 'status/update.text';
+	const DEFAULT_UPDATED_URL = 'status/update.now';
 	const DEFAULT_UPDATED_DELAY = (1000 * 60 * 2);
 
 	const DEFAULT_NULL = '(%)';

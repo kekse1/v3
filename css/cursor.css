@@ -1,0 +1,10 @@
+html
+{
+	cursor: url('../cursor.png') 12 8, auto;
+}
+
+*
+{
+	cursor: inherit;
+}
+

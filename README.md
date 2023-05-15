@@ -52,6 +52,10 @@ Here's my current implementation (which is going to be ported to here!):
 * https://libjs.de/lib/lib.js/ext/numeric.js
 
 ## Features / Modules
+*Partially* (much TODO) described in the [modules.md](./docs/modules/README.md) and it's successors,
+as shortly mentioned above in the 'Documentation' section..
+
+This is just a VERY QUICK OVERVIEW for you, as the documentation's state is smth. like pre-alpha...
 
 #### page.js, box.menu.js; ~home.
 My pages are lying in the 'home/' directory and will be loaded (by the menu atm) by using a hash
@@ -142,7 +146,7 @@ I tried to make them one single char only, .. otherwise we could extend the list
 	--date-gmt: auto;
 ```
 
-#### Cookies
+#### Cookies ('document.js')
 Some extensions to handle cookies better than via 'document.cookie' (manually coded)..
 
 #### Popups
