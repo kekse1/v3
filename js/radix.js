@@ -4,7 +4,7 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_CHECK = true;
-	const DEFAULT_EXTENDED_ALPHABET = true;
+	const DEFAULT_EXTENDED_ALPHABET = false;//true;//TODO erstmal radix conversion implementieren, nochmal..
 
 	//
 	radix = { alphabet: Object.create(null) };

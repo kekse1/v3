@@ -26,12 +26,14 @@
 		{
 			return true;
 		}
-		else if(isRadix(_radix) && typeof _item === 'string' && _item.length > 0)
+		else if(_radix !== null && typeof _item === 'string' && _item.length > 0)
 		{
-			if(_item.isNumber(_radix))
+			if(_radix === 10)
 			{
-				return true;
+				return !isNaN(_item);
 			}
+
+			return !isNaN(parseFloat(_item, _radix));
 		}
 
 		return false;
@@ -135,7 +137,7 @@
 			_int = false;
 		}
 
-		if(! isRadix(_radix))
+		if(! isRadix(_radix, true))
 		{
 			if(_throw)
 			{
@@ -200,6 +202,21 @@
 			return null;
 		}
 
+		var text;
+
+		if(alphabetString.isLowerCase)
+		{
+			text = this.toLowerCase();
+		}
+		else if(alphabetString.isUpperCase)
+		{
+			text = this.toUpperCase();
+		}
+		else
+		{
+			text = this.valueOf();
+		}
+
 		const alphabetSet = new Set();
 
 		for(var i = 0; i < alphabetString.length; ++i)
@@ -207,9 +224,9 @@
 			alphabetSet.add(alphabetString[i]);
 		}
 
-		for(var i = 0; i < this.length; ++i)
+		for(var i = 0; i < text.length; ++i)
 		{
-			if(! radix.checkAlphabetSet(this[i], alphabetSet, _throw))
+			if(! radix.checkAlphabetSet(text[i], alphabetSet, _throw))
 			{
 				return false;
 			}

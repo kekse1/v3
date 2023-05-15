@@ -1579,7 +1579,6 @@
 		}
 		else if(_path.length > 0 && !(_id.startsWith(_path)))
 		{
-			//TODO: (if!)path.resolve() w/ '~' $HOME..
 			if(_id[0] === '/')
 			{
 				_path = '';
@@ -1593,10 +1592,7 @@
 				_path = '';
 			}
 
-			if(addPath)
-			{
-				_id = (_path + '/' + _id);
-			}
+			_id = (_path + '/' + _id);
 		}
 
 		//

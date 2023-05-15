@@ -10,6 +10,8 @@
 
 	//
 	css.url = (_string, _throw = DEFAULT_THROW) => {
+return 'favicon.png';
+throw new Error('TODO');
 		if(! isString(_string, false))
 		{
 			if(_throw)
@@ -28,8 +30,7 @@
 
 			return null;//_string;
 		}
-return 'favicon.png';
-throw new Error('TODO');
+		//
 	};
 
 	//
