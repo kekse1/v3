@@ -132,6 +132,10 @@
       <directory name="TechniSat TECHNIMAX SR1">
       </directory>
     </directory>
+    <directory name="SDR">
+      <directory name="Realtek RTL2832U">
+      </directory>
+    </directory>
     <directory name="Smartphone">
       <directory name="HUAWEI Mate20 Pro">
         <directory name="WWW">

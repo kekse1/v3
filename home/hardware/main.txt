@@ -69,6 +69,8 @@ hardware/
 │   └── DUR-line SF 4000 BT
 ├── Saugroboter
 │   └── TechniSat TECHNIMAX SR1
+├── SDR
+│   └── Realtek RTL2832U
 ├── Smartphone
 │   ├── HUAWEI Mate20 Pro
 │   │   └── WWW

@@ -131,6 +131,10 @@
       {"type":"directory","name":"TechniSat TECHNIMAX SR1","contents":[
       ]}
     ]},
+    {"type":"directory","name":"SDR","contents":[
+      {"type":"directory","name":"Realtek RTL2832U","contents":[
+      ]}
+    ]},
     {"type":"directory","name":"Smartphone","contents":[
       {"type":"directory","name":"HUAWEI Mate20 Pro","contents":[
         {"type":"directory","name":"WWW","contents":[
