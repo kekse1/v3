@@ -50,7 +50,6 @@
 	"page",
 
 	"box",
-	"box.uniform",
 	"box.osd",
 	"box.popup",
 	"box.dialog",
