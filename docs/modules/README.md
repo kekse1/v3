@@ -165,7 +165,6 @@ A symlink to the '../counter/' directory (see above).
 
 ### './update.now'
 This is just for an info in the status bar (on the bottom), when the last update has been commited.
-I'm going to replace the current text format to a timestamp, so I can .format() it.
 A script is also ready for this (currently my 'git' shell scripts do it): 'scripts/update.sh'.
 
 ### './version.json'
