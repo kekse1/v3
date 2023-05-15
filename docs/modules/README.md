@@ -35,45 +35,45 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 * ./*main.js*
 * ./*cursor.png*
 
-## 'cgi-bin/'
+## '**cgi-bin**/'
 With './php/', to which we also could symlink in the base directory, if wanted.
 Most important file in there is the 'cgi-bin/php/*counter.php*'!
 
-## 'counter/'
+## '**counter**/'
 You better `chmod 1777` it. There must be a symlink 'cgi-bin/php/counter' to here.
 Every hostname/domain will use on file in there. The .php script is 'cgi-bin/php/*counter.php*'.
 
-## 'css/'
+## '**css**/'
 Maybe of interest: for a 'responsive design' (so mobile browser access, etc.) there should be only special files,
 which are for the regular '.css' files itself, which describe something, and a '*.responsive.css' version with
 e.g. `@media only screen and (max-width: 767px)` etc.
 
-### './main.css'
+### 'css/**main.css**'
 This is symlinked in the base/root directory, and utilizes the `@import` 'at rule'. So there's only one
 `<link rel="stylesheet" ...>` necessary in the 'main.html'.
 
-### './font{,s}.css'
+### 'css/**font{,s}.css**'
 See also the section about the 'fonts/' directory. With pre-configured my three favorite web fonts.
 
-### './cursor.css'
+### 'css/**cursor.css**'
 Shortly described in the 'img/' section below. My favorite default cursor.
 
 It's worth to mention that every element (css `*`) is configured with `cursor: inherit;`, so the default cursor is
 inherited by default, BUT if another default cursor needs to be used (resize, move, grab, etc.), it also *will* be
 used then. So not everywhere! ;)~
 
-### './system.css'
+### 'css/**system.css**'
 Most basic design for this library and sites, etc.
 
-### './date.css'
+### 'css/**date.css**'
 This is especially for my 'js/date.js' extensions, right now with own `Date..format()` etc.
 So here are atm the default pre-defined formats and the format which is used as default one (used when no argument(s)
 defined at `.format()`).
 
-### './scrollbars.css'
+### 'css/**scrollbars.css**'
 My pre-configured favorite look.
 
-### './*'
+### 'css/*****'
 Just look for yourself which files are also here. Partially described on top in the 'Configuration' section.
 OK, here's the list of my *current* configuration:
 
@@ -86,7 +86,7 @@ OK, here's the list of my *current* configuration:
 * font.css
 * fonts.css
 * local.css
-* *main.css* (symlinked in the base/root directory, and the only one to be `<link>`'d in the 'main.html'!)
+* **main.css** (symlinked in the base/root directory, and the only one to be `<link>`'d in the '/**main.html**'!)
 * osd.css
 * page.css
 * scrollbars.css
@@ -94,12 +94,12 @@ OK, here's the list of my *current* configuration:
 * system.responsive.css
 * variables.css
 
-## 'fonts/'
+## '**fonts**/'
 Holding my most favorite web fonts (found them on Google Fonts). As there were CORS errors when loading them from the
 Google servers, I've decided to download them, etc.. so I've extraced all the '.css' for them, and put them into one
 'css/fonts.css' file.
 
-## 'home/'
+## '**home**/'
 Your sites/pages, mainly '.html' and '.txt'. These should be your contents itself, which are being loaded via the
 `location.hash` like `#~home`. My advice to you is: link them this way, or even with trailing '/' character, so they're
 are loaded with 'DirectoryIndex' in mind.. so you can choose better, instead of directly linking to files with extensions..
@@ -107,68 +107,68 @@ are loaded with 'DirectoryIndex' in mind.. so you can choose better, instead of 
 So, I created a directory for every site in here, and the content itself as 'home.{txt,html}' - whereas 'home' is configured
 as first 'DirectoryIndex' in my '.htaccess' (which you can create/modify also in this directory, maybe even the root/base dir).
 
-## 'img/'
+## '**img**/'
 A place for all your images. Feel free (or rather forced ;) to create sub directories for your reasons, or even outside
 the library a whole new root/base directory for your own. BUT it's not recommended to create it in 'home/', which would
 be aside your sites.. the 'home/' is intended for mainly '.html' and '.txt'..
 
-### './favicon.{ico,png}'
+### 'img/**favicon.{ico,png}**'
 Should be present for *any* website. I recommend the size of 256x256px. And there should also be symlinks to 'img/..'
 in the root and base path.
 
-### './cursor.png'
+### 'img/**cursor.png**'
 My favorite default cursor, looks beauty (referenced in 'css/cursor.css': `cursor: url('../cursor.png') 12 8, auto;`).
 
-### './img/menu/'
+### 'img/**menu**/'
 A directory for all the menu bar icons (see 'json/menu.json' and 'js/box.menu.js').
 
 I've created them in a size of 512x512px, so I can detail them if necessary. My recommendation for the 'menu[.json]' is
 the 128x128px version - that reduces the initial loading time!!
 
-## 'js/'
+## '**js**/'
 See the whole 'JavaScript modules' section below, in the 'API Documentation' area.
 
-## 'json/'
+## '**json**/'
 See the whole 'JSON modules' section on the bottom, below the whole 'JavaScript modules' section, all in the
 'API Documentation' section.
 
-## 'scripts/'
+## '**scripts**/'
 At the moment there are also the following scripts (which you could delete), but the most important should be the
 'update.sh' for 'status/update.now', which is used to show a 'Last Update' info in the status bar (on the bottom).
 
-### './update.sh'
+### 'scripts/**update.sh**'
 Described above (in this 'scripts/' sub section).
 
-### './counter.php'
+### 'scripts/**counter.php**'
 Can be ignored or deleted. Just a copy of 'cgi-bin/php/counter.php'; this file here won't be really used, it's just
 for a quick review for you, as github.com doesn't manage to show symlink contents (you just see the link target itself).
 
-### './prompt.sh'
+### 'scripts/**prompt.sh**'
 I've created a linux/bash '$PS1' prompt which seems nice for me. You can use it, if you want! :)~
 I really like this one!
 
-### './tree.sh'
+### 'scripts/**tree.sh**'
 More for myself, as I'm managing a '~/git/hardware/' archive of my possession (for drivers, manuals, or just a
 list and the prices, etc.). For this reason I've created my own './home/hardware/' page, with text/plain output
 of `tree (..)`.
 
-### './up2date.sh'
+### 'scripts/**up2date.sh**'
 This is for Debian, Gentoo and Termux linux. All in one script for `emerge` and `apt` updates, etc.
 
-### './update.sh' (important for *you*!)
-See below: 'status/update.now' (this script created this file).
+### 'scripts/**update.sh**'
+**Important for *you*!** See below: 'status/update.now' (this script created this file).
 
-## 'status/'
+## '**status**/'
 The files in here are periodically handled by the 'js/dynamic{,.module}.js'. As follows..
 
-### './counter/'
+### 'status/**counter**/'
 A symlink to the '../counter/' directory (see above).
 
-### './update.now'
+### 'status/**update.now**'
 This is just for an info in the status bar (on the bottom), when the last update has been commited.
 A script is also ready for this (currently my 'git' shell scripts do it): 'scripts/update.sh'.
 
-### './version.json'
+### 'status/**version.json**'
 A symlink to '../json/version.json'. You can imagine why this is 'important'. ^_^
 
 # API Documentation
@@ -355,3 +355,4 @@ TODO
 
 ### version.json
 TODO
+
