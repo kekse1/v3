@@ -1,9 +1,13 @@
 # Configuration
 
 ## css/
-I'm massively using CSS "Custom Properties", also for the most configuration. That's good. :)~
+I'm massively using 'CSS Custom Properties', also for the most configuration. That's good. :)~
 Some are located in the 'config{,.responsive}.css', other (less important ones) in the 'variables.css',
 the rest is spread over all the 'css/*.css'..
+
+It uses, btw, **my own** `...{get,set,has,*}Variable(..)` extensions (of 'js/extensions.js'), to handle
+these 'CSS Custom Properties', and also the 'css.parse()' etc. of 'js/css.js' (which is going to be re-
+written from scratch, very soon!).
 
 ## config.json
 This is the configuration which can't be integrated into css/.. mostly because the 'css.js' and 'extensions.js' first
@@ -175,7 +179,7 @@ A script is also ready for this (currently my 'git' shell scripts do it): 'scrip
 ### 'status/**version.json**'
 A symlink to '../json/version.json'. You can imagine why this is 'important'. ^_^
 
-# API Documentation
+# API documentation
 
 ## JavaScript modules
 Here will the modules in 'js/' be explained (TODO), or rather I'll write down here their exports.

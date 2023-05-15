@@ -13,11 +13,10 @@ The real/full version of all the JavaScript's is available in the
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
 as markdown (.md).. until now here's only this general README.md, l8rs it'll be the [modules.md](./docs/modules/README.md).
 
-## Configuration
-A bit is still in a 'config.json' file, but the most parts are already integrated as "Custom CSS Properties" (which I'm accessing
-via my `{document,element}.{get,set,has,*}Variable()` extensions. Take a look at the 'css/' path in here. :)~
-
-Will be included in the documentation..
+It covers these sections:
+* [Configuration](./docs/modules/README.md#Configuration)
+* [Filesystem Structure](./docs/modules/README.md#Filesystem-structure)
+* [API Documentation](./docs/modules/README.md#API-documentation)
 
 ## scripts/
 
