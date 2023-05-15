@@ -1,6 +1,6 @@
 # Index
 * [Configuration](#Configuration)
-* [Filesystem structure)(#filesystem-structure)
+* [Filesystem structure](#filesystem-structure)
 * [API documentation](#api-documentation)
 
 # Configuration
