@@ -3,9 +3,7 @@
 
 	//
 	const DEFAULT_THROW = true;
-	const DEFAULT_HREF = false;
-	const DEFAULT_BOOL = true;
-	const DEFAULT_RESOLVE = true;
+	const DEFAULT_ORIGIN = false;
 
 	//
 	path = { sep: '/', delim: ':' };
@@ -57,84 +55,47 @@
 
 		return false;
 	};
-
-	const checkURL = (_string_url, _resolve = DEFAULT_RESOLVE, _throw = DEFAULT_THROW) => {
-		const result = Object.create(null);
-
-		if(was(_string_url, 'URL'))
+	
+	path.resolve = (_path, _origin = DEFAULT_ORIGIN, _throw = DEFAULT_THROW) => {
+		if(is(_path, 'URL'))
 		{
-			result.url = _string_url;
-			result.path = _string_url.pathname;
+			_path = _path.pathname;
 		}
-		else if(typeof _string_url !== 'string')
+		else if(typeof _path !== 'string')
 		{
 			if(_throw)
 			{
-				throw new Error('Invalid argument');
+				throw new Error('Invalid _path argument');
 			}
-			else if(_throw === null)
-			{
-				return null;
-			}
-			else
-			{
-				result.url = null;
-				result.path = null;
-			}
-
-			return result;
+			
+			return null;
 		}
-		else if(_string_url.length === 0)
+		
+		const url = new URL(_path, location.href);
+		
+		if(_origin && url.origin !== location.origin)
 		{
-			(result.url = new URL(_string_url, new URL(_resolve !== false ? location.href : location.origin))).search = '';
-			result.url.hash = '';
-			result.url.pathname = '';
-			result.path = '';
+			return url.href;
 		}
-		else if(result.url = tryURL(_string_url, _resolve, false))
-		{
-			result.path = result.url.pathname;
-		}
-		else
-		{
-			result.url = new URL(result.path = _string_url, new URL(_resolve !== false ? location.href : location.origin));
-		}
-
-		result.path = decodeURIComponent(result.path);
-		return result;
+		
+		return url.pathname;
 	};
 
-	const tryURL = (_string, _resolve = DEFAULT_RESOLVE, _bool = DEFAULT_BOOL) => {
-		var result;
-
-		try
+	path.normalize = (_path) => {
+		if(is(_path, 'URL'))
 		{
-			result = new URL(_string, new URL((_resolve !== false ? location.href : location.origin)));
-
-			if(_bool)
-			{
-				result = true;
-			}
+			return _path.pathname;
 		}
-		catch(_error)
+		else if(typeof _path !== 'string')
 		{
-			if(_bool)
+			if(_throw)
 			{
-				result = false;
+				throw new Error('Invalid _path argument');
 			}
-			else
-			{
-				result = null;
-			}
+			
+			return null;
 		}
-
-		return result;
-	};
-
-	//
-	const normalize = (_path) => {
-		//
-		if(_path.length === 0)
+		else if(_path.length === 0)
 		{
 			return '.';
 		}
@@ -192,62 +153,8 @@
 		return result.join('/');
 	};
 
-	path.normalize = (_path, _resolve = false, _throw = DEFAULT_THROW) => {
-		//
-		if(typeof _path !== 'string')
-		{
-			if(_throw)
-			{
-				throw new Error('Invalid _path argument');
-			}
-
-			return null;
-		}
-		else if(_path.length === 0)
-		{
-			return '.';
-		}
-		else if(! path.isAddress(_path))
-		{
-			return normalize(_path);
-		}
-
-		//
-		const address = checkURL(_path, _resolve, _throw);
-		_path = normalize(address.path);
-
-		//
-		if(address.url.origin === location.origin)
-		{
-			address.url = new URL(_path, new URL((_resolve !== false ? location.href : location.origin)));
-			address.path = address.url.pathname;
-		}
-		else
-		{
-			address.url.pathname = _path;
-			address.path = _path;
-		}
-
-		//
-		var result;
-
-		if(address.url.origin !== location.origin || _resolve === null)
-		{
-			result = address.url.href;
-		}
-		else
-		{
-			result = address.path;
-		}
-
-		//
-		return result;
-	};
-	
-	path.resolve = (_path, _href = DEFAULT_HREF, _throw = DEFAULT_THROW) => {
-		return path.normalize(_path, (_href ? null : true), _throw);
-	};
-
+	//
+	//TODO from here below..
 	//
 	path.dirname = (_path) => {
 		if(typeof _path !== 'string')

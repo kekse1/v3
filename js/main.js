@@ -574,7 +574,7 @@
 
 		delete options.path;
 		
-		options.url = resolvePath(options.url);
+		options.url = require.resolve(options.url);
 
 		if(typeof options.async !== 'boolean')
 		{
@@ -1506,18 +1506,6 @@
 		id: undefined,
 		exports: undefined
 	};
-	
-	//
-	const resolvePath = (_path) => {
-		const url = new URL(_path, location.href);
-
-		if(url.origin === location.origin)
-		{
-			return url.pathname;
-		}
-		
-		return url.href;
-	};
 
 	//
 	library = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
@@ -1607,11 +1595,11 @@
 
 		if(__INIT)
 		{
-			_id = resolvePath(DEFAULT_PATH + '/' + _id);
+			_id = require.resolve(DEFAULT_PATH + '/' + _id);
 		}
 		else
 		{
-			_id = resolvePath(_id);
+			_id = require.resolve(_id);
 		}
 
 		if(mark)
@@ -1638,6 +1626,18 @@
 
 		//
 		return require[type](_id, _callback, _reload, _throw, _options, _eval);
+	};
+
+	//
+	require.resolve = (_path) => {
+		const url = new URL(_path, location.href);
+
+		if(url.origin === location.origin)
+		{
+			return url.pathname;
+		}
+		
+		return url.href;
 	};
 
 	//
