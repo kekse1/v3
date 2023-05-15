@@ -13,27 +13,27 @@ need to be require()d. BUT some config variables may still be ported into the cs
 This is the base filesystem structure which is really required (can reside in your web root and even a sub directory;
 this is tested, and it works great).
 
-After the following overview I'm going to explain you everything. And by the way: the *bold* names are real directories
-or files, the other ones are just symlinks ('symbolic links' ;).
+After the following overview I'm going to explain you everything. And by the way: the **bold** names are real
+directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 
 ## '[.]/'
 
-* ./*cgi-bin*/
-* ./*counter*/
-* ./*css*/
-* ./*fonts*/
-* ./*home*/
-* ./*img*/
-* ./*js*/
-* ./*json*/
-* ./*scripts*/
-* ./*status*/
-* ./favicon.ico
-* ./favicon.png
+* ./**cgi-bin**/
+* ./**counter**/
+* ./**css**/
+* ./**fonts**/
+* ./**home**/
+* ./**img**/
+* ./**js**/
+* ./**json**/
+* ./**scripts**/
+* ./**status**/
+* ./*favicon.ico*
+* ./*favicon.png*
 * ./*main.css*
-* ./*main.html*
+* ./**main.html**
 * ./*main.js*
-* ./cursor.png
+* ./*cursor.png*
 
 ## 'cgi-bin/'
 With './php/', to which we also could symlink in the base directory, if wanted.
