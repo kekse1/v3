@@ -5,6 +5,14 @@ v3
 The real/full version of all the JavaScript's is available in the
 [version.json](https://raw.githubusercontent.com/kekse1/kekse.biz/main/json/version.json).
 
+# Index
+* [Preview](#preview)
+* [Documentation](#documentation)
+* [scripts/](#scripts)
+* [Next steps](#next-steps)
+* [Features / Modules](#features--modules)
+* [Links](#links)
+
 ## Preview
 * https://kekse.biz/v3/test.html
 * https://kekse.biz/v3/
@@ -22,9 +30,14 @@ It covers these sections:
 
 ### prompt.sh
 ![$PS1](docs/prompt.sh.png)
-[prompt.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/prompt.sh)
+* [prompt.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/prompt.sh)
+* [up2date.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/up2date.sh)
+* [**update.sh**](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/update.sh)
 
 ## Next steps
+
+#### Documentation..
+.. of the whole API! Already began at [modules.md](./docs/modules/README.md).
 
 #### Responsible Design
 That's how I want to design everything, to get it more 'responsible', too. Automatically align/size

@@ -1,3 +1,8 @@
+# Index
+* [Configuration](#Configuration)
+* [Filesystem structure)(#filesystem-structure)
+* [API documentation](#api-documentation)
+
 # Configuration
 
 ## css/
@@ -134,11 +139,12 @@ A symlink to the './**menu**/' directory. There'll be a '**box.context.js**' in 
 and the default context menu will base on the default menu bar. This is why there's this symlink. ^_^
 
 ## '**js**/'
-See the whole '**JavaScript modules**' section below, in the '**API Documentation**' area.
+See the whole '**[JavaScript modules](#javascript-modules)**' section below, in the
+'**[API Documentation](#api-documentation)**' area.
 
 ## '**json**/'
-See the whole '**JSON modules**' section on the bottom, below the whole '**JavaScript modules**' section, all in the
-'**API Documentation**' section..
+See the whole '**JSON modules**' section on the bottom, below the whole
+'**[JSON modules](#json-modules)**' section, all in the '**[API Documentation](#api-documentation)**' section..
 
 ## '**scripts**/'
 At the moment there are also the following scripts (which you could delete), but the most important should be the
