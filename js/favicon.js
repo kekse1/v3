@@ -26,7 +26,7 @@
 			{
 				if(_throw)
 				{
-					throw new Error('Favicon ' + css.getUrl(document.getVariable('favicon-image', true)).quote('\'') + ' couldn\'t be loaded');
+					throw new Error('Favicon ' + (css.url(document.getVariable('favicon-image'), false) || '').quote('\'') + ' couldn\'t be loaded');
 				}
 			}
 			else
@@ -114,7 +114,7 @@
 		image.animation = null;
 		image.addEventListener('load', callback, { once: true });
 		image.addEventListener('error', callback, { once: true });
-		image.src = css.getUrl(document.getVariable('favicon-image', true));
+		image.src = css.url(document.getVariable('favicon-image'));
 		image.draggable = false;
 		
 		//

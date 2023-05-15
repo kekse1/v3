@@ -26,14 +26,12 @@
 		{
 			return true;
 		}
-		else if(_radix !== null && typeof _item === 'string' && _item.length > 0)
+		else if(isRadix(_radix) && typeof _item === 'string' && _item.length > 0)
 		{
-			if(_radix === 10)
+			if(_item.isNumber(_radix))
 			{
-				return !isNaN(_item);
+				return true;
 			}
-
-			return !isNaN(parseFloat(_item, _radix));
 		}
 
 		return false;
@@ -137,7 +135,7 @@
 			_int = false;
 		}
 
-		if(! isRadix(_radix, true))
+		if(! isRadix(_radix))
 		{
 			if(_throw)
 			{

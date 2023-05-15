@@ -13,9 +13,8 @@
 	const DEFAULT_COUNTER_URL = 'status/counter/' + location.host;
 	const DEFAULT_COUNTER_DELAY = (1000 * 60);
 
-	const DEFAULT_UPDATED_URL = 'status/update.now';
+	const DEFAULT_UPDATED_URL = 'status/update.text';
 	const DEFAULT_UPDATED_DELAY = (1000 * 60 * 2);
-	const DEFAULT_UPDATED_FORMAT = 'text';
 
 	const DEFAULT_NULL = '(%)';
 	
@@ -145,15 +144,9 @@
 			{
 				return onfailure();
 			}
-
-			if(isNaN(_request.responseText))
-			{
-				return onfailure();
-			}
-
-			const updated = new Date(Number(_request.responseText)).format(DEFAULT_UPDATED_FORMAT);
-			const lastUpdateDataPopup = '<span style="font-size: 1.2rem; text-decoration: underline;">Last Update:</span><br><span style="font-size: 1.4rem;">' + updated + '</span>';
-			const lastUpdateDataUpdate = '<span style="font-size: 0.7rem; text-decoration: underline;">Updated</span><span style="font-size: 0.9rem;"> ' + updated + '</span>';
+			
+			const lastUpdateDataPopup = '<span style="font-size: 1.2rem; text-decoration: underline;">Last Update:</span><br><span style="font-size: 1.4rem;">' + _request.responseText + '</span>';
+			const lastUpdateDataUpdate = '<span style="font-size: 0.7rem; text-decoration: underline;">Updated</span><span style="font-size: 0.9rem;"> ' + _request.responseText + '</span>';
 			
 			setHTML(UPDATED, lastUpdateDataUpdate, true);
 			
@@ -168,8 +161,6 @@
 			{
 				delete FAVICON.dataset.popup;
 			}
-
-			setHTML(UPDATED, '[' + _event.status + '] ' + (_event.statusText || 'Error'));
 		};
 
 		switch(_event.type)

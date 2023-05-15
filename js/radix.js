@@ -16,7 +16,7 @@
 	radix.alphabet.whole = (radix.alphabet.decimal + radix.alphabet.chars);
 
 	//
-	isRadix = radix.isValid = (_value, _extended = DEFAULT_EXTENDED_ALPHABET) => {
+	isRadix = radix.isValid = radix.isRadix = (_value, _extended = DEFAULT_EXTENDED_ALPHABET) => {
 		if(typeof _extended !== 'boolean')
 		{
 			_extended = DEFAULT_EXTENDED_ALPHABET;

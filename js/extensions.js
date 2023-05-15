@@ -757,11 +757,10 @@
 			_ext = '';
 		}
 		
-		if(typeof _value !== 'string')
-		{
-			_value = css.toString(_value);
-		}
-		
+		//
+		_value = css.render(_value);
+
+		//
 		const result = Object.create(null);
 		var item;
 		

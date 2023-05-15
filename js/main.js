@@ -2,8 +2,8 @@
 {
 
 	//
-	const CONSOLE_SIZE_BEFORE = '10px';
-	const CONSOLE_SIZE_AFTER = '12px';
+	const CONSOLE_SIZE_BEFORE = '80%';
+	const CONSOLE_SIZE_AFTER = '120%';
 	const CONSOLE_COLOR_BEFORE = '#325a6e';
 	const CONSOLE_COLOR_AFTER = { log: null, info: '#5a7828', warn: '#be780a', error: '#b43c1e', debug: '#326e96' };
 	const CONSOLE_DEBUG_PASSTHRU = true;
@@ -58,7 +58,7 @@
 	};
 	
 	console.log = (... _args) => {
-		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
 			_args.splice(1, 0, getStyle('log'));
@@ -70,7 +70,7 @@
 	console._log = _log;
 	
 	console.info = (... _args) => {
-		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
 			_args.splice(1, 0, getStyle('info'));
@@ -82,7 +82,7 @@
 	console._info = _info;
 	
 	console.warn = (... _args) => {
-		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
 			_args.splice(1, 0, getStyle('warn'));
@@ -94,7 +94,7 @@
 	console._warn = _warn;
 	
 	console.error = (... _args) => {
-		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
 			_args.splice(1, 0, getStyle('error'));
@@ -106,7 +106,7 @@
 	console._error = _error;
 	
 	console.debug = (... _args) => {
-		if(typeof _args[0] === 'string' && !_args[0].includes('%c'))
+		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
 			_args.splice(1, 0, getStyle('debug'));
@@ -319,7 +319,7 @@
 		}
 		else if(typeof _status_text !== 'string' || _status_text.length === 0)
 		{
-			_status_text = (_status.toString()[0] === '2' ? 'Success' : 'Error');
+			_status_text = (_status.toString()[0] === '2' ? 'OK' : 'Error');
 		}
 		
 		if(typeof _method !== 'string')
@@ -1147,7 +1147,7 @@
 			{
 				if(result[0] === '2')
 				{
-					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'Success') + ')');
+					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'OK') + ')');
 				}
 				else
 				{
@@ -1504,11 +1504,11 @@
 	};
 
 	//
-	library = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
+	library = (_id, _callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require(_id, _callback, _path, _reload, _throw, _options, true);
 	};
 
-	require = (_id, _callback, _path = DEFAULT_PATH, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require = (_id, _callback, _path = (__INIT ? DEFAULT_PATH : ''), _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
@@ -1520,9 +1520,13 @@
 			{
 				_path = '';
 			}
-			else
+			else if(__INIT)
 			{
 				_path = DEFAULT_PATH;
+			}
+			else
+			{
+				_path = '';
 			}
 		}
 
@@ -1575,24 +1579,18 @@
 		}
 		else if(_path.length > 0 && !(_id.startsWith(_path)))
 		{
-			var addPath;
-
 			//TODO: (if!)path.resolve() w/ '~' $HOME..
 			if(_id[0] === '/')
 			{
-				addPath = false;
+				_path = '';
 			}
 			else if(_id.startsWith('./') || _id.startsWith('../'))
 			{
-				addPath = false;
+				_path = '';
 			}
-			else if(URL.protocols)
+			else if(URL.protocols && _id.startsWith(false, ... URL.protocols))
 			{
-				addPath = !!(_path.startsWith(false, ... URL.protocols));
-			}
-			else
-			{
-				addPath = true;
+				_path = '';
 			}
 
 			if(addPath)
@@ -1694,7 +1692,7 @@
 			return require.progress(_callback, _path, _reload, _throw, _options, true);
 	};
 
-	require.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require.progress = (_callback, _path = (__INIT ? DEFAULT_PATH : ''), _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1707,9 +1705,13 @@
 			{
 				_path = '';
 			}
-			else
+			else if(__INIT)
 			{
 				_path = DEFAULT_PATH;
+			}
+			else
+			{
+				_path = '';
 			}
 		}
 

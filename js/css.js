@@ -12,7 +12,7 @@
 	css = { camel, matrix: CSSMatrix, matrix3d: CSSMatrix };
 	
 	//
-	css.getUrl = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.url = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string' && !isArray(_string, true))
 		{
 			if(_throw)
@@ -618,6 +618,7 @@ throw new Error('TODO');
 	
 	//
 	css.render = (_item, _throw = DEFAULT_THROW) => {
+		return css.toString(_item);
 throw new Error('TODO');
 	};
 	

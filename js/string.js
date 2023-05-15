@@ -1612,7 +1612,11 @@
 
 	Object.defineProperty(String.prototype, 'hasEmpty', { get: function()
 	{
-		for(var i = 0; i < this.length; ++i)
+		if(this.length === 0)
+		{
+			return null;
+		}
+		else for(var i = 0; i < this.length; ++i)
 		{
 			if(this.charCodeAt(i) <= 32)
 			{
@@ -1624,5 +1628,60 @@
 	}});
 
 	//
+	const _trim = String.prototype.trim;
+
+	Object.defineProperty(String.prototype, 'trim', { value: function(... _args)
+	{
+		var result = _trim.apply(this, _args);
+		var remove = 0;
+
+		for(var i = 0; i < result.length; ++i)
+		{
+			if(result.charCodeAt(i) <= 32)
+			{
+				++remove;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if(remove === result.length)
+		{
+			return '';
+		}
+		else if(remove > 0)
+		{
+			result = result.substr(remove);
+			remove = 0;
+		}
+
+		for(var i = result.length - 1; i >= 0; --i)
+		{
+			if(result.charCodeAt(i) <= 32)
+			{
+				++remove;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if(remove === result.length)
+		{
+			return '';
+		}
+		else if(remove > 0)
+		{
+			result = result.slice(0, -remove);
+		}
+
+		return result;
+	}});
+
+	//
 
 })();
+
