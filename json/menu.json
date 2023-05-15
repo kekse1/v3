@@ -1,9 +1,9 @@
 [
 	{
 		"image": "img/favicon.128px.png",
-		"data": "Home",
+		"data": "Index",
 		"description": "World Wide Home",
-		"href": "#~home"
+		"href": "#~index"
 	},
 	{
 		"image": "img/menu/tools.128px.png",
