@@ -73,7 +73,7 @@ defined at `.format()`).
 ### 'css/**scrollbars.css**'
 My pre-configured favorite look.
 
-### 'css/*****'
+### 'css/*'
 Just look for yourself which files are also here. Partially described on top in the 'Configuration' section.
 OK, here's the list of my *current* configuration:
 
@@ -148,7 +148,7 @@ Can be ignored or deleted. Just a copy of 'cgi-bin/php/counter.php'; this file h
 for a quick review for you, as github.com doesn't manage to show symlink contents (you just see the link target itself).
 
 ### 'scripts/**prompt.sh**'
-I've created a linux/bash '$PS1' prompt which seems nice for me. You can use it, if you want! :)~
+I've created a linux/bash `**$PS1**` prompt which seems nice for me. You can use it, if you want! :)~
 I really like this one!
 
 ### 'scripts/**tree.sh**'
@@ -178,190 +178,191 @@ A symlink to '../json/version.json'. You can imagine why this is 'important'. ^_
 # API Documentation
 
 ## JavaScript modules
-Here all the modules in 'js/' will be explained, or rather I'll write down here their exports.
+Here will the modules in 'js/' be explained (TODO), or rather I'll write down here their exports.
 
 'export' just means the public functions or properties for the globally accessable names. Real 'module.exports' can
 be reached via the `library()` function(s) in 'main.js', but this is untested an NOT THAT EFFICIENT (if used without
 callback, which makes async loading possible).
 
-So here follows an overview of functions etc., which are nearly described in their own (.md) files (also linked below).
+So here follows an overview of functions etc., which are nearly described in their own (.md) files (also linked below),
+whereas every module created it's own (globally accessable) namespace.
 
-### [animation](animation.js.md)
+### [animation](animation.js.md).js
 TODO
 
-### [area](area.js.md)
+### [area](area.js.md).js
 TODO
 
-### [array](array.js.md)
+### [array](array.js.md).js
 TODO
 
-### [bionic](bionic.js.md)
+### [bionic](bionic.js.md).js
 TODO
 
-### [box](box.js.md)
+### [box](box.js.md).js
 TODO
 
-### [box.context](box.context.js.md)
+### [box.context](box.context.js.md).js
 TODO
 
-### [box.dialog](box.dialog.js.md)
+### [box.dialog](box.dialog.js.md).js
 TODO
 
-### [box.grid](box.grid.js.md)
+### [box.grid](box.grid.js.md).js
 TODO
 
-### [box.menu](box.menu.js.md)
+### [box.menu](box.menu.js.md).js
 TODO
 
-### [box.osd](box.osd.js.md)
+### [box.osd](box.osd.js.md).js
 TODO
 
-### [box.popup](box.popup.js.md)
+### [box.popup](box.popup.js.md).js
 TODO
 
-### [box.progress](box.progress.js.md)
+### [box.progress](box.progress.js.md).js
 TODO
 
-### [camel](camel.js.md)
+### [camel](camel.js.md).js
 TODO
 
-### [code](code.js.md)
+### [code](code.js.md).js
 TODO
 
-### [color](color.js.md)
+### [color](color.js.md).js
 TODO
 
-### [css](css.js.md)
+### [css](css.js.md).js
 TODO
 
-### [css.matrix](css.matrix.js.md)
+### [css.matrix](css.matrix.js.md).js
 TODO
 
-### [date](date.js.md)
+### [date](date.js.md).js
 TODO
 
-### [document](document.js.md)
+### [document](document.js.md).js
 TODO
 
-### [dynamic](dynamic.js.md)
+### [dynamic](dynamic.js.md).js
 TODO
 
-### [dynamic.module](dynamic.module.js.md)
+### [dynamic.module](dynamic.module.js.md).js
 TODO
 
-### [event](event.js.md)
+### [event](event.js.md).js
 TODO
 
-### [extensions](extensions.js.md)
+### [extensions](extensions.js.md).js
 TODO
 
-### [favicon](favicon.js.md)
+### [favicon](favicon.js.md).js
 TODO
 
-### [geo](geo.js.md)
+### [geo](geo.js.md).js
 TODO
 
-### [html](html.js.md)
+### [html](html.js.md).js
 TODO
 
-### [id](id.js.md)
+### [id](id.js.md).js
 TODO
 
-### [init](init.js.md)
+### [init](init.js.md).js
 TODO
 
-### [intl](intl.js.md)
+### [intl](intl.js.md).js
 TODO
 
-### [levenshtein](levenshtein.js.md)
+### [levenshtein](levenshtein.js.md).js
 TODO
 
-### [location](location.js.md)
+### [location](location.js.md).js
 TODO
 
-### [main](main.js.md)
+### [main](main.js.md).js
 TODO
 
-### [math](math.js.md)
+### [math](math.js.md).js
 TODO
 
-### [math.unit](math.unit.js.md)
+### [math.unit](math.unit.js.md).js
 TODO
 
-### [navigator](navigator.js.md)
+### [navigator](navigator.js.md).js
 TODO
 
-### [network](network.js.md)
+### [network](network.js.md).js
 TODO
 
-### [numeric](numeric.js.md)
+### [numeric](numeric.js.md).js
 TODO
 
-### [object](object.js.md)
+### [object](object.js.md).js
 TODO
 
-### [page](page.js.md)
+### [page](page.js.md).js
 TODO
 
-### [path](path.js.md)
+### [path](path.js.md).js
 TODO
 
-### [radix](radix.js.md)
+### [radix](radix.js.md).js
 TODO
 
-### [scrolling](scrolling.js.md)
+### [scrolling](scrolling.js.md).js
 TODO
 
-### [sort](sort.js.md)
+### [sort](sort.js.md).js
 TODO
 
-### [string](string.js.md)
+### [string](string.js.md).js
 TODO
 
-### [timing](timing.js.md)
+### [timing](timing.js.md).js
 TODO
 
-### [title](title.js.md)
+### [title](title.js.md).js
 TODO
 
-### [uniform](uniform.js.md)
+### [uniform](uniform.js.md).js
 TODO
 
-### [uptime](uptime.js.md)
+### [uptime](uptime.js.md).js
 TODO
 
-### [url](url.js.md)
+### [url](url.js.md).js
 TODO
 
-### [window](window.js.md)
+### [window](window.js.md).js
 TODO
 
 
 ## JSON modules
 
-### autoload.json
+### [autoload](autoload.json.md).json
 TODO
 
-### color.json
+### [color](color.json.md).json
 TODO
 
-### config.json
+### [config](config.json.md).json
 TODO
 
-### entities.json
+### [entities](entities.json.md).json
 See the link [https://html.spec.whatwg.org/entities.json] (downloaded here), for `String.entities`, used
 mainly by `String.prototype.text`.
 TODO
 
-### menu.json
-See 'js/box.menu.js'..
+### [menu](menu.json.md).json
+See also 'js/box.menu.js'.. etc.
 TODO
 
-### context.json
+### [context](context.json.md).json
 Same as in the '**img**/' directory: my default context menu (future(!) 'box.context.js') will be exactly
 like the main menu, with links to all my 'home/' pages.. so this is just a symlink right now (if it'll be
 replaced or not).
 
-### version.json
+### [version](version.json.md).json
 TODO
 
