@@ -1,8 +1,10 @@
 /* main.css */
+@import url('css/cursor.css');
+@import url('css/fonts.css');
+@import url('css/font.css');
 @import url('css/config.css');
 @import url('css/config.responsive.css');
 @import url('css/scrollbars.css');
-@import url('css/fonts.css');
 @import url('css/osd.css');
 @import url('css/system.css');
 @import url('css/system.responsive.css');
