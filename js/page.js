@@ -1138,26 +1138,16 @@
 
 		static click(_event, _target = _event.target)
 		{
-			if(! (isString(_target.href, false) || isString(_target.getAttribute('href'), false)))
+			if(! _target.hasAttribute('href'))
 			{
-				if(_target.related && (isString(_target.related.href, false) || isString(_target.related.getAttribute('href'), false)))
+				if(_target.related && _target.related.hasAttribute('href'))
 				{
 					_target = _target.related;
 				}
-				else
-				{
-					return;
-				}
 			}
-
-			if(isString(_target.target, false))
+			else if(_target.hasAttribute('target'))
 			{
-				if(_target.target === '#')
-				{
-					_target.target = '';
-				}
-
-				return;
+				return _target;
 			}
 
 			const href = _target.href;
@@ -1188,7 +1178,7 @@
 
 			if(url.origin !== location.origin)
 			{
-				_target.target = '_blank';
+				_target.setAttribute('target', _target.target = '_blank');
 				return url.href;
 			}
 			else
