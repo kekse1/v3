@@ -110,8 +110,9 @@ Google servers, I've decided to download them, etc.. so I've extraced all the '.
 
 ## '**home**/'
 Your sites/pages, mainly '.html' and '.txt'. These should be your contents itself, which are being loaded via the
-`location.hash` like `#~home`. My advice to you is: link them this way, or even with trailing '/' character, so they're
-are loaded with 'DirectoryIndex' in mind.. so you can choose better, instead of directly linking to files with extensions..
+`location.hash` plus '~' (for $HOME ;) .. like `#~home`. My advice to you is: link them this way, or even with trailing
+'/' character, so they're are loaded with 'DirectoryIndex' in mind.. so you can choose better, instead of directly
+linking to files with extensions..
 
 So, I created a directory for every site in here, and the content itself as 'home.{txt,html}' - whereas 'home' is configured
 as first 'DirectoryIndex' in my '.htaccess' (which you can create/modify also in this directory, maybe even the root/base dir).
