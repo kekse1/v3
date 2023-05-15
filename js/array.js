@@ -202,41 +202,22 @@
 
 	Object.defineProperty(Array, '_isArray', { value: _isArray });
 
-	isArray = (... _items) => {
-		var min = 1;
-
-		for(var i = 0; i < _items.length; ++i)
+	isArray = (_item, _min = 1) => {
+		if(typeof _min === 'boolean')
 		{
-			if(typeof _items[i] === 'boolean')
-			{
-				min = (_items.splice(i--, 1)[0] ? 0 : 1);
-			}
-			else if(isInt(_items[i]))
-			{
-				min = _items.splice(i--, 1)[0];
-			}
+			_min = (_min ? 0 : 1);
+		}
+		else if(! (isInt(_min) && _min >= 0))
+		{
+			_min = 1;
 		}
 
-		if(_items.length === 0)
+		if(_isArray(_item))
 		{
-			return null;
-		}
-		else for(var i = 0; i < _items.length; ++i)
-		{
-			if(_isArray(_items[i]))
-			{
-				if(_items[i].length < min)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
+			return (_item.length >= _min);
 		}
 
-		return true;
+		return false;
 	};
 
 	Object.defineProperty(Array, 'isArray', { value: isArray.bind(Array) });

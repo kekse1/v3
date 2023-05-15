@@ -6,18 +6,6 @@
 
 	//
 	isNumeric = (_item, _radix = null) => {
-		if(_radix !== null && !isRadix(_radix))
-		{
-			if(_radix === true)
-			{
-				_radix = 10;
-			}
-			else
-			{
-				_radix = null;
-			}
-		}
-
 		if(typeof _item === 'bigint')
 		{
 			return true;
@@ -26,45 +14,64 @@
 		{
 			return true;
 		}
-		else if(_radix !== null && typeof _item === 'string' && _item.length > 0)
+		else if(typeof _item === 'string')
 		{
-			if(_radix === 10)
+			if(typeof _radix === 'boolean')
 			{
-				return !isNaN(_item);
+				_radix = (_radix ? 10 : null);
 			}
 
-			return !isNaN(parseFloat(_item, _radix));
+			if(_radix !== null)
+			{
+				if(_item.isNumber(_radix))
+				{
+					return true;
+				}
+				else if(_item.isBigInt(_radix))
+				{
+					return true;
+				}
+			}
 		}
 
 		return false;
 	}
 
-	isNumber = (... _args) => {
-		if(_args.length === 0)
+	isNumber = (_item, _radix = null) => {
+		if(typeof _item === 'number')
 		{
-			return null;
-		}
-		else for(var i = 0; i < _args.length; ++i)
-		{
-			if(typeof _args[i] === 'number')
+			if(isNaN(_item))
 			{
-				if(isNaN(_args[i]))
-				{
-					return false;
-				}
-				else if(! Number.isFinite(_args[i]))
-				{
-					return false;
-				}
-				else if(_args[i].valueOf() !== _args[i].valueOf())
-				{
-					return false;
-				}
+				return false;
+			}
+			else if(! Number.isFinite(_item))
+			{
+				return false;
+			}
+			else if(_item.valueOf() !== _item.valueOf())
+			{
+				return false;
+			}
+		}
+		else if(typeof _item === 'string')
+		{
+			if(typeof _radix === 'boolean')
+			{
+				_radix = (_radix ? 10 : null);
+			}
+
+			if(_radix !== null)
+			{
+				return _item.isNumber(_radix);
 			}
 			else
 			{
 				return false;
 			}
+		}
+		else
+		{
+			return false;
 		}
 
 		return true;
@@ -76,24 +83,25 @@
 		return isNumber(this.valueOf());
 	}});
 
-	isInt = (... _args) => {
-		if(_args.length === 0)
+	isInt = (_item, _radix = null) => {
+		if(typeof _item === 'string')
 		{
-			return null;
-		}
-		else if(! isNumber(... _args))
-		{
-			return false;
-		}
-		else for(var i = 0; i < _args.length; ++i)
-		{
-			if((_args[i] % 1) !== 0)
+			if(typeof _radix === 'boolean')
 			{
-				return false;
+				_radix = (_radix ? 10 : null);
+			}
+
+			if(_radix !== null)
+			{
+				return _item.isInt(_radix);
 			}
 		}
+		else if(isNumber(_item, null))
+		{
+			return ((_item % 1) === 0);
+		}
 
-		return true;
+		return false;
 	};
 
 	Object.defineProperty(Number, 'isInt', { value: isInt.bind(Number) });
@@ -102,24 +110,25 @@
 		return isInt(this.valueOf());
 	}});
 
-	isFloat = (... _args) => {
-		if(_args.length === 0)
+	isFloat = (_item, _radix = null) => {
+		if(typeof _item === 'string')
 		{
-			return null;
-		}
-		else if(! isNumber(... _args))
-		{
-			return false;
-		}
-		else for(var i = 0; i < _args.length; ++i)
-		{
-			if((_args[i] % 1) === 0)
+			if(typeof _radix === 'boolean')
 			{
-				return false;
+				_radix = (_radix ? 10 : null);
+			}
+
+			if(_radix !== null)
+			{
+				return _item.isFloat(_radix);
 			}
 		}
+		else if(isNumber(_item, null))
+		{
+			return ((_item % 1) !== 0);
+		}
 
-		return true;
+		return false;
 	};
 
 	Object.defineProperty(Number, 'isFloat', { value: isFloat.bind(Number) });
@@ -145,6 +154,10 @@
 			}
 
 			_radix = 10;
+		}
+		else if(_radix === 256)
+		{
+			return true;
 		}
 
 		//

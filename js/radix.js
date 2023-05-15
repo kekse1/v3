@@ -11,9 +11,9 @@
 
 	radix.alphabet.decimal = '0123456789';
 	radix.alphabet.lower = 'abcdefghijklmnopqrstuvwxyz';
-	radix.alphabet.upper = radix.alphabet.lower.toUpperCase();
-	radix.alphabet.chars = (radix.alphabet.lower + radix.alphabet.upper);
-	radix.alphabet.whole = (radix.alphabet.decimal + radix.alphabet.chars);
+	radix.alphabet.upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	radix.alphabet.half = radix.alphabet.lower + radix.alphabet.upper;
+	radix.alphabet.full = radix.alphabet.decimal + radix.alphabet.half;
 
 	//
 	isRadix = radix.isValid = radix.isRadix = (_value, _extended = DEFAULT_EXTENDED_ALPHABET) => {
@@ -163,7 +163,7 @@
 
 	//
 	radix.getAlphabet = (_radix, _set = false, _throw = DEFAULT_THROW) => {
-		if(! radix.isValid(_radix))
+		if(! radix.isValid(_radix, true))
 		{
 			if(_throw)
 			{
@@ -199,19 +199,19 @@
 
 		if(_radix === 0)
 		{
-			result = radix.alphabet.chars;
+			result = radix.alphabet.half;
 		}
 		else if(_radix === 1)
 		{
-			result = radix.alphabet.lower;
+			result = radix.alphabet.full;
 		}
 		else if(_radix >= 2 && _radix <= 10)
 		{
 			result = radix.alphabet.decimal.substr(0, _radix);
 		}
-		else if(_radix <= radix.alphabet.whole.length)
+		else if(_radix <= radix.alphabet.full.length)
 		{
-			result = radix.alphabet.whole.substr(0, _radix);
+			result = radix.alphabet.full.substr(0, _radix);
 		}
 		else
 		{

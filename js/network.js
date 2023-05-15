@@ -9,8 +9,7 @@
 	network = { address };
 
 	//
-	address.isLocalhost = (_hostname, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
+	address.isLocalhost = (_string, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -24,6 +23,11 @@ throw new Error('TODO');
 		{
 			return false;
 		}
+
+		//
+		//TODO/!!
+		//
+		return (_string === 'localhost');
 	};
 
 	address.isIP = (_string, _throw = DEFAULT_THROW) => {

@@ -37,7 +37,7 @@
 
 			return null;
 		}
-		else if(_string[0] === '/')
+		else if(_string[0] === path.sep)
 		{
 			return true;
 		}
@@ -105,11 +105,11 @@
 		}
 
 		//
-		const absolute = (_path[0] === '/');
-		const directory = (_path[_path.length - 1] === '/');
+		const absolute = (_path[0] === path.sep);
+		const directory = (_path[_path.length - 1] === path.sep);
 
 		//
-		_path = _path.split('/');
+		_path = _path.split(path.sep);
 		const result = [];
 		var minus = 0;
 
@@ -154,7 +154,7 @@
 		}
 
 		//
-		return result.join('/');
+		return result.join(path.sep);
 	};
 
 	//
@@ -175,10 +175,10 @@
 		}
 		else
 		{
-			_path = path.normalize(_path);
+			_path = path.normalize(_path, false);
 		}
 
-		var idx = _path.lastIndexOf('/');
+		var idx = _path.lastIndexOf(path.sep);
 
 		if(idx > -1)
 		{
@@ -200,7 +200,35 @@
 		{
 			return null;
 		}
-		else if(typeof _count !== 'number')
+		else if(_path.length === 0)
+		{
+			return '';
+		}
+		else if(_path === path.sep)
+		{
+			return '';
+		}
+		else if(_path[_path.length - 1] === path.sep)
+		{
+			return '';
+		}
+		else
+		{
+			_path = path.normalize(_path, false);
+			const idx = _path.lastIndexOf(path.sep);
+			
+			if(idx > -1)
+			{
+				_path = _path.substr(idx + 1);
+			}
+
+			if(_path[0] === '.')
+			{
+				_path = _path.substr(1);
+			}
+		}
+
+		if(typeof _count !== 'number')
 		{
 			throw new Error('Invalid _count argument');
 		}
@@ -256,17 +284,25 @@
 		{
 			return null;
 		}
+		else if(_path.length === 0)
+		{
+			return '';
+		}
+		else if(_path === path.sep)
+		{
+			return '';
+		}
 		else if(typeof _ext !== 'string')
 		{
 			_ext = '';
 		}
 
-		while(_path[_path.length - 1] === '/')
+		while(_path[_path.length - 1] === path.sep)
 		{
 			_path = _path.slice(0, -1);
 		}
 		
-		if((_path = _path.substr(_path.lastIndexOf('/') + 1)).endsWith(_ext))
+		if((_path = _path.substr(_path.lastIndexOf(path.sep) + 1)).endsWith(_ext))
 		{
 			if(_ext.length > 0)
 			{

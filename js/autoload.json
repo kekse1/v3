@@ -14,10 +14,11 @@
 	"location",
 	"document",
 
-	"url",
-
-	"uniform",
 	"intl",
+
+	"url",
+	"link",
+	"uniform",
 
 	"id",
 	"path",

@@ -1068,41 +1068,22 @@
 	}});
 
 	//
-	isString = (... _items) => {
-		var min = 1;
-
-		for(var i = 0; i < _items.length; ++i)
+	isString = (_item, _min = 1) => {
+		if(typeof _min === 'boolean')
 		{
-			if(typeof _items[i] === 'boolean')
-			{
-				min = (_items.splice(i--, 1)[0] ? 0 : 1);
-			}
-			else if(isInt(_items[i]))
-			{
-				min = _items.splice(i--, 1)[0];
-			}
+			_min = (_min ? 0 : 1);
+		}
+		else if(! (isInt(_min) && _min >= 0))
+		{
+			_min = 1;
 		}
 
-		if(_items.length === 0)
+		if(typeof _item === 'string')
 		{
-			return null;
-		}
-		else for(var i = 0; i < _items.length; ++i)
-		{
-			if(typeof _items[i] === 'string')
-			{
-				if(_items[i].length < min)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
+			return (_item.length >= _min);
 		}
 
-		return true;
+		return false;
 	};
 
 	Object.defineProperty(String, 'isString', { value: isString.bind(String) });
@@ -1466,6 +1447,11 @@
 	//
 	Object.defineProperty(String.prototype, 'unit', { value: function()
 	{
+		if(this.length === 0)
+		{
+			return null;
+		}
+
 		const result = [ '', '' ];
 		var hadPoint = false;
 		var hadValue = false;

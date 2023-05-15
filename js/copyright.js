@@ -2,8 +2,11 @@
 {
 
 	//
-	const DEFAULT_CUSTOM_SIZES = true;
 	const DEFAULT_BLINK_INTERVAL = 20000;
+
+	const DEFAULT_WIDTH_NAME = 1024;
+	const DEFAULT_WIDTH_SYMBOL = 640;
+	const DEFAULT_WIDTH_BRACKETS = 800;
 
 	//
 	//TODO/
@@ -34,43 +37,30 @@
 		user: 'a3VjaGVu',
 		host: 'a2Vrc2UuYml6'
 	};
+
+	//
+	// --copyright-name
+	// --copyright-symbol
+	// --copyright-brackets
 	
 	//
-	copyright.getString = (_name = true, _copyright = null, _brackets = true) => {
-		if(DEFAULT_CUSTOM_SIZES)
+	copyright.getString = (_name, _symbol, _brackets) => {
+		if(typeof _name !== 'boolean')
 		{
-			if(window.innerWidth >= 1000)
-			{
-				_name = true;
-			}
-			else
-			{
-				_name = false;
-			}
-
-			if(_copyright !== null)
-			{
-				if(window.innerWidth >= 480)
-				{
-					_copyright = true;
-				}
-				else
-				{
-					_copyright = false;
-				}
-			}
-
-			if(window.innerWidth >= 360)
-			{
-				_brackets = true;
-			}
-			else
-			{
-				_brackets = false;
-			}
+			_name = (window.innerWidth >= DEFAULT_WIDTH_BRACKETS);
 		}
 
-		return (_copyright ? '<span style="font-size: 1.2em; color: rgb(32, 32, 32); text-shadow: 1px 1px 6px white; margin-left: 4px; margin-right: 2px;">©</span> ' : '<span style="font-size: 1.25em;">') + (_name ? '<span style="font-size: 0.7em; margin-right: 16px;">' + atob(copyright.first) + ' ' + atob(copyright.last) + '</span> ' : '') + '<span style="text-shadow: 1px 1px 6px white;">' + (_brackets ? '&lt;' : '') + '<span style="color: rgb(64, 64, 64); margin-left: 3px; margin-right: 3px; font-size: 0.75em;">' + atob(copyright.user) + '<span style="margin-left: 2px; margin-right: 2px;">@</span>' + atob(copyright.host) + '</span>' + (_brackets ? '&gt;' : '') + '</span>';
+		if(typeof _symbol !== 'boolean')
+		{
+			_symbol = (window.innerWidth >= DEFAULT_WIDTH_SYMBOL);
+		}
+
+		if(typeof _brackets !== 'boolean')
+		{
+			_brackets = (window.innerWidth >= DEFAULT_WIDTH_BRACKETS);
+		}
+
+		return (_symbol ? '<span style="font-size: 1.2em; color: rgb(32, 32, 32); text-shadow: 1px 1px 6px white; margin-left: 4px; margin-right: 2px;">©</span> ' : '<span style="font-size: 1.25em;">') + (_name ? '<span style="font-size: 0.7em; margin-right: 16px;">' + atob(copyright.first) + ' ' + atob(copyright.last) + '</span> ' : '') + '<span style="text-shadow: 1px 1px 6px white;">' + (_brackets ? '&lt;' : '') + '<span style="color: rgb(64, 64, 64); margin-left: 3px; margin-right: 3px; font-size: 0.75em;">' + atob(copyright.user) + '<span style="margin-left: 2px; margin-right: 2px;">@</span>' + atob(copyright.host) + '</span>' + (_brackets ? '&gt;' : '') + '</span>';
 	};
 	
 	//

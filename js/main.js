@@ -5,11 +5,12 @@
 	const DEFAULT_PATH = 'js';
 
 	//
-	const CONSOLE_SIZE_BEFORE = '80%';
-	const CONSOLE_SIZE_AFTER = '120%';
-	const CONSOLE_COLOR_BEFORE = '#325a6e';
-	const CONSOLE_COLOR_AFTER = { log: null, info: '#5a7828', warn: '#be780a', error: '#b43c1e', debug: '#326e96' };
-	const CONSOLE_DEBUG_PASSTHRU = true;
+	const DEFAULT_CONSOLE_STYLE = true;
+	const DEFAULT_CONSOLE_SIZE_BEFORE = '80%';
+	const DEFAULT_CONSOLE_SIZE_AFTER = '120%';
+	const DEFAULT_CONSOLE_COLOR_BEFORE = '#325a6e';
+	const DEFAULT_CONSOLE_COLOR_AFTER = { log: null, info: '#5a7828', warn: '#be780a', error: '#b43c1e', debug: '#326e96' };
+	const DEFAULT_CONSOLE_DEBUG_TO_LOG = true;
 
 	//
 	const DEFAULT_THROW = true;
@@ -27,8 +28,8 @@
 	Error.stackTraceLimit = DEFAULT_STACK_TRACE_LIMIT;
 
 	//
-	var SIZE = (CONSOLE_SIZE_BEFORE || '10px');
-	var COLOR = (CONSOLE_COLOR_BEFORE || '#325a6e');
+	var SIZE = (DEFAULT_CONSOLE_SIZE_BEFORE || '10px');
+	var COLOR = (DEFAULT_CONSOLE_COLOR_BEFORE || '#325a6e');
 
 	const _log = console.log.bind(console);
 	const _info = console.info.bind(console);
@@ -59,62 +60,54 @@
 		return (result + ';');
 	};
 	
-	console.log = (... _args) => {
-		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
+	const checkForStyle = (_args, _stream) => {
+		if(! DEFAULT_CONSOLE_STYLE)
+		{
+			return null;
+		}
+		else if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
 		{
 			_args[0] = '%c' + _args[0];
-			_args.splice(1, 0, getStyle('log'));
+			_args.splice(1, 0, getStyle(_stream));
+			
+			return true;
 		}
 		
+		return false;
+	};
+	
+	console.log = (... _args) => {
+		checkForStyle(_args, 'log');
 		return _log(... _args);
 	};
 	
 	console._log = _log;
 	
 	console.info = (... _args) => {
-		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
-		{
-			_args[0] = '%c' + _args[0];
-			_args.splice(1, 0, getStyle('info'));
-		}
-
-		return _log(... _args);
+		checkForStyle(_args, 'info');
+		return _info(... _args);
 	};
 	
 	console._info = _info;
 	
 	console.warn = (... _args) => {
-		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
-		{
-			_args[0] = '%c' + _args[0];
-			_args.splice(1, 0, getStyle('warn'));
-		}
-
-		return _log(... _args);
+		checkForStyle(_args, 'warn');
+		return _warn(... _args);
 	};
 	
 	console._warn = _warn;
 	
 	console.error = (... _args) => {
-		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
-		{
-			_args[0] = '%c' + _args[0];
-			_args.splice(1, 0, getStyle('error'));
-		}
-
-		return _log(... _args);
+		checkForStyle(_args, 'error');
+		return _error(... _args);
 	};
 	
 	console._error = _error;
 	
 	console.debug = (... _args) => {
-		if(typeof _args[0] === 'string' && _args[0].length > 0 && !_args[0].includes('%c'))
-		{
-			_args[0] = '%c' + _args[0];
-			_args.splice(1, 0, getStyle('debug'));
-		}
-		
-		if(CONSOLE_DEBUG_PASSTHRU)
+		checkForStyle(_args, 'debug');
+
+		if(DEFAULT_CONSOLE_DEBUG_TO_LOG)
 		{
 			return _log(... _args);
 		}
@@ -292,6 +285,14 @@
 
 	//
 	ajax = (... _args) => {
+		if('hasLine' in navigator)
+		{
+			if(! navigator.hasLine)
+			{
+				return null;
+			}
+		}
+
 		const options = Object.assign(... _args);
 		var result;
 		
@@ -2174,8 +2175,8 @@
 			__INIT = null;
 			window.emit('ready', { type: 'ready', autoload: _autoload, config });
 			__INIT = false;
-			SIZE = CONSOLE_SIZE_AFTER;
-			COLOR = CONSOLE_COLOR_AFTER;
+			SIZE = DEFAULT_CONSOLE_SIZE_AFTER;
+			COLOR = DEFAULT_CONSOLE_COLOR_AFTER;
 		}, 0);
 	};
 

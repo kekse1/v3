@@ -65,8 +65,8 @@
 :root
 {
 	--ajax-osd: auto;
-	--ajax-osd-duration: 1200;
-	--ajax-osd-timeout: 3600;
+	--ajax-osd-duration: 1800;
+	--ajax-osd-timeout: 4200;
 	--ajax-osd-font-size-method: 40%;
 	--ajax-osd-font-size-status: 80%;
 	--ajax-osd-font-size-status-text: 50%;

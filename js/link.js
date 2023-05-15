@@ -4,7 +4,7 @@ const DEFAULT_BRACKETS = true;
 const DEFAULT_ARROWS = false;
 
 //
-if(!customElements.get('a-uniform')) customElements.define('a-uniform', Uniform = HTMLUniformElement = class HTMLUniformElement extends HTMLElement
+if(!customElements.get('a-link')) customElements.define('a-link', Uniform = HTMLUniformElement = class HTMLUniformElement extends HTMLElement
 {
 	constructor(_url, _options)
 	{
