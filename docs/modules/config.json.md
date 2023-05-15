@@ -1,4 +1,4 @@
-# window.js
+# config.json
 
 TODO
 

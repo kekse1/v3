@@ -1,4 +1,4 @@
-# window.js
+# menu.json
 
 TODO
 

@@ -347,6 +347,7 @@ TODO
 TODO
 
 ### [config](config.json.md).json
+Look at the '**Configuration**' section, on top of *this* file!
 TODO
 
 ### [entities](entities.json.md).json

@@ -1,4 +1,4 @@
-# window.js
+# color.json
 
 TODO
 

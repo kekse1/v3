@@ -1,4 +1,4 @@
-# window.js
+# autoload.json
 
 TODO
 
