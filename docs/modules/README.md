@@ -379,5 +379,5 @@ like the main menu, with links to all my 'home/' pages.. so this is just a symli
 replaced or not).
 
 ### [version](version.json.md).json
-TODO
+It's a **semantic** version.
 
