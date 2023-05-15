@@ -1143,20 +1143,22 @@
 		}
 		else
 		{
+			const url = require.resolve(_request.responseURL || _request.options.url);
+
 			if(_request.options.osd !== false)
 			{
-				ajax.osd(_request.options.method, _request.status, _request.statusText, _request.responseURL, null);
+				ajax.osd(_request.options.method, _request.status, _request.statusText, url, null);
 			}
 
 			if(_request.options.console !== false)
 			{
 				if(result[0] === '2')
 				{
-					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'OK') + ')');
+					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + url + '): ' + _request.status + ' (' + (_request.statusText || 'OK') + ')');
 				}
 				else
 				{
-					console.error('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + _request.responseURL + '): ' + _request.status + ' (' + (_request.statusText || 'Error') + ')');
+					console.error('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(' + url + '): ' + _request.status + ' (' + (_request.statusText || 'Error') + ')');
 				}
 			}
 		}
