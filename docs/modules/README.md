@@ -22,16 +22,16 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 
 ## '[.]/'
 
-* ./**[#cgi-bin](cgi-bin)**/
-* ./**[#counter](counter)**/
-* ./**[#css-1](css)**/
-* ./**[#fonts](fonts)**/
-* ./**[#home](home)**/
-* ./**[#img](img)**/
-* ./**[#js](js)**/
-* ./**[#json](json)**/
-* ./**[#scripts](scripts)**/
-* ./**[#status](status)**/
+* ./**[cgi-bin](#cgi-bin]**/
+* ./**[counter](#counter)**/
+* ./**[css](#css-1)**/
+* ./**[fonts](#fonts)**/
+* ./**[home](#home)**/
+* ./**[img](#img)**/
+* ./**[js](#js)**/
+* ./**[json](#json)**/
+* ./**[scripts](#scripts)**/
+* ./**[status](#status)**/
 * ./*favicon.ico*
 * ./*favicon.png*
 * ./*main.css*
