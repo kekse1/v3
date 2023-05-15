@@ -2,7 +2,8 @@
 
 ## css/
 I'm massively using CSS "Custom Properties", also for the most configuration. That's good. :)~
-Some are located in the 'config{,.responsive}.css', other (less important ones) in the 'variables.css'..
+Some are located in the 'config{,.responsive}.css', other (less important ones) in the 'variables.css',
+the rest is spread over all the 'css/*.css'..
 
 ## config.json
 This is the configuration which can't be integrated into css/.. mostly because the 'css.js' and 'extensions.js' first
