@@ -2,6 +2,9 @@
 {
 
 	//
+	const DEFAULT_PATH = 'js';
+
+	//
 	const CONSOLE_SIZE_BEFORE = '80%';
 	const CONSOLE_SIZE_AFTER = '120%';
 	const CONSOLE_COLOR_BEFORE = '#325a6e';
@@ -11,7 +14,6 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_THROW_REQUIRE = false;
-	const DEFAULT_PATH = 'js';
 	const DEFAULT_CHARSET = 'utf-8';
 	const DEFAULT_DEFER = true;
 	const DEFAULT_TIMEOUT = 10000;
@@ -1504,35 +1506,19 @@
 	};
 
 	//
-	library = (_id, _callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
-		return require(_id, _callback, _path, _reload, _throw, _options, true);
+	library = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
+		return require(_id, _callback, _reload, _throw, _options, true);
 	};
 
-	require = (_id, _callback, _path = (__INIT ? DEFAULT_PATH : ''), _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
 		}
-		
-		if(typeof _path !== 'string')
-		{
-			if(_path === null)
-			{
-				_path = '';
-			}
-			else if(__INIT)
-			{
-				_path = DEFAULT_PATH;
-			}
-			else
-			{
-				_path = '';
-			}
-		}
 
 		if(typeof _reload !== 'boolean')
 		{
-			_reload = false;
+			_reload = true;
 		}
 
 		if(typeof _throw !== 'boolean')
@@ -1558,7 +1544,7 @@
 				}
 				else
 				{
-					require.QUEUE[j++] = replaces(((_path ? (_path + '/') : '') + _id[i]), '//', '/', null);
+					require.QUEUE[j++] = _id[i];
 				}
 			}
 
@@ -1568,7 +1554,7 @@
 		{
 			if(_id === null)
 			{
-				return require.progress(_callback, _path, _reload, _throw, _options);
+				return require.progress(_callback, _reload, _throw, _options, _eval);
 			}
 			else if(_throw)
 			{
@@ -1577,24 +1563,11 @@
 
 			return null;
 		}
-		else if(_path.length > 0 && !(_id.startsWith(_path)))
+		else if(__INIT && !_id.startsWith(DEFAULT_PATH))
 		{
-			if(_id[0] === '/')
-			{
-				_path = '';
-			}
-			else if(_id.startsWith('./') || _id.startsWith('../'))
-			{
-				_path = '';
-			}
-			else if(URL.protocols && _id.startsWith(false, ... URL.protocols))
-			{
-				_path = '';
-			}
-
-			_id = (_path + '/' + _id);
+			_id = DEFAULT_PATH + '/' + _id;
 		}
-
+//TODO/FIXME/zzzzzzzz/URL normalize!!
 		//
 		const mark = (_id[_id.length - 1] === '!');
 		var ext, type;
@@ -1653,67 +1626,20 @@
 	require.CACHE = Object.create(null);
 
 	//
-	const replaces = (_string, _from, _to, _repeat = null) => {
-		if(_repeat !== null && typeof _repeat !== 'number')
-		{
-			_repeat = null;
-		}
-
-		var compare = _string.valueOf();
-		var result;
-
-		do
-		{
-			result = compare.replaceAll(_from, _to);
-
-			if(result === compare)
-			{
-				break;
-			}
-			else if(_repeat !== null && _repeat-- <= 0)
-			{
-				break;
-			}
-			else
-			{
-				compare = result;
-			}
-		}
-		while(true);
-
-		return result;
+	library.progress = (_callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+		return require.progress(_callback, _reload, _throw, _options, _eval);
 	};
 
-	library.progress = (_callback, _path = '', _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
-			return require.progress(_callback, _path, _reload, _throw, _options, true);
-	};
-
-	require.progress = (_callback, _path = (__INIT ? DEFAULT_PATH : ''), _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require.progress = (_callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
 		}
 
-		if(typeof _path !== 'string')
-		{
-			if(_path === null)
-			{
-				_path = '';
-			}
-			else if(__INIT)
-			{
-				_path = DEFAULT_PATH;
-			}
-			else
-			{
-				_path = '';
-			}
-		}
-
 		if(typeof _reload !== 'boolean')
 		{
-			_reload = false;
+			_reload = true;
 		}
 
 		if(typeof _throw !== 'boolean')
@@ -1739,14 +1665,12 @@
 		const queue = [ ... require.QUEUE ];
 		const length = queue.length;
 
-		for(var i = 0; i < queue.length; ++i)
+		if(__INIT) for(var i = 0; i < queue.length; ++i)
 		{
-			if(_path.length > 0)
+			if(! queue[i].startsWith(DEFAULT_PATH))
 			{
-				queue[i] = (_path + '/' + queue[i]);
+				queue[i] = (DEFAULT_PATH + '/' + queue[i]);
 			}
-
-			queue[i] = replaces(queue[i], '//', '/', null);
 		}
 
 		//
@@ -1793,11 +1717,11 @@
 	};
 
 	//
-	library.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
+	library.js = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require.js(_id, _callback, _reload, _throw, _options, true);
 	};
 
-	require.js = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require.js = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1845,7 +1769,7 @@
 				}
 
 				delete require.CACHE[_id];
-				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache was pruned');
+				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache pruned');
 			}
 			else
 			{
@@ -2092,7 +2016,7 @@
 		return;
 	};
 
-	require.json = (_id, _callback, _reload = false, _throw = DEFAULT_THROW_REQUIRE, _options, _eval) => {
+	require.json = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options, _eval) => {
 		_eval = null;
 
 		if(typeof _callback !== 'function')
@@ -2110,7 +2034,7 @@
 			if(_reload)
 			{
 				delete require.CACHE[_id];
-				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache was pruned');
+				console.warn('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): cache pruned');
 			}
 			else
 			{
@@ -2139,6 +2063,8 @@
 			
 			if(_event.type === 'failure' || result.statusClass !== 2)
 			{
+				delete require.CACHE[_id];
+
 				console.error('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): error occured on request');
 				error = new Error('Couldn\'t fetch \'' + _id + '\' (HTTP ' + result.status + ': ' + result.statusText + ')');
 				
@@ -2153,7 +2079,7 @@
 			}
 			else try
 			{
-				module = JSON.parse(result.responseText);
+				require.CACHE[_id] = module = JSON.parse(result.responseText);
 				error = null;
 				console.info('[' + (_callback ? 'async' : 'sync') + '] require(' + _id + '): ok');
 			}

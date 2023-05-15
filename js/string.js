@@ -196,7 +196,7 @@
 			{
 				baseEntities();
 			}
-		}, null, false, true);
+		});
 	}
 	else if(DEFAULT_ENTITIES_URL)
 	{
@@ -210,7 +210,7 @@
 			{
 				baseEntities();
 			}
-		}, null, false, true);
+		});
 	}
 	else
 	{
