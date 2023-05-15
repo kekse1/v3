@@ -428,15 +428,19 @@
 			return result;
 		}});
 
-		Object.defineProperty(Date.prototype, 'format', { value: function(_format = DATE)
+		Object.defineProperty(Date.prototype, 'format', { value: function(_format = date.getDefaultDateFormat())
 		{
 			if(typeof _format !== 'string')
 			{
-				return x('Invalid date _format string (not a String)');
+				_format = date.getDefaultDateFormat();
 			}
 			else if(_format.length === 0)
 			{
 				return '';
+			}
+			else
+			{
+				_format = date.getDateFormat(_format);
 			}
 
 			//
@@ -487,7 +491,7 @@
 			return result;
 		}});
 
-		Object.defineProperty(Date, 'format', { value: function(_format = DATE, _date = new Date())
+		Object.defineProperty(Date, 'format', { value: function(_format = date.getDefaultDateFormat(), _date = new Date())
 		{
 			try
 			{
@@ -800,7 +804,7 @@
 		date.getDateFormat = (_format = date.getDefaultDateFormat) => {
 			if(typeof _format !== 'string')
 			{
-				return null;
+				_format = date.getDefaultDateFormat();
 			}
 			else
 			{
