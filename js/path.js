@@ -3,7 +3,7 @@
 
 	//
 	const DEFAULT_THROW = true;
-	const DEFAULT_ORIGIN = false;
+	const DEFAULT_ORIGIN = true;
 
 	//
 	path = { sep: '/', delim: ':' };
@@ -81,7 +81,7 @@
 		return url.pathname;
 	};
 
-	path.normalize = (_path) => {
+	path.normalize = (_path, _origin = DEFAULT_ORIGIN, _throw = DEFAULT_THROW) => {
 		if(is(_path, 'URL'))
 		{
 			return _path.pathname;
@@ -98,6 +98,17 @@
 		else if(_path.length === 0)
 		{
 			return '.';
+		}
+		else if(_path.includes('://'))
+		{
+			const url = new URL(_path);
+
+			if(_origin && url.origin !== location.origin)
+			{
+				return url.href;
+			}
+
+			return url.pathname;
 		}
 
 		//
