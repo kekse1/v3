@@ -1964,15 +1964,24 @@
 				//
 				if(typeof window.emit === 'function')
 				{
+					const basename = (typeof path !== 'undefined' ? path.basename(_id) : null);
+
 					window.emit('require', {
-						type: 'require',
+						type: 'require', basename,
 						id: _id, type: 'js',
 						module: result,
 						start: result.start, stop: result.stop, time: result.time
 					});
 
 					window.emit(_id, {
-						type: 'require',
+						type: 'require', basename,
+						id: _id, type: 'js',
+						module: result,
+						start: result.start, stop: result.stop, time: result.time
+					});
+
+					if(basename) window.emit(basename, {
+						type: 'require', basename,
 						id: _id, type: 'js',
 						module: result,
 						start: result.start, stop: result.stop, time: result.time
@@ -2071,8 +2080,11 @@
 
 				if(typeof window.emit === 'function')
 				{
-					window.emit('require', { type: 'require', id: _id, type: 'json', module: res });
-					window.emit(_id, { type: 'require', id: _id, type: 'json', module: res });
+					const basename = (typeof path !== 'undefined' ? path.basename(_id) : null);
+
+					window.emit('require', { type: 'require', id: _id, type: 'json', module: res, basename });
+					window.emit(_id, { type: 'require', id: _id, type: 'json', module: res, basename });
+					if(basename) window.emit(basename, { type: 'require', id: _id, type: 'json', module: res, basename });
 				}
 
 				console.info('[' + (_callback ? 'async' : 'sync') + '] require(%s): loaded from cache', _id);
@@ -2128,12 +2140,18 @@
 
 			if(! error && typeof window.emit === 'function')
 			{
+				const basename = (typeof path !== 'undefined' ? path.basename(_id) : null);
+
 				window.emit('require', { type: 'require', id: _id, type: 'json', module, data: _request.responseText, error: null, request: _request,
-					start: _request.start, stop: _request.stop, time: _request.time,
+					basename, start: _request.start, stop: _request.stop, time: _request.time,
 					status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText });
 
 				window.emit(_id, { type: 'require', id: _id, type: 'json', module, data: _request.responseText, error: null, request: _request,
-					start: _request.start, stop: _request.stop, time: _request.time,
+					basename, start: _request.start, stop: _request.stop, time: _request.time,
+					status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText });
+
+				if(basename) window.emit(basename, { type: 'require', id: _id, type: 'json', module, data: _request.responseText, error: null, request: _request,
+					basename, start: _request.start, stop: _request.stop, time: _request.time,
 					status: _request.status, statusClass: _request.statusClass, statusText: _request.statusText });
 			}
 
@@ -2178,7 +2196,7 @@
 			window.emit('ready', { type: 'ready', autoload: _autoload, config });
 			__INIT = false;
 			SIZE = DEFAULT_CONSOLE_SIZE_AFTER;
-		}, 0);
+		}, 200);
 	};
 
 	const onAutoload = (_event) => {
