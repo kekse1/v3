@@ -2,6 +2,17 @@
 {
 
 	//
+	Object.defineProperty(location, 'base', { get: function()
+	{
+		return new URL(location.href).base;
+	}});
+
+	Object.defineProperty(location, 'param', { get: function()
+	{
+		return new URL(location.href).param;
+	}});
+
+	//
 	Object.defineProperty(location, 'argv', {
 		get: function()
 		{

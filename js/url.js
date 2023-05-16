@@ -22,6 +22,23 @@
 		return result;
 	}});
 
+	Object.defineProperty(URL.prototype, 'param', { get: function()
+	{
+		var result = '';
+
+		if(this.search.length > 1)
+		{
+			result += this.search;
+		}
+
+		if(this.hash.length > 1)
+		{
+			result += this.hash;
+		}
+
+		return result;
+	}});
+
 	//
 	Object.defineProperty(URL.prototype, 'render', { value: function(_options, ... _args)
 	{
