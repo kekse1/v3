@@ -9,7 +9,7 @@
 	network = { address };
 
 	//
-	address.isLocalhost = (_string, _throw = DEFAULT_THROW) => {
+	address.isLocalhost = (_string, _radix, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -32,20 +32,30 @@
 
 			return false;
 		}
-		else if(address.isIPv4(_string, _throw))
+		else if(address.isIPv4(_string, _radix, _throw))
 		{
 			return !!_string.startsWith('127.');
 		}
-		else if(address.isIPv6(_string, _throw))
+		else if(address.isIPv6(_string, _radix, _throw))
 		{
-	throw new Error('TODO');
+			if(_string === '::1')
+			{
+				return true;
+			}
+			else if(_string === '::ffff:7f00:1')
+			{
+				return true;
+			}
+			else if(_string.startsWith('::ffff:127.'))
+			{
+				return true;
+			}
 		}
 
 		return false;
 	};
 
-	address.isIP = (_string, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
+	address.isIP = (_string, _radix, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -59,6 +69,16 @@ throw new Error('TODO');
 		{
 			return false;
 		}
+		else if(address.isIPv4(_string, _radix, _throw))
+		{
+			return true;
+		}
+		else if(address.isIPv6(_string, _radix, _throw))
+		{
+			return true;
+		}
+
+		return false;
 	};
 
 	address.isIPv4 = address.isIP.v4 = (_string, _radix = 10, _throw = DEFAULT_THROW) => {
@@ -79,7 +99,8 @@ throw new Error('TODO');
 		{
 			return false;
 		}
-		else if(! (isInt(_radix) && _radix >= 2 && _radix <= 16) && _radix !== null)
+		
+		if(! (isInt(_radix) && _radix >= 2 && _radix <= 16) && _radix !== null)
 		{
 			_radix = 10;
 		}
@@ -152,7 +173,19 @@ throw new Error('TODO');
 		{
 			return false;
 		}
-		else if(! (isInt(_radix) && _radix >= 2 && _radix <= 16) && _radix !== null)
+		else if(_string.startsWith('::ffff:'))
+		{
+			if(address.isIPv4(_string.substr(7), 10, _throw))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		if(! (isInt(_radix) && _radix >= 2 && _radix <= 16) && _radix !== null)
 		{
 			_radix = 16;
 		}
@@ -272,7 +305,6 @@ throw new Error('TODO');
 					return false;
 				}
 			}
-			//else if(c .. // see RFC 3492 and below..
 			else if(c === 58)
 			{
 				if(hadPort)
@@ -293,7 +325,6 @@ throw new Error('TODO');
 	};
 
 	address.isHostname = (_string, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -339,19 +370,6 @@ throw new Error('TODO');
 		}
 
 		return false;
-	};
-
-	//
-	//todo/ < https://www.rfc-editor.org/rfc/rfc3492 >
-	//
-	address.punycode = address.idn = idn = punycode = {};
-
-	address.punycode.parse = (_string, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
-	};
-
-	address.punycode.render = (_string, _throw = DEFAULT_THROW) => {
-throw new Error('TODO');
 	};
 
 	//
