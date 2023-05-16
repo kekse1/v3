@@ -23,9 +23,9 @@
 	"id",
 	"path",
 	"camel",
-	"extensions",
-	"css.matrix",
 	"css",
+	"css.matrix",
+	"extensions",
 
 	"color",
 	"animation",
