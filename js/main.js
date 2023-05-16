@@ -3,6 +3,7 @@
 
 	//
 	const DEFAULT_PATH = 'js';
+	const DEFAULT_RELOAD = false;
 
 	//
 	const DEFAULT_CONSOLE_STYLE = true;
@@ -1509,11 +1510,11 @@
 	};
 
 	//
-	library = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
+	library = (_id, _callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require(_id, _callback, _reload, _throw, _options, true);
 	};
 
-	require = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require = (_id, _callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		if(typeof _callback !== 'function')
 		{
 			_callback = null;
@@ -1521,7 +1522,7 @@
 
 		if(typeof _reload !== 'boolean')
 		{
-			_reload = true;
+			_reload = DEFAULT_RELOAD;
 		}
 
 		if(typeof _throw !== 'boolean')
@@ -1648,11 +1649,11 @@
 	require.CACHE = Object.create(null);
 
 	//
-	library.progress = (_callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	library.progress = (_callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		return require.progress(_callback, _reload, _throw, _options, _eval);
 	};
 
-	require.progress = (_callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require.progress = (_callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1661,7 +1662,7 @@
 
 		if(typeof _reload !== 'boolean')
 		{
-			_reload = true;
+			_reload = DEFAULT_RELOAD;
 		}
 
 		if(typeof _throw !== 'boolean')
@@ -1739,11 +1740,11 @@
 	};
 
 	//
-	library.js = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
+	library.js = (_id, _callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null) => {
 		return require.js(_id, _callback, _reload, _throw, _options, true);
 	};
 
-	require.js = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
+	require.js = (_id, _callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options = null, _eval = false) => {
 		//
 		if(typeof _callback !== 'function')
 		{
@@ -1770,23 +1771,20 @@
 
 			if(_reload)
 			{
-				if(typeof res === 'object' && res !== null)
+				if(typeof res === 'object' && res !== null && res.constructor.name === 'HTMLScriptElement')
 				{
-					if(! res.__EVAL)
+					if(res.parentNode === HEAD)
 					{
-						if(res.parentNode && res.parentNode === HEAD)
+						res.parentNode.removeChild(res, null);
+					}
+					else if(res.parentNode)
+					{
+						if(_throw)
 						{
-							res.parentNode.removeChild(res, null);
+							throw new Error('Unexpected .parentNode');
 						}
-						else
-						{
-							if(_throw)
-							{
-								throw new Error('Unexpected .parentNode');
-							}
 
-							return undefined;
-						}
+						return undefined;
 					}
 				}
 
@@ -1851,7 +1849,6 @@
 					
 					module.exports = res;
 					require.CACHE[_id] = res;
-					require.CACHE[_id].__EVAL = true;
 					
 					console.info('[ ' + (_callback ? 'async' : 'sync') + '] require(%s): ok', _id);
 				}
@@ -1945,7 +1942,6 @@
 			const onload = () => {
 				//
 				require.CACHE[_id] = result;
-				require.CACHE[_id].__EVAL = false;
 
 				//
 				console.info('[' + (_callback ? 'async' : 'sync') + '] require(%s): ok', _id);
@@ -2047,7 +2043,7 @@
 		return;
 	};
 
-	require.json = (_id, _callback, _reload = true, _throw = DEFAULT_THROW_REQUIRE, _options, _eval) => {
+	require.json = (_id, _callback, _reload = DEFAULT_RELOAD, _throw = DEFAULT_THROW_REQUIRE, _options, _eval) => {
 		_eval = null;
 
 		if(typeof _callback !== 'function')
