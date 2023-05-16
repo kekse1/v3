@@ -108,7 +108,7 @@
 
 		if(DEFAULT_CONSOLE_DEBUG_PASSTHRU)
 		{
-			return _warn(... _args);
+			return _error(... _args);
 		}
 		
 		return _debug(... _args);
