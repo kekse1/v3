@@ -11,7 +11,7 @@
 	const DEFAULT_COMBINE = true;
 
 	//
-	CSSMatrix = CSSStyleDeclaration.Matrix = class CSSMatrix
+	CSSMatrix = CSSStyleDeclaration.Matrix = css.matrix = class CSSMatrix
 	{
 		constructor(_matrix)
 		{
@@ -850,12 +850,14 @@ return parameters;//TODO/!!!
 	}
 
 	//
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'matrix2', { value: function(_deg = DEFAULT_DEGREES, _throw = DEFAULT_THROW)
+	//todo/
+	//
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'matrix', { value: function(_deg = DEFAULT_DEGREES, _throw = DEFAULT_THROW)
 	{
 		const transform = this.getPropertyValue('transform');
 	}});
 
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'matrix3', { value: function(_deg = DEFAULT_DEGREES, _throw = DEFAULT_THROW)
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'matrix3d', { value: function(_deg = DEFAULT_DEGREES, _throw = DEFAULT_THROW)
 	{
 		const transform = this.getPropertyValue('transform');
 	}});

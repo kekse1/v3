@@ -9,7 +9,7 @@
 	const DEFAULT_SEP_SPACE = true;
 	
 	//
-	css = { camel, matrix: CSSMatrix, matrix3d: CSSMatrix };
+	css = { camel };
 	
 	//
 	css.url = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {

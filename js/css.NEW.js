@@ -6,12 +6,10 @@
 	const DEFAULT_PARSE = false;
 
 	//
-	css = { camel, matrix: CSSMatrix, matrix3d: CSSMatrix };
+	css = { camel };
 
 	//
 	css.url = (_string, _throw = DEFAULT_THROW) => {
-return 'favicon.png';
-throw new Error('TODO');
 		if(! isString(_string, false))
 		{
 			if(_throw)
@@ -30,7 +28,61 @@ throw new Error('TODO');
 
 			return null;//_string;
 		}
-		//
+
+		const quote = String.quote;
+		var result = '';
+		var open = false;
+
+		for(var i = 0; i < _string.length; ++i)
+		{
+			if(_string[i] === '\\')
+			{
+				if(open)
+				{
+					if(i < (_string.length - 1))
+					{
+						result += _string[++i];
+					}
+					else
+					{
+						result += '\\';
+					}
+				}
+				else
+				{
+					++i;
+				}
+			}
+			else if(open)
+			{
+				if(_string[i] === ')')
+				{
+					open = false;
+					break;
+				}
+				else for(const q of quote)
+				{
+					if(_string[i] === q)
+					{
+						continue;
+					}
+				}
+
+				result += _string[i];
+			}
+			else if(_string.at(i, 'url(', false))
+			{
+				open = true;
+				i += 3;
+			}
+		}
+
+		if(open && _throw)
+		{
+			throw new Error('Invalid CSS (not closed)');
+		}
+
+		return result;
 	};
 
 	//
@@ -42,6 +94,18 @@ throw new Error('TODO');
 		else if((_string = _string.trim()).length === 0 || _string.isEmpty)
 		{
 			return '';
+		}
+		else if(_string.length === 2)
+		{
+			const quote = String.quote;
+
+			for(const q of quote)
+			{
+				if(_string[0] === q && _string[1] === q)
+				{
+					return '';
+				}
+			}
 		}
 throw new Error('TODO');//also str..unit(.., ['deg']), etc.. soon!
 	};
