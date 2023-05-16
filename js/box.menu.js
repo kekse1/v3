@@ -976,14 +976,9 @@
 				}
 			};
 			
-			const result = ajax(json, (callback ? rest : null), options, { osd: false, console: !__INIT });
-			
-			if(callback)
-			{
-				return result;
-			}
-
-			return rest(null, result, null);
+			const result = ajax(json, (_e) => {
+				return rest(_e, result, options);
+			}, { osd: false, console: !__INIT });
 		}
 		
 		static get scale()

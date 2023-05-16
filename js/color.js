@@ -866,7 +866,7 @@
 	};
 
 	//
-	if(DEFAULT_COLOR_MAP) require(DEFAULT_COLOR_MAP, (_e) => {
+	if(DEFAULT_COLOR_MAP) require.json(DEFAULT_COLOR_MAP, (_e) => {
 		if(isArray(_e.module, false))
 		{
 			color.MAP = _e.module;
@@ -879,8 +879,6 @@
 		{
 			return null;
 		}
-
-		return color.MAP;
 	});
 
 	//
