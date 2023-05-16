@@ -2,6 +2,27 @@
 {
 
 	//
+	Object.defineProperty(URL.prototype, 'base', { get: function()
+	{
+		var result = this.href;
+		var idx = result.indexOf('?');
+
+		if(idx === -1)
+		{
+			if((idx = result.indexOf('#')) > -1)
+			{
+				result = result.substring(0, idx);
+			}
+		}
+		else
+		{
+			result = result.substring(0, idx);
+		}
+
+		return result;
+	}});
+
+	//
 	Object.defineProperty(URL.prototype, 'render', { value: function(_options, ... _args)
 	{
 		if(! isObject(_options))
