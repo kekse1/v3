@@ -948,7 +948,7 @@
 
 					if(!document.hasVariable('ajax-osd') || !document.getVariable('ajax-osd', true))
 					{
-						ajax.osd(_options.method, _request.status, (_request.statusText || 'Error'));
+						ajax.osd(_options.method, _request.status, (_request.statusText || 'error'));
 					}
 						
 					if(_throw)

@@ -169,7 +169,7 @@
 				delete FAVICON.dataset.popup;
 			}
 
-			setHTML(UPDATED, '[' + _event.status + '] ' + (_event.statusText || 'Error'));
+			setHTML(UPDATED, '[' + _event.status + '] ' + (_event.statusText || 'error'));
 		};
 
 		switch(_event.type)

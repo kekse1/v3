@@ -321,7 +321,7 @@
 		}
 		else if(typeof _status_text !== 'string' || _status_text.length === 0)
 		{
-			_status_text = (_status.toString()[0] === '2' ? 'OK' : 'Error');
+			_status_text = (_status.toString()[0] === '2' ? 'ok' : 'error');
 		}
 		
 		if(typeof _method !== 'string')
@@ -1152,11 +1152,11 @@
 			{
 				if(result[0] === '2')
 				{
-					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(%s): ' + _request.status + ' (' + (_request.statusText || 'OK') + ')', url);
+					console.info('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(%s): ' + _request.status + ' (' + (_request.statusText || 'ok') + ')', url);
 				}
 				else
 				{
-					console.error('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(%s): ' + _request.status + ' (' + (_request.statusText || 'Error') + ')', url);
+					console.error('[' + (_request.options.async ? 'async' : 'sync') + '] ' + _request.options.method.toLowerCase() + '(%s): ' + _request.status + ' (' + (_request.statusText || 'error') + ')', url);
 				}
 			}
 		}
