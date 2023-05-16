@@ -58,6 +58,8 @@ a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
 	--text-sin: 11px;
 	--min: 24px;
 	--max: 72px;
+	--delay: 0;
+	--duration: 600;
 	--duration-in: 600;
 	--duration-out: 600;
 	--delay-in: 220;
