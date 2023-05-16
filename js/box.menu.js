@@ -17,6 +17,9 @@
 
 			//
 			this.isShowing = this.isHiding = false;
+
+			//
+			this.parentAnimation = false;
 		}
 
 		static outItems(_event, _callback, ... _exclude)
@@ -346,7 +349,7 @@
 			};
 
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: this.getVariable('wait-out', true), persist: true } : null);
+			var options = (_animate ? { duration: this.getVariable('duration-out', true), delay: 0, persist: true } : null);
 			var abort = false;
 			const animations = [];
 
@@ -385,15 +388,14 @@
 					if(options && !abort)
 					{
 						//
-						imageNode._makeLeftAnimation = imageNode.setStyle('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1)), { persist: true });
-						textNode._makeLeftAnimation = imageNode.setStyle('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1)), { persist: true });
+						imageNode._makeLeftAnimation = imageNode.setStyle('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1), 'px'), Math.round(options.duration / 1.6), () => { delete imageNode._makeLeftAnimation; });
+						textNode._makeLeftAnimation = textNode.setStyle('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1), 'px'), Math.round(options.duration / 1.6), () => { delete textNode._makeLeftAnimation; });
 						textNode.setHTML(null, '', this.getVariable('data-duration', true), this.getVariable('data-delay', true));
 
 						//
 						imageNode.out(options, (_e, _f) => {
 							imageNode.style.setProperty('filter', 'none');
 							imageNode.style.setProperty('transform', 'none');
-							imageNode.style.setProperty('opacity', '0');
 							callback(node, imageNode, textNode, index);
 						});
 					}
@@ -401,6 +403,7 @@
 					{
 						imageNode.style.setProperty('left', setValue(-(imageNode.offsetWidth + imageNode.offsetLeft + 1), 'px'));
 						textNode.style.setProperty('left', setValue(-(textNode.offsetWidth + textNode.offsetLeft + 1), 'px'));
+						imageNode.style.setProperty('opacity', '0');
 						textNode.innerHTML = '';
 						callback(node, imageNode, textNode, index);
 					}
@@ -408,7 +411,7 @@
 
 				if(options && !abort)
 				{
-					animations.push([ setTimeout(func, DELAY += this.getVariable('delay', true)), func, false ]);
+					animations.push([ setTimeout(func, DELAY += this.getVariable('delay-out', true)), func, false ]);
 				}
 				else
 				{
@@ -549,7 +552,7 @@
 
 			const SCALE = 0.5;
 			var DELAY = 0;
-			var options = (_animate ? { duration: this.getVariable('duration', true), delay: this.getVariable('wait-in', true), persist: true } : null);
+			var options = (_animate ? { duration: this.getVariable('duration-in', true), delay: 0, persist: true, opacity: false } : null);
 			this.clear(null, null);
 			var abort = false;
 			const animations = [];
@@ -586,8 +589,6 @@
 
 				imageNode.leftOver = ((imageNode.leftOut = IMG) * 2);
 				textNode.leftOver = ((textNode.leftOut = TXT) * 2);
-
-				imageNode.style.setProperty('opacity', '0');
 				
 				//
 				const func = () => {
@@ -614,13 +615,12 @@
 					//
 					if(options && !abort)
 					{
-						imageNode._makeOpacityAnimation = imageNode.setStyle('opacity', '1', Math.round(DELAY * 1.25));
-						imageNode._makeLeftAnimation = imageNode.setStyle('left', setValue(imageNode.leftOut), Math.round(DELAY / 4));
-						textNode._makeLeftAnimation = textNode.setStyle('left', setValue(textNode.leftOut), Math.round(DELAY / 10));
+						imageNode._makeLeftAnimation = imageNode.setStyle('left', setValue(imageNode.leftOut, 'px'), Math.round(options.duration / 0.9), () => { delete imageNode._makeLeftAnimation; });
+						textNode._makeLeftAnimation = textNode.setStyle('left', setValue(textNode.leftOut, 'px'), Math.round(options.duration / 0.9), () => { delete textNode._makeLeftAnimation; });
+						imageNode.style.opacity = '0';
+						imageNode.setStyle('opacity', '1', Math.round(options.duration / 0.3));
 
 						imageNode.in(options, () => {
-							imageNode.style.setProperty('opacity', '1');
-
 							if(abort)
 							{
 								textNode.innerHTML = imageNode.data;
@@ -635,9 +635,9 @@
 					}
 					else
 					{
-						imageNode.style.setProperty('opacity', '1');
 						imageNode.style.setProperty('left', setValue(imageNode.leftOut, 'px'));
 						imageNode.style.setProperty('filter', 'none');
+						imageNode.style.setProperty('opacity', '1');
 						textNode.style.setProperty('left', setValue(textNode.leftOut, 'px'));
 						textNode.innerHTML = imageNode.data;
 						callback(node, imageNode, textNode, index);
@@ -646,7 +646,7 @@
 				
 				if(options && !abort)
 				{
-					animations.push([ setTimeout(func, DELAY += this.getVariable('delay', true)), func, false ]);
+					animations.push([ setTimeout(func, DELAY += this.getVariable('delay-in', true)), func, false ]);
 				}
 				else
 				{
@@ -814,9 +814,7 @@
 			}
 			
 			//
-			setTimeout(() => {
-				this.show();
-			}, this.getVariable('wait', true));
+			this.show();
 		}
 
 		disconnectedCallback()
@@ -957,9 +955,7 @@
 						//
 						if(this.isConnected)
 						{
-							setTimeout(() => {
-								this.show();
-							}, this.getVariable('wait', true));
+							this.show();
 						}
 
 						//
@@ -1094,6 +1090,9 @@
 			this.name = 'menuItem';
 			this.className = 'menuItemImage';
 			this.id = randomID();
+
+			//
+			this.style.opacity = '0';
 			
 			//
 			this.draggable = false;
@@ -1143,8 +1142,6 @@
 			const textNode = document.createElement('div');
 			textNode.className = 'menuItemText';
 			textNode.innerHTML = this.data;
-
-			this.style.setProperty('opacity', '0');
 
 			result.node = result;
 			result.textNode = textNode;

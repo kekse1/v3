@@ -58,8 +58,10 @@ a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
 	--text-sin: 11px;
 	--min: 24px;
 	--max: 72px;
-	--duration: 600;
-	--delay: 300;
+	--duration-in: 600;
+	--duration-out: 600;
+	--delay-in: 220;
+	--delay-out: 110;
 	--blink-duration: 2100;
 	--blink-count: 1;
 	--data-delay: 0;
@@ -69,9 +71,6 @@ a-menu, .menu, a-menu-item, .menuItem, .menuItemImage, .menuItemText
 	--random-animation-duration: 4800 1200;
 	--callback: auto;
 	--transform-origin: -60% 60%;
-	--wait: 2000;
-	--wait-in: 380;
-	--wait-out: 240;
 	--width: auto;
 	--height: auto;
 }

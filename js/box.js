@@ -8,6 +8,7 @@
 	const DEFAULT_DELAY_IN = 0;
 	const DEFAULT_DELAY_OUT = 0;
 	const DEFAULT_ANIMATE_STYLE = true;
+	const DEFAULT_PARENT_ANIMATION = true;
 
 	//
 	Box = class Box extends HTMLElement
@@ -65,17 +66,39 @@
 
 				if(parent)
 				{
-					setTimeout(() => {
-						return parent.appendChild(this, true, () => {
-							call(callback, { type: 'create', parent });
-						});
-					}, 0);
+					return parent.appendChild(this, this.animateStyle && this.parentAnimation, () => {
+						call(callback, { type: 'create', parent });
+					});
 				}
 				else
 				{
 					call(callback, { type: 'create', this: this, parent: null });
 				}
 			}, ((isInt(sleep) && sleep >= 0) ? sleep : 0));
+		}
+
+		get parentAnimation()
+		{
+			if(typeof this.options.parentAnimation === 'boolean')
+			{
+				return this.options.parentAnimation;
+			}
+
+			return DEFAULT_PARENT_ANIMATION;
+		}
+
+		set parentAnimation(_value)
+		{
+			if(typeof _value === 'boolean')
+			{
+				return this.options.parentAnimation = _value;
+			}
+			else
+			{
+				delete this.options.parentAnimation;
+			}
+
+			return this.parentAnimation;
 		}
 
 		pointerWithin(_x, _y)
@@ -1065,20 +1088,20 @@
 				}
 				else if(this.parentNode)
 				{
-					this.parentNode.removeChild(this, true, () => {
-						_value.appendChild(this, true);
+					this.parentNode.removeChild(this, this.animateStyle && this.parentAnimation, () => {
+						_value.appendChild(this, this.animateStyle && this.parentAnimation);
 					});
 				}
 				else
 				{
-					_value.appendChild(this, true);
+					_value.appendChild(this, this.animateStyle && this.parentAnimation);
 				}
 
 				return _value;
 			}
 			else if(this.parentNode)
 			{
-				this.parentNode.removeChild(this, true);
+				this.parentNode.removeChild(this, this.animateStyle && this.parentAnimation);
 			}
 
 			return null;
