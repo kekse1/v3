@@ -28,6 +28,10 @@
 
 			return null;//_string;
 		}
+		else
+		{
+			_string = _string.trim();
+		}
 
 		const quote = String.quote;
 		var result = '';
