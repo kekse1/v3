@@ -32,6 +32,7 @@
 		const quote = String.quote;
 		var result = '';
 		var open = false;
+		var c;
 
 		for(var i = 0; i < _string.length; ++i)
 		{
@@ -60,9 +61,20 @@
 					open = false;
 					break;
 				}
-				else for(const q of quote)
+				else
 				{
-					if(_string[i] === q)
+					c = false;
+
+					for(const q of quote)
+					{
+						if(_string[i] === q)
+						{
+							c = true;
+							break;
+						}
+					}
+
+					if(c)
 					{
 						continue;
 					}
