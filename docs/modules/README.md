@@ -243,6 +243,9 @@ TODO
 ### [color](color.js.md).js
 TODO
 
+### [console](console.js.md).js
+TODO
+
 ### [css](css.js.md).js
 TODO
 

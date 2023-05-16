@@ -49,6 +49,7 @@
 
 	"html",
 	"page",
+	"console",
 
 	"box",
 	"box.osd",
