@@ -243,7 +243,7 @@
 		}
 		else if((_string = _string.trim()).length === 0 || _string.isEmpty)
 		{
-			return '';
+			return (_parse ? null : '');
 		}
 		else if(_string.length === 2)
 		{
@@ -253,7 +253,7 @@
 			{
 				if(_string[0] === q && _string[1] === q)
 				{
-					return '';
+					return (_parse ? '' : _string);
 				}
 			}
 		}

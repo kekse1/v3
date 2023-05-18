@@ -175,11 +175,11 @@
 	Object.defineProperty(Element.prototype, 'scrolling', {
 		get: function()
 		{
-			switch(this.getVariable('scrolling'))
+			switch(this.getVariable('scrolling', true))
 			{
-				case 'none':
+				case false:
 					return false;
-				case 'auto':
+				case true:
 					return true;
 			}
 

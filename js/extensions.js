@@ -3,7 +3,6 @@
 
 	//
 	const DEFAULT_ARRANGE = true;
-	const DEFAULT_COMPUTED_VARIABLE = true;
 	const DEFAULT_GET_VALUE = null;
 	const DEFAULT_THROW = true;
 
@@ -631,13 +630,19 @@
 
 	Object.defineProperty(HTMLElement.prototype, 'hasVariable', { value: function(... _args)
 	{
-		var COMPUTED = DEFAULT_COMPUTED_VARIABLE;
+		var COMPUTED = true;
+		var DELETE_CACHE = false;
 
 		for(var i = 0; i < _args.length; ++i)
 		{
 			if(typeof _args[i] === 'boolean')
 			{
 				COMPUTED = _args.splice(i--, 1)[0];
+			}
+			else if(_args[i] === null)
+			{
+				_args.splice(i--, 1);
+				DELETE_CACHE = true;
 			}
 			else if(isString(_args[i], false))
 			{
@@ -661,7 +666,7 @@
 
 		if(COMPUTED)
 		{
-			if(this._computedStyle)
+			if(this._computedStyle && !DELETE_CACHE)
 			{
 				style = this._computedStyle;
 			}
@@ -711,6 +716,7 @@
 			}
 		}
 
+		delete this._computedStyle;
 		const result = [];
 
 		for(var i = 0, j = 0; i < _args.length; ++i)
