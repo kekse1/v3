@@ -15,7 +15,7 @@
 		warn: '#be780a',
 		error: '#b43c1e',
 		debug: '#326e96' };
-	const DEFAULT_CONSOLE_DEBUG_PASSTHRU = true;
+	const DEFAULT_CONSOLE_DEBUG_PASSTHRU = false;
 
 	//
 	const DEFAULT_THROW = true;

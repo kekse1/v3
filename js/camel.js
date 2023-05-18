@@ -34,10 +34,6 @@
 		{
 			return false;
 		}
-		else if(_string.oneCase)
-		{
-			return false;
-		}
 
 		return true;
 	};

@@ -674,7 +674,7 @@
 			}
 
 			const result = [];
-			const parameters = css.parse.value(_matrix, true);//parseFunctionalStyle(_matrix)[t]
+			const parameters = css.parse(_matrix, true);
 return parameters;//TODO/!!!
 //FIXME/!
 			switch(parameters.length)

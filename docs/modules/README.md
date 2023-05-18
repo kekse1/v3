@@ -246,7 +246,9 @@ TODO
 TODO
 
 ### [camel](camel.js.md).js
-TODO
+* camel()
+* camel.enable()
+* camel.disable()
 
 ### [code](code.js.md).js
 TODO
@@ -258,7 +260,10 @@ TODO
 TODO
 
 ### [css](css.js.md).js
-TODO
+* css.camel
+* css.url()
+* css.parse()
+* css.render()
 
 ### [css.matrix](css.matrix.js.md).js
 TODO

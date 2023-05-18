@@ -39,7 +39,7 @@
 
 	//
 	//TODO/p new URLSearchParams(...)!?!?
-	/*
+	//
 	Object.defineProperty(location, 'argv', {
 		get: function()
 		{
@@ -129,7 +129,7 @@ throw new Error('TODO');//bedenke '=', darf nicht escaped werden bspw., wo alles
 		{
 throw new Error('TODO');
 		}
-	});*/
+	});
 
 	//
 	Object.defineProperty(location, 'isLocalhost', { get: function()

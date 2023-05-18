@@ -17,15 +17,15 @@
 	"url",
 	"intl",
 
-	"id",
-	"path",
 	"camel",
+	"extensions",
+	"animation",
 	"css",
 	"css.matrix",
-	"extensions",
 
+	"id",
+	"path",
 	"color",
-	"animation",
 
 	"favicon",
 	"title",

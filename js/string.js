@@ -1095,6 +1095,26 @@
 		return [ '`', '\'', '"' ];
 	}});
 
+	Object.defineProperty(String.prototype, 'isQuoted', { get: function()
+	{
+		if(this.length === 0)
+		{
+			return false;
+		}
+
+		const quote = String.quote;
+
+		for(const q of quote)
+		{
+			if(this[0] === q && this[this.length - 1] === q)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}});
+
 	Object.defineProperty(String.prototype, 'quote', { value: function(_quote = true, _escape = true, _escape_limited = false)
 	{
 		if(_quote === false)
