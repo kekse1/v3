@@ -1131,19 +1131,24 @@
 			else if(hash.new[1] === '~' && hash.new.length > 1)
 			{
 				const cb = (_e) => {
-					const original = new URL(Page.originalURL);
-
 					if(_e.error)
 					{
-						original.hash = hash.old;
+						Page.changeURL(href.old, true);
 					}
 					else
 					{
-						original.hash = hash.new;
-					}
+						const url = new URL(location.href);
 
-					Page.changeURL(original.href, true);
-					//Page.changeHash(..., true);
+						if(url.base !== Page.originalBase)
+						{
+							url.base = Page.originalBase;
+						}
+
+						if(url.href !== location.href)
+						{
+							Page.changeURL(url.href, true);
+						}
+					}
 				};
 				
 				return Page.getLink(hash.new.substr(1), Page.target, cb);
@@ -1413,7 +1418,7 @@
 	}, { once: true });
 
 	//
-	Page.originalURL = location.href;
+	Page.originalBase = new URL(location.href).base;
 
 	//
 	
