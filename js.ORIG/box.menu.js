@@ -1283,8 +1283,8 @@
 			keyframes.color = [ null, _target.getVariable('pointer-over-color') ];
 			keyframes.textShadow = [ null, _target.getVariable('pointer-over-text-shadow') ];
 			keyframes.backgroundColor = [ null, _target.getVariable('pointer-over-background-color') ];
-			keyframes.opacity = [ null, ... _target.getVariable('pointer-over-opacity').split(' ') ];
-			keyframes.borderColor = [ null, _target.getVariable('pointer-over-border-color') ];
+			keyframes.opacity = [ null, ... _target.getVariable('pointer-over-opacity', null).split(' ') ];
+			keyframes.borderColor = [ null, _target.getVariable('pointer-over-border-color', null) ];
 
 			//
 			var count = 2;

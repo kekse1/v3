@@ -1,0 +1,35 @@
+{
+
+	"url": "https://kekse.biz/",
+
+	"title": [
+		[ "kuchen`s", 7200 ],
+		[ "check one", 2400 ],
+		[ "check two", 2400 ],
+		[ "<kekse.biz>", 9600 ]
+	],
+
+	"init": {
+		"query": {
+			"www": false,
+			"dot": false,
+			"tls": true,
+
+			"remove": [
+				"fbclid"
+			]
+		}
+	},
+
+	"context": {
+		"data": "json/context.json"
+	},
+
+	"behavior": {
+		"disableContextMenu": true,
+		"hideAddressBar": true,
+		"removeSearch": true
+	}
+
+}
+

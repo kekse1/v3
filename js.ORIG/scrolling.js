@@ -175,7 +175,7 @@
 	Object.defineProperty(Element.prototype, 'scrolling', {
 		get: function()
 		{
-			switch(this.getVariable('scrolling'))
+			switch(this.getVariable('scrolling', null))
 			{
 				case 'none':
 					return false;

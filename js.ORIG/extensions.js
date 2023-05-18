@@ -562,7 +562,6 @@
 	Object.defineProperty(HTMLElement.prototype, 'getVariable', { value: function(... _args)
 	{
 		var GET_VALUE = DEFAULT_GET_VALUE;
-		var DELETE_CACHE = false;
 
 		for(var i = 0; i < _args.length; ++i)
 		{
@@ -575,14 +574,9 @@
 
 				_args[i] = camel.disable(_args[i]);
 			}
-			else if(typeof _args[i] === 'boolean')
+			else if(typeof _args[i] === 'boolean' || _args[i] === null)
 			{
 				GET_VALUE = _args.splice(i--, 1)[0];
-			}
-			else if(_args[i] === null)
-			{
-				_args.splice(i--, 1);
-				DELETE_CACHE = true;
 			}
 			else if(isArray(_args[i], true))
 			{
@@ -601,7 +595,7 @@
 
 		var computedStyle;
 
-		if(this._computedStyle && !DELETE_CACHE)
+		if(this._computedStyle)
 		{
 			computedStyle = this._computedStyle;
 		}

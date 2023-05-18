@@ -2341,12 +2341,12 @@ var c=0;
 			border: this.getVariable('border', true),
 			borderWidth: this.getVariable('border-width', ['px']),
 			borderRadius: this.getVariable('border-radius', ['px']),
-			borderColor: this.getVariable('border-color'),
+			borderColor: this.getVariable('border-color', null),
 			font: this.getVariable('font', true),
 			fontSize: this.getVariable('font-size'),
 			colors: this.getVariable('colors', true),
 			color: this.getVariable('color'),
-			backgroundColor: this.getVariable('background-color'),
+			backgroundColor: this.getVariable('background-color', null),
 			size: this.getVariable('size', true),
 			position: this.getVariable('position', true),
 			left: this.getVariable('left', false),
@@ -2477,7 +2477,7 @@ var c=0;
 		{
 			if(_options.blur !== false)
 			{
-				keyframes.filter = [ computedStyle.filter, 'blur(' + tryValue(_options.blur, this.getVariable('blur')) + ')', 'blur(0)' ];
+				keyframes.filter = [ computedStyle.filter, 'blur(' + tryValue(_options.blur, this.getVariable('blur', null)) + ')', 'blur(0)' ];
 			}
 		}
 		
@@ -2485,12 +2485,12 @@ var c=0;
 		{
 			if(_options.borderWidth !== false)
 			{
-				keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, this.getVariable('border-width')), this._originalInOutStyle.borderWidth ];
+				keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, this.getVariable('border-width', null)), this._originalInOutStyle.borderWidth ];
 			}
 			
 			if(_options.borderRadius !== false)
 			{
-				keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, this.getVariable('border-radius')), this._originalInOutStyle.borderRadius ];
+				keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, this.getVariable('border-radius', null)), this._originalInOutStyle.borderRadius ];
 			}
 
 			if(_options.colors !== false && _options.borderColor !== false)
@@ -2503,7 +2503,7 @@ var c=0;
 		{
 			if(_options.fontSize !== false)
 			{
-				keyframes.fontSize = [ computedStyle.fontSize, tryValue(_options.fontSize, this.getVariable('font-size')), this._originalInOutStyle.fontSize ];
+				keyframes.fontSize = [ computedStyle.fontSize, tryValue(_options.fontSize, this.getVariable('font-size', null)), this._originalInOutStyle.fontSize ];
 			}
 		}
 		
@@ -2758,7 +2758,7 @@ var c=0;
 		{
 			if(_options.blur !== false)
 			{
-				keyframes.filter = [ computedStyle.filter, 'blur(' + tryValue(_options.blur, this.getVariable('blur')) + ')', this._originalInOutStyle.filter ];
+				keyframes.filter = [ computedStyle.filter, 'blur(' + tryValue(_options.blur, this.getVariable('blur', null)) + ')', this._originalInOutStyle.filter ];
 			}
 		}
 		
@@ -2766,12 +2766,12 @@ var c=0;
 		{
 			if(_options.borderWidth !== false)
 			{
-				keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, this.getVariable('border-width')), this._originalInOutStyle.borderWidth ];
+				keyframes.borderWidth = [ computedStyle.borderWidth, tryValue(_options.borderWidth, this.getVariable('border-width', null)), this._originalInOutStyle.borderWidth ];
 			}
 			
 			if(_options.borderRadius !== false)
 			{
-				keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, this.getVariable('border-radius')), this._originalInOutStyle.borderRadius ];
+				keyframes.borderRadius = [ computedStyle.borderRadius, tryValue(_options.borderRadius, this.getVariable('border-radius', null)), this._originalInOutStyle.borderRadius ];
 			}
 			
 			if(_options.colors !== false && _options.borderColor !== false)
@@ -2784,7 +2784,7 @@ var c=0;
 		{
 			if(_options.fontSize !== false)
 			{
-				keyframes.fontSize = [ computedStyle.fontSize, tryValue(_options.fontSize, this.getVariable('font-size')), this._originalInOutStyle.fontSize ];
+				keyframes.fontSize = [ computedStyle.fontSize, tryValue(_options.fontSize, this.getVariable('font-size', null)), this._originalInOutStyle.fontSize ];
 			}
 		}
 		

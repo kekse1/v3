@@ -131,7 +131,7 @@
 		{
 			if((_item = _item.trim()).length === 0)
 			{
-				if(! _unit)
+				if(_unit === null)
 				{
 					return _item;
 				}
@@ -139,7 +139,7 @@
 				return 0;
 			}
 
-			if(typeof _unit !== 'boolean')
+			if(typeof _unit !== 'boolean' && _unit !== null)
 			{
 				if(isString(_unit, false))
 				{
