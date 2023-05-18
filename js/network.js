@@ -271,41 +271,33 @@
 			return false;
 		}
 
-		var c;
 		var hadPort = false;
 		var portLen;
 
 		for(var i = 0; i < _string.length; ++i)
 		{
-			if((c = _string.charCodeAt(i)) >= 48 && c <= 57)
+			if(_string[i].isDecimal)
 			{
 				if(hadPort && ++portLen > 5)
 				{
 					return false;
 				}
 			}
-			else if(c >= 65 && c <= 90)
+			else if(_string[i].isLetter)
 			{
 				if(hadPort)
 				{
 					return false;
 				}
 			}
-			else if(c >= 97 && c <= 122)
+			else if(_string[i] === '.' || _string[i] === '_')
 			{
 				if(hadPort)
 				{
 					return false;
 				}
 			}
-			else if(c === 46 || c === 95)
-			{
-				if(hadPort)
-				{
-					return false;
-				}
-			}
-			else if(c === 58)
+			else if(_string[i] === ':')
 			{
 				if(hadPort)
 				{

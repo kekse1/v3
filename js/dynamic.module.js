@@ -240,8 +240,9 @@
 			const link = document.createElement('a');
 			link.id = 'self';
 			link.target = '#';
-			const url = (isString(config.url, false) ? config.url : location.href);
-			setHTML(link, uniform(link.href = url, false, null, true), true);
+
+			//
+			setHTML(link, (isString(config.url, false) ? config.url : location.origin), true);
 			
 			//
 			COUNTER._appendChild(COUNTER.link = COUNTER.self = link);

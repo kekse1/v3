@@ -688,19 +688,13 @@
 		var value = '';
 		var unit = (_unit === null ? '' : _unit);
 		var unitStarted = false;
+		var c;
 
 		for(var i = 0; i < _value.length; i++)
 		{
-			if(_value[i] === ' ' || _value[i] === '\t')
+			if(_value[i].isEmpty)
 			{
 				continue;
-			}
-			else if(_value[i] === '.')
-			{
-				if(! unitStarted)
-				{
-					value += '.';
-				}
 			}
 			else if(unitStarted)
 			{
@@ -708,17 +702,20 @@
 				{
 					continue;
 				}
-
-				if(alphabet.letter(_value[i]))
+				else if(_value[i].isLetter)
 				{
 					unit += _value[i];
 				}
 			}
-			else if(! isNaN(_value[i]))
+			else if(_value[i] === '.')
+			{
+				value += '.';
+			}
+			else if(_value[i].isDecimal)
 			{
 				value += _value[i];
 			}
-			else if(alphabet.letter(_value[i]))
+			else if(_value[i].isLetter)
 			{
 				if(_unit !== null)
 				{

@@ -1668,6 +1668,47 @@
 	}});
 
 	//
+	Object.defineProperty(String.prototype, 'isLetter', { get: function()
+	{
+		if(this.length === 0)
+		{
+			return null;
+		}
+
+		var c;
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if(! (((c = this.charCodeAt(i)) >= 65 && c <= 90) || (c >= 97 && c <= 122)))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}});
+
+	Object.defineProperty(String.prototype, 'isDecimal', { get: function()
+	{
+		if(this.length === 0)
+		{
+			return null;
+		}
+
+		var c;
+
+		for(var i = 0; i < this.length; ++i)
+		{
+			if((c = this.charCodeAt(i)) < 48 || c > 57)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}});
+
+	//
 
 })();
 

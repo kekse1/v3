@@ -2,17 +2,38 @@
 {
 
 	//
-	Object.defineProperty(location, 'base', { get: function()
-	{
-		return new URL(location.href).base;
-	}});
+	Object.defineProperty(location, 'base', {
+		get: function()
+		{
+			return new URL(location.href).base;
+		},
+		set: function(_value)
+		{
+			const url = new URL(location.href);
+			url.base = _value;
+			location.href = url.href;
+			return location.base;
+		}
+	});
 
-	Object.defineProperty(location, 'param', { get: function()
-	{
-		return new URL(location.href).param;
-	}});
+	Object.defineProperty(location, 'param', {
+		get: function()
+		{
+			return new URL(location.href).param;
+		},
+		set: function(_value)
+		{
+			const url = new URL(location.href);
+			url.param = _value;
+			location.href = url.href;
+			alert('href: ' + location.href + ' / ' + url.href);
+			return location.param;
+		}
+	});
 
 	//
+	//TODO/p new URLSearchParams(...)!?!?
+	/*
 	Object.defineProperty(location, 'argv', {
 		get: function()
 		{
@@ -102,7 +123,7 @@ throw new Error('TODO');//bedenke '=', darf nicht escaped werden bspw., wo alles
 		{
 throw new Error('TODO');
 		}
-	});
+	});*/
 
 	//
 	Object.defineProperty(location, 'isLocalhost', { get: function()

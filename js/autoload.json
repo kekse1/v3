@@ -14,11 +14,8 @@
 	"location",
 	"document",
 
-	"intl",
-
 	"url",
-	"link",
-	"uniform",
+	"intl",
 
 	"id",
 	"path",

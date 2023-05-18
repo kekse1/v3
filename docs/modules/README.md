@@ -162,7 +162,7 @@ for a quick review for you, as github.com doesn't manage to show symlink content
 I've created a linux/bash `**$PS1**` prompt which seems nice for me. You can use it, if you want! :)~
 I really like this one!
 
-### 'scripts/**tree.sh**'
+### 'scripts/**hardware.sh**'
 More for myself, as I'm managing a '~/git/hardware/' archive of my possession (for drivers, manuals, or just a
 list and the prices, etc.). For this reason I've created my own './home/hardware/' page, with text/plain output
 of `tree (..)`.
@@ -172,6 +172,12 @@ This is for Debian, Gentoo and Termux linux. All in one script for `emerge` and 
 
 ### 'scripts/**update.sh**'
 **Important for *you*!** See below: 'status/update.now' (this script created this file).
+
+### 'scripts/**markdown.sh**'
+Just to synchronize the '**js**/' and '**json**/' modules with the 'docs/modules/' directory, which contains one
+'.md' for every module..
+
+And btw, it's logged to 'stdout', so you'll know which modules need to be integrated into this overview/index (docs/modules.md). ;)~
 
 ## '**status**/'
 The files in here are periodically handled by the 'js/dynamic{,.module}.js'. As follows..
@@ -337,9 +343,6 @@ TODO
 TODO
 
 ### [title](title.js.md).js
-TODO
-
-### [uniform](uniform.js.md).js
 TODO
 
 ### [uptime](uptime.js.md).js
