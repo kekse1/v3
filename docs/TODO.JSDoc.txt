@@ -94,4 +94,5 @@ Beispiel; in diesem kann der Parameter `value` entweder eine Zahl, ein String od
 >>   return typeof value === 'number';
 >> }
 
-//
+Powered by ChatGPT. ^_^
+

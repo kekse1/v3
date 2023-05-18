@@ -179,9 +179,10 @@ This is for Debian, Gentoo and Termux linux. All in one script for `emerge` and 
 
 ### 'scripts/**markdown.sh**'
 Just to synchronize the '**js**/' and '**json**/' modules with the 'docs/modules/' directory, which contains one
-'.md' for every module..
+'.md' for every module.. and btw, it'll be logged to 'stdout', so you'll know which modules need to be integrated
+into this overview/index (docs/modules.md). ;)~
 
-And btw, it's logged to 'stdout', so you'll know which modules need to be integrated into this overview/index (docs/modules.md). ;)~
+BUT it's still TODO; AND even more important: I'm going to use 'JSDoc', so this will be obsolete.. xD~
 
 ## '**status**/'
 The files in here are periodically handled by the 'js/dynamic{,.module}.js'. As follows..
