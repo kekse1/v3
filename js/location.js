@@ -141,6 +141,12 @@ throw new Error('TODO');
 	});
 
 	//
+	Object.defineProperty(location, 'render', { value: function(... _args)
+	{
+		return new URL(location.href).render(... _args);
+	}});
+
+	//
 	Object.defineProperty(location, 'isLocalhost', { get: function()
 	{
 		return address.isLocalhost(location.hostname);

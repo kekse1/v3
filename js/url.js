@@ -381,6 +381,31 @@
 		
 		return result;
 	};
+
+	//
+	Object.defineProperty(URL.prototype, 'args', {
+		get: function()
+		{
+throw new Error('TODO');
+		},
+		set: function(_value)
+		{
+throw new Error('TODO');
+		}
+	});
+
+	Object.defineProperty(URL.prototype, 'argv', {
+		get: function()
+		{
+throw new Error('TODO');
+		},
+		set: function(_value)
+		{
+throw new Error('TODO');
+		}
+	});
+
+	//
 	
 })();
 

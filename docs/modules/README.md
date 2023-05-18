@@ -307,7 +307,16 @@ TODO
 TODO
 
 ### [location](location.js.md).js
-TODO
+* location.toURL()
+* location.render()
+* location.base
+* location.param
+* location.isLocalhost
+* location.isIP
+* location.isIPv4
+* location.isIPv6
+* location.args [**TODO**]
+* location.argv [**TODO**]
 
 ### [main](main.js.md).js
 TODO
@@ -358,9 +367,7 @@ TODO
 TODO
 
 ### [url](url.js.md).js
-* URL.[prototype.]args [**TODO**]
-* URL.[prototype.]argv [**TODO**]
-* URL.prototype.render()
+* URL[.prototype].render()
 * URL.prototype.base
 * URL.prototype.param
 * URL.resolve()
@@ -371,6 +378,8 @@ TODO
 * URL.prototype.isIP
 * URL.prototype.isIPv4
 * URL.prototype.isIPv6
+* URL.prototype.args [**TODO**]
+* URL.prototype.argv [**TODO**]
 
 ### [window](window.js.md).js
 TODO
