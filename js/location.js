@@ -17,7 +17,12 @@
 		{
 			const url = new URL(location.href);
 			url.base = _value;
-			location.href = url.href;
+
+			if(location.href !== url.href)
+			{
+				location.href = url.href;
+			}
+
 			return location.base;
 		}
 	});
@@ -31,8 +36,12 @@
 		{
 			const url = new URL(location.href);
 			url.param = _value;
-			location.href = url.href;
-			alert('href: ' + location.href + ' / ' + url.href);
+
+			if(location.href !== url.href)
+			{
+				location.href = url.href;
+			}
+
 			return location.param;
 		}
 	});
