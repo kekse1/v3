@@ -1,11 +1,23 @@
 # url.js
-TODO:
+This 'URL' extensions are already available in the `[window.]location` object (all but '.isKnownProtocol',
+which is really not necessary there ;).
+
+Current TODO:
 * .render()
 * .args
 * .argv
 
 The .render() is a relict of old 'uniform.js', to **style** a link, etc.
 .args and .argv were already there, but I'm thinking 'bout using `new URLSearchParams(..)`. We'll see.
+
+## URL.[prototype.]render()
+TODO
+
+## URL.prototype.args
+TODO
+
+## URL.prototype.argv
+TODO
 
 ## URL.prototype.base
 The .href without .param (see below).
