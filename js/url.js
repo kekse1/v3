@@ -194,7 +194,7 @@
 		//
 		var sub;
 		
-		if(this.protocol)
+		if(_options.everything || this.origin !== location.origin)
 		{
 			sub = `<span style="font-size: ${_options.protocol};">${this.protocol.slice(0, -1)}</span>`
 				+ ` <span style="font-size: ${_options.protocolSep};">://</span> `;
@@ -204,7 +204,7 @@
 			sub = '';
 		}
 		
-		if(this.hostname)
+		if(_options.everything || this.origin !== location.origin)
 		{
 			sub += `<span style="font-size: ${_options.hostname};">${this.hostname}</span>`;
 			
@@ -217,18 +217,18 @@
 			sub += ' ';
 		}
 		
-		if(this.pathname)
+		if(_options.everything || (this.origin !== location.origin || this.pathname !== location.pathname))
 		{
 			sub += `<span style="font-size: ${_options.pathname};">${this.pathname}</span>`;
 		}
 		
-		if(this.search.length > 1)
+		if(this.search.length > 1 && (_options.everything || (this.origin !== location.origin || this.pathname !== location.pathname || this.search !== location.search)))
 		{
 			sub += ` <span style="font-size: ${_options.param};">?</span>`
 				+ `<span style="font-size: ${_options.search};">${this.search.substr(1)}</span>`;
 		}
 		
-		if(this.hash.length > 1)
+		if(this.hash.length > 1 && (_options.everything || (this.origin !== location.origin || this.pathname !== location.pathname || this.search !== location.search || this.hash !== location.hash)))
 		{
 			sub += ` <span style="font-size: ${_options.param};">#</span>`
 				+ `<span style="font-size: ${_options.hash};">${this.hash.substr(1)}</span>`;
@@ -237,9 +237,10 @@
 		//
 		if(sub.length === 0)
 		{
-			result = '';
+			return this.render(Object.assign(_options, { everything: true }));
 		}
-		else
+
+		if(sub.length > 0)
 		{
 			//
 			result += sub;
@@ -270,6 +271,15 @@
 		}
 		
 		const result = {};
+
+		if(typeof _options.everything === 'boolean')
+		{
+			result.everything = _options.everything;
+		}
+		else
+		{
+			result.everything = document.getVariable('url-everything', true);
+		}
 		
 		if(typeof _options.target === 'string')
 		{
