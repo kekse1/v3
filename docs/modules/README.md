@@ -1,3 +1,7 @@
+# Big TODO: 'JSDoc'!
+I just decided to use 'JSDoc' here, which is also on my TODO (it'll be necessary to provide the JavaScript code with special
+comments, so the exports will be included in this documentation). **Big TODO!**..
+
 # Index
 * [Configuration](#Configuration)
 * [Filesystem structure](#filesystem-structure)

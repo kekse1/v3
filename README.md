@@ -26,6 +26,9 @@ It covers these sections:
 * [Filesystem Structure](./docs/modules/README.md#Filesystem-structure)
 * [API Documentation](./docs/modules/README.md#API-documentation)
 
+I just decided to use 'JSDoc' here, which is also on my TODO (it'll be necessary to provide the JavaScript code with special
+comments, so the exports will be included in this documentation).
+
 ## scripts/
 
 ### prompt.sh
@@ -36,10 +39,10 @@ It covers these sections:
 
 ## Next steps
 
-#### Documentation..
-.. of the whole API! Already began at [modules.md](./docs/modules/README.md).
+### Documentation
+See above. Maybe an important thing!?
 
-#### Responsible Design
+### Responsible Design
 That's how I want to design everything, to get it more 'responsible', too. Automatically align/size
 everything, also for small, mobile web browsers..
 
@@ -47,22 +50,25 @@ The plan was to use a '*box*.js' (which is already there, btw), but planned to b
 windows on your PC.. so that's not the final plan, as it's not so beautiful on mobile browsers. And
 currently there are, btw, also '\*responsible\*.css', but they are going to be optimized as well.
 
-#### Radix Sort and Radix conversions
+### Radix Sort and Radix conversions
 
-#### Sort
+### Sort
 As in JavaScript there's usually everything being sorted with the help of pure Integers (only real
 floating point numbers - but they'll work here as well, due to their encoding..), the plan is to
 use the 'best' sorting algorithm.
 
 * https://codercorner.com/RadixSortRevisited.htm
 
-#### Conversions
+### Conversions
 As already integrated in my [https://libjs.de/](lib[rary].js), the regular 36 radix maximum isn't
 enough for me. It's even really useful that I'm supporting the 256 byte-code-radix (using all
 the one-byte-characters)! :D~
 
 Here's my current implementation (which is going to be ported to here!):
 * https://libjs.de/lib/lib.js/ext/numeric.js
+
+### TODO
+And much more..
 
 ## Features / Modules
 *Partially* (much TODO) described in the [modules.md](./docs/modules/README.md) and it's successors,
