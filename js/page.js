@@ -945,12 +945,6 @@
 				if(_request.statusClass !== 2)
 				{
 					ajax.osd(_options.method, _request.status, (_request.statusText || 'error'), getURL());
-
-					if(originalLink[0] !== '~')
-					{
-						Page.changeURL(_request.responseURL, true);
-					}
-
 					call(_callback, { type: 'getLink', error: true });
 					
 					if(_throw)
@@ -965,9 +959,29 @@
 					ajax.osd(_options.method, _request.status, (_request.statusText || 'ok'), getURL());
 					Page.nextURL(_request.responseURL || _link);
 
-					if(originalLink[0] !== '~')
+					if(originalLink[0] === '~')
+					{
+						const url = new URL(Page.originalBase);
+						url.hash = originalLink;
+
+						if(url.href !== location.href)
+						{
+							Page.changeURL(url.href);
+						}
+					}
+					else if(document.getVariable('page-url-change', true))
 					{
 						Page.changeURL(_request.responseURL || _link);
+					}
+					else
+					{
+						const url = new URL(location.href);
+						url.hash = '';
+
+						if(url.href !== location.href)
+						{
+							Page.changeURL(url.href);
+						}
 					}
 				}
 				else
@@ -1018,9 +1032,29 @@
 				ajax.osd(result.options.method, result.status, (result.statusText || 'ok'), getURL());
 				Page.nextURL(result.responseURL || _link);
 
-				if(originalLink[0] !== '~')
+				if(originalLink[0] === '~')
+				{
+					const url = new URL(Page.originalBase);
+					url.hash = originalLink;
+
+					if(url.href !== location.href)
+					{
+						Page.changeURL(url.href);
+					}
+				}
+				else if(document.getVariable('page-url-change', true))
 				{
 					Page.changeURL(result.responseURL || _link);
+				}
+				else
+				{
+					const url = new URL(location.href);
+					url.hash = '';
+
+					if(url.href !== location.href)
+					{
+						Page.changeURL(url.href);
+					}
 				}
 			}
 			else
@@ -1134,20 +1168,6 @@
 					if(_e.error)
 					{
 						Page.changeURL(href.old, true);
-					}
-					else
-					{
-						const url = new URL(location.href);
-
-						if(url.base !== Page.originalBase)
-						{
-							url.base = Page.originalBase;
-						}
-
-						if(url.href !== location.href)
-						{
-							Page.changeURL(url.href, true);
-						}
 					}
 				};
 				

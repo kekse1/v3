@@ -13,5 +13,6 @@
 	--page-callback: auto;
 	--page-target: MAIN;
 	--page-text-white-space: pre;
+	--page-url-change: none;
 }
 
