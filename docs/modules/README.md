@@ -15,8 +15,7 @@ Some are located in the 'config{,.responsive}.css', other (less important ones) 
 the rest is spread over all the 'css/*.css'..
 
 It uses, btw, **my own** `...{get,set,has,*}Variable(..)` extensions (of 'js/extensions.js'), to handle
-these 'CSS Custom Properties', and also the 'css.parse()' etc. of 'js/css.js' (which is going to be re-
-written from scratch, very soon!).
+these 'CSS Custom Properties', also using 'css.parse()' etc. of 'js/css.js'.
 
 ## config.json
 This is the configuration which can't be integrated into css/.. mostly because the 'css.js' and 'extensions.js' first
