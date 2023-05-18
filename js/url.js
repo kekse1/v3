@@ -99,7 +99,7 @@
 	}});
 
 	//
-	Object.defineProperty(URL, 'protocols', { get: function()
+	Object.defineProperty(URL, 'knownProtocols', { get: function()
 	{
 		return [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:', 'ftps:', 'ws:', 'wss:' ];
 	}});

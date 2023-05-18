@@ -356,7 +356,7 @@ TODO
 * URL.prototype.param
 * URL.resolve()
 * URL.create()
-* URL.protocols
+* URL.knownProtocols
 * URL.prototype.isKnownProtocol
 * URL.prototype.isLocalhost
 * URL.prototype.isIP

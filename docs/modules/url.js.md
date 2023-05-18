@@ -31,11 +31,11 @@ Just a `new URL(_href, location.href)`.
 ## URL.create(_href, _resolve = false)
 And this is without resolving current path, so `new URL(_href, location.origin)` (if not _resolve).
 
-## URL.protocols
+## URL.knownProtocols
 Used for '.isKnownProtocol' (below): [ 'http:', 'https:', 'file:', 'blob:', 'data:', 'ftp:', 'ftps:', 'ws:', 'wss:' ];
 
 ## URL.prototype.isKnownProtocol
-See 'URL.protocols' (above);
+See 'URL.knownProtocols' (above);
 
 ## URL.prototype.isLocalhost
 See 'js/**network**.js'

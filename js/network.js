@@ -352,11 +352,11 @@
 
 			return null;
 		}
-		else if(! URL.protocols)
+		else if(! URL.knownProtocols)
 		{
-			throw new Error('The \'URL.protocols\' still needs to be loaded first');
+			throw new Error('The \'URL.knownProtocols\' still needs to be loaded first');
 		}
-		else if(_string.startsWith(false, ... URL.protocols))
+		else if(_string.startsWith(false, ... URL.knownProtocols))
 		{
 			return true;
 		}
