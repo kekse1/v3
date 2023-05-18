@@ -12,6 +12,6 @@
 	--page-blink-count: 1;
 	--page-callback: auto;
 	--page-target: MAIN;
-	--page-invalid-hash-clear: auto;
 	--page-text-white-space: pre;
 }
+

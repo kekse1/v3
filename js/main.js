@@ -338,7 +338,7 @@
 		{
 			_url = '';
 		}
-		else if(Page)
+		else if(Page && _url[0] !== '#' && _url[0] !== '~')
 		{
 			_url = Page.renderHomePath(_url);
 		}

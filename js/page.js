@@ -265,7 +265,7 @@
 			location.hash = ('#' + _link);
 
 			//
-			call(_callback, { type: 'getHash', link: _link, reload: _reload });
+			call(_callback, { type: 'getHash', link: _link, reload: _reload, error: false });
 
 			//
 			return _link;
@@ -365,6 +365,11 @@
 				_throw = DEFAULT_THROW;
 			}
 			
+			if(typeof _callback !== 'function')
+			{
+				_callback = null;
+			}
+			
 			if(! _target)
 			{
 				_target = Page.target;
@@ -377,11 +382,13 @@
 			
 			if(! _target)
 			{
+				call(_callback, { type: 'getLink', error: true });
+				
 				if(_throw)
 				{
 					throw new Error('Invalid _target argument');
 				}
-				
+
 				return undefined;
 			}
 			
@@ -403,6 +410,8 @@
 			
 			if(originalLink === null)
 			{
+				call(_callback, { type: 'getLink', error: true });
+				
 				if(_throw)
 				{
 					throw new Error('Invalid _link argument');
@@ -461,14 +470,8 @@
 			
 			const animateIf = (_request) => {
 				//
-				var local = location.protocol + '//' + location.host;
-				
-				if(_request.responseURL.length > local)
-				{
-					local += '/';
-				}
-				
-				local = !!_request.responseURL.startsWith(local);
+				const url = new URL(_request.responseURL, location.href);
+				const local = (url.origin === location.origin);
 
 				//
 				//setValue(_request, _type, '', false, null);
@@ -787,8 +790,8 @@
 						}
 
 						//
-						call(_callback, { type: 'page', href: _request.responseURL, event: _e, type: _type, local });
-						window.emit('page', { type: 'page', event: _e, href: _request.responseURL, type: _type, local });
+						call(_callback, { error: false, type: 'page', href: _request.responseURL, link: _link, originalLink, event: _e, type: _type, local });
+						window.emit('page', { error: false, type: 'page', event: _e, href: _request.responseURL, link: _link, originalLink, type: _type, local });
 					});
 				});
 
@@ -848,7 +851,7 @@
 
 				return result;
 			};
-			
+
 			const setValue = (_request, _type, _value = _request.responseText, _anim = doAnimate, _cb) => {
 				switch(_type)
 				{
@@ -941,16 +944,10 @@
 			const callback = (_event, _request, _options) => {
 				if(_request.statusClass !== 2)
 				{
-					if(originalLink[0] === '~')
-					{
-						location.hash = '';
-					}
+					ajax.osd(_options.method, _request.status, (_request.statusText || 'error'), getURL());
 
-					if(!document.hasVariable('ajax-osd') || !document.getVariable('ajax-osd', true))
-					{
-						ajax.osd(_options.method, _request.status, (_request.statusText || 'error'));
-					}
-						
+					call(_callback, { type: 'getLink', error: true });
+					
 					if(_throw)
 					{
 						throw new Error('Couldn\'t load link \'' + (_request.responseURL || _link) + '\': [' + _request.status + '] ' + _request.statusText);
@@ -960,19 +957,31 @@
 				}
 				else if(_type = checkType(_request, _throw))
 				{
+					ajax.osd(_options.method, _request.status, (_request.statusText || 'ok'), getURL());
 					Page.nextURL(_request.responseURL || _link);
 				}
 				else
 				{
+					call(_callback, { type: 'getLink', error: true });
 			throw new Error('DEBUG');
 					return;
 				}
-				
-				if(_type === 'html')
-				{
-				}
-				
+
+				call(_callback, { type: 'getLink', error: false });
 				return animateIf(_request);
+			};
+			
+			const getURL = () => {
+				if(originalLink[0] === '~')
+				{
+					return originalLink;
+				}
+				else if(result && result.responseURL)
+				{
+					return result.responseURL;
+				}
+
+				return _link;
 			};
 
 			const result = Page.loadFile(_link, (_callback ? callback : null), _options, _throw);
@@ -983,6 +992,10 @@
 			}
 			else if(result.statusClass !== 2)
 			{
+				ajax.osd(result.options.method, result.status, (result.statusText || 'error'), getURL());
+				
+				call(_callback, { type: 'getLink', error: true });
+				
 				if(_throw)
 				{
 					throw new Error('Couldn\'t load link \'' + (result.responseURL || _link) + '\': [' + result.status + '] ' + result.statusText);
@@ -992,6 +1005,7 @@
 			}
 			else if(_type = checkType(result, _throw))
 			{
+				ajax.osd(result.options.method, result.status, (result.statusText || 'ok'), getURL());
 				Page.nextURL(result.responseURL || _link);
 			}
 			else
@@ -999,7 +1013,10 @@
 	throw new Error('DEBUG');
 				return;
 			}
-
+			
+			//
+			call(_callback, { type: 'getLink', error: false });
+			
 			//
 			return animateIf(result);
 		}
@@ -1014,6 +1031,16 @@
 			if(! isObject(_options))
 			{
 				_options = {};
+			}
+			
+			if(typeof _options.osd !== 'boolean')
+			{
+				_options.osd = false;
+			}
+			
+			if(typeof _options.console !== 'boolean')
+			{
+				_options.console = false;
 			}
 			
 			return ajax({ url: _url, callback: _callback, ... _options });
@@ -1031,10 +1058,32 @@
 			return result;
 		}
 		
+		static changeHash(_hash, _invisible = true)
+		{
+			if(typeof _hash !== 'string')
+			{
+				return null;
+			}
+			else if(_hash[0] === '#')
+			{
+				_hash = _hash.substr(1);
+			}
+			
+			if(_invisible)
+			{
+				history.replaceState(null, null, document.location.base + '#' + _hash);
+			}
+			
+			location.hash = _hash;
+			
+			return ('#' + _hash);
+		}
+		
 		static onhashchange(_event)
 		{
 			//
-			const href = { new: _event.newURL, old: (Page.History.length === 0 ? _event.oldURL : Page.History[Page.History.length - 1]) };
+			const href = { new: _event.newURL, old: (_event.oldURL || location.href) };
+			//const href = { new: _event.newURL, old: (Page.History.length === 0 ? _event.oldURL : Page.History[Page.History.length - 1]) };
 			const hash = { new: Page.extractHash(href.new), old: Page.extractHash(href.old) };
 			const link = { new: Page.extractURL(href.new), old: Page.extractURL(href.old) };
 
@@ -1046,7 +1095,14 @@
 			}
 			else if(hash.new[1] === '~' && hash.new.length > 1)
 			{
-				return Page.getLink(hash.new.substr(1));
+				const cb = (_e) => {
+					if(_e.error)
+					{
+						Page.changeHash(hash.old, true);
+					}
+				};
+				
+				return Page.getLink(hash.new.substr(1), Page.target, cb);
 			}
 
 			//
@@ -1054,16 +1110,11 @@
 
 			if(! elem)
 			{
-				if(document.getVariable('page-invalid-hash-clear', true))
-				{
-					return location.hash = '';
-				}
-
-				return location.hash = hash.old;
+				return Page.changeHash(hash.old, true);
 			}
 			else
 			{
-				Page.nextURL(hash.new);
+				Page.nextURL(href.new);
 			}
 			
 			//
