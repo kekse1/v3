@@ -1,0 +1,96 @@
+Ein beliebtes Dokumentationswerkzeug für JavaScript ist JSDoc.
+
+JSDoc verwendet spezielle Kommentarblöcke, die mit dem Sternsymbol (*) beginnen,
+um die Funktionen, Parameter, Rückgabewerte und andere Details der API zu beschreiben.
+ Diese Kommentare werden dann von JSDoc geparst und in verschiedene Ausgabeformate
+wie HTML, Markdown oder JSON umgewandelt.
+
+Hier ist ein einfaches Beispiel für die Verwendung von JSDoc-Kommentaren:
+
+>> /**
+>> * Berechnet die Summe von zwei Zahlen.
+>> * @param {number} a - Die erste Zahl.
+>> * @param {number} b - Die zweite Zahl.
+>> * @returns {number} Die Summe der beiden Zahlen.
+>> */
+>> function add(a, b) {
+>>    return a + b;
+>> }
+
+Mit JSDoc kannst du verschiedene Parameter in den speziellen Kommentaren verwenden,
+um deine JavaScript-Funktionen zu dokumentieren. Hier sind einige der häufig
+verwendeten Parameter:
+
+	@param:
+	Beschreibt einen Funktionseingabeparameter. Du kannst den Namen des Parameters
+	und eine Beschreibung angeben. Zum Beispiel: @param {number} a - Die erste Zahl.
+
+	@returns oder @return:
+	Beschreibt den Rückgabewert der Funktion. Du kannst den Datentyp des Rückgabewerts
+	und eine Beschreibung angeben. Zum Beispiel: @returns {number} - Die Summe der beiden Zahlen.
+
+	@type:
+	Beschreibt den Datentyp einer Variable oder eines Funktionsergebnisses. Zum Beispiel: @type {string}.
+
+	@typedef:
+	 Definiert einen benutzerdefinierten Typ, den du in deiner Dokumentation verwenden kannst.
+	Zum Beispiel: @typedef {Object} User - Ein Benutzerobjekt.
+
+	@description:
+	Bietet eine ausführlichere Beschreibung für die Funktion oder den Parameter.
+
+	@example:
+	 Fügt ein Codebeispiel hinzu, um die Verwendung der Funktion zu demonstrieren.
+
+JSDoc eignet sich auch für Fälle, in denen die Typen von Argumenten und Rückgabewerten dynamisch sind
+oder zur Laufzeit festgelegt werden. Du kannst generische Typen oder das *-Symbol verwenden, um anzuzeigen,
+dass ein beliebiger Typ akzeptiert oder zurückgegeben wird. Hier ist ein Beispiel, das die Verwendung von
+generischen Typen und dem *-Symbol zeigt:
+
+>> /**
+>> * Eine generische Funktion, die zwei Werte addiert.
+>> * @template T
+>> * @param {T} a - Der erste Wert.
+>> * @param {T} b - Der zweite Wert.
+>> * @returns {T} Die Summe der beiden Werte.
+>> */
+>> function add(a, b) {
+>>   return a + b;
+>> }
+>> 
+>> /**
+>> * Eine Funktion, die den Typ des Arguments dynamisch überprüft.
+>> * @param {*} arg - Das Argument mit beliebigem Typ.
+>> * @returns {*} Der geänderte Wert des Arguments.
+>> */
+>> function processArgument(arg) {
+>>   // Code zur Verarbeitung des Arguments
+>>  return arg;
+>>}
+
+In JSDoc ist es auch möglich, eine Liste möglicher Typen anzugeben, um anzugeben, dass ein Argument oder
+ein Rückgabewert einen der aufgeführten Typen haben kann. Du kannst die vertikale Trennlinie (|) verwenden,
+um die Typen aufzulisten. Hier ist ein Beispiel für die Verwendung einer Typenliste:
+
+>> /**
+>> * Eine Funktion, die eine Zahl oder einen String akzeptiert.
+>> * @param {number|string} value - Eine Zahl oder ein String.
+>> * @returns {boolean} true, wenn der Wert eine Zahl ist, sonst false.
+>> */
+>> function isNumber(value) {
+>>   return typeof value === 'number';
+>>}
+
+Du kannst beliebig viele Typen in der Liste angeben, um die möglichen Typen zu erweitern. Hier ist ein weiteres
+Beispiel; in diesem kann der Parameter `value` entweder eine Zahl, ein String oder ein Array sein:
+
+>> /**
+>> * Eine Funktion, die entweder eine Zahl, ein String oder ein Array akzeptiert.
+>> * @param {number|string|Array} value - Eine Zahl, ein String oder ein Array.
+>> * @returns {boolean} true, wenn der Wert eine Zahl ist, sonst false.
+>> */
+>> function isNumberOrStringOrArray(value) {
+>>   return typeof value === 'number';
+>> }
+
+//
