@@ -72,7 +72,7 @@
 			
 			return null;
 		}
-		
+
 		return processString(_string, _parse);
 	};
 	

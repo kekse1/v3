@@ -593,7 +593,17 @@
 			return null;
 		}
 
-		const computedStyle = getComputedStyle(this);
+		var computedStyle;
+
+		if(this._computedStyle)
+		{
+			computedStyle = this._computedStyle;
+		}
+		else
+		{
+			computedStyle = this._computedStyle = getComputedStyle(this);
+		}
+
 		const result = Object.create(null);
 
 		for(var i = 0; i < _args.length; ++i)
@@ -747,6 +757,8 @@
 		{
 			throw new Error('Invalid _variables argument (neither non-empty String nor non-empty Array)');
 		}
+
+		delete this._computedStyle;
 
 		if(_ext === true)
 		{
