@@ -707,11 +707,7 @@
 					unit += _value[i];
 				}
 			}
-			else if(_value[i] === '.')
-			{
-				value += '.';
-			}
-			else if(_value[i].isDecimal)
+			else if(_value[i].isDecimal(true))
 			{
 				value += _value[i];
 			}

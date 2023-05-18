@@ -13,6 +13,7 @@
 	const DEFAULT_ENTITIES_URL = 'https://html.spec.whatwg.org/entities.json';
 	const DEFAULT_HTML_ALL = true;
 	const DEFAULT_HTML_HEX = true;
+	const DEFAULT_DECIMAL_DOT = true;
 
 	//
 	Object.defineProperty(String.prototype, 'print', { value: function(_object, ... _args)
@@ -1688,18 +1689,35 @@
 		return true;
 	}});
 
-	Object.defineProperty(String.prototype, 'isDecimal', { get: function()
+	Object.defineProperty(String.prototype, 'isDecimal', { value: function(_dot = DEFAULT_DECIMAL_DOT)
 	{
 		if(this.length === 0)
 		{
 			return null;
 		}
 
+		var hadDot = (_dot ? false : null);
 		var c;
 
 		for(var i = 0; i < this.length; ++i)
 		{
-			if((c = this.charCodeAt(i)) < 48 || c > 57)
+			if(this[i] === '.')
+			{
+				if(_dot)
+				{
+					if(hadDot)
+					{
+						return false;
+					}
+
+					hadDot = true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if((c = this.charCodeAt(i)) < 48 || c > 57)
 			{
 				return false;
 			}

@@ -276,7 +276,7 @@
 
 		for(var i = 0; i < _string.length; ++i)
 		{
-			if(_string[i].isDecimal)
+			if(_string[i].isDecimal(false))
 			{
 				if(hadPort && ++portLen > 5)
 				{
