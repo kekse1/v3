@@ -133,17 +133,17 @@
 		{
 			return _string;
 		}
-		else if((_string = _string.trim()).length === 0 || _string.isEmpty)
+		else if((_string = _string.trim()).isEmpty)
 		{
 			return '';
 		}
-		else if(_string.length === 2)
+		else if(_string.length === 2 && _string[0] === _string[1])
 		{
 			const quote = String.quote;
 			
 			for(const q of quote)
 			{
-				if(_string[0] === q && _string[1] === q)
+				if(_string[0] === q)
 				{
 					return '';
 				}
