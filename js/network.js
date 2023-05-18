@@ -330,16 +330,12 @@
 		{
 			return false;
 		}
-		else if(! address.isHost(_string, _throw))
-		{
-			return false;
-		}
 		else if(_string.includes(':'))
 		{
 			return false;
 		}
 
-		return true;
+		return address.isHost(_string, _throw);
 	};
 
 	address.isKnownProtocol = (_string, _throw = DEFAULT_THROW) => {
