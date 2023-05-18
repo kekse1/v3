@@ -655,7 +655,14 @@
 
 		if(COMPUTED)
 		{
-			style = getComputedStyle(this);
+			if(this._computedStyle)
+			{
+				style = this._computedStyle;
+			}
+			else
+			{
+				style = this._computedStyle = getComputedStyle(this);
+			}
 		}
 		else
 		{
