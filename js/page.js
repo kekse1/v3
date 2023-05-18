@@ -946,6 +946,11 @@
 				{
 					ajax.osd(_options.method, _request.status, (_request.statusText || 'error'), getURL());
 
+					if(originalLink[0] !== '~')
+					{
+						Page.changeURL(_request.responseURL, true);
+					}
+
 					call(_callback, { type: 'getLink', error: true });
 					
 					if(_throw)
@@ -959,6 +964,11 @@
 				{
 					ajax.osd(_options.method, _request.status, (_request.statusText || 'ok'), getURL());
 					Page.nextURL(_request.responseURL || _link);
+
+					if(originalLink[0] !== '~')
+					{
+						Page.changeURL(_request.responseURL || _link);
+					}
 				}
 				else
 				{
@@ -1007,6 +1017,11 @@
 			{
 				ajax.osd(result.options.method, result.status, (result.statusText || 'ok'), getURL());
 				Page.nextURL(result.responseURL || _link);
+
+				if(originalLink[0] !== '~')
+				{
+					Page.changeURL(result.responseURL || _link);
+				}
 			}
 			else
 			{
@@ -1068,15 +1083,35 @@
 			{
 				_hash = _hash.substr(1);
 			}
-			
+
 			if(_invisible)
 			{
 				history.replaceState(null, null, document.location.base + '#' + _hash);
 			}
-			
-			location.hash = _hash;
+			else
+			{
+				location.hash = _hash;
+			}
 			
 			return ('#' + _hash);
+		}
+
+		static changeURL(_href, _invisible = true)
+		{
+			if(typeof _href !== 'string')
+			{
+				return null;
+			}
+			else if(_invisible)
+			{
+				history.replaceState(null, null, _href);
+			}
+			else
+			{
+				location.href = _href;
+			}
+
+			return _href;
 		}
 		
 		static onhashchange(_event)
@@ -1096,10 +1131,19 @@
 			else if(hash.new[1] === '~' && hash.new.length > 1)
 			{
 				const cb = (_e) => {
+					const original = new URL(Page.originalURL);
+
 					if(_e.error)
 					{
-						Page.changeHash(hash.old, true);
+						original.hash = hash.old;
 					}
+					else
+					{
+						original.hash = hash.new;
+					}
+
+					Page.changeURL(original.href, true);
+					//Page.changeHash(..., true);
 				};
 				
 				return Page.getLink(hash.new.substr(1), Page.target, cb);
@@ -1367,6 +1411,9 @@
 		loc += hash.substr(1);
 		location.href = loc;
 	}, { once: true });
+
+	//
+	Page.originalURL = location.href;
 
 	//
 	
