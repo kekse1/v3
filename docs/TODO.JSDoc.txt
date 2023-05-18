@@ -1,3 +1,4 @@
+And please ask Google: < https://www.google.com/search?q=jsdoc >.
 Ein beliebtes Dokumentationswerkzeug für JavaScript ist JSDoc.
 
 JSDoc verwendet spezielle Kommentarblöcke, die mit dem Sternsymbol (*) beginnen,
