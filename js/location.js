@@ -2,6 +2,12 @@
 {
 
 	//
+	Object.defineProperty(location, 'toURL', { value: function()
+	{
+		return new URL(location.href);
+	}});
+
+	//
 	Object.defineProperty(location, 'base', {
 		get: function()
 		{

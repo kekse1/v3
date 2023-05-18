@@ -2,6 +2,9 @@
 {
 
 	//
+	const DEFAULT_RESOLVE = false;
+
+	//
 	Object.defineProperty(URL.prototype, 'base', {
 		get: function()
 		{
@@ -88,7 +91,7 @@
 		return new URL(_href, location.href);
 	}});
 
-	Object.defineProperty(URL, 'create', { value: function(_href, _resolve = false)
+	Object.defineProperty(URL, 'create', { value: function(_href, _resolve = DEFAULT_RESOLVE)
 	{
 		if(_resolve)
 		{
@@ -131,138 +134,106 @@
 	}});
 
 	//
-	//TODO/render() etc.. see below..
-	//
-	
-})();
-
-
-
-
-
-/*
-(function()
-{
-
-	//
-	const DEFAULT_TARGET = 'blank';
-	const DEFAULT_BRACKETS = false;
-	const DEFAULT_ANCHOR = true;
-	const DEFAULT_ARROWS = false;
-
-	const DEFAULT_SIZE_PROTOCOL = '0.90em';
-	const DEFAULT_SIZE_PROTOCOL_SEP = '0.85rem';
-	const DEFAULT_SIZE_HOSTNAME = '1.15em';
-	const DEFAULT_SIZE_PORT = '1.00em';
-	const DEFAULT_SIZE_PATHNAME = '1.05em';
-	const DEFAULT_SIZE_SEARCH = '0.95em';
-	const DEFAULT_SIZE_HASH = '0.95em';
-	const DEFAULT_SIZE_SYMBOL = '1.20em';
-	
-	//
-	uniform = (_string, _anchor = DEFAULT_ANCHOR, _target = DEFAULT_TARGET, _brackets = DEFAULT_BRACKETS, _arrows = DEFAULT_ARROWS) => {
-		if(typeof _string === 'string')
+	Object.defineProperty(URL, 'render', { value: function(_url, _options, _resolve = DEFAULT_RESOLVE)
+	{
+		if(is(_url, 'URL'))
 		{
-			if(_string.length === 0)
+			return _url.render(_options);
+		}
+		else if(typeof _url === 'string')
+		{
+			if(_url.length === 0)
 			{
 				return '';
 			}
-		}
-		else
-		{
-			throw new Error('Invalid _string argument');
-		}
-
-		if(! isString(_target))
-		{
-			_target = null;
+			
+			return new URL(_url, (_resolve ? location.href : location.origin)).render(_options);
 		}
 		
-		if(typeof _anchor !== 'boolean')
+		throw new Error('Invalid _url argument (expecting String or URL)');
+	}});
+	
+	Object.defineProperty(URL.prototype, 'render', { value: function(_options)
+	{
+		//
+		_options = getRenderOptions(_options);
+		
+		//
+		var result = '<span style="white-space: nowrap;"';
+		
+		if(! _options.arrows)
 		{
-			_anchor = DEFAULT_ANCHOR;
+			result += ' class="noArrow"';
 		}
-
-		if(typeof _brackets !== 'boolean')
-		{
-			_brackets = DEFAULT_BRACKETS;
-		}
-
-		if(typeof _arrows !== 'boolean')
-		{
-			_arrows = DEFAULT_ARROWS;
-		}
-
-		const url = new URL(_string);
-		var result = '';//'<span style="white-space: nowrap;">';
-
-		if(_brackets)
+		
+		result += '>';
+		
+		//
+		if(_options.brackets)
 		{
 			result += '&lt; ';
 		}
-
-		if(_anchor)
+		
+		if(_options.anchor)
 		{
-			result += '<a href="' + _string + '"';
-
-			if(!_arrows)
+			result += `<a href="${this.href}"`;
+			
+			if(typeof _options.target === 'string')
+			{
+				result += ` target="${_options.target}"`;
+			}
+			
+			if(! _options.arrows)
 			{
 				result += ' class="noArrow"';
 			}
-
-			if(_target)
-			{
-				result += ' target="' + _target + '"';
-			}
+			
+			result += '>';
 		}
-		else
-		{
-			result += '<span class="' + (_arrows ? '' : ' noArrow') + '" style="white-space: nowrap; pointer-events: none;">';
-		}
-
+		
 		//
 		var sub;
-
-		if(url.protocol)
+		
+		if(this.protocol)
 		{
-			sub = '<span style="font-size: ' + uniform.size.protocol + ';">' + url.protocol.slice(0, -1) +
-				'</span> <span style="font-size: ' + uniform.size.protocolSep + ';">://</span> ';
+			sub = `<span style="font-size: ${_options.protocol};">${this.protocol.slice(0, -1)}</span>`
+				+ ` <span style="font-size: ${_options.protocolSep};">://</span> `;
 		}
 		else
 		{
 			sub = '';
 		}
-
-		if(url.hostname)
+		
+		if(this.hostname)
 		{
-			sub += '<span style="font-size: ' + uniform.size.hostname + ';">' + url.hostname + '</span>';
-
-			if(url.port)
+			sub += `<span style="font-size: ${_options.hostname};">${this.hostname}</span>`;
+			
+			if(this.port)
 			{
-				sub += '<span style="font-size: ' + uniform.size.port + ';"><span style="font-size: ' +
-					uniform.size.symbol + ';">:</span>' + url.port + '</span>';
+				sub += `<span style="font-size: ${_options.param};">:</span>`
+					+ `<span style="font-size: ${_options.port};">${this.port}</span>`;
 			}
-
+			
 			sub += ' ';
 		}
-
-		if(url.pathname)
+		
+		if(this.pathname)
 		{
-			sub += '<span style="font-size: ' + uniform.size.pathname + ';">' + url.pathname + '</span>';
+			sub += `<span style="font-size: ${_options.pathname};">${this.pathname}</span>`;
 		}
-
-		if(url.search && url.search !== '?')
+		
+		if(this.search.length > 1)
 		{
-			sub += ' <span style="font-size: ' + uniform.size.search + ';"><span style="font-size: ' +
-				uniform.size.symbol + ';">?</span>' + url.search.substr(1) + '</span>';
+			sub += ` <span style="font-size: ${_options.param};">?</span>`
+				+ `<span style="font-size: ${_options.search};">${this.search.substr(1)}</span>`;
 		}
-
-		if(url.hash && url.hash !== '#')
+		
+		if(this.hash.length > 1)
 		{
-			sub += ' <span style="font-size: ' + uniform.size.hash + ';"><span style="font-size: ' +
-				uniform.size.symbol + ';">?</span>' + url.hash.substr(1) + '</span>';
+			sub += ` <span style="font-size: ${_options.param};">#</span>`
+				+ `<span style="font-size: ${_options.hash};">${this.hash.substr(1)}</span>`;
 		}
-
+		
 		//
 		if(sub.length === 0)
 		{
@@ -270,43 +241,145 @@
 		}
 		else
 		{
+			//
 			result += sub;
-
-			if(_anchor)
+			
+			//
+			if(_options.anchor)
 			{
 				result += '</a>';
 			}
-			else
+			
+			if(_options.brackets)
 			{
-				result += '</span>';
+				result += ' &gt;';
 			}
+			
+			//
+			result += '</span>';
 		}
-
-		if(_brackets)
-		{
-			result += ' &gt;';
-		}
-
+		
+		//
 		return result;
-	}
+	}});
 	
-	//
-	const resetSizes = () => {
-		return uniform.size = {
-			protocol: DEFAULT_SIZE_PROTOCOL,
-			protocolSep: DEFAULT_SIZE_PROTOCOL_SEP,
-			hostname: DEFAULT_SIZE_HOSTNAME,
-			port: DEFAULT_SIZE_PORT,
-			pathname: DEFAULT_SIZE_PATHNAME,
-			search: DEFAULT_SIZE_SEARCH,
-			hash: DEFAULT_SIZE_HASH,
-			symbol: DEFAULT_SIZE_SYMBOL
-		};
+	const getRenderOptions = (_options) => {
+		if(! isObject(_options))
+		{
+			_options = {};
+		}
+		
+		const result = {};
+		
+		if(typeof _options.target === 'string')
+		{
+			result.target = _options.target;
+		}
+		else
+		{
+			result.target = null;
+		}
+		
+		if(typeof _options.brackets === 'boolean')
+		{
+			result.bracktets = _options.brackets;
+		}
+		else
+		{
+			result.brackets = document.getVariable('url-brackets', true);
+		}
+		
+		if(typeof _options.anchor === 'boolean')
+		{
+			result.anchor = _options.anchor;
+		}
+		else
+		{
+			result.anchor = document.getVariable('url-anchor', true);
+		}
+		
+		if(typeof _options.arrows === 'boolean')
+		{
+			result.arrows = _options.arrows;
+		}
+		else
+		{
+			result.arrows = document.getVariable('url-arrows', true);
+		}
+		
+		if(isString(_options.protocol, false))
+		{
+			result.protocol = _options.protocol;
+		}
+		else
+		{
+			result.protocol = document.getVariable('url-font-size-protocol');
+		}
+		
+		if(isString(_options.protocolSep, false))
+		{
+			result.protocolSep = _options.protocolSep;
+		}
+		else
+		{
+			result.protocolSep = document.getVariable('url-font-size-protocol-sep');
+		}
+		
+		if(isString(_options.hostname, false))
+		{
+			result.hostname = _options.hostname;
+		}
+		else
+		{
+			result.hostname = document.getVariable('url-font-size-hostname');
+		}
+		
+		if(isString(_options.port, false))
+		{
+			result.port = _options.port;
+		}
+		else
+		{
+			result.port = document.getVariable('url-font-size-port');
+		}
+		
+		if(isString(_options.pathname, false))
+		{
+			result.pathname = _options.pathname;
+		}
+		else
+		{
+			result.pathname = document.getVariable('url-font-size-pathname');
+		}
+		
+		if(isString(_options.search, false))
+		{
+			result.search = _options.search;
+		}
+		else
+		{
+			result.search = document.getVariable('url-font-size-search');
+		}
+		
+		if(isString(_options.hash, false))
+		{
+			result.hash = _options.hash;
+		}
+		else
+		{
+			result.hash = document.getVariable('url-font-size-hash');
+		}
+		
+		if(isString(_options.param, false))
+		{
+			result.param = _options.param;
+		}
+		else
+		{
+			result.param = document.getVariable('url-font-size-param');
+		}
+		
+		return result;
 	};
 	
-	resetSizes();
-
-	//
-
-})();*/
-
+})();

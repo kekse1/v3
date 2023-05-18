@@ -1,0 +1,16 @@
+:root
+{
+	--url-brackets: auto;
+	--url-anchor: auto;
+	--url-arrows: auto;
+
+	--url-font-size-protocol: 0.85rem;
+	--url-font-size-protocol-sep: 0.80rem;
+	--url-font-size-hostname: 1.2rem;
+	--url-font-size-port: 1rem;
+	--url-font-size-pathname: 1rem;
+	--url-font-size-search: 0.9rem;
+	--url-font-size-hash: 0.9rem;
+	--url-font-size-param: 1rem;
+}
+

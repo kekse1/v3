@@ -3,21 +3,21 @@ This 'URL' extensions are already available in the `[window.]location` object (a
 which is really not necessary there ;).
 
 Current TODO:
-* .render()
 * .args
 * .argv
 
-The .render() is a relict of old 'uniform.js', to **style** a link, etc.
 .args and .argv were already there, but I'm thinking 'bout using `new URLSearchParams(..)`. We'll see.
 
 ## URL.[prototype.]render()
-TODO
+Will render your URLs to a nice looking HTML code.. optionally with _options object, and if not every
+options is defined there (if specified at all), they're defined by reading the CSS custom properties
+in 'css/url.css'. ;)~
 
 ## URL.prototype.args
-TODO
+TODO (w/ or w/o 'URLSearchParams'??)
 
 ## URL.prototype.argv
-TODO
+TODO (w/ or w/o 'URLSearchParams'??)
 
 ## URL.prototype.base
 The .href without .param (see below).
