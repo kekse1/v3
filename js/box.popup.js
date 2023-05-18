@@ -57,10 +57,11 @@
 
 			//
 			const result = new Popup({
-				left: setValue(_event.clientX, 'px', true),
-				top: setValue(_event.clientY, 'px', true)
+				left: _event.clientX,
+				top: _event.clientY
 			});
 
+			//
 			Box._INDEX.pushUnique(result);
 
 			//
@@ -687,6 +688,84 @@ throw new Error('TODO');
 					break;
 			}
 		}
+
+		blink(_options)
+		{
+			if(! isObject(_options))
+			{
+				_options = {};
+			}
+
+			if(! (isInt(_options.count) && _options.count > 0))
+			{
+				_options.count = 2;
+			}
+
+			if(typeof _options.border !== 'boolean')
+			{
+				_options.border = false;
+			}
+
+			if(this.BLINK)
+			{
+				return this.BLINK;
+			}
+			else if(this._blinkCallback)
+			{
+				return this._blinkCallback;
+			}
+			else if(this.IN)
+			{
+				this._blinkCallback = () => {
+					delete this._blinkCallback;
+
+					if(this.isOpen)
+					{
+						return super.blink(_options);
+					}
+				};
+
+				if(! isArray(this._inCallbacks, true))
+				{
+					this._inCallbacks = [ this._blinkCallback ];
+				}
+				else
+				{
+					this._inCallbacks.push(this._blinkCallback);
+				}
+
+				return this.IN;
+			}
+			else if(this.OUT)
+			{
+				return this.OUT;
+			}
+
+			return super.blink(_options);
+		}
+		
+		static get hasPopup()
+		{
+			const index = Popup.INDEX;
+			
+			if(index.length === 0)
+			{
+				return false;
+			}
+			
+			var outings = true;
+			
+			for(const p of index)
+			{
+				if(! (p.OUT || p.isClosed))
+				{
+					outings = false;
+					break;
+				}
+			}
+			
+			return !outings;
+		}
 		
 		static blink(_options)
 		{
@@ -707,7 +786,7 @@ throw new Error('TODO');
 		
 		static set pause(_value)
 		{
-			if(Popup.INDEX.length === 0)
+			if(! Popup.hasPopup)
 			{
 				Popup.paused = false;
 				return null;
@@ -736,7 +815,11 @@ throw new Error('TODO');
 
 		set pause(_value)
 		{
-			if(this.pause === (_value = !!_value))
+			if(this.OUT || this.isClosed)
+			{
+				return null;
+			}
+			else if(this.pause === (_value = !!_value))
 			{
 				return false;
 			}

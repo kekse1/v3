@@ -1518,6 +1518,18 @@ throw new Error('TODO');
 		//
 		if(this.BLINK)
 		{
+			if(typeof _callback === 'function')
+			{
+				if(! isArray(this._blinkCallbacks, true))
+				{
+					this._blinkCallbacks = [ _callback ];
+				}
+				else
+				{
+					this._blinkCallbacks.pushUnique(_callback);
+				}
+			}
+			
 			return this.BLINK;
 		}
 
@@ -1769,27 +1781,29 @@ throw new Error('TODO');
 			{
 				//
 				delete this.BLINK;
-				
-				//
 				this.scrolling = null;
-				//this.style.overflow = originalOverflow;
 			}
 
 			//
-			/*if(this._originalBeforeBlink)
+			if(isArray(this._blinkCallbacks, false)) for(const cb of this._blinkCallbacks)
 			{
-				const blinkProps = HTMLElement.blinkProps;
-					
-				for(const k of blinkProps)
+				if(typeof cb === 'function')
 				{
-					this.style[k] = this._originalBeforeBlink[k];
+					cb({ type: 'blink', event: _e, count: origCount, this: this, options: _options, finish: (_options.count <= 0) }, _options.count <= 0);
 				}
-				
-				delete this._originalBeforeBlink;
-			}*/
+			}
 
+			delete this._blinkCallbacks;
+			
 			//
-			call(_callback, { type: 'blink', event: _e, count: origCount, this: this, options: _options, finish: (_options.count <= 0) }, _options.count <= 0);
+			if(_callback)
+			{
+				_callback({ type: 'blink', event: _e, count: origCount, this: this, options: _options, finish: (_options.count <= 0) }, _options.count <= 0);
+			}
+						
+			//
+			this.emit('blink', { type: 'blink', subType: (_e ? _e.type : ''), options: _options, event: _e, finish: _f });
+			if(_e) this.emit(_e.type, { type: _e.type, baseType: 'blink', options: _options, event: _e, finish: _f });
 		};
 		
 		//
@@ -2278,6 +2292,18 @@ var c=0;
 		//
 		if(this.IN)
 		{
+			if(typeof _callback === 'function')
+			{
+				if(! isArray(this._inCallbacks, true))
+				{
+					this._inCallbacks = [ _callback ];
+				}
+				else
+				{
+					this._inCallbacks.pushUnique(_callback);
+				}
+			}
+
 			return this.IN;
 		}
 		else if(this.OUT)
@@ -2516,6 +2542,17 @@ var c=0;
 			this.style.overflow = this._originalInOutStyle.overflow;
 			
 			//
+			if(isArray(this._inCallbacks, false)) for(const cb of this._inCallbacks)
+			{
+				if(typeof cb === 'function')
+				{
+					cb({ type: 'in', event: _e, finish: _f, this: this }, _f);
+				}
+			}
+			
+			delete this._inCallbacks;
+			
+			//
 			if(_callback)
 			{
 				_callback({ type: 'in', event: _e, finish: _f, this: this }, _f);
@@ -2532,6 +2569,18 @@ var c=0;
 		//
 		if(this.OUT)
 		{
+			if(typeof _callback === 'function')
+			{
+				if(! isArray(this._outCallbacks, true))
+				{
+					this._outCallbacks = [ _callback ];
+				}
+				else
+				{
+					this._outCallbacks.pushUnique(_callback);
+				}
+			}
+
 			return this.OUT;
 		}
 		else if(this.IN)
@@ -2779,6 +2828,17 @@ var c=0;
 			{
 				delete this._originalInOutStyle;
 			}
+			
+			//
+			if(isArray(this._outCallbacks, false)) for(const cb of this._outCallbacks)
+			{
+				if(typeof cb === 'function')
+				{
+					cb({ type: 'in', event: _e, finish: _f, this: this }, _f);
+				}
+			}
+			
+			delete this._outCallbacks;
 			
 			//
 			if(_callback)

@@ -271,7 +271,7 @@
 				keys.push('width');
 			}
 
-			//			
+			//
 			for(var i = 0; i < keys.length; ++i)
 			{
 				if(keys[i] in this)
@@ -295,6 +295,56 @@
 			if(this.parentNode && (this.centerX || this.centerY))
 			{
 				this.centerFunction(this.centerX, this.centerY);
+			}
+
+			var left, top;
+
+			if(!this.centerX && this.hasStyle('left') && !this.hasStyle('right'))
+			{
+				left = getValue(this.style.left, 'px');
+			}
+			else
+			{
+				left = null;
+			}
+
+			if(!this.centerY && this.hasStyle('top') && !this.hasStyle('bottom'))
+			{
+				top = getValue(this.style.top, 'px');
+			}
+			else
+			{
+				top = null;
+			}
+
+			if(left || top)
+			{
+				const w = this.offsetWidth;
+				const h = this.offsetHeight;
+				const a = this.getVariable('arrange', true);
+
+				if(left && top)
+				{
+					[ left, top ] = this.getPosition(left, top, w, h, a, true);
+				}
+				else if(left)
+				{
+					left = this.getPosition(left, null, w, h, a, true);
+				}
+				else if(top)
+				{
+					top = this.getPosition(null, top, w, h, a, true);
+				}
+
+				if(left)
+				{
+					this.style.left = setValue(left, 'px');
+				}
+
+				if(top)
+				{
+					this.style.top = setValue(top, 'px');
+				}
 			}
 
 			return this.options;
