@@ -218,7 +218,7 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'domain' => str_replace(' ', ':', HOST),
+		//'domain' => str_replace(' ', ':', HOST),
 		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
