@@ -18,8 +18,12 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/
 
 ## News
+* The 'counter.php' just changed it's major version: v2.0.0.
 
 ### counter.php
+(TODO: description, etc.); ..
+
+#### Security
 My [universal counter script](scripts/counter.php) should be **really** maximum secure now.. have extended
 the `secureHost()` function, w/ another test of possible 'host' variables, which are also extended w/ 'port'
 feature.
@@ -30,6 +34,21 @@ directory (if they don't already exist), or to limit the automatic file creation
 
 The last feature came into my mind as I thought about faked hosts: so if one would just send many, many 'Host'
 headers or smth. similar, there'd be a DOS risk by creating many, many files.. ;)~
+
+#### Cookies and Files
+(TODO: describe this);
+
+#### Settings
+Configuration is (on top of file):
+* `define('AUTO', 255)`
+* `define('DIRECTORY', 'counter')`
+* `define('THRESHOLD', 7200)`
+* `define('CLIENT', true)`
+* `define('SERVER', true)`
+* `define('BOTH', true)`
+* `define('CONTENT_TYPE', 'text/plain;charset=UTF-8')`
+* `define('CLEAN', 255)`
+* (and some COOKIE_\* values);
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,

@@ -2,23 +2,25 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+ * v2.0.0
  */
 
 //
 define('AUTO', 255);
 define('DIRECTORY', 'counter');
 define('THRESHOLD', 7200);
-define('LENGTH', 255);
-define('COOKIE', 'timestamp');
-define('COOKIE_SAME_SITE', 'Strict');
+define('CLIENT', true);
+define('SERVER', false);
+define('BOTH', true);
+define('TYPE_CONTENT', 'text/plain;charset=UTF-8');
+define('CLEAN', 255);
 define('COOKIE_PATH', '/');
-//define('COOKIE_PATH', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_HTTP_ONLY', true);
 define('COOKIE_SECURE', !empty($_SERVER['HTTPS']));
-define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
 
 //
-header('Content-Type: ' . CONTENT_TYPE);
+header('Content-Type: ' . TYPE_CONTENT);
 
 //
 if(AUTO === null)
@@ -29,12 +31,12 @@ if(AUTO === null)
 //
 function secureHost($_host)
 {
-	$length = min(strlen($_host), LENGTH);
+	$length = min(strlen($_host), 255);
 	$result = '';
 	$byte = null;
 	$put = '';
 
-	for($i = 0; $i < $length; $i++)
+	for($i = 0; $i < $length; ++$i)
 	{
 		if($_host[$i] === '.')
 		{
@@ -156,16 +158,43 @@ if(!empty($_SERVER['SERVER_PORT']))
 	}
 }
 
+//
 define('HOST', secureHost($host));
 unset($host);
-define('PATH', (DIRECTORY . '/' . HOST));
+
+//
+define('PATH_FILE', (DIRECTORY . '/' . HOST));
+define('PATH_DIR', (DIRECTORY . '/+' . HOST));
+define('PATH_TIME', (PATH_DIR . '/' . HOST));
+
+//
+function countFiles($_path = DIRECTORY)
+{
+	$list = scandir($_path);
+	$len = count($list);
+	$result = 0;
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(is_file($_path . $result[$i]))
+		{
+			++$result;
+		}
+	}
+
+	return $result;
+}
 
 //
 if(!file_exists(DIRECTORY))
 {
 	die('Directory \'' . DIRECTORY . '\' doesn\'t exist - create with `chmod 1777`.');
 }
-else if(AUTO !== true && !file_exists(PATH))
+else if(!is_dir(DIRECTORY))
+{
+	die('The path \'' + DIRECTORY + '\' is not a directory!');
+}
+else if(AUTO !== true && !file_exists(PATH_FILE))
 {
 	if(AUTO === false)
 	{
@@ -173,9 +202,7 @@ else if(AUTO !== true && !file_exists(PATH))
 	}
 	else if(gettype(AUTO) === 'integer')
 	{
-		$existing = (count(scandir(DIRECTORY)) - 2);
-
-		if($existing >= AUTO)
+		if(countFiles(DIRECTORY) >= AUTO)
 		{
 			die('/');
 		}
@@ -185,10 +212,13 @@ else if(AUTO !== true && !file_exists(PATH))
 		die('Invalid \'AUTO\' constant');
 	}
 }
-else if(!is_writable(PATH))
+else if(!is_writable(PATH_FILE))
 {
 	die('File \'' . HOST . '\' is not writable');
 }
+
+//TODO/check for directory..
+
 //
 function timestamp($_difference = null)
 {
@@ -200,13 +230,49 @@ function timestamp($_difference = null)
 	return (time() - $_difference);
 }
 
+function test($_both = BOTH)
+{
+	if(! (CLIENT || SERVER))
+	{
+		return true;
+	}
+
+	$result = true;
+
+	if(CLIENT && !testCookie())
+	{
+		$result = false;
+	}
+	else if(! $_both)
+	{
+		return true;
+	}
+
+	if(SERVER && !testFiles())
+	{
+		$result = false;
+	}
+	else if(! $_both)
+	{
+		return true;
+	}
+
+	return $result;
+}
+
+function testFiles()
+{
+	return true;
+	//cleanFiles();
+}
+
 function testCookie()
 {
-	if(!isset($_COOKIE[COOKIE]))
+	if(!isset($_COOKIE[HOST]))
 	{
 		makeCookie();
 	}
-	else if(timestamp((int)$_COOKIE[COOKIE]) < THRESHOLD)
+	else if(timestamp((int)$_COOKIE[HOST]) < THRESHOLD)
 	{
 		return false;
 	}
@@ -216,7 +282,7 @@ function testCookie()
 
 function makeCookie()
 {
-	return setcookie(COOKIE, timestamp(), array(
+	return setcookie(HOST, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
 		//'domain' => str_replace(' ', ':', HOST),
 		'secure' => COOKIE_SECURE,
@@ -226,7 +292,24 @@ function makeCookie()
 	));
 }
 
-function readCounter($_path = PATH)
+function cleanFiles($_min = CLEAN)
+{
+	die('TODO: cleanFiles(' . $_min . ')');
+}
+
+function getFileModificationTime($_path)
+{
+}
+
+function readTimestamp($_path = PATH_TIME)
+{
+}
+
+function writeTimestamp($_path = PATH_TIME)
+{
+}
+
+function readCounter($_path = PATH_FILE)
 {
 	if(!file_exists($_path))
 	{
@@ -237,7 +320,7 @@ function readCounter($_path = PATH)
 	return (int)file_get_contents($_path);
 }
 
-function writeCounter($_value = 0, $_path = PATH)
+function writeCounter($_value = 0, $_path = PATH_FILE)
 {
 	return file_put_contents($_path, (string)$_value);
 }
@@ -245,12 +328,13 @@ function writeCounter($_value = 0, $_path = PATH)
 //
 $count = readCounter();
 
-if(testCookie())
+if(test())//if(testCookie())
 {
 	writeCounter(++$count);
 }
 
-makeCookie();
+if(CLIENT) makeCookie();
+if(SERVER) writeTimestamp();
 
 //
 $count = (string)$count;
