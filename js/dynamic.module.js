@@ -10,7 +10,7 @@
 	const DEFAULT_VERSION_URL = 'status/version.json';
 	const DEFAULT_VERSION_DELAY = (1000 * 60 * 4);
 	
-	const DEFAULT_COUNTER_URL = 'status/counter/' + location.host;
+	const DEFAULT_COUNTER_URL = 'status/counter/' + location.host.toLowerCase();
 	const DEFAULT_COUNTER_DELAY = (1000 * 60);
 
 	const DEFAULT_UPDATED_URL = 'status/update.now';
