@@ -335,7 +335,8 @@
 			{
 				return false;
 			}
-			else if(port < -32767)
+			//else if(port < -32767)
+			else if(port < -65535)
 			{
 				return false;
 			}
