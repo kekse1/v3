@@ -17,6 +17,9 @@
 
 			//
 			this.identifyAs('popup');
+
+			//
+			this.style.setProperty('opacity', '0');
 		}
 
 		static create(_event, _target = _event.target, _callback = null, _throw = DEFAULT_THROW)

@@ -14,14 +14,14 @@
 	"location",
 	"document",
 
-	"url",
-	"intl",
-
-	"camel",
 	"extensions",
+	"camel",
 	"animation",
 	"css",
 	"css.matrix",
+
+	"url",
+	"intl",
 
 	"id",
 	"path",
