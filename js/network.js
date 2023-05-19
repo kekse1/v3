@@ -266,46 +266,58 @@
 		{
 			return false;
 		}
-		else if(_string.length >= 256)
+		else if(_string.length > 255)
 		{
 			return false;
 		}
 
-		var hadPort = false;
-		var portLen;
+		var port = null;
 
 		for(var i = 0; i < _string.length; ++i)
 		{
-			if(_string[i].isDecimal(false))
+			if(_string[i] === '-')
 			{
-				if(hadPort && ++portLen > 5)
+				if(port === null || port.length > 0)
 				{
 					return false;
+				}
+
+				port = '-';
+			}
+			else if(! isNaN(_string[i]))
+			{
+				if(port !== null)
+				{
+					port += _string[i];
+
+					if(port.length > (port[0] === '-' ? 6 : 5))
+					{
+						return false;
+					}
 				}
 			}
 			else if(_string[i].isLetter)
 			{
-				if(hadPort)
+				if(port !== null)
 				{
 					return false;
 				}
 			}
 			else if(_string[i] === '.' || _string[i] === '_')
 			{
-				if(hadPort)
+				if(port !== null)
 				{
 					return false;
 				}
 			}
 			else if(_string[i] === ':')
 			{
-				if(hadPort)
+				if(port !== null)
 				{
 					return false;
 				}
 
-				hadPort = true;
-				portLen = 0;
+				port = '';
 			}
 			else
 			{

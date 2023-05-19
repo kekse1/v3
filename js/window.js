@@ -157,11 +157,11 @@
 					{
 						_item = 0;
 					}
-					else if(_item[_item.length - 1] === 'n' && !_item.includes('.') && _item.slice(0, -1).isDecimal(false))
+					else if(_item[_item.length - 1] === 'n' && !_item.includes('.') && !isNaN(_item.slice(0, -1)))
 					{
 						_item = BigInt.from(_item.slice(0, -1));
 					}
-					else if(_item.isDecimal(true))
+					else if(! isNaN(_item))
 					{
 						_item = Number(_item);
 					}

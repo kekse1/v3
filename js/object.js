@@ -78,7 +78,7 @@
 				{
 					continue;
 				}
-				else if(split[i].isDecimal(true))
+				else if(! isNaN(split[i]))
 				{
 					result[j++] = Math.int(Number(split[i]));
 				}
@@ -827,13 +827,13 @@
 
 		for(var i = 0; i < result.length; ++i)
 		{
-			if(ARRAY === false && result[i].isDecimal(true))
+			if(ARRAY === false && !isNaN(result[i]))
 			{
 				result.splice(i--, 1);
 			}
 			else if(ARRAY === null)
 			{
-				if(result[i].isDecimal(true))
+				if(! isNaN(result[i]))
 				{
 					++countNumeric;
 				}
@@ -848,7 +848,7 @@
 		{
 			for(var i = 0; i < result.length; ++i)
 			{
-				if(result[i].isDecimal(true))
+				if(! isNaN(result[i]))
 				{
 					result.splice(i--, 1);
 				}

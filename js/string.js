@@ -1709,35 +1709,18 @@
 		return true;
 	}});
 
-	Object.defineProperty(String.prototype, 'isDecimal', { value: function(_dot = DEFAULT_DECIMAL_DOT)
+	Object.defineProperty(String.prototype, 'isDecimal', { get: function()
 	{
 		if(this.length === 0)
 		{
 			return null;
 		}
 
-		var hadDot = (_dot ? false : null);
 		var c;
 
 		for(var i = 0; i < this.length; ++i)
 		{
-			if(this[i] === '.')
-			{
-				if(_dot)
-				{
-					if(hadDot)
-					{
-						return false;
-					}
-
-					hadDot = true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if((c = this.charCodeAt(i)) < 48 || c > 57)
+			if((c = this.charCodeAt(i)) < 48 || c > 57)
 			{
 				return false;
 			}

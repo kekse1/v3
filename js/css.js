@@ -260,7 +260,7 @@
 		{
 			return _string;
 		}
-		else if(_string.isDecimal(true))
+		else if(! isNaN(_string))
 		{
 			return Number(_string);
 		}

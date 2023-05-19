@@ -157,7 +157,7 @@
 			{
 				cookies[i][1] = '';
 			}
-			else if(cookies[i][1].isDecimal(true))
+			else if(! isNaN(cookies[i][1]))
 			{
 				cookies[i][1] = Number(cookies[i][1]);
 			}
@@ -238,7 +238,7 @@
 			{
 				cookies[i][1] = '';
 			}
-			else if(cookies[i][1].isDecimal(true))
+			else if(! isNaN(cookies[i][1]))
 			{
 				cookies[i][1] = Number(cookies[i][1]);
 			}

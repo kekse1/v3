@@ -707,7 +707,11 @@
 					unit += _value[i];
 				}
 			}
-			else if(_value[i].isDecimal(true))
+			else if(_value[i] === '-' || _value[i] === '.')
+			{
+				value += _value[i];
+			}
+			else if(! isNaN(_value[i]))
 			{
 				value += _value[i];
 			}
