@@ -7,7 +7,7 @@
 	const DEFAULT_CANCELABLE = true;
 	const DEFAULT_COMPOSED = true;
 	const DEFAULT_PASSIVE = false;
-	const DEFAULT_NEXT_FRAME = false;
+	//const DEFAULT_NEXT_FRAME = false;
 
 	//
 	Event.create = Event.createTarget = () => {
@@ -101,7 +101,7 @@
 		return result;
 	};
 
-	Event.emit = (_element = DEFAULT_ELEMENT, _event, _options, _which, _next_frame = DEFAULT_NEXT_FRAME) => {
+	Event.emit = (_element = DEFAULT_ELEMENT, _event, _options, _which/*, _next_frame = DEFAULT_NEXT_FRAME*/) => {
 		//
 		if(! _element)
 		{
@@ -145,7 +145,7 @@
 		}
 
 		//
-		if(typeof _options.nextFrame === 'boolean')
+		/*if(typeof _options.nextFrame === 'boolean')
 		{
 			_next_frame = _options.nextFrame;
 		}
@@ -168,7 +168,10 @@
 		}
 
 		//return EventTarget.prototype.dispatchEvent.call(_element, _event);
-		return _element.dispatchEvent(_event);
+		return _element.dispatchEvent(_event);*/
+		call(() => {
+			return _element.dispatchEvent(_event);
+		});
 	};
 
 	Event.stop = (_event, _prevent_default = true, _stop_propagation = true, _throw = DEFAULT_THROW) => {
@@ -198,9 +201,9 @@
 	};
 
 	//
-	Object.defineProperty(EventTarget.prototype, 'emit', { value: function(_event, _options, _which, _next_frame = DEFAULT_NEXT_FRAME)
+	Object.defineProperty(EventTarget.prototype, 'emit', { value: function(_event, _options, _which/*, _next_frame = DEFAULT_NEXT_FRAME*/)
 	{
-		return Event.emit(this, _event, _options, _which, _next_frame);
+		return Event.emit(this, _event, _options, _which/*, _next_frame*/);
 	}});
 
 	Object.defineProperty(Event.prototype, 'stop', { value: function(_prevent_default = true, _stop_propagation = true, _throw = DEFAULT_THROW)
