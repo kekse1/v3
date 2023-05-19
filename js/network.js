@@ -327,7 +327,11 @@
 
 		if(port !== null)
 		{
-			if(isNaN(port = Number(port)))
+			if(port.length === 0)
+			{
+				return false;
+			}
+			else if(isNaN(port = Number(port)))
 			{
 				return false;
 			}
