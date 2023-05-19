@@ -83,9 +83,9 @@
 			{
 				return _value;
 			}
-			else if(_value.hasEmpty)
+			else if(_value.length === 0)
 			{
-				_value = _value.quote('\'');
+				_value = '\'\'';
 			}
 
 			return _value;
@@ -155,7 +155,6 @@
 			return _string;
 		}
 		
-		const quoted = String.quote;
 		const result = [''];
 		var open = false;
 
@@ -368,9 +367,9 @@
 
 		const result = Object.create(null);
 		const quotes = String.quote;
-		const quoted = [];
 		const array = [];
 		var item, quote = '';
+		var quoted;
 		
 		for(var i = 0, qarr = 0; i < keys.length; ++i)
 		{
@@ -380,7 +379,7 @@
 			}
 			else
 			{
-				quoted.length = 0;
+				quoted = new Set();
 				array.length = 1;
 				array[0] = '';
 			}
@@ -430,14 +429,14 @@
 					}
 					else
 					{
-						quoted.push(k);
+						quoted.add(k);
 					}
 				}
 			}
 
 			for(var k = 0; k < array.length; ++k)
 			{
-				if(quoted.includes(k))
+				if(quoted.has(k))
 				{
 					continue;
 				}

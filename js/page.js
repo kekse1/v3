@@ -217,7 +217,7 @@
 			}
 			else if(_link.startsWith('javascript:'))
 			{
-				return Page.executeJavaScript(_link, DEFAULT_CONTEXT, _throw);
+				return Page.executeJavaScript(_link, _callback, DEFAULT_CONTEXT, _throw);
 			}
 
 			return Page.getLink(_link, _target, _callback, _options, _type, _animate, _delay, _delete_mul, _throw);
@@ -271,7 +271,7 @@
 			return _link;
 		}
 		
-		static executeJavaScript(_string, _context = DEFAULT_CONTEXT, _throw = DEFAULT_THROW)
+		static executeJavaScript(_string, _callback, _context = DEFAULT_CONTEXT, _throw = DEFAULT_THROW)
 		{
 			if(! document.getVariable('page-scripting', true))
 			{
@@ -286,7 +286,12 @@
 			{
 				throw new Error('Invalid _string argument');
 			}
-			else if(_string.startsWith('javascript:'))
+			else if(typeof _callback !== 'function')
+			{
+				_callback = null;
+			}
+
+			if(_string.startsWith('javascript:'))
 			{
 				_string = _string.substr(11);
 			}
@@ -296,9 +301,18 @@
 			try
 			{
 				result = eval.call(_context, _string);
+				osd('ok');
+				call(_callback, { type: 'executeJavaScript', error: null, result });
 			}
 			catch(_error)
 			{
+				osd(`<span style="color: red;">error</span><span style="font-size: 0.32em;"><br>${_error.message}</span>`, {
+					duration: document.getVariable('ajax-osd-duration', true),
+					timeout: document.getVariable('ajax-osd-timeout', true)
+				});
+
+				call(_callback, { type: 'executeJavaScript', error: _error, result: undefined });
+
 				if(_throw)
 				{
 					throw _error;
@@ -430,7 +444,7 @@
 			}
 			else if(_link.startsWith('javascript:'))
 			{
-				return Page.executeJavaScript(_link.substr(11), DEFAULT_CONTEXT, _throw);
+				return Page.executeJavaScript(_link.substr(11), _callback, DEFAULT_CONTEXT, _throw);
 			}
 
 			if(typeof _callback !== 'function' && typeof _callback !== 'boolean')
@@ -1328,7 +1342,8 @@
 					_target = _target.related;
 				}
 			}
-			else if(_target.hasAttribute('target'))
+			
+			if(_target.hasAttribute('target'))
 			{
 				return _target;
 			}
@@ -1350,7 +1365,12 @@
 				return;
 			}
 
-			if(DEFAULT_MENU_OUT_ITEMS)
+			if(url.startsWith('javascript:'))
+			{
+				_event.preventDefault();
+				return Page.executeJavaScript(url);
+			}
+			else if(DEFAULT_MENU_OUT_ITEMS)
 			{
 				setTimeout(() => {
 					Menu.outItems(_event, null, _target);

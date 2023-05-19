@@ -50,6 +50,7 @@
 		}
 
 		//
+		const quotes = String.quote;
 		const sub = { key: '', value: '' };
 		const result = {};
 		var type = 'key';
@@ -110,7 +111,7 @@
 					sub[type] += _data[i];
 				}
 			}
-			else if(String.quote.includes(_data[i]))
+			else if(quotes.includes(_data[i]))
 			{
 				quote = _data[i];
 			}
@@ -206,6 +207,7 @@ _depth = 1;
 		}
 
 		//
+		const quotes = String.quote;
 		var result = [];
 		const data = [''];
 		var open = 0;
@@ -237,7 +239,7 @@ _depth = 1;
 					quote = '';
 				}
 			}
-			else if(String.quote.includes(_data[i]))
+			else if(quotes.includes(_data[i]))
 			{
 				quote = _data[i];
 				data[open] += _data[i];

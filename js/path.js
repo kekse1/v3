@@ -19,7 +19,7 @@
 
 			return null;
 		}
-		else if(_string.toLowerCase().includes('://'))
+		else if(_string.includes('://'))
 		{
 			return true;
 		}
