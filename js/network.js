@@ -325,6 +325,22 @@
 			}
 		}
 
+		if(port !== null)
+		{
+			if(isNaN(port = Number(port)))
+			{
+				return false;
+			}
+			else if(port > 65535)
+			{
+				return false;
+			}
+			else if(port < -32767)
+			{
+				return false;
+			}
+		}
+
 		return true;
 	};
 
