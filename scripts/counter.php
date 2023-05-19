@@ -8,6 +8,7 @@
  * BE SURE TO `chmod 1777 ./counter/`.. (so that PHP can access there, with write permissions, too)!
  */
 //
+define('AUTO', 255);
 define('DIRECTORY', 'counter');
 //define('THRESHOLD', 600);
 define('THRESHOLD', 7200);
@@ -24,16 +25,49 @@ define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
 header('Content-Type: ' . CONTENT_TYPE);
 
 //
+if(AUTO === null)
+{
+	die('/');
+}
+
+//
 function secureHost($_host)
 {
 	$_host = strtolower($_host);
 	$length = min(strlen($_host), LENGTH);
 	$result = '';
+	$hadPort = false;
+
+	if($_host[0] === '[' && $_host[strlen($_host) - 1] === ']')
+	{
+		$_host = $_host.substr(1, -1);
+	}
 
 	for($i = 0; $i < $length; $i++)
 	{
 		if(in_array($_host[$i], CHARS))
 		{
+			if($_host[$i] === '.')
+			{
+				if(strlen($result) === 0)
+				{
+					continue;
+				}
+				else if($result[strlen($result) - 1] === '.')
+				{
+					continue;
+				}
+			}
+			else if($_host[$i] === ':')
+			{
+				if($hadPort)
+				{
+					continue;
+				}
+
+				$hadPort = true;
+			}
+
 			$result .= $_host[$i];
 		}
 	}
@@ -73,8 +107,10 @@ else if(strlen($_SERVER['SERVER_ADDR']) > 0)
 }
 else
 {
-	die('No server host/name/address applicable');
+	die('No server host/name/addr applicable');
 }
+
+$host = secureHost($host);
 
 if(strlen($_SERVER['SERVER_PORT']) > 0)
 {
@@ -105,14 +141,34 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 	}
 }
 
-define('HOST', secureHost($host));
-define('PATH', (DIRECTORY . '/' . HOST));
+define('HOST', $host);
+define('PATH', (DIRECTORY . '/' . $host));
 unset($host);
 
 //
 if(! file_exists(DIRECTORY))
 {
 	die('Directory \'' . DIRECTORY . '\' doesn\'t exist - create with `chmod 1777`.');
+}
+else if(AUTO !== true && ! file_exists(PATH))
+{
+	if(AUTO === false)
+	{
+		die('/');
+	}
+	else if(gettype(AUTO) === 'integer')
+	{
+		$existing = (count(scandir(DIRECTORY)) - 2);
+
+		if($existing >= AUTO)
+		{
+			die('/');
+		}
+	}
+	else
+	{
+		die('Invalid \'AUTO\' constant');
+	}
 }
 
 //
@@ -157,6 +213,7 @@ function readCounter($_path = PATH)
 	if(! file_exists($_path))
 	{
 		touch($_path);
+		return 0;
 	}
 
 	return (int)file_get_contents($_path);
@@ -186,3 +243,4 @@ echo $count;
 exit();
 
 ?>
+

@@ -17,6 +17,11 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/test.html
 * https://kekse.biz/v3/
 
+## News
+
+### counter.php
+My [universal counter script](scripts/counter.php) should be **really** maximum secure now..
+
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
 as markdown (.md).. until now here's only this general README.md, l8rs it'll be the [modules.md](./docs/modules/README.md).
