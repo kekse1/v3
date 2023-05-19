@@ -18,7 +18,7 @@ define('COOKIE', 'timestamp');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
 define('COOKIE_HTTP_ONLY', true);
-define('COOKIE_SECURE', !!$_SERVER['HTTPS']);
+define('COOKIE_SECURE', !empty($_SERVER['HTTPS']));
 define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
 
 //
@@ -109,7 +109,7 @@ $host = secureHost($host);
 
 if(strlen($_SERVER['SERVER_PORT']) > 0)
 {
-	if($_SERVER['HTTPS'])
+	if(! empty($_SERVER['HTTPS']))
 	{
 		if($_SERVER['SERVER_PORT'] === '443')
 		{
@@ -165,7 +165,10 @@ else if(AUTO !== true && !file_exists(PATH))
 		die('Invalid \'AUTO\' constant');
 	}
 }
-
+else if(!is_writable(PATH))
+{
+	die('File \'' . HOST . '\' is not writable');
+}
 //
 function timestamp($_difference = null)
 {
