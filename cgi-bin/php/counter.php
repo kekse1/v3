@@ -166,7 +166,7 @@ define('COOKIE', hash('sha3-256', HOST));
 //
 define('PATH_FILE', (DIRECTORY . '/' . HOST));
 define('PATH_DIR', (DIRECTORY . '/+' . HOST));
-define('PATH_TIME', (PATH_DIR . '/' . HOST));
+define('PATH_IP', (PATH_DIR . '/' . $_SERVER['REMOTE_ADDR']));
 
 //
 function countFiles($_path = DIRECTORY, $_dir = false)
@@ -209,13 +209,13 @@ if(!file_exists(DIRECTORY))
 }
 else if(!is_dir(DIRECTORY))
 {
-	die('The path \'' + DIRECTORY + '\' is not a directory!');
+	die('The path \'' + DIRECTORY + '\' is not a directory');
 }
 else if(!is_writable(DIRECTORY))
 {
 	die('Your directory \'' . DIRECTORY . '\' is not writable (please `chmod 1777`)');
 }
-else if(AUTO !== true && !file_exists(PATH_FILE))
+else if(AUTO !== true && !is_file(PATH_FILE))
 {
 	if(AUTO === false)
 	{
@@ -269,7 +269,7 @@ function test($_both = BOTH)
 		return true;
 	}
 
-	if(SERVER && !testFiles())
+	if(SERVER && !testFile())
 	{
 		$result = false;
 	}
@@ -281,10 +281,22 @@ function test($_both = BOTH)
 	return $result;
 }
 
-function testFiles()
+function testFile($_path = PATH_IP)
 {
+	if(! is_file($_path))
+	{
+		writeTimestamp($_path);
+	}
+	else if(!is_readable($_path))
+	{
+		die('File can\'t be read');
+	}
+	else if(timestamp(readTimestamp($_path)) < THRESHOLD)
+	{
+		return false;
+	}
+
 	return true;
-	//cleanFiles();
 }
 
 function testCookie()
@@ -305,7 +317,6 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		//'domain' => str_replace(' ', ':', HOST),
 		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
@@ -322,12 +333,33 @@ function getFileModificationTime($_path)
 {
 }
 
-function readTimestamp($_path = PATH_TIME)
+function readTimestamp($_path = PATH_IP)
 {
+	if(is_file($_path))
+	{
+		if(!is_readable($_path))
+		{
+			die('File not readable');
+		}
+
+		return (int)file_get_contents($_path);
+	}
+
+	return 0;
 }
 
-function writeTimestamp($_path = PATH_TIME)
+function writeTimestamp($_path = PATH_IP)
 {
+	if(file_exists($_path) && !is_file($_path))
+	{
+		die('It\'s no regular file');
+	}
+	else if(!is_writable($_path))
+	{
+		die('Not a writable file');
+	}
+	
+	return file_put_contents($_path, (string)timestamp());
 }
 
 function readCounter($_path = PATH_FILE)
@@ -337,25 +369,47 @@ function readCounter($_path = PATH_FILE)
 		touch($_path);
 		return 0;
 	}
+	else if(!is_file($_path))
+	{
+		die('It\'s not a regular file');
+	}
+	else if(!is_readable($_path))
+	{
+		die('File is not readable');
+	}
 
 	return (int)file_get_contents($_path);
 }
 
 function writeCounter($_value = 0, $_path = PATH_FILE)
 {
+	if(file_exists($_path) && !is_file($_path))
+	{
+		die('Not a regular file');
+	}
+	else if(!is_writable($_path))
+	{
+		die('File is not writable');
+	}
+
 	return file_put_contents($_path, (string)$_value);
 }
 
 //
 $count = readCounter();
 
-if(test())//if(testCookie())
+if(test())
 {
 	writeCounter(++$count);
 }
 
 if(CLIENT) makeCookie();
-if(SERVER) writeTimestamp();
+
+if(SERVER)
+{
+	writeTimestamp();
+	//cleanFiles(CLEAN);
+}
 
 //
 $count = (string)$count;
@@ -366,4 +420,3 @@ echo $count;
 exit();
 
 ?>
-
