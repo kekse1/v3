@@ -12,6 +12,8 @@ define('THRESHOLD', 7200);
 define('CLIENT', true);
 define('SERVER', false);
 define('BOTH', true);
+define('HASH', 'sha3-256');
+define('HASH_IP', false);
 define('TYPE_CONTENT', 'text/plain;charset=UTF-8');
 define('CLEAN', 255);
 define('COOKIE_PATH', '/');
@@ -160,13 +162,15 @@ if(!empty($_SERVER['SERVER_PORT']))
 
 //
 define('HOST', secureHost($host));
+define('COOKIE', hash(HASH, HOST));
 unset($host);
-define('COOKIE', hash('sha3-256', HOST));
 
 //
 define('PATH_FILE', (DIRECTORY . '/' . HOST));
 define('PATH_DIR', (DIRECTORY . '/+' . HOST));
-define('PATH_IP', (PATH_DIR . '/' . $_SERVER['REMOTE_ADDR']));
+$addr = (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR']));
+define('PATH_IP', (PATH_DIR . '/' . $addr));
+unset($addr);
 
 //
 function countFiles($_path = DIRECTORY, $_dir = false)
@@ -396,6 +400,19 @@ function writeCounter($_value = 0, $_path = PATH_FILE)
 }
 
 //
+if(SERVER)
+{
+	if(! file_exists(PATH_DIR))
+	{
+		mkdir(PATH_DIR, 1777, false);
+	}
+	else if(!is_dir(PATH_DIR))
+	{
+		die('Not a directory');
+	}
+}
+
+//
 $count = readCounter();
 
 if(test())
@@ -403,7 +420,10 @@ if(test())
 	writeCounter(++$count);
 }
 
-if(CLIENT) makeCookie();
+if(CLIENT)
+{
+	makeCookie();
+}
 
 if(SERVER)
 {

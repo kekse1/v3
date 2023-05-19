@@ -46,7 +46,9 @@ Configuration is (on top of file):
 * `define('CLIENT', true)`
 * `define('SERVER', true)`
 * `define('BOTH', true)`
-* `define('CONTENT_TYPE', 'text/plain;charset=UTF-8')`
+* `define('HASH', 'sha3-256')`
+* `define('HASH_IP', true)`
+* `define('TYPE_CONTENT', 'text/plain;charset=UTF-8')`
 * `define('CLEAN', 255)`
 * (and some COOKIE_\* values);
 
