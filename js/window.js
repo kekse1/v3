@@ -7,8 +7,6 @@
 	const DEFAULT_EXT = true;
 	const DEFAULT_UNIT = true;
 
-	const DEFAULT_CONTEXT = undefined;
-
 	//
 	Object.defineProperty(window, 'mobileDevice', { get: function()
 	{
@@ -252,7 +250,7 @@
 	}});
 
 	//
-	const doCall = (_callback, _context = undefined, ... _args) => {
+	const doCall = (_callback, _context = undefined, _args) => {
 		if(typeof _context === 'undefined')
 		{
 			return _callback(... _args);
@@ -261,29 +259,59 @@
 		return _callback.apply(_context, _args);
 	};
 
-	Object.defineProperty(window, 'call', { value: function(_callback, ... _args)
+	Object.defineProperty(window, 'call', { value: function(... _args)
 	{
-		if(typeof _callback !== 'function')
-		{
-			return _callback;
-		}
-		
-		const context = (typeof _callback.context === 'undefined' ? DEFAULT_CONTEXT : _callback.context);
-		var timeout = (('timeout' in _callback) ? _callback.timeout : document.getVariable('callback-timeout', true));
+		var options = null;
 
-		if(typeof timeout === 'boolean')
+		for(var i = 0; i < _args.length; ++i)
 		{
-			timeout = (timeout ? 0 : null);
+			if(typeof _args[i] === 'function')
+			{
+				options = _args.splice(0, i);
+				break;
+			}
 		}
 
-		if(isInt(timeout) && timeout >= 0)
+		if(options === null)
 		{
-			return setTimeout(() => {
-				return doCall(_callback, context, ... _args);
-			}, timeout);
+			return null;
 		}
 
-		return doCall(_callback, context, ... _args);
+		const context = (typeof _args[0].context === 'undefined' ? undefined : _args[0].context);
+		var timeout = null;
+
+		for(var i = 0; i < options.length; ++i)
+		{
+			if(typeof options[i] === 'boolean')
+			{
+				timeout = (options[i] ? 0 : null);
+			}
+			else if(isInt(options[i], null) && options[i] >= 0)
+			{
+				timeout = options[i];
+			}
+		}
+
+		if(timeout === null)
+		{
+			if(typeof (timeout = document.getVariable('callback-timeout', true)) === 'bo#olean')
+			{
+				timeout = (timeout ? 0 : null);
+			}
+			else if(! (isInt(timeout, null) && timeout >= 0))
+			{
+				timeout = null;
+			}
+		}
+
+		if(timeout === null)
+		{
+			return doCall(_args.shift(), context, _args);
+		}
+
+		return setTimeout(() => {
+			return doCall(_args.shift(), context, _args);
+		}, timeout);
 	}});
 
 	//
