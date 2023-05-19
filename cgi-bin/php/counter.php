@@ -12,7 +12,7 @@ define('DIRECTORY', 'counter');
 //define('THRESHOLD', 600);
 define('THRESHOLD', 7200);
 define('LENGTH', 255);
-define('CHARS', array_merge(range('a', 'z'), range('0', '9'), ['.','-']));
+define('CHARS', array_merge(range('a', 'z'), range('0', '9'), ['.','-',':']));
 define('COOKIE', 'timestamp');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
@@ -24,17 +24,17 @@ define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
 header('Content-Type: ' . CONTENT_TYPE);
 
 //
-function secureHost($_hostname)
+function secureHost($_host)
 {
-	$_hostname = strtolower($_hostname);
-	$length = min(strlen($_hostname), LENGTH);
+	$_host = strtolower($_host);
+	$length = min(strlen($_host), LENGTH);
 	$result = '';
 
 	for($i = 0; $i < $length; $i++)
 	{
-		if(in_array($_hostname[$i], CHARS))
+		if(in_array($_host[$i], CHARS))
 		{
-			$result .= $_hostname[$i];
+			$result .= $_host[$i];
 		}
 	}
 
@@ -47,8 +47,67 @@ function secureHost($_hostname)
 }
 
 //
-define('HOSTNAME', secureHost($_SERVER['HTTP_HOST']));
-define('PATH', (DIRECTORY . '/' . HOSTNAME));
+function endsWith($_haystack, $_needle)
+{
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
+
+	return (substr($_haystack, -strlen($_needle)) === $_needle);
+}
+
+$host = '';
+
+if(strlen($_SERVER['HTTP_HOST']) > 0)
+{
+	$host = $_SERVER['HTTP_HOST'];
+}
+else if(strlen($_SERVER['SERVER_NAME']) > 0)
+{
+	$host = $_SERVER['SERVER_NAME'];
+}
+else if(strlen($_SERVER['SERVER_ADDR']) > 0)
+{
+	$host = $_SERVER['SERVER_ADDR'];
+}
+else
+{
+	die('No server host/name/address applicable');
+}
+
+if(strlen($_SERVER['SERVER_PORT']) > 0)
+{
+	if($_SERVER['HTTPS'])
+	{
+		if($_SERVER['SERVER_PORT'] === '443')
+		{
+			if(endsWith($host, ':443'))
+			{
+				$host = substr($host, -4);
+			}
+		}
+		else if(! endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+		{
+			$host .= (':' . $_SERVER['SERVER_PORT']);
+		}
+	}
+	else if($_SERVER['SERVER_PORT'] === '80')
+	{
+		if(endsWith($host, ':80'))
+		{
+			$host = substr($host, -3);
+		}
+	}
+	else if(! endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+	{
+		$host .= (':' . $_SERVER['SERVER_PORT']);
+	}
+}
+
+define('HOST', secureHost($host));
+define('PATH', (DIRECTORY . '/' . HOST));
+unset($host);
 
 //
 if(! file_exists(DIRECTORY))
@@ -85,7 +144,7 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'domain' => HOSTNAME,
+		'domain' => HOST,
 		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
