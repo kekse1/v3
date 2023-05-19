@@ -94,16 +94,6 @@ function secureHost($_host)
 }
 
 //
-function endsWith($_haystack, $_needle)
-{
-	if(strlen($_needle) > strlen($_haystack))
-	{
-		return false;
-	}
-
-	return (substr($_haystack, -strlen($_needle)) === $_needle);
-}
-
 $host = '';
 
 if(! empty($_SERVER['HTTP_HOST']))
@@ -117,6 +107,16 @@ else if(! empty($_SERVER['SERVER_NAME']))
 else
 {
 	die('No server host/name applicable');
+}
+
+function endsWith($_haystack, $_needle)
+{
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
+
+	return (substr($_haystack, -strlen($_needle)) === $_needle);
 }
 
 if(!empty($_SERVER['SERVER_PORT']))
@@ -169,7 +169,7 @@ define('PATH_DIR', (DIRECTORY . '/+' . HOST));
 define('PATH_TIME', (PATH_DIR . '/' . HOST));
 
 //
-function countFiles($_path = DIRECTORY)
+function countFiles($_path = DIRECTORY, $_dir = false)
 {
 	$list = scandir($_path);
 	$len = count($list);
@@ -177,13 +177,22 @@ function countFiles($_path = DIRECTORY)
 
 	for($i = 0; $i < $len; ++$i)
 	{
-		if(is_file($_path . $result[$i]))
+		if($_dir && is_directory($_path . '/' . $list[$i]))
+		{
+			++$result;
+		}
+		else if(is_file($_path . '/' . $list[$i]))
 		{
 			++$result;
 		}
 	}
 
 	return $result;
+}
+
+function countDirectories($_path = DIRECTORY)
+{
+	return countFiles($_path, true);
 }
 
 //
