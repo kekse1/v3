@@ -161,6 +161,7 @@ if(!empty($_SERVER['SERVER_PORT']))
 //
 define('HOST', secureHost($host));
 unset($host);
+define('COOKIE', hash('sha3-256', HOST));
 
 //
 define('PATH_FILE', (DIRECTORY . '/' . HOST));
@@ -272,11 +273,11 @@ function testFiles()
 
 function testCookie()
 {
-	if(!isset($_COOKIE[HOST]))
+	if(empty($_COOKIE[COOKIE]))
 	{
 		makeCookie();
 	}
-	else if(timestamp((int)$_COOKIE[HOST]) < THRESHOLD)
+	else if(timestamp((int)$_COOKIE[COOKIE]) < THRESHOLD)
 	{
 		return false;
 	}
@@ -286,7 +287,7 @@ function testCookie()
 
 function makeCookie()
 {
-	return setcookie(HOST, timestamp(), array(
+	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
 		//'domain' => str_replace(' ', ':', HOST),
 		'secure' => COOKIE_SECURE,
