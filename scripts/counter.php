@@ -54,6 +54,10 @@ function secureHost($_host)
 		{
 			$put = ':';
 		}
+		else if($_host[$i] === '-')
+		{
+			$put = '-';
+		}
 		else if($_host[$i] === '_')
 		{
 			$put = '_';
