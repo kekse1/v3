@@ -4,16 +4,11 @@
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
  */
 
-/*
- * BE SURE TO `chmod 1777 ./counter/`.. (so that PHP can access there, with write permissions, too)!
- */
 //
 define('AUTO', 255);
 define('DIRECTORY', 'counter');
-//define('THRESHOLD', 600);
 define('THRESHOLD', 7200);
 define('LENGTH', 255);
-define('CHARS', array_merge(range('a', 'z'), range('0', '9'), ['.','-',':']));
 define('COOKIE', 'timestamp');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
@@ -33,43 +28,75 @@ if(AUTO === null)
 //
 function secureHost($_host)
 {
-	$_host = strtolower($_host);
 	$length = min(strlen($_host), LENGTH);
 	$result = '';
 	$hadPort = false;
+	$char = null;
+	$put = null;
 
 	for($i = 0; $i < $length; $i++)
 	{
-		if(in_array($_host[$i], CHARS))
+		if($_host[$i] === '.')
 		{
-			if($_host[$i] === '.')
+			if(strlen($result) === 0)
 			{
-				if(strlen($result) === 0)
-				{
-					continue;
-				}
-				else if($result[strlen($result) - 1] === '.')
-				{
-					continue;
-				}
+				$put = false;
 			}
-			else if($_host[$i] === ':')
+			else if($result[strlen($result) - 1] === '.')
 			{
-				if($hadPort)
-				{
-					continue;
-				}
-
+				$put = false;
+			}
+			else
+			{
+				$put = true;
+			}
+		}
+		else if($_host[$i] === ':')
+		{
+			if($hadPort)
+			{
+				$put = false;
+			}
+			else
+			{
+				$put = true;
 				$hadPort = true;
 			}
+		}
+		else if($_host[$i] === '-')
+		{
+			$put = true;
+		}
+		else if(($char = ord($_host[$i])) >= 48 && $char <= 57)
+		{
+			$put = true;
+		}
+		else if($char >= 65 && $char <= 90)
+		{
+			$put = $char + 32;
+		}
+		else if($char >= 97 && $char <= 122)
+		{
+			$put = true;
+		}
+		else
+		{
+			$put = false;
+		}
 
+		if(gettype($put) === 'integer')
+		{
+			$result .= chr($put);
+		}
+		else if($put)
+		{
 			$result .= $_host[$i];
 		}
 	}
 
 	if(strlen($result) === 0)
 	{
-		die('Filtered hostname got no length');
+		die('Secured host got no length');
 	}
 
 	return $result;
@@ -88,15 +115,15 @@ function endsWith($_haystack, $_needle)
 
 $host = '';
 
-if(strlen($_SERVER['HTTP_HOST']) > 0)
+if(! empty($_SERVER['HTTP_HOST']))
 {
 	$host = $_SERVER['HTTP_HOST'];
 }
-else if(strlen($_SERVER['SERVER_NAME']) > 0)
+else if(! empty($_SERVER['SERVER_NAME']))
 {
 	$host = $_SERVER['SERVER_NAME'];
 }
-else if(strlen($_SERVER['SERVER_ADDR']) > 0)
+else if(! empty($_SERVER['SERVER_ADDR']))
 {
 	$host = $_SERVER['SERVER_ADDR'];
 }
