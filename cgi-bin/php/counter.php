@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.0.0
+ * v2.1.0
  */
 
 //
@@ -10,8 +10,7 @@ define('AUTO', 255);
 define('DIRECTORY', 'counter');
 define('THRESHOLD', 7200);
 define('CLIENT', true);
-define('SERVER', false);
-define('BOTH', true);
+define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('TYPE_CONTENT', 'text/plain;charset=UTF-8');
@@ -255,31 +254,18 @@ function timestamp($_difference = null)
 	return (time() - $_difference);
 }
 
-function test($_both = BOTH)
+function test()
 {
-	if(! (CLIENT || SERVER))
-	{
-		return true;
-	}
-
 	$result = true;
 
-	if(CLIENT && !testCookie())
+	if(CLIENT)
 	{
-		$result = false;
-	}
-	else if(! $_both)
-	{
-		return true;
+		$result = testCookie();
 	}
 
-	if(SERVER && !testFile())
+	if($result && SERVER)
 	{
-		$result = false;
-	}
-	else if(! $_both)
-	{
-		return true;
+		$result = testFile();
 	}
 
 	return $result;
@@ -287,17 +273,20 @@ function test($_both = BOTH)
 
 function testFile($_path = PATH_IP)
 {
-	if(! is_file($_path))
+	if(file_exists($_path))
 	{
-		writeTimestamp($_path);
-	}
-	else if(!is_readable($_path))
-	{
-		die('File can\'t be read');
-	}
-	else if(timestamp(readTimestamp($_path)) < THRESHOLD)
-	{
-		return false;
+		if(!is_file($_path))
+		{
+			die('Is not a regular file');
+		}
+		else if(!is_readable($_path))
+		{
+			die('File can\'t be read');
+		}
+		else if(timestamp(readTimestamp($_path)) < THRESHOLD)
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -339,9 +328,13 @@ function getFileModificationTime($_path)
 
 function readTimestamp($_path = PATH_IP)
 {
-	if(is_file($_path))
+	if(file_exists($_path))
 	{
-		if(!is_readable($_path))
+		if(!is_file($_path))
+		{
+			die('Is not a file');
+		}
+		else if(!is_readable($_path))
 		{
 			die('File not readable');
 		}
@@ -354,13 +347,16 @@ function readTimestamp($_path = PATH_IP)
 
 function writeTimestamp($_path = PATH_IP)
 {
-	if(file_exists($_path) && !is_file($_path))
+	if(file_exists($_path))
 	{
-		die('It\'s no regular file');
-	}
-	else if(!is_writable($_path))
-	{
-		die('Not a writable file');
+		if(!is_file($_path))
+		{
+			die('It\'s no regular file');
+		}
+		else if(!is_writable($_path))
+		{
+			die('Not a writable file');
+		}
 	}
 	
 	return file_put_contents($_path, (string)timestamp());
@@ -368,32 +364,39 @@ function writeTimestamp($_path = PATH_IP)
 
 function readCounter($_path = PATH_FILE)
 {
-	if(!file_exists($_path))
+	if(file_exists($_path))
+	{
+		if(!is_file($_path))
+		{
+			die('It\'s not a regular file');
+		}
+		else if(!is_readable($_path))
+		{
+			die('File is not readable');
+		}
+
+		return (int)file_get_contents($_path);
+	}
+	else
 	{
 		touch($_path);
-		return 0;
-	}
-	else if(!is_file($_path))
-	{
-		die('It\'s not a regular file');
-	}
-	else if(!is_readable($_path))
-	{
-		die('File is not readable');
 	}
 
-	return (int)file_get_contents($_path);
+	return 0;
 }
 
 function writeCounter($_value = 0, $_path = PATH_FILE)
 {
-	if(file_exists($_path) && !is_file($_path))
+	if(file_exists($_path))
 	{
-		die('Not a regular file');
-	}
-	else if(!is_writable($_path))
-	{
-		die('File is not writable');
+		if(!is_file($_path))
+		{
+			die('Not a regular file');
+		}
+		else if(!is_writable($_path))
+		{
+			die('File is not writable');
+		}
 	}
 
 	return file_put_contents($_path, (string)$_value);
@@ -404,7 +407,7 @@ if(SERVER)
 {
 	if(! file_exists(PATH_DIR))
 	{
-		mkdir(PATH_DIR, 1777, false);
+		mkdir(PATH_DIR);
 	}
 	else if(!is_dir(PATH_DIR))
 	{

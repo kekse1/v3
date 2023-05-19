@@ -21,7 +21,8 @@ The real/full version of all the JavaScript's is available in the
 * The 'counter.php' just changed it's major version: v2.0.0.
 
 ### counter.php
-(TODO: description, etc.); ..
+(TODO: description, etc.); .. and btw: it's (nearly) finished!
+The last thing to-do is the file system cleanup routine.. :)~
 
 #### Security
 My [universal counter script](scripts/counter.php) should be **really** maximum secure now.. have extended
@@ -45,7 +46,6 @@ Configuration is (on top of file):
 * `define('THRESHOLD', 7200)`
 * `define('CLIENT', true)`
 * `define('SERVER', true)`
-* `define('BOTH', true)`
 * `define('HASH', 'sha3-256')`
 * `define('HASH_IP', true)`
 * `define('TYPE_CONTENT', 'text/plain;charset=UTF-8')`
