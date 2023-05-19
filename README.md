@@ -18,7 +18,7 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/
 
 ## News
-* The 'counter.php' just changed it's major version: v2.0.0.
+* The 'counter.php' just changed it's major version: v2.1.0.
 
 ### counter.php
 (TODO: description, etc.); .. and btw: it's (nearly) finished!
