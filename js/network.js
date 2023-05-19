@@ -327,7 +327,11 @@
 
 		if(port !== null)
 		{
-			if(isNaN(port = Number(port)))
+			if(port.length === 0)
+			{
+				return false;
+			}
+			else if(isNaN(port = Number(port)))
 			{
 				return false;
 			}
@@ -335,7 +339,8 @@
 			{
 				return false;
 			}
-			else if(port < -32767)
+			//else if(port < -32767)
+			else if(port < -65535)
 			{
 				return false;
 			}
