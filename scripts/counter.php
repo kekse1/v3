@@ -30,8 +30,7 @@ function secureHost($_host)
 {
 	$length = min(strlen($_host), LENGTH);
 	$result = '';
-	$hadPort = false;
-	$char = null;
+	$byte = null;
 	$put = '';
 
 	for($i = 0; $i < $length; $i++)
@@ -53,31 +52,23 @@ function secureHost($_host)
 		}
 		else if($_host[$i] === ':')
 		{
-			if($hadPort)
-			{
-				$put = '';
-			}
-			else
-			{
-				$put = ':';
-				$hadPort = true;
-			}
+			$put = ':';
 		}
-		else if($_host[$i] === '-')
+		else if($_host[$i] === '_')
 		{
-			$put = '-';
+			$put = '_';
 		}
-		else if(($char = ord($_host[$i])) >= 48 && $char <= 57)
+		else if(($byte = ord($_host[$i])) >= 48 && $byte <= 57)
 		{
-			$put = chr($char);
+			$put = chr($byte);
 		}
-		else if($char >= 65 && $char <= 90)
+		else if($byte >= 65 && $byte <= 90)
 		{
-			$put = chr($char + 32);
+			$put = chr($byte + 32);
 		}
-		else if($char >= 97 && $char <= 122)
+		else if($byte >= 97 && $byte <= 122)
 		{
-			$put = chr($char);
+			$put = chr($byte);
 		}
 		else
 		{
@@ -116,13 +107,9 @@ else if(! empty($_SERVER['SERVER_NAME']))
 {
 	$host = $_SERVER['SERVER_NAME'];
 }
-else if(! empty($_SERVER['SERVER_ADDR']))
-{
-	$host = $_SERVER['SERVER_ADDR'];
-}
 else
 {
-	die('No server host/name/addr applicable');
+	die('No server host/name applicable');
 }
 
 $host = secureHost($host);
@@ -140,7 +127,11 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 		}
 		else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
 		{
-			$host .= (':' . $_SERVER['SERVER_PORT']);
+			$host .= ('_' . $_SERVER['SERVER_PORT']);
+		}
+		else
+		{
+			$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT'])) . '_' . $_SERVER['SERVER_PORT'];
 		}
 	}
 	else if($_SERVER['SERVER_PORT'] === '80')
@@ -152,7 +143,11 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 	}
 	else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
 	{
-		$host .= (':' . $_SERVER['SERVER_PORT']);
+		$host .= ('_' . $_SERVER['SERVER_PORT']);
+	}
+	else
+	{
+		$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT'])) . '_' . $_SERVER['SERVER_PORT'];
 	}
 }
 
