@@ -38,11 +38,6 @@ function secureHost($_host)
 	$result = '';
 	$hadPort = false;
 
-	if($_host[0] === '[' && $_host[strlen($_host) - 1] === ']')
-	{
-		$_host = $_host.substr(1, -1);
-	}
-
 	for($i = 0; $i < $length; $i++)
 	{
 		if(in_array($_host[$i], CHARS))
@@ -123,7 +118,7 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 				$host = substr($host, -4);
 			}
 		}
-		else if(! endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+		else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
 		{
 			$host .= (':' . $_SERVER['SERVER_PORT']);
 		}
@@ -135,7 +130,7 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 			$host = substr($host, -3);
 		}
 	}
-	else if(! endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+	else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
 	{
 		$host .= (':' . $_SERVER['SERVER_PORT']);
 	}
@@ -146,11 +141,11 @@ define('PATH', (DIRECTORY . '/' . $host));
 unset($host);
 
 //
-if(! file_exists(DIRECTORY))
+if(!file_exists(DIRECTORY))
 {
 	die('Directory \'' . DIRECTORY . '\' doesn\'t exist - create with `chmod 1777`.');
 }
-else if(AUTO !== true && ! file_exists(PATH))
+else if(AUTO !== true && !file_exists(PATH))
 {
 	if(AUTO === false)
 	{
@@ -184,7 +179,7 @@ function timestamp($_difference = null)
 
 function testCookie()
 {
-	if(! isset($_COOKIE[COOKIE]))
+	if(!isset($_COOKIE[COOKIE]))
 	{
 		makeCookie();
 	}
@@ -210,7 +205,7 @@ function makeCookie()
 
 function readCounter($_path = PATH)
 {
-	if(! file_exists($_path))
+	if(!file_exists($_path))
 	{
 		touch($_path);
 		return 0;
