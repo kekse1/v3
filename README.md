@@ -25,16 +25,7 @@ The real/full version of all the JavaScript's is available in the
 The last thing to-do is the file system cleanup routine.. :)~
 
 #### Security
-My [universal counter script](scripts/counter.php) should be **really** maximum secure now.. have extended
-the `secureHost()` function, w/ another test of possible 'host' variables, which are also extended w/ 'port'
-feature.
-
-Also checking if target file `is_writable()`, AND last, but really not least: the newest 'AUTO' constant, as
-your setting, to either disable the whole counter, or to disallow automatic creation of files in the target
-directory (if they don't already exist), or to limit the automatic file creation to a maximum count of files.
-
-The last feature came into my mind as I thought about faked hosts: so if one would just send many, many 'Host'
-headers or smth. similar, there'd be a DOS risk by creating many, many files.. ;)~
+My [universal counter script](scripts/counter.php) should be **really** maximum secure now..
 
 #### Cookies and Files
 (TODO: describe this);
