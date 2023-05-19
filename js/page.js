@@ -306,7 +306,7 @@
 			}
 			catch(_error)
 			{
-				osd(`<span style="color: red;">error</span><span style="font-size: 0.32em;"><br>${_error.message}</span>`, {
+				osd(`<span style="color: red;">error</span><span style="font-size: 0.32em; color: blue;"><br>${_error.message}</span>`, {
 					duration: document.getVariable('ajax-osd-duration', true),
 					timeout: document.getVariable('ajax-osd-timeout', true)
 				});
