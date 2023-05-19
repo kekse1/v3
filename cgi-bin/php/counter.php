@@ -32,7 +32,7 @@ function secureHost($_host)
 	$result = '';
 	$hadPort = false;
 	$char = null;
-	$put = null;
+	$put = '';
 
 	for($i = 0; $i < $length; $i++)
 	{
@@ -40,58 +40,51 @@ function secureHost($_host)
 		{
 			if(strlen($result) === 0)
 			{
-				$put = false;
+				$put = '';
 			}
 			else if($result[strlen($result) - 1] === '.')
 			{
-				$put = false;
+				$put = '';
 			}
 			else
 			{
-				$put = true;
+				$put = '.';
 			}
 		}
 		else if($_host[$i] === ':')
 		{
 			if($hadPort)
 			{
-				$put = false;
+				$put = '';
 			}
 			else
 			{
-				$put = true;
+				$put = ':';
 				$hadPort = true;
 			}
 		}
 		else if($_host[$i] === '-')
 		{
-			$put = true;
+			$put = '-';
 		}
 		else if(($char = ord($_host[$i])) >= 48 && $char <= 57)
 		{
-			$put = true;
+			$put = chr($char);
 		}
 		else if($char >= 65 && $char <= 90)
 		{
-			$put = $char + 32;
+			$put = chr($char + 32);
 		}
 		else if($char >= 97 && $char <= 122)
 		{
-			$put = true;
+			$put = chr($char);
 		}
 		else
 		{
-			$put = false;
+			$put = '';
 		}
 
-		if(gettype($put) === 'integer')
-		{
-			$result .= chr($put);
-		}
-		else if($put)
-		{
-			$result .= $_host[$i];
-		}
+		$result .= $put;
 	}
 
 	if(strlen($result) === 0)
