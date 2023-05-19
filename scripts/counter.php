@@ -12,6 +12,7 @@ define('LENGTH', 255);
 define('COOKIE', 'timestamp');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_PATH', '/');
+//define('COOKIE_PATH', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 define('COOKIE_HTTP_ONLY', true);
 define('COOKIE_SECURE', !empty($_SERVER['HTTPS']));
 define('CONTENT_TYPE', 'text/plain;charset=UTF-8');
@@ -54,9 +55,13 @@ function secureHost($_host)
 		{
 			$put = ':';
 		}
-		else if($_host[$i] === '_')
+		else if($_host[$i] === '-')
 		{
-			$put = '_';
+			$put = '-';
+		}
+		else if($_host[$i] === ' ')
+		{
+			$put = ' ';
 		}
 		else if(($byte = ord($_host[$i])) >= 48 && $byte <= 57)
 		{
@@ -112,9 +117,7 @@ else
 	die('No server host/name applicable');
 }
 
-$host = secureHost($host);
-
-if(strlen($_SERVER['SERVER_PORT']) > 0)
+if(!empty($_SERVER['SERVER_PORT']))
 {
 	if(! empty($_SERVER['HTTPS']))
 	{
@@ -125,13 +128,14 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 				$host = substr($host, -4);
 			}
 		}
-		else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
-		{
-			$host .= ('_' . $_SERVER['SERVER_PORT']);
-		}
 		else
 		{
-			$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT'])) . '_' . $_SERVER['SERVER_PORT'];
+			if(endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+			{
+				$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT']));
+			}
+
+			$host .= ' ' . $_SERVER['SERVER_PORT'];
 		}
 	}
 	else if($_SERVER['SERVER_PORT'] === '80')
@@ -141,19 +145,20 @@ if(strlen($_SERVER['SERVER_PORT']) > 0)
 			$host = substr($host, -3);
 		}
 	}
-	else if(!endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
-	{
-		$host .= ('_' . $_SERVER['SERVER_PORT']);
-	}
 	else
 	{
-		$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT'])) . '_' . $_SERVER['SERVER_PORT'];
+		if(endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
+		{
+			$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT']));
+		}
+
+		$host .= ' ' . $_SERVER['SERVER_PORT'];
 	}
 }
 
-define('HOST', $host);
-define('PATH', (DIRECTORY . '/' . $host));
+define('HOST', secureHost($host));
 unset($host);
+define('PATH', (DIRECTORY . '/' . HOST));
 
 //
 if(!file_exists(DIRECTORY))
@@ -213,7 +218,7 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'domain' => HOST,
+		'domain' => str_replace(' ', ':', HOST),
 		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
