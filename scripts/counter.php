@@ -194,6 +194,10 @@ else if(!is_dir(DIRECTORY))
 {
 	die('The path \'' + DIRECTORY + '\' is not a directory!');
 }
+else if(!is_writable(DIRECTORY))
+{
+	die('Your directory \'' . DIRECTORY . '\' is not writable (please `chmod 1777`)');
+}
 else if(AUTO !== true && !file_exists(PATH_FILE))
 {
 	if(AUTO === false)
