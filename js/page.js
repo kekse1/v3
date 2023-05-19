@@ -1121,7 +1121,7 @@
 			return result;
 		}
 		
-		static changeHash(_hash, _invisible = true)
+		static changeHash(_hash, _passive = true)
 		{
 			if(typeof _hash !== 'string')
 			{
@@ -1132,7 +1132,7 @@
 				_hash = _hash.substr(1);
 			}
 
-			if(_invisible)
+			if(_passive)
 			{
 				history.replaceState(null, null, document.location.base + '#' + _hash);
 			}
@@ -1144,13 +1144,18 @@
 			return ('#' + _hash);
 		}
 
-		static changeURL(_href, _invisible = true)
+		static changeURL(_href, _passive = true, _resolve = true)
 		{
 			if(typeof _href !== 'string')
 			{
 				return null;
 			}
-			else if(_invisible)
+			else
+			{
+				_href = new URL(_href, (_resolve ? location.href : location.origin)).href;
+			}
+			
+			if(_passive)
 			{
 				history.replaceState(null, null, _href);
 			}
