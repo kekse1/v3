@@ -177,9 +177,16 @@ function countFiles($_path = DIRECTORY, $_dir = false)
 
 	for($i = 0; $i < $len; ++$i)
 	{
-		if($_dir && is_directory($_path . '/' . $list[$i]))
+		if($list[$i] === '.' || $list[$i] === '..')
 		{
-			++$result;
+			continue;
+		}
+		else if($_dir)
+		{
+			if(is_dir($_path . '/' . $list[$i]))
+			{
+				++$result;
+			}
 		}
 		else if(is_file($_path . '/' . $list[$i]))
 		{
