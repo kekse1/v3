@@ -10,8 +10,8 @@
 	const DEFAULT_VERSION_URL = 'status/version.json';
 	const DEFAULT_VERSION_DELAY = (1000 * 60 * 4);
 	
-	const DEFAULT_COUNTER_URL = 'status/counter/' + location.host.toLowerCase();
-	const DEFAULT_COUNTER_DELAY = (1000 * 60);
+	const DEFAULT_COUNT_URL = 'status/count/' + location.host.toLowerCase();
+	const DEFAULT_COUNT_DELAY = (1000 * 60);
 
 	const DEFAULT_UPDATED_URL = 'status/update.now';
 	const DEFAULT_UPDATED_DELAY = (1000 * 60 * 2);
@@ -184,24 +184,24 @@
 	};
 	
 	//
-	mod.counter = (_throw = DEFAULT_THROW) => {
+	mod.count = (_throw = DEFAULT_THROW) => {
 		//
-		if(! COUNTER.prepared)
+		if(! COUNT.prepared)
 		{
 			//
 			const responsive = () => {
 				if(window.innerWidth >= 360)
 				{
-					if(COUNTER.classList.contains('noArrow'))
+					if(COUNT.classList.contains('noArrow'))
 					{
-						COUNTER.classList._remove('noArrow');
+						COUNT.classList._remove('noArrow');
 					}
 				}
 				else
 				{
-					if(! COUNTER.classList.contains('noArrow'))
+					if(! COUNT.classList.contains('noArrow'))
 					{
-						COUNTER.classList._add('noArrow');
+						COUNT.classList._add('noArrow');
 					}
 				}
 			};
@@ -222,19 +222,19 @@
 			});
 
 			//
-			const counter = document.createElement('span');
-			counter.id = 'counter';
+			const count = document.createElement('span');
+			count.id = 'count';
 			
 			//
-			COUNTER._appendChild(COUNTER.counter = counter);
+			COUNT._appendChild(COUNT.count = count);
 			
 			//
 			const haveSeen = document.createElement('span');
-			haveSeen.id = 'counterInfoText';
+			haveSeen.id = 'countInfoText';
 			setHTML(haveSeen, ' have seen ', true);
 			
 			//
-			COUNTER._appendChild(COUNTER.haveSeen = COUNTER.infoText = haveSeen);
+			COUNT._appendChild(COUNT.haveSeen = COUNT.infoText = haveSeen);
 			
 			//
 			const link = document.createElement('a');
@@ -245,17 +245,17 @@
 			setHTML(link, (isString(config.url, false) ? config.url : location.origin), true);
 			
 			//
-			COUNTER._appendChild(COUNTER.link = COUNTER.self = link);
+			COUNT._appendChild(COUNT.link = COUNT.self = link);
 			
 			//
-			COUNTER.prepared = true;
+			COUNT.prepared = true;
 		}
 		
 		//
-		return dynamic.add('counter', DEFAULT_COUNTER_URL, DEFAULT_COUNTER_DELAY, mod.counter.callback, DEFAULT_MAX, DEFAULT_CALLBACKS, _throw);
+		return dynamic.add('count', DEFAULT_COUNT_URL, DEFAULT_COUNT_DELAY, mod.count.callback, DEFAULT_MAX, DEFAULT_CALLBACKS, _throw);
 	};
 	
-	mod.counter.callback = (_event, _request, _dynamic) => {
+	mod.count.callback = (_event, _request, _dynamic) => {
 		//
 		const onload = () => {
 			if(_request.statusClass !== 2)
@@ -265,18 +265,18 @@
 
 			if(isNaN(_request.responseText))
 			{
-				return setHTML(COUNTER.counter, DEFAULT_NULL, COUNTER);
+				return setHTML(COUNT.count, DEFAULT_NULL, COUNT);
 			}
 			else
 			{
-				counter = Number(_request.responseText);
+				count = Number(_request.responseText);
 			}
 			
-			return setHTML(COUNTER.counter, counter.toLocaleString(), COUNTER);
+			return setHTML(COUNT.count, count.toLocaleString(), COUNT);
 		};
 		
 		const onfailure = () => {
-			setHTML(COUNTER, DEFAULT_NULL, true);
+			setHTML(COUNT, DEFAULT_NULL, true);
 			
 			if(_dynamic.throw)
 			{

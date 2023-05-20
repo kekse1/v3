@@ -272,12 +272,12 @@
 		VERSION.id = 'VERSION';
 
 		//
-		if(! (COUNTER = document.getElementById('COUNTER')))
+		if(! (COUNT = document.getElementById('COUNT')))
 		{
-			BODY.appendChild(COUNTER = document.createElement('div'));
+			BODY.appendChild(COUNT = document.createElement('div'));
 		}
 
-		COUNTER.id = 'COUNTER';
+		COUNT.id = 'COUNT';
 	}, { once: true });
 
 	//

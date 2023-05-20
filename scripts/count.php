@@ -2,19 +2,19 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.1.0
+ * v2.2.1
  */
 
 //
 define('AUTO', 255);
-define('DIRECTORY', 'counter');
+define('DIRECTORY', 'count');
 define('THRESHOLD', 7200);
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('TYPE_CONTENT', 'text/plain;charset=UTF-8');
-define('CLEAN', 255);
+define('CLEAN', true);
 define('COOKIE_PATH', '/');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_HTTP_ONLY', true);
@@ -362,7 +362,7 @@ function writeTimestamp($_path = PATH_IP)
 	return file_put_contents($_path, (string)timestamp());
 }
 
-function readCounter($_path = PATH_FILE)
+function readCount($_path = PATH_FILE)
 {
 	if(file_exists($_path))
 	{
@@ -385,7 +385,7 @@ function readCounter($_path = PATH_FILE)
 	return 0;
 }
 
-function writeCounter($_value = 0, $_path = PATH_FILE)
+function writeCount($_value = 0, $_path = PATH_FILE)
 {
 	if(file_exists($_path))
 	{
@@ -416,11 +416,11 @@ if(SERVER)
 }
 
 //
-$count = readCounter();
+$count = readCount();
 
 if(test())
 {
-	writeCounter(++$count);
+	writeCount(++$count);
 }
 
 if(CLIENT)

@@ -65,24 +65,24 @@
 		bottom: 4px;
 	}
 
-	#COUNTER
+	#COUNT
 	{
 		left: 12px;
 		right: auto;
 		bottom: 4px;
 	}
 
-	#COUNTER::before
+	#COUNT::before
 	{
 		font-size: 0.7rem;
 	}
 
-	#COUNTER #counter
+	#COUNT #count
 	{
 		font-size: 1.2rem;
 	}
 
-	#COUNTER #counterInfoText
+	#COUNT #countInfoText
 	{
 		display: none;
 	}
@@ -118,13 +118,13 @@
 		display: none;
 	}
 
-	#COUNTER
+	#COUNT
 	{
 		left: 30px;
 		right: auto;
 	}
 
-	#COUNTER #counterInfoText
+	#COUNT #countInfoText
 	{
 		display: inline-block;
 		font-size: 0.6rem;

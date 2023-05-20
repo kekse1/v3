@@ -15,17 +15,16 @@ The real/full version of all the JavaScript's is available in the
 
 ## Preview
 * https://kekse.biz/v3/test.html
-* https://kekse.biz/v3/
 
 ## News
-* The 'counter.php' just changed it's major version: v2.1.0.
+* The 'count.php' just changed it's major version: v2.2.1.
 
-### counter.php
+### count.php
 (TODO: description, etc.); .. and btw: it's (nearly) finished!
 The last thing to-do is the file system cleanup routine.. :)~
 
 #### Security
-My [universal counter script](scripts/counter.php) should be **really** maximum secure now..
+My _universal [counter script](scripts/count.php)_ should be **really** maximum secure now..
 
 #### Cookies and Files
 (TODO: describe this);
@@ -33,14 +32,14 @@ My [universal counter script](scripts/counter.php) should be **really** maximum 
 #### Settings
 Configuration is (on top of file):
 * `define('AUTO', 255)`
-* `define('DIRECTORY', 'counter')`
+* `define('DIRECTORY', 'count')`
 * `define('THRESHOLD', 7200)`
 * `define('CLIENT', true)`
 * `define('SERVER', true)`
 * `define('HASH', 'sha3-256')`
 * `define('HASH_IP', true)`
 * `define('TYPE_CONTENT', 'text/plain;charset=UTF-8')`
-* `define('CLEAN', 255)`
+* `define('CLEAN', true)`
 * (and some COOKIE_\* values);
 
 ## Documentation...

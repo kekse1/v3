@@ -1,1 +1,0 @@
-cgi-bin/php/counter.php

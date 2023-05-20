@@ -31,7 +31,7 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 ## '[.]/'
 
 * ./**[cgi-bin](#cgi-bin)**/
-* ./**[counter](#counter)**/
+* ./**[count](#count)**/
 * ./**[css](#css-1)**/
 * ./**[fonts](#fonts)**/
 * ./**[home](#home)**/
@@ -49,11 +49,11 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 
 ## '**cgi-bin**/'
 With './php/', to which we also could symlink in the base directory, if wanted.
-Most important file in there is the 'cgi-bin/php/*counter.php*'!
+Most important file in there is the 'cgi-bin/php/*count.php*'!
 
-## '**counter**/'
-You better `chmod 1777` it. There must be a symlink 'cgi-bin/php/counter' to here.
-Every hostname/domain will use on file in there. The .php script is 'cgi-bin/php/*counter.php*'.
+## '**count**/'
+You better `chmod 1777` it. There must be a symlink 'cgi-bin/php/count' to here.
+Every hostname/domain will use on file in there. The .php script is 'cgi-bin/php/*count.php*'.
 
 ## '**css**/'
 Maybe of interest: for a 'responsive design' (so mobile browser access, etc.) there should be only special files,
@@ -157,8 +157,8 @@ At the moment there are also the following scripts (which you could delete), but
 ### 'scripts/**update.sh**'
 Described above (in this 'scripts/' sub section).
 
-### 'scripts/**counter.php**'
-Can be ignored or deleted. Just a copy of 'cgi-bin/php/counter.php'; this file here won't be really used, it's just
+### 'scripts/**count.php**'
+Can be ignored or deleted. Just a copy of 'cgi-bin/php/count.php'; this file here won't be really used, it's just
 for a quick review for you, as github.com doesn't manage to show symlink contents (you just see the link target itself).
 
 ### 'scripts/**prompt.sh**'
@@ -186,8 +186,8 @@ BUT it's still TODO; AND even more important: I'm going to use 'JSDoc', so this 
 ## '**status**/'
 The files in here are periodically handled by the 'js/dynamic{,.module}.js'. As follows..
 
-### 'status/**counter**/'
-A symlink to the '../counter/' directory (see above).
+### 'status/**count**/'
+A symlink to the '../count/' directory (see above).
 
 ### 'status/**update.now**'
 This is just for an info in the status bar (on the bottom), when the last update has been commited.
