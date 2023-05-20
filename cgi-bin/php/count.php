@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.3.1
+ * v2.3.2
  */
 
 // 
@@ -439,6 +439,16 @@ function decreaseCount($_path = PATH_COUNT)
 
 function deleteTimestamp($_path = PATH_IP, $_die = true)
 {
+	if(CLEAN === null)
+	{
+		if($_die)
+		{
+			die('Deletion is not allowed');
+		}
+
+		return null;
+	}
+
 	$result = unlink($_path);
 
 	if($result)
