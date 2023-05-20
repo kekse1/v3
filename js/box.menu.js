@@ -1800,7 +1800,7 @@
 		{
 			if(document.getVariable('favicon') && document.getVariable('favicon-image'))
 			{
-				return css.url(document.getVariable('favicon-image'));
+				return css.parse.url(document.getVariable('favicon-image'));
 			}
 
 			return null

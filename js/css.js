@@ -10,7 +10,22 @@
 	css = { camel };
 
 	//
-	css.url = (_string, _throw = DEFAULT_THROW) => {
+	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+		if(typeof _string !== 'string')
+		{
+			if(_throw)
+			{
+				throw new Error('Invalid _string argument');
+			}
+			
+			return null;
+		}
+
+		return processString(_string, _parse);
+	};
+
+	//
+	css.parse.url = (_string, _throw = DEFAULT_THROW) => {
 		if(! isString(_string, false))
 		{
 			if(_throw)
@@ -61,21 +76,7 @@
 		return null;
 	};
 	
-	//
-	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
-		if(typeof _string !== 'string')
-		{
-			if(_throw)
-			{
-				throw new Error('Invalid _string argument');
-			}
-			
-			return null;
-		}
-
-		return processString(_string, _parse);
-	};
-	
+	//	
 	css.render = (_value, _throw = DEFAULT_THROW) => {
 		if(typeof _value === 'string')
 		{
