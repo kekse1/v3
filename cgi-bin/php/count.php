@@ -251,7 +251,7 @@ else if(AUTO !== true && !is_file(PATH_FILE))
 	}
 	else if(gettype(AUTO) === 'integer')
 	{
-		if(countFiles(DIRECTORY) >= AUTO)
+		if(countFiles(DIRECTORY, false, false, true, false) >= AUTO)
 		{
 			die('/');
 		}
