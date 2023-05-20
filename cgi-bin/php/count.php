@@ -344,9 +344,9 @@ function makeCookie()
 	));
 }
 
-function error($_path, $_source, $_die = true)
+function errorLog($_path, $_source, $_die = true)
 {
-	$data = $_source . '(' . $_path . ') ' . (string)time() . '\n';
+	$data = '[' . (string)time() . '] ' . $_source . '(' . $_path . ')\n';
 	$result = file_put_contents(PATH_ERROR, $data);
 
 	if($result === false && $_die)
@@ -500,13 +500,13 @@ function writeTimestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
 		{
 			if(cleanFiles() > LIMIT)
 			{
-				error($_path, 'writeTimestamp');
+				errorLog($_path, 'writeTimestamp');
 				return null;
 			}
 		}
 		else
 		{
-			error($_path, 'writeTimestamp');
+			errorLog($_path, 'writeTimestamp');
 			return null;
 		}
 	}
