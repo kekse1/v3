@@ -7,6 +7,7 @@
 
 // 
 // TODO: *CLEAN*!!
+// TODO: CREATING COUNT FILE: not w/ 0/1 but countFiles();
 //
 
 //
