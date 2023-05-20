@@ -1512,22 +1512,40 @@ throw new Error('TODO');
 	{
 		return [ 'overflow', 'opacity', 'transform', 'filter', 'color', 'backgroundColor', 'borderRadius', 'borderWidth', 'borderColor' ];
 	}});
-	
-	Object.defineProperty(Element.prototype, 'blink', { value: function(_options, _callback)
+
+	Object.defineProperty(HTMLElement.prototype, 'addBlinkCallback', { value: function(... _args)
+	{
+		if(! this.IN)
+		{
+			return 0;
+		}
+		else if(! isArray(this._blinkCallbacks, true))
+		{
+			this._blinkCallbacks = [];
+		}
+
+		var result = 0;
+
+		for(var i = 0, j = this._blinkCallbacks.length; i < _args.length; ++i)
+		{
+			if(typeof _args[i] === 'function')
+			{
+				this._blinkCallbacks[j++] = _args[i];
+				++result;
+			}
+		}
+
+		return result;
+	}});
+
+	Object.defineProperty(Element.prototype, 'blink', { value: function(_options, _callback, _add_callback = true)
 	{
 		//
 		if(this.BLINK)
 		{
-			if(typeof _callback === 'function')
+			if(_add_callback && typeof _callback === 'function')
 			{
-				if(! isArray(this._blinkCallbacks, true))
-				{
-					this._blinkCallbacks = [ _callback ];
-				}
-				else
-				{
-					this._blinkCallbacks.pushUnique(_callback);
-				}
+				this.addBlinkCallback(_callback);
 			}
 			
 			return this.BLINK;
@@ -1593,17 +1611,6 @@ throw new Error('TODO');
 
 		//
 		const origCount = _options.count;
-		
-		//
-		/*if(! this._originalBeforeBlink)
-		{
-			this._originalBeforeBlink = { ... computedStyle };
-			this._originalBeforeBlink.only(... HTMLElement.blinkProps);
-		}*/
-
-		//
-		//const originalOverflow = this.style.overflow;
-		//this.style.overflow = 'hidden';
 		this.scrolling = false;
 		
 		//
@@ -1641,12 +1648,6 @@ throw new Error('TODO');
 				{
 					keyframes.transform.push('scale(0.75)', 'scale(1.25)', 'scale(1)');
 				}
-
-				/*if(! isArray(_options.scale, false) && transform !== 'scale(1)')
-				{
-					keyframes.transform.push(transform);
-				}*/
-				//keyframes.transform.push(null);
 			}
 
 			if(_options.colors !== false)
@@ -2286,22 +2287,40 @@ var c=0;
 	{
 		return [ 'opacity', 'transform', 'filter', 'borderWidth', 'borderRadius', 'borderColor', 'fontSize', 'overflow', 'backgroundColor', 'color', 'left', 'top', 'right', 'bottom', 'width', 'height' ];
 	}});
+
+	Object.defineProperty(HTMLElement.prototype, 'addInCallback', { value: function(... _args)
+	{
+		if(! this.IN)
+		{
+			return 0;
+		}
+		else if(! isArray(this._inCallbacks, true))
+		{
+			this._inCallbacks = [];
+		}
+
+		var result = 0;
+
+		for(var i = 0, j = this._inCallbacks.length; i < _args.length; ++i)
+		{
+			if(typeof _args[i] === 'function')
+			{
+				this._inCallbacks[j++] = _args[i];
+				++result;
+			}
+		}
+
+		return result;
+	}});
 	
-	Object.defineProperty(HTMLElement.prototype, 'in', { value: function(_options, _callback, _throw = DEFAULT_THROW)
+	Object.defineProperty(HTMLElement.prototype, 'in', { value: function(_options, _callback, _throw = DEFAULT_THROW, _add_callback = true)
 	{
 		//
 		if(this.IN)
 		{
-			if(typeof _callback === 'function')
+			if(_add_callback && typeof _callback === 'function')
 			{
-				if(! isArray(this._inCallbacks, true))
-				{
-					this._inCallbacks = [ _callback ];
-				}
-				else
-				{
-					this._inCallbacks.pushUnique(_callback);
-				}
+				this.addInCallback(_callback);
 			}
 
 			return this.IN;
@@ -2564,21 +2583,39 @@ var c=0;
 		}, _throw);
 	}});
 	
-	Object.defineProperty(HTMLElement.prototype, 'out', { value: function(_options, _callback, _throw = DEFAULT_THROW)
+	Object.defineProperty(HTMLElement.prototype, 'addOutCallback', { value: function(... _args)
+	{
+		if(! this.IN)
+		{
+			return 0;
+		}
+		else if(! isArray(this._outCallbacks, true))
+		{
+			this._outCallbacks = [];
+		}
+
+		var result = 0;
+
+		for(var i = 0, j = this._outCallbacks.length; i < _args.length; ++i)
+		{
+			if(typeof _args[i] === 'function')
+			{
+				this._outCallbacks[j++] = _args[i];
+				++result;
+			}
+		}
+
+		return result;
+	}});
+
+	Object.defineProperty(HTMLElement.prototype, 'out', { value: function(_options, _callback, _throw = DEFAULT_THROW, _add_callback = true)
 	{
 		//
 		if(this.OUT)
 		{
-			if(typeof _callback === 'function')
+			if(_add_callback && typeof _callback === 'function')
 			{
-				if(! isArray(this._outCallbacks, true))
-				{
-					this._outCallbacks = [ _callback ];
-				}
-				else
-				{
-					this._outCallbacks.pushUnique(_callback);
-				}
+				this.addOutCallback(_callback);
 			}
 
 			return this.OUT;
