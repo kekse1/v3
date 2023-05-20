@@ -6,24 +6,6 @@
 		"href": "#~index"
 	},
 	{
-		"image": "img/menu/tools.128px.png",
-		"data": "Tools",
-		"description": "Some nifty tools (JavaScript, maybe PHP)",
-		"href": "#~tools"
-	},
-	{
-		"image": "img/menu/events.128px.png",
-		"data": "Events",
-		"description": "Messaging and other (remote) events, all real-time! ^_^",
-		"href": "#~events"
-	},
-	{
-		"image": "img/menu/projects.128px.png",
-		"data": "Projects",
-		"description": "Some of my projects",
-		"href": "#~projects"
-	},
-	{
 		"image": "img/menu/linux.128px.png",
 		"data": "Linux",
 		"description": "Linux specific part",
@@ -40,6 +22,18 @@
 		"data": "Gallery",
 		"description": "My own gallery",
 		"href": "#~gallery"
+	},
+	{
+		"image": "img/menu/projects.128px.png",
+		"data": "Projects",
+		"description": "Some of my projects",
+		"href": "#~projects"
+	},
+	{
+		"image": "img/menu/tools.128px.png",
+		"data": "Tools",
+		"description": "Some nifty tools (JavaScript, maybe PHP)",
+		"href": "#~tools"
 	},
 	{
 		"image": "img/menu/downloads.128px.png",
@@ -60,10 +54,16 @@
 		"href": "#~hardware"
 	},
 	{
-		"image": "img/menu/imprint.128px.png",
-		"data": "Imprint",
-		"description": "Necessary..",
-		"href": "#~imprint"
+		"image": "img/menu/events.128px.png",
+		"data": "Events",
+		"description": "Messaging and other (remote) events, all real-time! ^_^",
+		"href": "#~events"
+	},
+	{
+		"image": "img/menu/api.128px.png",
+		"data": "API / Test",
+		"description": "API access for this web project (or testing code atm)",
+		"href": "#~api"
 	},
 	{
 		"image": "img/menu/news.128px.png",
@@ -72,10 +72,10 @@
 		"href": "#~news"
 	},
 	{
-		"image": "img/menu/api.128px.png",
-		"data": "API / Test",
-		"description": "API access for this web project (or testing code atm)",
-		"href": "#~api"
+		"image": "img/menu/imprint.128px.png",
+		"data": "Imprint",
+		"description": "Necessary..",
+		"href": "#~imprint"
 	},
 	{
 		"image": "img/menu/contact.128px.png",
