@@ -403,14 +403,14 @@ function setCount($_value, $_path = PATH_COUNT, $_get = true)
 	return $result;
 }
 
-function increateCount($_path = PATH_COUNT)
+function increaseCount($_path = PATH_COUNT)
 {
 	$count = getCount($_path);
 	setCount(++$count, $_path, false);
 	return $count;
 }
 
-function decreateCount($_path = PATH_COUNT)
+function decreaseCount($_path = PATH_COUNT)
 {
 	$count = getCount($_path);
 
@@ -428,7 +428,7 @@ function deleteTimestamp($_path = PATH_IP, $_die = true)
 
 	if($result)
 	{
-		decreateCount();
+		decreaseCount();
 	}
 	else if($_die)
 	{
@@ -502,7 +502,7 @@ function writeTimestamp($_path = PATH_IP, $_clean = true)
 	}
 	else if(!$existed)
 	{
-		increateCount();
+		increaseCount();
 	}
 
 	return $result;
