@@ -17,7 +17,7 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/test.html
 
 ## News
-* The 'count.php' just changed it's major version: v2.3.0.
+* The 'count.php' just changed it's major version: v2.3.1.
 
 ### count.php
 (TODO: description, etc.); .. and btw: it's (nearly) finished!
@@ -34,6 +34,7 @@ Configuration is (on top of file):
 * `define('AUTO', 255)`
 * `define('THRESHOLD', 7200)`
 * `define('DIRECTORY', 'count')`
+* `define('LOG', '.log')`
 * `define('CLIENT', true)`
 * `define('SERVER', true)`
 * `define('HASH', 'sha3-256')`

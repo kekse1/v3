@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.3.0
+ * v2.3.1
  */
 
 // 
@@ -13,6 +13,7 @@
 define('AUTO', 255);
 define('THRESHOLD', 7200);
 define('DIRECTORY', 'count');
+define('ERROR', 'error.log');
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
@@ -175,6 +176,7 @@ define('PATH_DIR', (DIRECTORY . '/+' . HOST));
 define('PATH_COUNT', (DIRECTORY . '/-' . HOST));
 $addr = (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR']));
 define('PATH_IP', (PATH_DIR . '/' . $addr));
+define('PATH_ERROR', (DIRECTORY . '/' . ERROR));
 unset($addr);
 
 //
@@ -342,6 +344,19 @@ function makeCookie()
 	));
 }
 
+function error($_path, $_source, $_die = true)
+{
+	$data = $_source . '(' . $_path . ') ' . (string)time() . '\n';
+	$result = file_put_contents(PATH_ERROR, $data);
+
+	if($result === false && $_die)
+	{
+		die('Couldn\'t log error: ' . substr($data, 0, -1));
+	}
+
+	return $result;
+}
+
 function cleanFiles($_path = PATH_DIR)
 {
 	die('TODO: cleanFiles(' . (string)$_clean . ')');
@@ -464,7 +479,7 @@ function readTimestamp($_path = PATH_IP)
 	return 0;
 }
 
-function writeTimestamp($_path = PATH_IP, $_clean = true)
+function writeTimestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
 {
 	$existed = file_exists($_path);
 
@@ -485,11 +500,13 @@ function writeTimestamp($_path = PATH_IP, $_clean = true)
 		{
 			if(cleanFiles() > LIMIT)
 			{
+				error($_path, 'writeTimestamp');
 				return null;
 			}
 		}
 		else
 		{
+			error($_path, 'writeTimestamp');
 			return null;
 		}
 	}
