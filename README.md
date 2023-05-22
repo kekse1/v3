@@ -7,7 +7,7 @@ The real/full version of all the JavaScript's is available in the
 
 # Index
 * [Preview](#preview)
-* [News](#news)
+* [count.php](#count)
 * [Documentation](#documentation)
 * [scripts/](#scripts)
 * [Next steps](#next-steps)
@@ -17,12 +17,9 @@ The real/full version of all the JavaScript's is available in the
 ## Preview
 * https://kekse.biz/v3/test.html
 
-## News
-* The 'count.php' just changed it's (also major) version: v2.4.2!
-* The 'errorLog()' is now finished, too.
-* Some last fixes.. now there's just the clean routine left TODO.. :)~
+## 'count.php'
 
-#### Functionality, Security & Efficiency
+### Functionality, Security & Efficiency
 My _universal [counter script](scripts/count.php)_ should be **really** maximum secure now,
 as everyhing got it's own limit, and handling the `$_SERVER` variables etc. are also running
 through a (character) filter; etc.
@@ -45,7 +42,7 @@ directly see what's maybe going wrong.. ;)~
 Anything else to mention here? Yes, one point: by default the script generates a 'text/plain'
 output, so you can easily embed the counting value via 'XMLHttpRequest()' or the 'Fetch API'.
 
-#### Settings
+### Settings
 Configuration is (on top of file):
 * `define('AUTO', 255)`
 * `define('THRESHOLD', 7200)`
