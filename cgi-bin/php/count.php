@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.4.3
+ * v2.5.0
  */
 
 // 
@@ -23,6 +23,261 @@ define('LIMIT', 65535);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
+
+//
+if(true||php_sapi_name() === 'cli')
+{
+	//
+	function help()
+	{
+		die('TODO: help()' . PHP_EOL);
+	}
+
+	//
+	if(! (defined('STDIN') && defined('STDOUT')))
+	{
+		die('Running in \'cli\' mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
+	}
+	else if(isset($argv)) for($i = 1; $i < count($argv); ++$i)
+	{
+		if($argv[$i] === '-?' || $argv[$i] === '--help')
+		{
+			help($i);
+		}
+	}
+
+	//
+	printf(' >> Running in \'%s\' mode, so we\'re testing your configuration right now.' . PHP_EOL . PHP_EOL, 'cli');
+
+	//
+	$ok = 0;
+	$errors = 0;
+	$warnings = 0;
+
+	//
+	define('a', '%14s');
+	define('b', '%-6s');
+	define('A', ' >> [ ' . a . ' ] ');
+	define('B', b);
+
+	//
+	if(gettype(AUTO) === 'boolean')
+	{
+		printf(A.B.'A \'%s\' type (and could also be an \'%s\' above %d)' . PHP_EOL, 'AUTO', 'OK', 'boolean', 'integer', 0);
+		++$ok;
+	}
+	else if(gettype(AUTO) === 'integer')
+	{
+		if(AUTO < 0)
+		{
+			fprintf(STDERR, A.B.'An \'%s\', but below %d/%d' . PHP_EOL, 'AUTO', 'ERROR', 'integer', 0, 1);
+			++$errors;
+		}
+		else if(AUTO === 0)
+		{
+			fprintf(STDERR, A.B.'An \'%s\', but equals %d, which should be (%s)' . PHP_EOL, 'AUTO', 'WARNING', 'integer', 0, 'false');
+			++$warnings;
+		}
+		else
+		{
+			printf(A.B.'An \'%s\' above %d (and could also be a \'%s\')' . PHP_EOL, 'AUTO', 'OK', 'integer', 0, 'boolean');
+			++$ok;
+		}
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d/%d' . PHP_EOL, 'AUTO', 'ERROR', 'boolean', 'integer', 0, 1);
+		++$errors;
+	}
+
+	//
+	if(gettype(THRESHOLD) === 'integer' && THRESHOLD > 0)
+	{
+		printf(A.B.'An \'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'OK', 'integer', 0);
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not an \'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'ERROR', 'integer', 0);
+		++$errors;
+	}
+
+	//
+	if(gettype(DIRECTORY) === 'string' && strlen(DIRECTORY) > 0)
+	{
+		printf(A.B.'A non-empty \'%s\' (without further testing)' . PHP_EOL, 'DIRECTORY', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'DIRECTORY', 'ERROR', 'string');
+		++$errors;
+	}
+
+	//
+	if(gettype(CLIENT) === 'boolean')
+	{
+		printf(A.B.'A \'%s\' type' . PHP_EOL, 'CLIENT', 'OK', 'boolean');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'CLIENT', 'ERROR', 'boolean');
+		++$errors;
+	}
+
+	//
+	if(gettype(SERVER) === 'boolean')
+	{
+		printf(A.B.'A \'%s\' type' . PHP_EOL, 'SERVER', 'OK', 'boolean');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'SERVER', 'ERROR', 'boolean');
+		++$errors;
+	}
+
+	//
+	if(gettype(HASH) === 'string' && strlen(HASH) > 0)
+	{
+		printf(A.B.'A non-empty \'%s\' (without further testing)' . PHP_EOL, 'HASH', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'HASH', 'ERROR', 'string');
+		++$errors;
+	}
+
+	//
+	if(gettype(HASH_IP) === 'boolean')
+	{
+		printf(A.B.'A \'%s\' type' . PHP_EOL, 'HASH_IP', 'OK', 'boolean');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'HASH_IP', 'ERROR', 'boolean');
+		++$errors;
+	}
+
+	//
+	if(gettype(TYPE_CONTENT) === 'string' && strlen(TYPE_CONTENT) > 0)
+	{
+		printf(A.B.'A non-empty \'%s\'' . PHP_EOL, 'TYPE_CONTENT', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'TYPE_CONTENT', 'ERROR', 'string');
+		++$errors;
+	}
+
+	//
+	if(CLEAN === null)
+	{
+		printf(A.B.'Is (%s), so it\'s FORBIDDEN to delete any IP/timestamp file' . PHP_EOL, 'CLEAN', 'OK', 'null');
+		++$ok;
+	}
+	else if(gettype(CLEAN) === 'boolean')
+	{
+		printf(A.B.'It\'s a \'%s\' type (and could also be (%s) or an \'%s\' above %d/%d)' . PHP_EOL, 'CLEAN', 'OK', 'boolean', 'null', 'integer', 0, 1);
+		++$ok;
+	}
+	else if(gettype(CLEAN) === 'integer')
+	{
+		if(CLEAN <= 0)
+		{
+			fprintf(STDERR, A.B.'It\'s an \'%s\', but below %d/%d' . PHP_EOL, 'CLEAN', 'ERROR', 'integer', 0, 1);
+			++$errors;
+		}
+		else if(CLEAN === 0)
+		{
+			fprintf(STDERR, A.B.'It\'s an \'%s\', but equals to %d, which should be (%d) instead' . PHP_EOL, 'CLEAN', 'WARNING', 'integer', 0, 'true');
+			++$warnings;
+		}
+		else
+		{
+			printf(A.B.'It\'s an \'%s\' above %d (and could also be a \'%s\' or (%s))' . PHP_EOL, 'CLEAN', 'OK', 'integer', 0, 'boolean', 'null');
+			++$ok;
+		}
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d or (%s)' . PHP_EOL, 'CLEAN', 'ERROR', 'boolean', 'integer', 0, 'null');
+		++$errors;
+	}
+
+	//
+	if(gettype(LIMIT) === 'integer' && LIMIT >= 0)
+	{
+		printf(A.B.'Is an \'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'OK', 'integer', 0);
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not an \'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'ERROR', 'integer', 0);
+		++$errors;
+	}
+
+	//
+	if(gettype(LOG) === 'string' && strlen(LOG) > 0)
+	{
+		printf(A.B.'A non-empty \'%s\' (without further tests)' . PHP_EOL, 'LOG', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'LOG', 'ERROR', 'string');
+		++$errors;
+	}
+
+	//
+	if(gettype(ERROR) === 'string')
+	{
+		printf(A.B.'A \'%s\' (which can also be zero-length, and could also be unset..)' . PHP_EOL, 'ERROR', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a \'%s\', but even that is O.K. here' . PHP_EOL, 'ERROR', 'OK', 'string');
+		++$warnings;
+	}
+
+	if(gettype(NONE) === 'string')
+	{
+		printf(A.B.'A \'%s\' (which can also be zero-length)' . PHP_EOL, 'NONE', 'OK', 'string');
+		++$ok;
+	}
+	else
+	{
+		fprintf(STDERR, A.B.'Not a \'%s\'' . PHP_EOL, 'NONE', 'ERROR', 'string');
+		++$errors;
+	}
+
+	//
+	printf(PHP_EOL);
+	printf(' >> %d were OK' . PHP_EOL, $ok);
+	fprintf(STDERR, ' >> %d were BAD' . PHP_EOL, $errors);
+	fprintf(STDERR, ' >> %d were WARNINGS' . PHP_EOL, $warnings);
+	printf(PHP_EOL);
+
+	if($errors === 0)
+	{
+		if($warnings === 0)
+		{
+			printf(' >> So everything\'s fine. Just continue to use this script. ;)~' . PHP_EOL);
+			exit(0);
+		}
+
+		fprintf(STDERR, ' >> So it\'s OK to use this script, but maybe you should fix the %d warnings?' . PHP_EOL, $warnings);
+		exit(2);
+	}
+
+	fprintf(STDERR, ' >> So you\'ve to fix %d errors (and %d warnings) now.' . PHP_EOL, $errors, $warnings);
+	exit(1);
+}
 
 //
 header('Content-Type: ' . TYPE_CONTENT);

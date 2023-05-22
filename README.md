@@ -42,7 +42,7 @@ directly see what's maybe going wrong.. ;)~
 Anything else to mention here? Yes, one point: by default the script generates a 'text/plain'
 output, so you can easily embed the counting value via 'XMLHttpRequest()' or the 'Fetch API'.
 
-### Settings
+### Configuration
 Configuration is (on top of file):
 * `define('AUTO', 255)`
 * `define('THRESHOLD', 7200)`
@@ -58,7 +58,9 @@ Configuration is (on top of file):
 * `define('ERROR', '/')`
 * `define('NONE', '/')`
 
-(TODO: describe 'em);
+**You can test your own configuration (if it's valid) by running this script from command line
+('cli' mode) now!** Additionally I've integrated a check for '--help' or '-?', but the output
+is still TODO.
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
