@@ -7,7 +7,7 @@ The real/full version of all the JavaScript's is available in the
 
 # Index
 * [Preview](#preview)
-* [count.php](#count)
+* [count.php](#countphp)
 * [Documentation](#documentation)
 * [scripts/](#scripts)
 * [Next steps](#next-steps)
