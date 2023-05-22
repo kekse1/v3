@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.4.1
+ * v2.4.2
  */
 
 // 
@@ -20,17 +20,17 @@ define('HASH_IP', false);
 define('TYPE_CONTENT', 'text/plain;charset=UTF-8');
 define('CLEAN', false);
 define('LIMIT', 65535);
+define('LOG', 'ERROR.log');
+define('ERROR', '/');
+define('NONE', '/');
 
 //
 header('Content-Type: ' . TYPE_CONTENT);
 
 //
-define('ERROR', 'ERROR.log');
-
-//
 if(AUTO === null)
 {
-	die('/');
+	die(NONE);
 }
 
 //
@@ -174,7 +174,7 @@ define('PATH_DIR', (DIRECTORY . '/+' . HOST));
 define('PATH_COUNT', (DIRECTORY . '/-' . HOST));
 $addr = (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR']));
 define('PATH_IP', (PATH_DIR . '/' . $addr));
-define('PATH_ERROR', (DIRECTORY . '/' . ERROR));
+define('PATH_LOG', (DIRECTORY . '/' . LOG));
 unset($addr);
 
 //
@@ -199,11 +199,20 @@ function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 	}
 
 	$data .= ': ' . $_reason . "\n";
-	$result = file_put_contents(PATH_ERROR, $data, FILE_APPEND);
+	$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
 
-	if($result === false && $_die)
+	if($result === false)
 	{
-		die('Couldn\'t log error: ' . substr($data, 0, -1));
+		if(gettype(ERROR) === 'string')
+		{
+			die(ERROR);
+		}
+
+		die('Logging error: ' . substr($data, 0, -1));
+	}
+	else if($_die && gettype(ERROR) === 'string')
+	{
+		die(ERROR);
 	}
 
 	return $result;
@@ -289,15 +298,15 @@ else if(AUTO !== true && !is_file(PATH_FILE))
 {
 	if(AUTO === false)
 	{
-		errorLog('AUTO is false', '', PATH_FILE);
-		die('/');
+		errorLog('AUTO is false', '', PATH_FILE, false);
+		die(NONE);
 	}
 	else if(gettype(AUTO) === 'integer')
 	{
 		if(countFiles(DIRECTORY, false, false, true, false) >= AUTO)
 		{
-			errorLog('AUTO is too low', '', PATH_FILE);
-			die('/');
+			errorLog('AUTO is too low', '', PATH_FILE, false);
+			die(NONE);
 		}
 	}
 	else
