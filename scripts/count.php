@@ -440,7 +440,7 @@ function getCount($_path = PATH_COUNT)
 
 function setCount($_value, $_path = PATH_COUNT, $_get = true)
 {
-	$count = null;
+	$result = null;
 
 	if(file_exists($_path))
 	{
@@ -451,25 +451,20 @@ function setCount($_value, $_path = PATH_COUNT, $_get = true)
 		}
 		else if($_get)
 		{
-			$count = getCount($_path);
+			$result = getCount($_path);
 		}
 	}
 	else
 	{
-		$count = initCount($_path);
+		$result = initCount($_path);
 	}
 
-	$result = $count;
 	$written = file_put_contents($_path, (string)$_value);
 
 	if($written === false)
 	{
 		errorLog('Unable to write count', 'setCount', $_path);
 		die('Unable to write count');
-	}
-	else if(!$_get)
-	{
-		$result = $written;
 	}
 
 	return $result;
