@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.4.2
+ * v2.4.3
  */
 
 // 
@@ -198,7 +198,7 @@ function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 		$data .= '(' . $_path . ')';
 	}
 
-	$data .= ': ' . $_reason . "\n";
+	$data .= ': ' . $_reason . PHP_EOL;
 	$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
 
 	if($result === false)
