@@ -178,6 +178,10 @@ define('PATH_LOG', (DIRECTORY . '/' . LOG));
 unset($addr);
 
 //
+define('COOKIE_PATH', '/');
+define('COOKIE_SAME_SITE', 'Strict');
+
+//
 function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 {
 	$data = '[' . (string)time() . ']';
@@ -393,8 +397,8 @@ function makeCookie()
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
 		'secure' => !empty($_SERVER['HTTPS']),
-		'path' => '/',
-		'samesite' => 'Strict',
+		'path' => COOKIE_PATH,
+		'samesite' => COOKIE_SAME_SITE,
 		'httponly' => true
 	));
 }
