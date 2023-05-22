@@ -17,7 +17,9 @@ The real/full version of all the JavaScript's is available in the
 * https://kekse.biz/v3/test.html
 
 ## News
-* The 'count.php' just changed it's major version: v2.3.1.
+* The 'count.php' just changed it's major version: v2.4.1!
+* The 'errorLog()' is now finished, too.
+* Some last fixes.. now there's just the clean routine left TODO.. :)~
 
 ### count.php
 (TODO: description, etc.); .. and btw: it's (nearly) finished!
@@ -34,7 +36,6 @@ Configuration is (on top of file):
 * `define('AUTO', 255)`
 * `define('THRESHOLD', 7200)`
 * `define('DIRECTORY', 'count')`
-* `define('LOG', '.log')`
 * `define('CLIENT', true)`
 * `define('SERVER', true)`
 * `define('HASH', 'sha3-256')`
@@ -42,10 +43,6 @@ Configuration is (on top of file):
 * `define('TYPE_CONTENT', 'text/plain;charset=UTF-8')`
 * `define('CLEAN', false)`
 * `define('LIMIT', 65535)`
-* `define('COOKIE_PATH', '/')`
-* `define('COOKIE_SAME_SITE', 'Strict')`
-* `define('COOKIE_HTTP_ONLY', true)`
-* `define('COOKIE_SECURE', !empty($_SERVER['HTTPS']))`
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
