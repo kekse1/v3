@@ -7,6 +7,7 @@ The real/full version of all the JavaScript's is available in the
 
 # Index
 * [Preview](#preview)
+* [News](#news)
 * [Documentation](#documentation)
 * [scripts/](#scripts)
 * [Next steps](#next-steps)
