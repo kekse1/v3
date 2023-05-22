@@ -2,12 +2,10 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.5.0
+ * v2.5.1
  */
 
-// 
-// TODO: *CLEAN*!!
-//
+//TODO/
 
 //
 define('AUTO', 255);
@@ -56,7 +54,7 @@ if(php_sapi_name() === 'cli')
 
 	//
 	define('a', '%14s');
-	define('b', '%-6s');
+	define('b', '%-7s');
 	define('A', ' >> [ ' . a . ' ] ');
 	define('B', b);
 
@@ -70,12 +68,12 @@ if(php_sapi_name() === 'cli')
 	{
 		if(AUTO < 0)
 		{
-			fprintf(STDERR, A.B.'An \'%s\', but below %d/%d' . PHP_EOL, 'AUTO', 'ERROR', 'integer', 0, 1);
+			fprintf(STDERR, A.B.'An \'%s\', but below %d/%d' . PHP_EOL, 'AUTO', 'BAD', 'integer', 0, 1);
 			++$errors;
 		}
 		else if(AUTO === 0)
 		{
-			fprintf(STDERR, A.B.'An \'%s\', but equals %d, which should be (%s)' . PHP_EOL, 'AUTO', 'WARNING', 'integer', 0, 'false');
+			fprintf(STDERR, A.B.'An \'%s\', but equals %d, which should be (%s)' . PHP_EOL, 'AUTO', 'WARN', 'integer', 0, 'false');
 			++$warnings;
 		}
 		else
@@ -86,7 +84,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d/%d' . PHP_EOL, 'AUTO', 'ERROR', 'boolean', 'integer', 0, 1);
+		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d/%d' . PHP_EOL, 'AUTO', 'BAD', 'boolean', 'integer', 0, 1);
 		++$errors;
 	}
 
@@ -98,7 +96,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not an \'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'ERROR', 'integer', 0);
+		fprintf(STDERR, A.B.'Not an \'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'BAD', 'integer', 0);
 		++$errors;
 	}
 
@@ -110,7 +108,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'DIRECTORY', 'ERROR', 'string');
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'DIRECTORY', 'BAD', 'string');
 		++$errors;
 	}
 
@@ -122,7 +120,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'CLIENT', 'ERROR', 'boolean');
+		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'CLIENT', 'BAD', 'boolean');
 		++$errors;
 	}
 
@@ -134,7 +132,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'SERVER', 'ERROR', 'boolean');
+		fprintf(STDERR, A.B.'Not a \'%s\' type' . PHP_EOL, 'SERVER', 'BAD', 'boolean');
 		++$errors;
 	}
 
@@ -146,7 +144,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'HASH', 'ERROR', 'string');
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'HASH', 'BAD', 'string');
 		++$errors;
 	}
 
@@ -170,7 +168,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'TYPE_CONTENT', 'ERROR', 'string');
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'TYPE_CONTENT', 'BAD', 'string');
 		++$errors;
 	}
 
@@ -189,12 +187,12 @@ if(php_sapi_name() === 'cli')
 	{
 		if(CLEAN <= 0)
 		{
-			fprintf(STDERR, A.B.'It\'s an \'%s\', but below %d/%d' . PHP_EOL, 'CLEAN', 'ERROR', 'integer', 0, 1);
+			fprintf(STDERR, A.B.'It\'s an \'%s\', but below %d/%d' . PHP_EOL, 'CLEAN', 'BAD', 'integer', 0, 1);
 			++$errors;
 		}
 		else if(CLEAN === 0)
 		{
-			fprintf(STDERR, A.B.'It\'s an \'%s\', but equals to %d, which should be (%d) instead' . PHP_EOL, 'CLEAN', 'WARNING', 'integer', 0, 'true');
+			fprintf(STDERR, A.B.'It\'s an \'%s\', but equals to %d, which should be (%d) instead' . PHP_EOL, 'CLEAN', 'WARN', 'integer', 0, 'true');
 			++$warnings;
 		}
 		else
@@ -205,7 +203,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d or (%s)' . PHP_EOL, 'CLEAN', 'ERROR', 'boolean', 'integer', 0, 'null');
+		fprintf(STDERR, A.B.'Neither a \'%s\' type nor an \'%s\' above %d or (%s)' . PHP_EOL, 'CLEAN', 'BAD', 'boolean', 'integer', 0, 'null');
 		++$errors;
 	}
 
@@ -217,7 +215,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not an \'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'ERROR', 'integer', 0);
+		fprintf(STDERR, A.B.'Not an \'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'BAD', 'integer', 0);
 		++$errors;
 	}
 
@@ -229,7 +227,7 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'LOG', 'ERROR', 'string');
+		fprintf(STDERR, A.B.'Not a non-empty \'%s\'' . PHP_EOL, 'LOG', 'BAD', 'string');
 		++$errors;
 	}
 
@@ -252,15 +250,15 @@ if(php_sapi_name() === 'cli')
 	}
 	else
 	{
-		fprintf(STDERR, A.B.'Not a \'%s\'' . PHP_EOL, 'NONE', 'ERROR', 'string');
+		fprintf(STDERR, A.B.'Not a \'%s\'' . PHP_EOL, 'NONE', 'BAD', 'string');
 		++$errors;
 	}
 
 	//
 	printf(PHP_EOL);
 	printf(' >> %d were OK' . PHP_EOL, $ok);
-	fprintf(STDERR, ' >> %d were BAD' . PHP_EOL, $errors);
-	fprintf(STDERR, ' >> %d were WARNINGS' . PHP_EOL, $warnings);
+	fprintf(STDERR, ' >> %d errors' . PHP_EOL, $errors);
+	fprintf(STDERR, ' >> %d warnings' . PHP_EOL, $warnings);
 	printf(PHP_EOL);
 
 	if($errors === 0)
