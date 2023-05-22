@@ -25,7 +25,7 @@ define('ERROR', '/');
 define('NONE', '/');
 
 //
-if(true||php_sapi_name() === 'cli')
+if(php_sapi_name() === 'cli')
 {
 	//
 	function help()
