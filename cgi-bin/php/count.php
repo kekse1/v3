@@ -300,7 +300,7 @@ if(php_sapi_name() === 'cli')
 	}*/
 
 	//
-	if(isset($argv)) for($i = 1; $i < count($argv); ++$i)
+	if(isset($argv)) for($i = 1; $i < $argc; ++$i)
 	{
 		if($argv[$i] === '-?' || $argv[$i] === '--help')
 		{
