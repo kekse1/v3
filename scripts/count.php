@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.5.1
+ * v2.5.2
  */
 
 //TODO/
@@ -649,7 +649,7 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'secure' => !empty($_SERVER['HTTPS']),
+		'secure' => false,//!empty($_SERVER['HTTPS']),
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
 		'httponly' => true
