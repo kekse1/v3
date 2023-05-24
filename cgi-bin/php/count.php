@@ -710,9 +710,9 @@ function getTime($_path = PATH_IP)
 	die('TODO: getTime()');
 }
 
-function initCount($_path = PATH_COUNT)
+function initCount($_path = PATH_COUNT, $_directory = PATH_DIR)
 {
-	$result = countFiles(PATH_DIR, false, false, false, false);
+	$result = countFiles($_directory, false, false, false, false);
 	$written = file_put_contents($_path, (string)$result);
 
 	if($written === false)
