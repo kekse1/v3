@@ -157,10 +157,6 @@ At the moment there are also the following scripts (which you could delete), but
 ### 'scripts/**update.sh**'
 Described above (in this 'scripts/' sub section).
 
-### 'scripts/**count.php**'
-Can be ignored or deleted. Just a copy of 'cgi-bin/php/count.php'; this file here won't be really used, it's just
-for a quick review for you, as github.com doesn't manage to show symlink contents (you just see the link target itself).
-
 ### 'scripts/**prompt.sh**'
 I've created a linux/bash `**$PS1**` prompt which seems nice for me. You can use it, if you want! :)~
 I really like this one!
