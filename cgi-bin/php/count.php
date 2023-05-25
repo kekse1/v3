@@ -2,16 +2,16 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.5.8
+ * v2.6.0
  */
 
 //
-define('VERSION', [ 2, 5, 8 ]);
+define('VERSION', [ 2, 6, 0 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
-define('AUTO', 255);
-define('THRESHOLD', 7200);
+define('AUTO', 32);
+define('THRESHOLD', 10800);//3 hours (60 * 60 * 3 seconds)
 define('PATH', 'count');
 define('CLIENT', true);
 define('SERVER', true);
@@ -19,10 +19,146 @@ define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
 define('CLEAN', false);
-define('LIMIT', 65535);
+define('LIMIT', 32768);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
+
+//
+define('COOKIE_PATH', '/');
+define('COOKIE_SAME_SITE', 'Strict');
+define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
+define('COOKIE_HTTP_ONLY', true);
+
+//
+function secureHost($_host, $_die = true)
+{
+	$length = min(strlen($_host), 255);
+	$result = '';
+	$byte = null;
+	$put = '';
+
+	for($i = 0; $i < $length; ++$i)
+	{
+		if($_host[$i] === '.')
+		{
+			if(strlen($result) === 0)
+			{
+				$put = '';
+			}
+			else if($result[strlen($result) - 1] === '.')
+			{
+				$put = '';
+			}
+			else
+			{
+				$put = '.';
+			}
+		}
+		else if($_host[$i] === ':')
+		{
+			$put = ':';
+		}
+		else if($_host[$i] === '-')
+		{
+			$put = '-';
+		}
+		else if(($byte = ord($_host[$i])) >= 48 && $byte <= 57)
+		{
+			$put = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$put = chr($byte + 32);
+		}
+		else if($byte >= 97 && $byte <= 122)
+		{
+			$put = chr($byte);
+		}
+		else
+		{
+			$put = '';
+		}
+
+		$result .= $put;
+	}
+
+	if(empty($result))
+	{
+		if($_die)
+		{
+			die('Secured host got no length');
+		}
+
+		$result = null;
+	}
+
+	return $result;
+}
+
+//
+function countFiles($_path = PATH, $_dir = false, $_exclude = true, $_list = false)
+{
+	$list = scandir($_path);
+
+	if($list === false)
+	{
+		errorLog('Unable to scandir()', 'countFiles', $_path);
+		die('Unable to scandir()');
+	}
+
+	$len = count($list);
+	$result = ($_list ? array() : 0);
+
+	for($i = 0, $j = 0; $i < $len; ++$i)
+	{
+		if($list[$i] === '.' || $list[$i] === '..')
+		{
+			continue;
+		}
+		else if($list[$i][0] === '.')
+		{
+			continue;
+		}
+		else if($_exclude)
+		{
+			if($list[$i][0] === '-')
+			{
+				continue;
+			}
+			else if($list[$i][0] === '+')
+			{
+				continue;
+			}
+		}
+
+		if($_dir === false)
+		{
+			if(!is_file($_path . '/' . $list[$i]))
+			{
+				continue;
+			}
+		}
+		else if($_dir === true)
+		{
+			if(!is_dir($_path . '/' . $list[$i]))
+			{
+				continue;
+			}
+		}
+
+		if($_list)
+		{
+			$result[++$j] = $list[$i];
+		}
+		else
+		{
+			++$result;
+		}
+	}
+
+	return $result;
+}
 
 //
 if(php_sapi_name() === 'cli')
@@ -35,6 +171,87 @@ if(php_sapi_name() === 'cli')
 	else if(!isset($argv))
 	{
 		fprintf(STDOUT, ' >> Warning: the \'%s\' is not defined (so no parameters can be defined here)' . PHP_EOL, '$argv');
+	}
+
+	//
+	function stats($_index = null)
+	{
+		//
+		function getHosts($_path = PATH)
+		{
+			return countFiles($_path, false, true, true);
+		}
+		
+		function getHostValue($_path = PATH, $_host)
+		{
+			if(is_file($_path . '/' . $_host))
+			{
+				return (int)file_get_contents($_path . '/' . $_host);
+			}
+			
+			return null;
+		}
+		
+		function getRealHostCount($_path = PATH, $_host)
+		{
+			return countFiles($_path . '/+' . $_host, false, true, false);
+		}
+		
+		function getHostCount($_path = PATH, $_host)
+		{
+			if(is_file($_path . '/-' . $_host))
+			{
+				return (int)file_get_contents($_path . '/-' . $_host);
+			}
+			
+			return null;
+		}
+		
+		function writeHostCount($_value, $_path = PATH, $_host)
+		{
+			return file_put_contents($_path . '/-' . $_host, (string)$_value);
+		}
+		
+		function compareCount($_path = PATH, $_host)
+		{
+			$currentCount = getHostCount($_path, $_host);
+			
+			if($currentCount === null)
+			{
+				return null;
+			}
+			
+			$realCount = getRealHostCount($_path, $_host);
+			
+			if($realCount === $currentCount)
+			{
+				return true;
+			}
+			else
+			{
+				writeHostCount($realCount, $_path, $_host);
+			}
+			
+			return false;
+		}
+		
+		//
+		var_dump(getHosts());
+
+		//
+		die(PHP_EOL . PHP_EOL . 'TODO: stats()' . PHP_EOL);
+		
+		//
+		exit();
+	}
+	
+	function clean($_index = -1)
+	{
+		//
+		die('TODO: clean()' . PHP_EOL);
+		
+		//
+		exit();
 	}
 
 	//
@@ -65,11 +282,15 @@ if(php_sapi_name() === 'cli')
 		}
 
 		printf(PHP_EOL);
-		printf('    -? / --help' . PHP_EOL);
+		printf('    -? / --help      (TODO)' . PHP_EOL);
 		printf('    -v / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
-		printf('    -c / --check' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
+		printf('    -c / --check' . PHP_EOL);
+		printf('    -s / --stats     (TODO)' . PHP_EOL);
+		printf('    -l / --clean     (TODO)' . PHP_EOL);
+		printf('    -p / --purge     (TODO)' . PHP_EOL);
+		printf('    -i / --init      (TODO)' . PHP_EOL);
 		printf(PHP_EOL);
 
 		exit(0);
@@ -357,9 +578,25 @@ if(php_sapi_name() === 'cli')
 		exit(1);
 	}
 	
-	/*function stats($_index = -1)
+	//TODO/reset whole 'PATH' count-directory (show also if already existed, etc.)
+	function init($_index)
 	{
-	}*/
+		//
+		die('TODO: init()' . PHP_EOL);
+		
+		//
+		exit();
+	}
+	
+	//TODO/delete any '+'-directory with any '-'-count-file!
+	function purge($_index)
+	{
+		//
+		die('TODO: purge()' . PHP_EOL);
+		
+		//
+		exit();
+	}
 
 	//
 	if(isset($argv)) for($i = 1; $i < $argc; ++$i)
@@ -376,6 +613,10 @@ if(php_sapi_name() === 'cli')
 		{
 			info($i, false, true);
 		}
+		else if($argv[$i] === '-s' || $argv[$i] === '--stats')
+		{
+			stats($i);
+		}
 		else if($argv[$i] === '-c' || $argv[$i] === '--check')
 		{
 			check($i);
@@ -383,6 +624,18 @@ if(php_sapi_name() === 'cli')
 		else if($argv[$i] === '-h' || $argv[$i] === '--hashes')
 		{
 			hashes($i);
+		}
+		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
+		{
+			clean($i);
+		}
+		else if($argv[$i] === '-p' || $argv[$i] === '--purge')
+		{
+			purge($i);
+		}
+		else if($argv[$i] === '-i' || $argv[$i] === '--init')
+		{
+			init($i);
 		}
 	}
 	
@@ -393,93 +646,26 @@ if(php_sapi_name() === 'cli')
 }
 
 //
-header('Content-Type: ' . CONTENT);
-
-//
-if(AUTO === null)
+function getHost($_die = true)
 {
-	die(NONE);
-}
+	$result = null;
 
-//
-function secureHost($_host)
-{
-	$length = min(strlen($_host), 255);
-	$result = '';
-	$byte = null;
-	$put = '';
-
-	for($i = 0; $i < $length; ++$i)
+	//
+	if(! empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'][0] !== ':')
 	{
-		if($_host[$i] === '.')
-		{
-			if(strlen($result) === 0)
-			{
-				$put = '';
-			}
-			else if($result[strlen($result) - 1] === '.')
-			{
-				$put = '';
-			}
-			else
-			{
-				$put = '.';
-			}
-		}
-		else if($_host[$i] === ':')
-		{
-			$put = ':';
-		}
-		else if($_host[$i] === '-')
-		{
-			$put = '-';
-		}
-		else if($_host[$i] === ' ')
-		{
-			$put = ' ';
-		}
-		else if(($byte = ord($_host[$i])) >= 48 && $byte <= 57)
-		{
-			$put = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$put = chr($byte + 32);
-		}
-		else if($byte >= 97 && $byte <= 122)
-		{
-			$put = chr($byte);
-		}
-		else
-		{
-			$put = '';
-		}
-
-		$result .= $put;
+		$result = $_SERVER['HTTP_HOST'];
 	}
-
-	if(strlen($result) === 0)
+	else if(! empty($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'][0] !== ':')
 	{
-		die('Secured host got no length');
+		$result = $_SERVER['SERVER_NAME'];
 	}
-
+	else if($_die)
+	{
+		die('No server host/name applicable');
+	}
+	
+	//
 	return $result;
-}
-
-//
-$host = '';
-
-if(! empty($_SERVER['HTTP_HOST']))
-{
-	$host = $_SERVER['HTTP_HOST'];
-}
-else if(! empty($_SERVER['SERVER_NAME']))
-{
-	$host = $_SERVER['SERVER_NAME'];
-}
-else
-{
-	die('No server host/name applicable');
 }
 
 function endsWith($_haystack, $_needle)
@@ -492,65 +678,60 @@ function endsWith($_haystack, $_needle)
 	return (substr($_haystack, -strlen($_needle)) === $_needle);
 }
 
-if(!empty($_SERVER['SERVER_PORT']))
+function removePortIfAny($_host, $_die = false)
 {
-	if(! empty($_SERVER['HTTPS']))
+	$result = null;
+	$port = null;
+	
+	if(empty($_SERVER['SERVER_PORT']))
 	{
-		if($_SERVER['SERVER_PORT'] === '443')
+		if($_die)
 		{
-			if(endsWith($host, ':443'))
-			{
-				$host = substr($host, -4);
-			}
+			die('No $_SERVER[\'SERVER_PORT\'] defined');
 		}
-		else
-		{
-			if(endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
-			{
-				$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT']));
-			}
-
-			$host .= ' ' . $_SERVER['SERVER_PORT'];
-		}
-	}
-	else if($_SERVER['SERVER_PORT'] === '80')
-	{
-		if(endsWith($host, ':80'))
-		{
-			$host = substr($host, -3);
-		}
+		
+		$result = $_host;
 	}
 	else
 	{
-		if(endsWith($host, (':' . $_SERVER['SERVER_PORT'])))
-		{
-			$host = substr($host, 0, -strlen(':' . $_SERVER['SERVER_PORT']));
-		}
-
-		$host .= ' ' . $_SERVER['SERVER_PORT'];
+		$port = (string)$_SERVER['SERVER_PORT'];
 	}
+	
+	if($port !== null && endsWith($_host, (':' . $port)))
+	{
+		$result = substr($_host, 0, -(strlen($port) + 1));
+	}
+	else
+	{
+		$result = $_host;
+	}
+	
+	return $result;
 }
 
 //
-define('HOST', secureHost($host));
-define('COOKIE', hash(HASH, HOST));
+$host = getHost(true);
+$host = removePortIfAny($host);
+$host = secureHost($host, true);
+define('HOST', $host);
+define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
 define('PATH_FILE', (PATH . '/' . HOST));
 define('PATH_DIR', (PATH . '/+' . HOST));
 define('PATH_COUNT', (PATH . '/-' . HOST));
-$addr = (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR']));
-define('PATH_IP', (PATH_DIR . '/' . $addr));
+define('PATH_IP', (PATH_DIR . '/' . (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'], true))));
 define('PATH_LOG', (PATH . '/' . LOG));
-unset($addr);
 
 //
-define('COOKIE_PATH', '/');
-define('COOKIE_SAME_SITE', 'Strict');
-define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
-define('COOKIE_HTTP_ONLY', true);
-//define('COOKIE_DOMAIN', null);//TODO/
+header('Content-Type: ' . CONTENT);
+
+//
+if(AUTO === null)
+{
+	die(NONE);
+}
 
 //
 function errorLog($_reason, $_source = '', $_path = '', $_die = true)
@@ -594,115 +775,94 @@ function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 }
 
 //
-function countFiles($_path = PATH, $_dir = false, $_exclude = null, $_list = false)
+function checkPath($_path = PATH, $_file = PATH_FILE, $_die = true)
 {
-	$list = scandir($_path);
-
-	if($list === false)
+	//
+	if(!file_exists($_path))
 	{
-		errorLog('Unable to scandir()', 'countFiles', $_path);
-		die('Unable to scandir()');
+		if(! mkdir($_path, 1777, false))
+		{
+			if($_die)
+			{
+				errorLog('Directory doesn\'t exist and couldn\'t be created', 'checkPath', $_path);
+				die('Directory doesn\'t exist and couldn\'t be created');
+			}
+			
+			return false;
+		}
+	}
+	else if(!is_dir($_path))
+	{
+		if($_die)
+		{
+			errorLog('Path doesn\'t point to a directory', 'checkPath', $_path);
+			die('Path doesn\'t point to a directory');
+		}
+		
+		return false;
 	}
 
-	$len = count($list);
-	$result = ($_list ? array() : 0);
-
-	for($i = 0, $j = 0; $i < $len; ++$i)
+	if(!is_writable($_path))
 	{
-		if($list[$i] === '.' || $list[$i] === '..')
+		if($_die)
 		{
-			continue;
+			errorLog('Directory isn\'t writable (please `chmod 1777`)', 'checkPath', $_path);
+			die('Directory isn\'t writable');
 		}
-		else if($list[$i][0] === '.')
+		
+		return false;
+	}
+	else if(AUTO !== true && !is_file($_file))
+	{
+		if(AUTO === false)
 		{
-			continue;
-		}
-		else if($_exclude)
-		{
-			if($list[$i][0] === '-')
+			if($_die)
 			{
-				continue;
+				errorLog('AUTO is false', 'checkPath', $_file, false);
+				die(NONE);
 			}
-			else if($list[$i][0] === '+')
+			
+			return false;
+		}
+		else if(gettype(AUTO) === 'integer')
+		{
+			if(countFiles($_path, false, true, false) >= AUTO)
 			{
-				continue;
+				if($_die)
+				{
+					errorLog('AUTO is too low', 'checkPath', $_file, false);
+					die(NONE);
+				}
+				
+				return false;
 			}
 		}
-
-		if($_dir === false)
+		else if($_die)
 		{
-			if(!is_file($_path . '/' . $list[$i]))
-			{
-				continue;
-			}
-		}
-		else if($_dir === true)
-		{
-			if(!is_dir($_path . '/' . $list[$i]))
-			{
-				continue;
-			}
-		}
-
-		if($_list)
-		{
-			$result[++$j] = $list[$i];
+			errorLog('Invalid \'AUTO\' constant', 'checkPath', $_file);
+			die('Invalid \'AUTO\' constant');
 		}
 		else
 		{
-			++$result;
+			return false;
 		}
 	}
-
-	return $result;
-}
-
-//
-if(!file_exists(PATH))
-{
-	if(! mkdir(PATH, 1777, false))
+	else if(!is_writable($_file))
 	{
-		errorLog('Directory doesn\'t exist and couldn\'t be created', '', PATH);
-		die('Directory doesn\'t exist and couldn\'t be created');
-	}
-}
-else if(!is_dir(PATH))
-{
-	errorLog('Path doesn\'t point to a directory', '', PATH);
-	die('Path doesn\'t point to a directory');
-}
-
-if(!is_writable(PATH))
-{
-	errorLog('Directory isn\'t writable (please `chmod 1777`)', '', PATH);
-	die('Directory isn\'t writable');
-}
-else if(AUTO !== true && !is_file(PATH_FILE))
-{
-	if(AUTO === false)
-	{
-		errorLog('AUTO is false', '', PATH_FILE, false);
-		die(NONE);
-	}
-	else if(gettype(AUTO) === 'integer')
-	{
-		if(countFiles(PATH, false, true, false) >= AUTO)
+		if($_die)
 		{
-			errorLog('AUTO is too low', '', PATH_FILE, false);
-			die(NONE);
+			errorLog('File is not writable', 'checkPath', $_file);
+			die('File is not writable');
 		}
+		
+		return false;
 	}
-	else
-	{
-		errorLog('Invalid \'AUTO\' constant', '', PATH_FILE);
-		die('Invalid \'AUTO\' constant');
-	}
+	
+	//
+	return true;
 }
-else if(!is_writable(PATH_FILE))
-{
-	errorLog('File is not writable', '', PATH_FILE);
-	die('File is not writable');
-}
+
+checkPath(PATH, PATH_FILE, true);
 
 //
 function timestamp($_difference = null)
