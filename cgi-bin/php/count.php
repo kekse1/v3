@@ -2,6 +2,7 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+ * v2.5.8
  */
 
 //
@@ -547,6 +548,9 @@ unset($addr);
 //
 define('COOKIE_PATH', '/');
 define('COOKIE_SAME_SITE', 'Strict');
+define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
+define('COOKIE_HTTP_ONLY', true);
+//define('COOKIE_DOMAIN', null);//TODO/
 
 //
 function errorLog($_reason, $_source = '', $_path = '', $_die = true)
@@ -769,10 +773,11 @@ function makeCookie()
 {
 	return setcookie(COOKIE, timestamp(), array(
 		'expires' => (time() + THRESHOLD),
-		'secure' => false,//!empty($_SERVER['HTTPS']),
+		'secure' => COOKIE_SECURE,
 		'path' => COOKIE_PATH,
 		'samesite' => COOKIE_SAME_SITE,
-		'httponly' => true
+		'httponly' => COOKIE_HTTP_ONLY//,
+		//'domain' => COOKIE_DOMAIN
 	));
 }
 
