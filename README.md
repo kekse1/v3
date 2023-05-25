@@ -17,7 +17,7 @@ The real/full version of all the JavaScript's is available in the [version.json]
 [https://kekse.biz/v3/test.html]
 
 ## 'count.php'
-Got it's [own repository @ github.com](https://github.com/kekse1/count.php/) right now! :)~
+Got it's [own repository @ github.com](https://github.com/kekse1/count.php/) now! :)~
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
