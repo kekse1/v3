@@ -2,15 +2,16 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.5.6
  */
 
-//TODO/
+//
+define('VERSION', [ 2, 5, 8 ]);
+define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 255);
 define('THRESHOLD', 7200);
-define('DIRECTORY', 'count');
+define('PATH', 'count');
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
@@ -36,9 +37,40 @@ if(php_sapi_name() === 'cli')
 	}
 
 	//
-	function version($_index = -1)
+	function info($_index = -1, $_version = true, $_copyright = true)
 	{
-		printf('v2.5.6' . PHP_EOL);
+		if($_version)
+		{
+			printf('v' . join('.', VERSION) . PHP_EOL);
+		}
+
+		if($_copyright)
+		{
+			printf('Copyright (c) %s' . PHP_EOL, COPYRIGHT);
+		}
+
+		exit(0);
+	}
+
+	function syntax($_argc)
+	{
+		if($_argc > 1)
+		{
+			fprintf(STDERR, ' >> Invalid syntax (parameter, if any, not available)' . PHP_EOL);
+		}
+		else
+		{
+			printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL);
+		}
+
+		printf(PHP_EOL);
+		printf('    -? / --help' . PHP_EOL);
+		printf('    -v / --version' . PHP_EOL);
+		printf('    -C / --copyright' . PHP_EOL);
+		printf('    -c / --check' . PHP_EOL);
+		printf('    -h / --hashes' . PHP_EOL);
+		printf(PHP_EOL);
+
 		exit(0);
 	}
 
@@ -47,10 +79,25 @@ if(php_sapi_name() === 'cli')
 		die('TODO: help()' . PHP_EOL);
 	}
 	
-	function testConfig($_index = -1)
+	function hashes($_index = -1)
+	{
+		printf(' >> So, these are the available hash(ing) algorithms:' . PHP_EOL . PHP_EOL);
+		
+		$list = hash_algos();
+		$len = count($list);
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			printf(' >> \'%s\'' . PHP_EOL, $list[$i]);
+		}
+		
+		exit(0);
+	}
+	
+	function check($_index = -1)
 	{
 		//
-		printf(' >> We\'re testing your configuration right now.' . PHP_EOL . PHP_EOL, 'cli');
+		printf(' >> We\'re testing your configuration right now.' . PHP_EOL . PHP_EOL);
 
 		//
 		$ok = 0;
@@ -58,203 +105,217 @@ if(php_sapi_name() === 'cli')
 		$warnings = 0;
 
 		//
-		define('a', '%14s');
-		define('b', '%-7s');
-		define('START', ' [ ' . a . ' ] ' . b);
+		define('START', '%12s: %-7s');
 
 		//
 		if(gettype(AUTO) === 'boolean')
 		{
-			printf(START.'\'%s\' type (and could also be an \'%s\' above %d)' . PHP_EOL, 'AUTO', 'OK', 'boolean', 'integer', 0);
+			printf(START.'Boolean type (and could also be an Integer above 0)' . PHP_EOL, 'AUTO', 'OK');
 			++$ok;
 		}
 		else if(gettype(AUTO) === 'integer')
 		{
 			if(AUTO < 0)
 			{
-				fprintf(STDERR, START.'\'%s\', but below %d/%d' . PHP_EOL, 'AUTO', 'BAD', 'integer', 0, 1);
+				fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'AUTO', 'BAD');
 				++$errors;
 			}
 			else if(AUTO === 0)
 			{
-				fprintf(STDERR, START.'\'%s\', but equals %d, which should be (%s)' . PHP_EOL, 'AUTO', 'WARN', 'integer', 0, 'false');
+				fprintf(STDERR, START.'Integer, but equals 0 - where (false) would be better' . PHP_EOL, 'AUTO', 'WARN');
 				++$warnings;
 			}
 			else
 			{
-				printf(START.'\'%s\' above %d (and could also be a \'%s\')' . PHP_EOL, 'AUTO', 'OK', 'integer', 0, 'boolean');
+				printf(START.'Integer above 0 (and could also be a Boolean)' . PHP_EOL, 'AUTO', 'OK');
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'Neither a \'%s\' type nor an \'%s\' above %d/%d' . PHP_EOL, 'AUTO', 'BAD', 'boolean', 'integer', 0, 1);
+			fprintf(STDERR, START.'Neither a Boolean nor an Integer above 0/1' . PHP_EOL, 'AUTO', 'BAD');
 			++$errors;
 		}
 
 		//
-		if(gettype(THRESHOLD) === 'integer' && THRESHOLD > 0)
+		if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
 		{
-			printf(START.'\'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'OK', 'integer', 0);
-			++$ok;
+			if(THRESHOLD < 1)
+			{
+				fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
+				++$errors;
+			}
+			else
+			{
+				printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
+				++$ok;
+			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\' above %d' . PHP_EOL, 'THRESHOLD', 'BAD', 'integer', 0);
+			fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
 			++$errors;
 		}
 
 		//
-		if(gettype(DIRECTORY) === 'string' && !empty(DIRECTORY))
+		if(gettype(PATH) === 'string' && !empty(PATH))
 		{
-			printf(START.'Non-empty \'%s\' (without further testing)' . PHP_EOL, 'DIRECTORY', 'OK', 'string');
+			printf(START.'Non-empty String (without further testing)' . PHP_EOL, 'PATH', 'OK', 'string');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty \'%s\'' . PHP_EOL, 'DIRECTORY', 'BAD', 'string');
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'PATH', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(CLIENT) === 'boolean')
 		{
-			printf(START.'\'%s\' type' . PHP_EOL, 'CLIENT', 'OK', 'boolean');
+			printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\' type' . PHP_EOL, 'CLIENT', 'BAD', 'boolean');
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'CLIENT', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(SERVER) === 'boolean')
 		{
-			printf(START.'\'%s\' type' . PHP_EOL, 'SERVER', 'OK', 'boolean');
+			printf(START.'Boolean type' . PHP_EOL, 'SERVER', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\' type' . PHP_EOL, 'SERVER', 'BAD', 'boolean');
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'SERVER', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(HASH) === 'string' && !empty(HASH))
 		{
-			printf(START.'Non-empty \'%s\' (without further testing)' . PHP_EOL, 'HASH', 'OK', 'string');
-			++$ok;
+			if(in_array(HASH, hash_algos()))
+			{
+				printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
+				++$errors;
+			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty \'%s\'' . PHP_EOL, 'HASH', 'BAD', 'string');
+			fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(HASH_IP) === 'boolean')
 		{
-			printf(START.'\'%s\' type' . PHP_EOL, 'HASH_IP', 'OK', 'boolean');
+			printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\' type' . PHP_EOL, 'HASH_IP', 'ERROR', 'boolean');
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
 			++$errors;
 		}
 
 		//
 		if(gettype(CONTENT) === 'string' && !empty(CONTENT))
 		{
-			printf(START.'Non-empty \'%s\'' . PHP_EOL, 'CONTENT', 'OK', 'string');
+			printf(START.'Non-empty String' . PHP_EOL, 'CONTENT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty \'%s\'' . PHP_EOL, 'CONTENT', 'BAD', 'string');
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'CONTENT', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(CLEAN === null)
 		{
-			printf(START.'Equals (%s): *forbidding* any IP/timestamp file deletion' . PHP_EOL, 'CLEAN', 'OK', 'null');
+			printf(START.'Equals (null), and could also be a Boolean or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
 			++$ok;
 		}
 		else if(gettype(CLEAN) === 'boolean')
 		{
-			printf(START.'\'%s\' type (and could also be (%s) or \'%s\' above %d/%d)' . PHP_EOL, 'CLEAN', 'OK', 'boolean', 'null', 'integer', 0, 1);
+			printf(START.'Boolean type, and could also be (null) or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
 			++$ok;
 		}
 		else if(gettype(CLEAN) === 'integer')
 		{
 			if(CLEAN <= 0)
 			{
-				fprintf(STDERR, START.'\'%s\', but below %d/%d' . PHP_EOL, 'CLEAN', 'BAD', 'integer', 0, 1);
+				fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'CLEAN', 'BAD');
 				++$errors;
 			}
 			else if(CLEAN === 0)
 			{
-				fprintf(STDERR, START.'\'%s\', but equals to %d, which should be (%d) instead' . PHP_EOL, 'CLEAN', 'WARN', 'integer', 0, 'true');
+				fprintf(STDERR, START.'Integer, but equals 0 (that should be (true) instead)' . PHP_EOL, 'CLEAN', 'WARN');
 				++$warnings;
 			}
 			else
 			{
-				printf(START.'\'%s\' above %d (and could also be a \'%s\' or (%s))' . PHP_EOL, 'CLEAN', 'OK', 'integer', 0, 'boolean', 'null');
+				printf(START.'Integer above 1 (and could also be (null) or a Boolean type)' . PHP_EOL, 'CLEAN', 'OK');
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'Neither \'%s\' type nor \'%s\' above %d or (%s)' . PHP_EOL, 'CLEAN', 'BAD', 'boolean', 'integer', 0, 'null');
+			fprintf(STDERR, START.'Neither (null), Boolean type nor Integer above 0/1' . PHP_EOL, 'CLEAN', 'BAD');
 			++$errors;
 		}
 
 		//
-		if(gettype(LIMIT) === 'integer' && LIMIT >= 0)
+		if(gettype(LIMIT) === 'integer' && LIMIT > -1)
 		{
-			printf(START.'\'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'OK', 'integer', 0);
+			printf(START.'Integer above -1' . PHP_EOL, 'LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\' equal to or above %d' . PHP_EOL, 'LIMIT', 'BAD', 'integer', 0);
+			fprintf(STDERR, START.'No Integer above -1' . PHP_EOL, 'LIMIT', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(LOG) === 'string' && !empty(LOG))
 		{
-			printf(START.'Non-empty \'%s\' (without further tests)' . PHP_EOL, 'LOG', 'OK', 'string');
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'LOG', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty \'%s\'' . PHP_EOL, 'LOG', 'BAD', 'string');
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
 			++$errors;
 		}
 
 		//
 		if(gettype(ERROR) === 'string')
 		{
-			printf(START.'\'%s\' (which can also be zero-length, and also \'anything\')' . PHP_EOL, 'ERROR', 'OK', 'string');
+			printf(START.'String (can be zero-length; or define \'anything\')' . PHP_EOL, 'ERROR', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\', but even that is O.K. here' . PHP_EOL, 'ERROR', 'OK', 'string');
+			fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
 			++$ok;
 		}
 
 		if(gettype(NONE) === 'string')
 		{
-			printf(START.'\'%s\' (which can also be zero-length)' . PHP_EOL, 'NONE', 'OK', 'string');
+			printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No \'%s\'' . PHP_EOL, 'NONE', 'BAD', 'string');
+			fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
 			++$errors;
 		}
 
@@ -308,25 +369,25 @@ if(php_sapi_name() === 'cli')
 		}
 		else if($argv[$i] === '-v' || $argv[$i] === '--version')
 		{
-			version($i);
+			info($i, true, false);
 		}
-		else if($argv[$i] === '-t' || $argv[$i] === '--test')
+		else if($argv[$i] === '-C' || $argv[$i] === '--copyright')
 		{
-			testConfig($i);
+			info($i, false, true);
 		}
-		/*else if($argv[$i] === '-*' || $argv[$i] === '--*')
+		else if($argv[$i] === '-c' || $argv[$i] === '--check')
 		{
-			//
-		}*/
+			check($i);
+		}
+		else if($argv[$i] === '-h' || $argv[$i] === '--hashes')
+		{
+			hashes($i);
+		}
 	}
 	
 	//
-	printf(' >> Running in \'%s\' mode (CLI, outside a HTTPD).' . PHP_EOL, 'cli');
-	
-	//
-	testConfig();
-	
-	//
+	printf(' >> Running in CLI mode now (so outside any HTTPD).' . PHP_EOL);
+	syntax($argc);
 	exit();
 }
 
@@ -475,12 +536,12 @@ define('COOKIE', hash(HASH, HOST));
 unset($host);
 
 //
-define('PATH_FILE', (DIRECTORY . '/' . HOST));
-define('PATH_DIR', (DIRECTORY . '/+' . HOST));
-define('PATH_COUNT', (DIRECTORY . '/-' . HOST));
+define('PATH_FILE', (PATH . '/' . HOST));
+define('PATH_DIR', (PATH . '/+' . HOST));
+define('PATH_COUNT', (PATH . '/-' . HOST));
 $addr = (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR']));
 define('PATH_IP', (PATH_DIR . '/' . $addr));
-define('PATH_LOG', (DIRECTORY . '/' . LOG));
+define('PATH_LOG', (PATH . '/' . LOG));
 unset($addr);
 
 //
@@ -529,7 +590,7 @@ function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 }
 
 //
-function countFiles($_path = DIRECTORY, $_dir = false, $_exclude = null, $_list = false)
+function countFiles($_path = PATH, $_dir = false, $_exclude = null, $_list = false)
 {
 	$list = scandir($_path);
 
@@ -593,23 +654,23 @@ function countFiles($_path = DIRECTORY, $_dir = false, $_exclude = null, $_list 
 }
 
 //
-if(!file_exists(DIRECTORY))
+if(!file_exists(PATH))
 {
-	if(! mkdir(DIRECTORY, 1777, false))
+	if(! mkdir(PATH, 1777, false))
 	{
-		errorLog('Directory doesn\'t exist and couldn\'t be created', '', DIRECTORY);
+		errorLog('Directory doesn\'t exist and couldn\'t be created', '', PATH);
 		die('Directory doesn\'t exist and couldn\'t be created');
 	}
 }
-else if(!is_dir(DIRECTORY))
+else if(!is_dir(PATH))
 {
-	errorLog('Path doesn\'t point to a directory', '', DIRECTORY);
+	errorLog('Path doesn\'t point to a directory', '', PATH);
 	die('Path doesn\'t point to a directory');
 }
 
-if(!is_writable(DIRECTORY))
+if(!is_writable(PATH))
 {
-	errorLog('Directory isn\'t writable (please `chmod 1777`)', '', DIRECTORY);
+	errorLog('Directory isn\'t writable (please `chmod 1777`)', '', PATH);
 	die('Directory isn\'t writable');
 }
 else if(AUTO !== true && !is_file(PATH_FILE))
@@ -621,7 +682,7 @@ else if(AUTO !== true && !is_file(PATH_FILE))
 	}
 	else if(gettype(AUTO) === 'integer')
 	{
-		if(countFiles(DIRECTORY, false, true, false) >= AUTO)
+		if(countFiles(PATH, false, true, false) >= AUTO)
 		{
 			errorLog('AUTO is too low', '', PATH_FILE, false);
 			die(NONE);
@@ -638,8 +699,6 @@ else if(!is_writable(PATH_FILE))
 	errorLog('File is not writable', '', PATH_FILE);
 	die('File is not writable');
 }
-
-//TODO/check for directory..
 
 //
 function timestamp($_difference = null)
