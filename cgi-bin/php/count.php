@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.7.3
+ * v2.7.4
  */
 
 //
-define('VERSION', [ 2, 7, 3 ]);
+define('VERSION', [ 2, 7, 4 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1211,11 +1211,11 @@ define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
-define('PATH_FILE', (securePath(PATH, true) . '/' . HOST));
-define('PATH_DIR', (securePath(PATH, true) . '/+' . HOST));
-define('PATH_COUNT', (securePath(PATH, true) . '/-' . HOST));
-define('PATH_IP', (PATH_DIR . '/' . (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'], true))));
-define('PATH_LOG', (securePath(PATH, true) . '/' . LOG));
+define('PATH_FILE', securePath(PATH . '/' . HOST, true));
+define('PATH_DIR', securePath(PATH . '/+' . HOST, true));
+define('PATH_COUNT', securePath(PATH . '/-' . HOST, true));
+define('PATH_IP', securePath(PATH_DIR . '/' . (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'])), true));
+define('PATH_LOG', securePath(PATH . '/' . LOG, true));
 
 //
 header('Content-Type: ' . CONTENT);
