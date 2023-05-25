@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.6.0
+ * v2.6.2
  */
 
 //
-define('VERSION', [ 2, 6, 0 ]);
+define('VERSION', [ 2, 6, 2 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -23,6 +23,12 @@ define('LIMIT', 32768);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
+define('DRAW', false);
+define('DRAW_PARAMS', true);
+define('SIZE', 24);
+define('SIZE_LIMIT', 96);
+define('FONT', 'Source Code Pro');
+define('FONT_LIMIT', [ 'Candara', 'Open Sans', 'Source Code Pro' ]);
 
 //
 define('COOKIE_PATH', '/');
@@ -286,7 +292,7 @@ if(php_sapi_name() === 'cli')
 		printf('    -v / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
-		printf('    -c / --check' . PHP_EOL);
+		printf('    -c / --config' . PHP_EOL);
 		printf('    -s / --stats     (TODO)' . PHP_EOL);
 		printf('    -l / --clean     (TODO)' . PHP_EOL);
 		printf('    -p / --purge     (TODO)' . PHP_EOL);
@@ -316,10 +322,12 @@ if(php_sapi_name() === 'cli')
 		exit(0);
 	}
 	
-	function check($_index = -1)
+	function config($_index = -1)
 	{
 		//
-		printf(' >> We\'re testing your configuration right now.' . PHP_EOL . PHP_EOL);
+		printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
+		fprintf(STDERR, ' >> Beware: the DRAWING options are not finished in this --config/-c function! JFYI..' . PHP_EOL);
+		printf(PHP_EOL);
 
 		//
 		$ok = 0;
@@ -497,12 +505,12 @@ if(php_sapi_name() === 'cli')
 		//
 		if(gettype(LIMIT) === 'integer' && LIMIT > -1)
 		{
-			printf(START.'Integer above -1' . PHP_EOL, 'LIMIT', 'OK');
+			printf(START.'Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above -1' . PHP_EOL, 'LIMIT', 'BAD');
+			fprintf(STDERR, START.'No Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'BAD');
 			++$errors;
 		}
 
@@ -521,7 +529,7 @@ if(php_sapi_name() === 'cli')
 		//
 		if(gettype(ERROR) === 'string')
 		{
-			printf(START.'String (can be zero-length; or define \'anything\')' . PHP_EOL, 'ERROR', 'OK');
+			printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
 			++$ok;
 		}
 		else
@@ -538,6 +546,113 @@ if(php_sapi_name() === 'cli')
 		else
 		{
 			fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
+			++$errors;
+		}
+
+		//
+		if(gettype(DRAW) === 'boolean')
+		{
+			printf(START.'Boolean type' . PHP_EOL, 'DRAW', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(DRAW_PARAMS) === 'boolean')
+		{
+			printf(START.'Boolean type' . PHP_EOL, 'DRAW_PARAMS', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW_PARAMS', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(SIZE) === 'integer' && SIZE > 0)
+		{
+			$limit = SIZE_LIMIT;
+
+			if(gettype($limit) !== 'integer')
+			{
+				$limit = null;
+			}
+
+			if($limit === null)
+			{
+				printf(START.'Integer above 0 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
+				++$warnings;
+			}
+			else if(SIZE > $limit)
+			{
+				fprintf(STDERR, START.'Integer exceeds SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'BAD', $limit);
+				++$errors;
+			}
+			else
+			{
+				printf(START.'Integer above 0 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
+				++$ok;
+			}
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Integer (above 0 and below or equal to SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 0)
+		{
+			printf(START.'Integer above 0' . PHP_EOL, 'SIZE_LIMIT', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(FONT) === 'string' && !empty(FONT))
+		{
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FONT', 'OK');
+			++$ok;//w/o further tests!!!
+		}
+		else
+		{
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(FONT_LIMIT) === 'array' && !empty(FONT_LIMIT))
+		{
+			$valid = true;
+			$len = count(FONT_LIMIT);
+
+			for($i = 0; $i < $len; ++$i)
+			{
+				if(gettype(FONT_LIMIT[$i]) !== 'string' || empty(FONT_LIMIT[$i]))
+				{
+					$valid = false;
+					break;
+				}
+			}
+
+			if($valid)
+			{
+				printf(START.'Non-empty Array with %d non-empty Strings in it' . PHP_EOL, 'FONT_LIMIT', 'OK', $len);
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty Array with only non-empty Strings in it' . PHP_EOL, 'FONT_LIMIT', 'BAD');
+				++$errors;
+			}
+		}
+		else
+		{
+			fprintf(STDERR, START.'Not even a non-empty Array..' . PHP_EOL, 'FONT_LIMIT', 'BAD');
 			++$errors;
 		}
 
@@ -617,9 +732,9 @@ if(php_sapi_name() === 'cli')
 		{
 			stats($i);
 		}
-		else if($argv[$i] === '-c' || $argv[$i] === '--check')
+		else if($argv[$i] === '-c' || $argv[$i] === '--config')
 		{
-			check($i);
+			config($i);
 		}
 		else if($argv[$i] === '-h' || $argv[$i] === '--hashes')
 		{
