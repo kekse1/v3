@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.6.2
+ * v2.6.3
  */
 
 //
-define('VERSION', [ 2, 6, 2 ]);
+define('VERSION', [ 2, 6, 3 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -29,6 +29,8 @@ define('SIZE', 24);
 define('SIZE_LIMIT', 96);
 define('FONT', 'Source Code Pro');
 define('FONT_LIMIT', [ 'Candara', 'Open Sans', 'Source Code Pro' ]);
+define('COLOR_FG', 'rgba(0, 0, 0, 1)');
+define('COLOR_BG', 'rgba(255, 255, 255, 0)');
 
 //
 define('COOKIE_PATH', '/');
@@ -653,6 +655,28 @@ if(php_sapi_name() === 'cli')
 		else
 		{
 			fprintf(STDERR, START.'Not even a non-empty Array..' . PHP_EOL, 'FONT_LIMIT', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(COLOR_FG) === 'string' && !empty(COLOR_FG))
+		{
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'COLOR_FG', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'COLOR_FG', 'BAD');
+			++$errors;
+		}
+
+		if(gettype(COLOR_BG) === 'string' && !empty(COLOR_BG))
+		{
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'COLOR_BG', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'COLOR_BG', 'BAD');
 			++$errors;
 		}
 
