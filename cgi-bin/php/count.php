@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.8.0
+ * v2.8.1
  */
 
 //
-define('VERSION', [ 2, 8, 0 ]);
+define('VERSION', [ 2, 8, 1 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -347,6 +347,10 @@ function countFiles($_path = PATH, $_dir = false, $_exclude = true, $_list = fal
 			{
 				continue;
 			}
+			else if($list[$i] === LOG)
+			{
+				continue;
+			}
 		}
 
 		if($_dir === false)
@@ -446,6 +450,10 @@ if(php_sapi_name() === 'cli')
 	{
 		fprintf(STDOUT, ' >> Warning: the \'%s\' is not defined (so no parameters can be defined here)' . PHP_EOL, '$argv');
 	}
+	else
+	{
+		define('ARGV', $argv);
+	}
 
 	//
 	function prompt($_string, $_return = false, $_repeat = true)
@@ -491,6 +499,20 @@ if(php_sapi_name() === 'cli')
 		
 		return $result;
 	}
+	
+	function getArgument($_index, $_argv = ARGV)
+	{
+		if(empty($_argv[$_index]))
+		{
+			return null;
+		}
+		else if($_argv[$_index][0] === '-')
+		{
+			return null;
+		}
+		
+		return explode(',', $_argv[$_index]);
+	}
 
 	//
 	function getHosts($_path = PATH, $_die = true)
@@ -527,14 +549,14 @@ if(php_sapi_name() === 'cli')
 
 		printf(PHP_EOL);
 		printf('    -? / --help      (TODO)' . PHP_EOL);
-		printf('    -v / --version' . PHP_EOL);
+		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
-		printf('    -s / --stats     (TODO)' . PHP_EOL);
-		printf('    -y / --sync' . PHP_EOL);
-		printf('    -l / --clean' . PHP_EOL);
-		printf('    -p / --purge' . PHP_EOL);
+		printf('    -v / --values [host,..]' . PHP_EOL);
+		printf('    -y / --sync [host,..]' . PHP_EOL);
+		printf('    -l / --clean [host,..]' . PHP_EOL);
+		printf('    -p / --purge [host,..]' . PHP_EOL);
 		printf('    -e / --errors' . PHP_EOL);
 		printf('    -u / --unlog' . PHP_EOL);
 		printf(PHP_EOL);
@@ -1024,32 +1046,103 @@ if(php_sapi_name() === 'cli')
 		return $result;
 	}
 
-	function stats($_index = -1, $_path = PATH)
+	function values($_index = -1, $_path = PATH)
 	{
 		//
 		$_path = securePath($_path, true);
+		$hosts = getArgument($_index + 1);
 
 		//
-		die('TODO: stats() (using sync(), too)' . PHP_EOL);
+		if($hosts === null)
+		{
+			$hosts = getHosts($_path);
+		}
+
+		if(count($hosts) === 0)
+		{
+			fprintf(STDERR, ' >> No hosts found' . PHP_EOL);
+			exit(1);
+		}
+		
+		$files = array();
+		$file = null;
+
+		for($i = 0, $j = 0; $i < count($hosts); ++$i)
+		{
+			$hosts[$i] = secureHost($hosts[$i]);
+			$file = securePath($_path . '/' . $hosts[$i]);
+			
+			if(is_file($file))
+			{
+				$files[$j++] = $file;
+			}
+			else
+			{
+				fprintf(STDERR, ' >> No host \'%s\'' . PHP_EOL, $hosts[$i]);
+				array_splice($hosts, $i--, 1);
+			}
+		}
+		
+		$len = count($files);
+		
+		if($len === 0)
+		{
+			fprintf(STDERR, ' >> No host files left' . PHP_EOL);
+			exit(2);
+		}
+
+		$value = -1;
+		$maxLen = 0;
+		$len = 0;
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(($len = strlen($hosts[$i])) > $maxLen)
+			{
+				$maxLen = $len;
+			}
+		}
+		
+		$len = count($files);
+		$maxLen += 13;
+		$START = '%' . $maxLen . 's: ';
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(($value = file_get_contents($files[$i])) === false)
+			{
+				fprintf(STDERR, $START . 'Unable to read host file' . PHP_EOL, $$hosts[$i]);
+			}
+			else
+			{
+				printf($START . $value . PHP_EOL, $hosts[$i]);
+			}
+		}
+
+		//
+		exit(0);
 	}
 
 	function sync($_index = null, $_path = PATH)
 	{
 		//
 		$_path = securePath($_path, true);
-		$dirs = countFiles($_path, true, false, true);
-		$len = count($dirs);
+		$hosts = getArgument($_index + 1);
 		
-		for($i = 0; $i < $len; ++$i)
+		if($hosts === null)
 		{
-			if($dirs[$i][0] !== '+')
+			$hosts = getHosts($_path);
+		}
+		else for($i = 0; $i < count($hosts); ++$i)
+		{
+			if(!is_file($_path . '/' . $hosts[$i]))
 			{
-				array_splice($dirs, $i--, 1);
+				array_splice($hosts, $i--, 1);
 			}
 		}
-		
-		$len = count($dirs);
-		
+
+		$len = count($hosts);
+
 		if($len === 0)
 		{
 			fprintf(STDERR, ' >> No cache directories found.' . PHP_EOL);
@@ -1062,12 +1155,13 @@ if(php_sapi_name() === 'cli')
 		$synced = 0;
 		$correct = 0;
 		$created = 0;
+		$errors = 0;
 		
 		for($i = 0; $i < $len; ++$i)
 		{
-			if(is_file($_path . '/-' . substr($dirs[$i], 1)))
+			if(is_file($_path . '/-' . $hosts[$i]))
 			{
-				if(($orig = file_get_contents($_path . '/-' . substr($dirs[$i], 1))) !== false)
+				if(($orig = file_get_contents($_path . '/-' . $hosts[$i])) !== false)
 				{
 					$orig = (int)$orig;
 				}
@@ -1081,27 +1175,28 @@ if(php_sapi_name() === 'cli')
 				$orig = null;
 			}
 			
-			$new = countFiles($_path . '/' . $dirs[$i], false, false, false);
+			$new = countFiles($_path . '/+' . $hosts[$i], false, false, false);
 			
 			if($orig === $new)
 			{
-				printf(' >> Count for host \'%s\' *is* in sync. :-)' . PHP_EOL, substr($dirs[$i], 1));
+				printf(' >> Count for host \'%s\' *is* in sync. :-)' . PHP_EOL, $hosts[$i]);
 				++$correct;
 			}
 			else
 			{
-				if(file_put_contents($_path . '/-' . substr($dirs[$i], 1), (string)$new) === false)
+				if(file_put_contents($_path . '/-' . $hosts[$i], (string)$new) === false)
 				{
-					fprintf(STDERR, ' >> Couldn\'t write to count file \'%s\'' . PHP_EOL, $_path . '/-' . substr($dirs[$i], 1));
+					fprintf(STDERR, ' >> Couldn\'t write count for host \'%s\': %d => %d' . PHP_EOL, $hosts[$i], (int)$orig, $new);
+					++$errors;
 				}
 				else if($orig !== null)
 				{
-					fprintf(STDERR, ' >> Count for host \'%s\' NOT in sync; corrected %d => %d..' . PHP_EOL, substr($dirs[$i], 1), $orig, $new);
+					fprintf(STDERR, ' >> Count for host \'%s\' NOT in sync; corrected: %d => %d' . PHP_EOL, $hosts[$i], $orig, $new);
 					++$synced;
 				}
 				else
 				{
-					printf(' >> Count for host \'%s\' just newly created.' . PHP_EOL, substr($dirs[$i], 1));
+					printf(' >> Count for host \'%s\' initialized: %d' . PHP_EOL, $hosts[$i], $new);
 					++$created;
 				}
 			}
@@ -1111,6 +1206,7 @@ if(php_sapi_name() === 'cli')
 		printf(PHP_EOL . ' >> %d were correct!' . PHP_EOL, $correct);
 		fprintf(STDERR, ' >> %d synchronized now..' . PHP_EOL, $synced);
 		printf(' >> %d newly created.' . PHP_EOL, $created);
+		fprintf(STDERR, ' >> %d errors.. ' . ($errors === 0 ? ':-)' : ':-/') . PHP_EOL, $errors);
 		
 		//
 		exit();
@@ -1432,9 +1528,9 @@ if(php_sapi_name() === 'cli')
 		{
 			info($i, false, true);
 		}
-		else if($argv[$i] === '-s' || $argv[$i] === '--stats')
+		else if($argv[$i] === '-v' || $argv[$i] === '--values')
 		{
-			stats($i);
+			values($i);
 		}
 		else if($argv[$i] === '-y' || $argv[$i] === '--sync')
 		{
