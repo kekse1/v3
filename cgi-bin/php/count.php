@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.8.3
+ * v2.8.4
  */
 
 //
-define('VERSION', [ 2, 8, 3 ]);
+define('VERSION', [ 2, 8, 4 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1152,7 +1152,7 @@ if(php_sapi_name() === 'cli')
 		{
 			if(!is_dir($_path . '/+' . $hosts[$i]))
 			{
-				if(is_file($_path . '/-' . $hosts[$i]))
+				if(is_file($_path . '/-' . $hosts[$i]) && is_writable($_path . '/-' . $hosts[$i]))
 				{
 					unlink($_path . '/-' . $hosts[$i]);
 				}
