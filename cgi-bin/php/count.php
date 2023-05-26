@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.8.2
+ * v2.8.3
  */
 
 //
-define('VERSION', [ 2, 8, 2 ]);
+define('VERSION', [ 2, 8, 3 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -337,6 +337,10 @@ function countFiles($_path = PATH, $_dir = false, $_exclude = true, $_list = fal
 		{
 			continue;
 		}
+		else if($list[$i] === LOG)
+		{
+			continue;
+		}
 		else if($_exclude)
 		{
 			if($list[$i][0] === '-')
@@ -344,10 +348,6 @@ function countFiles($_path = PATH, $_dir = false, $_exclude = true, $_list = fal
 				continue;
 			}
 			else if($list[$i][0] === '+')
-			{
-				continue;
-			}
-			else if($list[$i] === LOG)
 			{
 				continue;
 			}
@@ -515,9 +515,23 @@ if(php_sapi_name() === 'cli')
 	}
 
 	//
-	function getHosts($_path = PATH, $_die = true)
+	function getHosts($_path = PATH, $_counts = false, $_die = true)
 	{
-		return countFiles(securePath($_path, $_die), false, true, true);
+		$result = countFiles(securePath($_path, $_die), ($_counts ? null : false), ($_counts ? false : true), true);
+
+		if($_counts) for($i = 0; $i < count($result); ++$i)
+		{
+			if($result[$i][0] === '+' || $result[$i][0] === '-')
+			{
+				$result[$i] = substr($result[$i], 1);
+			}
+			else
+			{
+				array_splice($result, $i--, 1);
+			}
+		}
+
+		return $result;
 	}
 
 	//
@@ -990,7 +1004,7 @@ if(php_sapi_name() === 'cli')
 		}
 		else
 		{
-			$hosts = getHosts($_path, true);
+			$hosts = getHosts($_path, false, true);
 		}
 		
 		for($i = 0; $i < count($hosts); ++$i)
@@ -1055,7 +1069,7 @@ if(php_sapi_name() === 'cli')
 		//
 		if($hosts === null)
 		{
-			$hosts = getHosts($_path);
+			$hosts = getHosts($_path, false);
 		}
 
 		if(count($hosts) === 0)
@@ -1131,12 +1145,18 @@ if(php_sapi_name() === 'cli')
 		
 		if($hosts === null)
 		{
-			$hosts = getHosts($_path);
+			$hosts = getHosts($_path, true);
 		}
-		else for($i = 0; $i < count($hosts); ++$i)
+		
+		for($i = 0; $i < count($hosts); ++$i)
 		{
-			if(!is_file($_path . '/' . $hosts[$i]))
+			if(!is_dir($_path . '/+' . $hosts[$i]))
 			{
+				if(is_file($_path . '/-' . $hosts[$i]))
+				{
+					unlink($_path . '/-' . $hosts[$i]);
+				}
+
 				array_splice($hosts, $i--, 1);
 			}
 		}
@@ -1315,7 +1335,13 @@ if(php_sapi_name() === 'cli')
 	function purge($_index = -1, $_path = PATH, $_host = null)
 	{
 		//
-		$hosts = getHosts($_path, true);
+		$hosts = getArgument($_index + 1);
+
+		if($hosts === null)
+		{
+			$hosts = getHosts($_path, true);
+		}
+
 		$len = count($hosts);
 
 		if($len === 0)
@@ -1323,20 +1349,33 @@ if(php_sapi_name() === 'cli')
 			printf('No hosts available to purge their cache files..' . PHP_EOL);
 			exit(0);
 		}
+		else for($i = 0; $i < count($hosts); ++$i)
+		{
+			if(!is_dir($_path . '/+' . $hosts[$i]) && !is_file($_path . '/-' . $hosts[$i]))
+			{
+				array_splice($hosts, $i--, 1);
+			}
+		}
+
+		if(count($hosts) === 0)
+		{
+			fprintf(STDERR, ' >> No hosts found' . PHP_EOL);
+			exit(1);
+		}
 
 		$input = prompt('Do you really want to purge all cache files for ' . $len . ' hosts [yes/no]? ');
 		
 		if(!$input)
 		{
 			fprintf(STDERR, ' >> Aborting (as requested)!' . PHP_EOL);
-			exit(1);
+			exit(2);
 		}
 		
 		$result = array();
 		$errors = array();
 		$sub = null;
 		
-		for($i = 0, $r = 0, $e = 0; $i < $len; ++$i)
+		for($i = 0, $r = 0, $e = 0; $i < count($hosts); ++$i)
 		{
 			$sub = $_path . '/-' . $hosts[$i];
 			
