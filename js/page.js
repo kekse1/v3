@@ -164,11 +164,6 @@
 		
 		static checkHomeConfig()
 		{
-			if(! document.getVariable('home', true))
-			{
-				return null;
-			}
-
 			const result = Object.create(null);
 
 			if(result.path = document.getVariable('home-path'))

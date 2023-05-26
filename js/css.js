@@ -156,10 +156,13 @@
 			return _string;
 		}
 		
+		const quotes = String.quote;
+		const quoted = [];
 		const result = [''];
+		var quote = '';
 		var open = false;
 
-		for(var i = 0, j = 0; i < _string.length; ++i)
+		for(var i = 0, j = 0, q = 0; i < _string.length; ++i)
 		{
 			if(_string[i] === '\\')
 			{
@@ -170,6 +173,22 @@
 				else
 				{
 					result[j] += '\\';
+				}
+			}
+			else if(quote.length > 0)
+			{
+				if(_string[i] === quote)
+				{
+					quote = '';
+
+					if(result[j].length > 0)
+					{
+						result[++j] = '';
+					}
+				}
+				else
+				{
+					result[j] += _string[i];
 				}
 			}
 			else if(open)
@@ -192,24 +211,51 @@
 			}
 			else if(_string[i].isEmpty)
 			{
-				result[++j] = '';
+				if(result[j].length > 0 || quoted.includes(j))
+				{
+					result[++j] = '';
+				}
 			}
 			else
 			{
-				result[j] += _string[i];
-			}
-		}
+				for(const q of quotes)
+				{
+					if(_string[i] === q)
+					{
+						quote = q;
+						break;
+					}
+				}
 
-		if(result.length > 1 && result[result.length - 1].length === 0)
-		{
-			result.pop();
+				if(quote.length === 0)
+				{
+					result[j] += _string[i];
+				}
+				else
+				{
+					quoted[q++] = j;
+
+					if(result[j].length > 0 && !quoted.includes(j))
+					{
+						result[++j] = '';
+					}
+				}
+			}
 		}
 
 		for(var i = 0; i < result.length; ++i)
 		{
-			if(typeof result[i] === 'string')
+			if(quoted.includes(i))
 			{
-				if(result[i].includes('(') && result[i].includes(')'))
+				continue;
+			}
+			else if(typeof result[i] === 'string')
+			{
+				if(result[i].length === 0)
+				{
+					result.splice(i--, 1);
+				}
+				else if(result[i].includes('(') && result[i].includes(')'))
 				{
 					result[i] = parseFunctionalStyle(result[i], _parse);
 				}
@@ -261,19 +307,108 @@
 		{
 			return _string;
 		}
-		else if(! isNaN(_string))
+
+		const result = [''];
+		const quoted = [];
+		const quotes = String.quote;
+		var quote = '';
+
+		for(var i = 0, j = 0, q = 0; i < _string.length; ++i)
 		{
-			return Number(_string);
-		}
-		else switch(_string.toLowerCase())
-		{
-			case 'auto':
-				return true;
-			case 'none':
-				return false;
+			if(_string[i] === '\\')
+			{
+				if(i < (_string.length - 1))
+				{
+					result[j] += _string[++i];
+				}
+				else
+				{
+					result[j] += '\\';
+				}
+			}
+			else if(quote.length > 0)
+			{
+				if(_string[i] === quote)
+				{
+					quote = '';
+
+					if(result[j].length > 0)
+					{
+						result[++j] = '';
+					}
+				}
+				else
+				{
+					result[j] += _string[i];
+				}
+			}
+			else
+			{
+				for(const q of quotes)
+				{
+					if(_string[i] === q)
+					{
+						quote = q;
+						break;
+					}
+				}
+
+				if(quote.length === 0)
+				{
+					result[j] += _string[i];
+				}
+				else
+				{
+					quoted[q++] = j;
+
+					if(result[j].length > 0 && !quoted.includes(j))
+					{
+						result[++j] = '';
+					}
+
+				}
+			}
 		}
 
-		return getValue(_string, _parse, false, false);
+		if(result[result.length - 1].length === 0 && !quoted.includes(result.length - 1))
+		{
+			result.pop();
+		}
+
+		for(var i = 0; i < result.length; ++i)
+		{
+			if(quoted.includes(i))
+			{
+				continue;
+			}
+			else if(result[i].length === 0)
+			{
+				result.splice(i--, 1);
+			}
+			else if(! isNaN(result[i]))
+			{
+				result[i] = Number(result[i]);
+			}
+			else switch(result[i].toLowerCase())
+			{
+				case 'auto':
+					result[i] = true;
+					break;
+				case 'none':
+					result[i] = false;
+					break;
+				default:
+					result[i] = getValue(result[i], _parse, false, false);
+					break;
+			}
+		}
+
+		if(result.length === 1)
+		{
+			return result[0];
+		}
+
+		return result;
 	};
 	
 	const parseFunctionalStyle = (_string, _parse = DEFAULT_PARSE) => {
@@ -290,11 +425,14 @@
 			return parseString(_string, _parse);
 		}
 
+		const quotes = String.quote;
+		var quoted = [];
 		const object = Object.create(null);
+		var quote = '';
 		var open = false;
 		var key = '';
 		
-		for(var i = 0; i < _string.length; ++i)
+		for(var i = 0, q = 0; i < _string.length; ++i)
 		{
 			if(_string[i] === '\\')
 			{
@@ -316,6 +454,21 @@
 				else
 				{
 					key += '\\';
+				}
+			}
+			else if(quote.length > 0)
+			{
+				if(_string[i] === quote)
+				{
+					quote = '';
+				}
+				else if(open)
+				{
+					object[key] += _string[i];
+				}
+				else
+				{
+					key += _string[i];
 				}
 			}
 			else if(open)
@@ -353,9 +506,43 @@
 					key += '(';
 				}
 			}
-			else if(! _string[i].isEmpty)
+			else
 			{
-				key += _string[i];
+				for(const q of quotes)
+				{
+					if(_string[i] === q)
+					{
+						quote = q;
+						break;
+					}
+				}
+
+				if(quote.length === 0)
+				{
+					key += _string[i];
+				}
+				else
+				{
+					quoted[q++] = [ key, object[key].length - 1 ];
+					var createNew = true;
+
+					if(object[key].length > 0)
+					{
+						for(const q of quoted)
+						{
+							if(q[key].length > 0)
+							{
+								createNew = false;
+								break;
+							}
+						}
+					}
+
+					if(createNew)
+					{
+						object[key].push('');
+					}
+				}
 			}
 		}
 
@@ -367,12 +554,10 @@
 		}
 
 		const result = Object.create(null);
-		const quotes = String.quote;
 		const array = [];
 		var item, quote = '';
-		var quoted;
 		
-		for(var i = 0, qarr = 0; i < keys.length; ++i)
+		for(var i = 0, qarr = 0, q = 0; i < keys.length; ++i)
 		{
 			if((item = object[keys[i]].trim()).length === 0)
 			{
@@ -430,7 +615,12 @@
 					}
 					else
 					{
-						quoted.add(k);
+						quoted[q++] = k;
+
+						if(array[k].length > 0 && !quoted.includes(k))
+						{
+							array[++k] = '';
+						}
 					}
 				}
 			}
@@ -441,10 +631,17 @@
 				{
 					continue;
 				}
-				else if((array[k] = parseString(array[k], _parse)).length === 0)
+				else
+				{
+					if((array[k] = parseString(array[k], _parse)) === null)
+					{
+						array.splice(k--, 1);
+					}
+				}
+				/*else if((array[k] = parseString(array[k], _parse)).length === 0)
 				{
 					array.splice(k--, 1);
-				}
+				}*/
 			}
 			
 			if(array.length === 0)
