@@ -1120,51 +1120,85 @@
 
 			return result;
 		}
-		
-		static changeHash(_hash, _passive = true)
-		{
-			if(typeof _hash !== 'string')
-			{
-				return null;
-			}
-			else if(_hash[0] === '#')
-			{
-				_hash = _hash.substr(1);
-			}
 
-			if(_passive)
+		static get URL()
+		{
+			return Page.originalBase;
+		}
+
+		static set URL(_value)
+		{
+			if(is(_value, 'URL'))
 			{
-				history.replaceState(null, null, document.location.base + '#' + _hash);
+				_value = _value.href;
+			}
+			else if(typeof _value === 'string')
+			{
+				_value = new URL(_value, location.href).href;
 			}
 			else
 			{
+				return false;
+			}
+
+			history.replaceState(null, null, _value);
+			return true;
+		}
+
+		static changeHash(_hash, _passive = true, _resolve = true)
+		{
+			if(is(_hash, 'URL'))
+			{
+				_hash = _hash.hash;
+			}
+
+			if(typeof _hash === 'string')
+			{
+				if(_hash[0] !== '#')
+				{
+					_hash = '#' + _hash;
+				}
+
+				if(_passive)
+				{
+					return Page.URL = new URL(_hash, (_resolve ? location.href : location.origin)).href;
+				}
+
 				location.hash = _hash;
 			}
-			
-			return ('#' + _hash);
+			else
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		static changeURL(_href, _passive = true, _resolve = true)
 		{
-			if(typeof _href !== 'string')
+			if(is(_href, 'URL'))
 			{
-				return null;
+				_href = _href.href;
 			}
-			else
+			else if(typeof _href === 'string')
 			{
 				_href = new URL(_href, (_resolve ? location.href : location.origin)).href;
 			}
-			
+			else
+			{
+				return false;
+			}
+
 			if(_passive)
 			{
-				history.replaceState(null, null, _href);
+				return Page.URL = _href;
 			}
 			else
 			{
 				location.href = _href;
 			}
 
-			return _href;
+			return true;
 		}
 		
 		static onhashchange(_event)
