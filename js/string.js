@@ -1498,9 +1498,31 @@
 			}
 		}
 
+		var c;
+
 		for(var i = 0; i < text.length; ++i)
 		{
-			if(hadValue)
+			if(text[i] === '\\')
+			{
+				if(i < (text.length - 1))
+				{
+					c = text[++i];
+				}
+				else
+				{
+					c = '\\';
+				}
+
+				if(hadValue)
+				{
+					result[1] += c;
+				}
+				else
+				{
+					result[0] += c;
+				}
+			}
+			else if(hadValue)
 			{
 				if(text[i] === 'n' && result[1].length === 0)
 				{

@@ -451,10 +451,9 @@
 			{
 				if(_format[i] === '\\')
 				{
-					if(i < (_format.length - 1) && _format[i + 1] === '%')
+					if(i < (_format.length - 1))
 					{
-						result += '%';
-						i++;
+						result += _format[++i];
 					}
 					else
 					{
@@ -811,7 +810,7 @@
 				_format = _format.toLowerCase();
 			}
 			
-			const result = document.getVariable('date' + (_format.length === 0 ? '' : '-' + _format));
+			const result = document.getVariable('date' + (_format.length === 0 ? '' : '-' + _format), true);
 			
 			if(result.length > 0)
 			{
@@ -827,7 +826,7 @@
 				_variable = 'date';
 			}
 			
-			return document.getVariable(_variable);
+			return document.getVariable(_variable, true);
 		};
 	
 		//

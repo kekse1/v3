@@ -2989,7 +2989,7 @@ var c=0;
 		
 		if(typeof result.origin !== 'string')
 		{
-			if((result.origin = this.getVariable('transform-origin')).length === 0)
+			if((result.origin = this.getVariable('transform-origin')) === null || result.origin.length === 0)
 			{
 				delete result.origin;
 			}
@@ -3005,7 +3005,7 @@ var c=0;
 		}
 		else if(typeof result.easing !== 'string')
 		{
-			if((result.easing = this.getVariable('easing')).length === 0)
+			if((result.easing = this.getVariable('easing')) === null || result.easing.length === 0)
 			{
 				delete result.easing;
 			}

@@ -692,7 +692,27 @@
 
 		for(var i = 0; i < _value.length; i++)
 		{
-			if(_value[i].isEmpty)
+			if(_value[i] === '\\')
+			{
+				if(i < (_value.length - 1))
+				{
+					c = _value[++i];
+				}
+				else
+				{
+					c = '\\';
+				}
+
+				if(unitStarted)
+				{
+					unit += c;
+				}
+				else
+				{
+					value += c;
+				}
+			}
+			else if(_value[i].isEmpty)
 			{
 				continue;
 			}
