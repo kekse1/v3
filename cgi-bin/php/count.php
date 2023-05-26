@@ -41,16 +41,6 @@ define('COOKIE_HTTP_ONLY', true);
 //
 function secureHost($_host, $_die = true)
 {
-	if($_host[0] === '/' || $_host[0] === '\\')
-	{
-		if($_die)
-		{
-			die('Invalid $_host');
-		}
-
-		return null;
-	}
-
 	$length = min(strlen($_host), 255);
 	$result = '';
 	$byte = null;
@@ -127,23 +117,9 @@ function securePath($_string, $_die = true)
 		
 		return null;
 	}
-	else if($_string[0] === '.')
+	else while($_string[0] === '.' && $_string[1] === '/')
 	{
-		if($_die)
-		{
-			die('No hidden/dot files allowed here');
-		}
-
-		return null;
-	}
-	else if($_string[0] === '/' || $_string[0] === '\\')
-	{
-		if($_die)
-		{
-			die('Absolute paths are not allowed here');
-		}
-
-		return null;
+		$_string = substr($_string, 2);
 	}
 
 	$len = strlen($_string);
@@ -165,6 +141,17 @@ function securePath($_string, $_die = true)
 	for($i = 0; $i < $len; ++$i)
 	{
 		if($_string[$i] === '.')
+		{
+			if(strlen($result) === 0)
+			{
+				continue;
+			}
+			else if($result[strlen($result) - 1] === '.')
+			{
+				continue;
+			}
+		}
+		else if($_string[$i] === '/' || $_string[$i] === '\\')
 		{
 			if(strlen($result) === 0)
 			{
