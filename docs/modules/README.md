@@ -257,9 +257,11 @@ TODO
 ### [css](css.js.md).js
 * css.matrix
 * css.camel
-* css.url()
 * css.parse()
+* css.parse.functional()
+* css.parse.url()
 * css.render()
+* css.render.functional()
 
 ### [css.matrix](css.matrix.js.md).js
 TODO

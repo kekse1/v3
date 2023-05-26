@@ -277,7 +277,7 @@
 				open = true;
 				array[j] = [''];
 			}
-			else
+			else if(!_string[i].isEmpty)
 			{
 				key += _string[i];
 			}
