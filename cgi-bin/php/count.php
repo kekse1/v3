@@ -532,7 +532,7 @@ if(php_sapi_name() === 'cli')
 		printf('    -h / --hashes' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
 		printf('    -s / --stats     (TODO)' . PHP_EOL);
-		printf('    -S / --sync' . PHP_EOL);
+		printf('    -y / --sync' . PHP_EOL);
 		printf('    -l / --clean' . PHP_EOL);
 		printf('    -p / --purge' . PHP_EOL);
 		printf('    -e / --errors' . PHP_EOL);
@@ -1424,7 +1424,7 @@ if(php_sapi_name() === 'cli')
 		{
 			help($i);
 		}
-		else if($argv[$i] === '-v' || $argv[$i] === '--version')
+		else if($argv[$i] === '-V' || $argv[$i] === '--version')
 		{
 			info($i, true, false);
 		}
@@ -1436,7 +1436,7 @@ if(php_sapi_name() === 'cli')
 		{
 			stats($i);
 		}
-		else if($argv[$i] === '-S' || $argv[$i] === '--sync')
+		else if($argv[$i] === '-y' || $argv[$i] === '--sync')
 		{
 			sync($i);
 		}
