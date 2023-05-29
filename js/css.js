@@ -9,7 +9,7 @@
 	css = { camel };
 	
 	//
-	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
+	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW, _functional = true) => {
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -44,7 +44,7 @@
 		const quoted = new Set();
 		const result = [''];
 		var quote = '';
-		var open = false;
+		var open = 0;
 		const func = new Set();
 		
 		for(var i = 0, j = 0; i < _string.length; ++i)
@@ -72,21 +72,30 @@
 					result[j] += _string[i];
 				}
 			}
-			else if(open)
+			else if(open > 0)
 			{
 				result[j] += _string[i];
 				
 				if(_string[i] === ')')
 				{
-					open = false;
-					result[++j] = '';
+					--open;
+					
+					if(open <= 0)
+					{
+						open = 0;
+						func.add(j);
+						result[++j] = '';
+					}
+				}
+				else if(_string[i] === '(')
+				{
+					++open;
 				}
 			}
-			else if(_string[i] === '(')
+			else if(_string[i] === '(' && _functional)
 			{
-				open = true;
+				open = 1;
 				result[j] += '(';
-				func.add(j);
 			}
 			else if(_string[i].isEmpty || _string[i] === ',')
 			{
@@ -190,7 +199,7 @@
 		var array = [];
 		const quotes = String.quote;
 		const quoted = new Map();
-		var open = false;
+		var open = 0;
 		var quote = '';
 		var key = '';
 
@@ -205,10 +214,18 @@
 					{
 						array[j][k] += _string[++i];
 					}
+					else
+					{
+						key += _string[++i];
+					}
 				}
 				else if(open)
 				{
 					array[j][j] += '\\';
+				}
+				else
+				{
+					key += '\\';
 				}
 			}
 			else if(open)
@@ -224,10 +241,32 @@
 						array[j][k] += _string[i];
 					}
 				}
+				else if(_string[i] === '(')
+				{
+					++open;
+					array[j] = [ array[j][k] + '(' ];
+
+					if(! quoted.has(j))
+					{
+						quoted.set(j, new Set());
+					}
+
+					quoted.get(j).add(k);
+				}
 				else if(_string[i] === ')')
 				{
-					open = false;
-					break;
+					if(--open <= 0)
+					{
+						open = 0;
+					}
+					else
+					{
+						array[j][k] += ')';
+					}
+				}
+				else if(open > 1)
+				{
+					array[j][k] += _string[i];
 				}
 				else if(_string[i] === ',')
 				{
@@ -274,7 +313,7 @@
 			}
 			else if(_string[i] === '(')
 			{
-				open = true;
+				open = 1;
 				array[j] = [''];
 			}
 			else if(!_string[i].isEmpty)
@@ -300,7 +339,7 @@
 					}
 					else if(_parse)
 					{
-						array[i][k] = css.parse(array[i][k], _parse, _throw);
+						array[i][k] = css.parse(array[i][k], _parse, _throw, false);
 					}
 				}
 			}
