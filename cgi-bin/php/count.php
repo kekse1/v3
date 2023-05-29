@@ -13,8 +13,8 @@ define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('PATH', 'count');
-define('CLIENT', false);
-define('SERVER', false);
+define('CLIENT', true);
+define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
