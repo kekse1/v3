@@ -7,19 +7,19 @@ If NOT enabled (the default behavior), any `.set()` or `.dec[rease]()` will repl
 by zero.
 
 ## get/set floating()
-Whether floating point values will be reduced to an integer.
+Whether floating point values will be reduced to an integer (see `Math.int()`).
 
 ## set(_key, _value)
 Will check the values, and will so also allow only numeric values (etc).
 
 ## add(_key)
-..
+Like `.increase()`, but w/o optional '_by'.
 
 ## sub(_key)
-..
+Same style as `.add()`.. etc.
 
 ## inc\[rease\](_key, _by = 1)
-..
+You don't need to initialize via `.set()` or so..
 
 ## dec\[rease\](_key, _by = 1)
 ..
