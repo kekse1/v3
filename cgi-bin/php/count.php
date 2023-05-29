@@ -2,19 +2,19 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.9.1
+ * v2.9.2
  */
 
 //
-define('VERSION', [ 2, 9, 1 ]);
+define('VERSION', [ 2, 9, 2 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('PATH', 'count');
-define('CLIENT', true);
-define('SERVER', true);
+define('CLIENT', false);
+define('SERVER', false);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
@@ -310,9 +310,6 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 function check_path($_path = PATH, $_file = PATH_FILE)
 {
 	//
-	$_path = secure_path($_path, true);
-
-	//
 	if(!file_exists($_path))
 	{
 		error('Directory doesn\'t exist!');
@@ -357,19 +354,14 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 }
 
 //
-function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false)
+function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false, $_filter = false)
 {
 	if(gettype($_path) !== 'string')
 	{
 		log_error('Path is not a string', 'count_files', '', true);
 		error('Path is not a string');
 	}
-	else
-	{
-		$_path = secure_path($_path, true);
-	}
-	
-	if(! is_dir($_path))
+	else if(! is_dir($_path))
 	{
 		log_error('This is not a directory', 'count_files', $_path);
 		error('This is not a directory');
@@ -426,6 +418,14 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 				continue;
 			}
 		}
+		
+		if($_filter)
+		{
+			if($list[$i][0] === '~' || $list[$i][0] === '+' || $list[$i][0] === '-')
+			{
+				$list[$i] = substr($list[$i], 1);
+			}
+		}
 
 		if($_list)
 		{
@@ -440,16 +440,20 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	return $result;
 }
 
+//
 function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 {
 	//
-	if(($_path = secure_path($_path, $_die)) === null)
+	if($_path[0] === '~' || basename($_path)[0] === '~')
 	{
-		return null;
+		if($_die)
+		{
+			error('Removing a *value* file is not permitted!');
+		}
+		
+		return false;
 	}
-	
-	//
-	if(is_dir($_path))
+	else if(is_dir($_path))
 	{
 		if(! $_recursive)
 		{
@@ -611,20 +615,34 @@ if(php_sapi_name() === 'cli')
 	}
 
 	//
-	function get_hosts($_path = PATH, $_counts = false, $_die = true)
+	function get_hosts($_path = PATH, $_values = true, $_null = false)
 	{
-		$result = count_files(secure_path($_path, $_die), ($_counts ? null : false), ($_counts ? false : true), true);
+		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, false);
+		$result = array();
+		$item = null;
 
-		if($_counts) for($i = 0; $i < count($result); ++$i)
+		for($i = 0, $j = 0; $i < count($list); ++$i)
 		{
-			if($result[$i][0] === '+' || $result[$i][0] === '-')
+			$item = $list[$i];
+			
+			if($item[0] === '+' || $item[0] === '-' || $item[0] === '~')
 			{
-				$result[$i] = substr($result[$i], 1);
+				$item = substr($item, 1);
 			}
 			else
 			{
-				array_splice($result, $i--, 1);
+				continue;
 			}
+			
+			if(! in_array($item, $result))
+			{
+				$result[$j++] = $item;
+			}
+		}
+		
+		if($_null && count($result) === 0)
+		{
+			return null;
 		}
 
 		return $result;
@@ -664,7 +682,7 @@ if(php_sapi_name() === 'cli')
 		printf('    -h / --hashes' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
 		printf('    -v / --values [host,..]' . PHP_EOL);
-		printf('    -y / --sync [host,..]' . PHP_EOL);
+		printf('    -n / --sync [host,..]' . PHP_EOL);
 		printf('    -l / --clean [host,..]' . PHP_EOL);
 		printf('    -p / --purge [host,..]' . PHP_EOL);
 		printf('    -e / --errors' . PHP_EOL);
@@ -943,7 +961,7 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW_PARAMS', 'BAD');
 			++$errors;
 		}
-
+		
 		if(gettype(SIZE) === 'integer' && SIZE > 0)
 		{
 			$limit = SIZE_LIMIT;
@@ -1087,134 +1105,63 @@ if(php_sapi_name() === 'cli')
 		exit(1);
 	}
 	
-	function get_cache($_path = PATH, $_host = null, $_stop = true)
-	{
-		//
-		$_path = secure_path($_path, true);
-		$hosts = null;
-		$sub = null;
-		
-		if(gettype($_host) === 'string')
-		{
-			$hosts = [ $_host ];
-		}
-		else
-		{
-			$hosts = get_hosts($_path, false, true);
-		}
-		
-		for($i = 0; $i < count($hosts); ++$i)
-		{
-			//
-			$hosts[$i] = secure_host($hosts[$i], true);
-			$sub = secure_path($_path . '/+' . $hosts[$i], true);
-			
-			//
-			if(file_exists($sub))
-			{
-				if(!is_dir($sub))
-				{
-					fprintf(STDERR, ' >> Cache directory for host \'%s\' is not a directory! Please replace/remove it asap!' . PHP_EOL, $_host);
-					exit(1);
-				}
-				else if(!is_readable($sub))
-				{
-					fprintf(STDERR, ' >> Cache directory for host \'%s\' is not readable! Please replace/remove it asap!' . PHP_EOL, $_host);
-					exit(2);
-				}
-			}
-			else
-			{
-				array_splice($hosts, $i--, 1);
-			}
-		}
-		
-		if(count($hosts) === 0)
-		{
-			return array();
-		}
-
-		$hostsCount = count($hosts);
-		$result = array();
-
-		for($i = 0, $j = 0; $i < $hostsCount; ++$i)
-		{
-			$list = count_files($_path . '/+' . $hosts[$i], false, false, true);
-			$filesCount = count($list);
-
-			for($k = 0; $k < $filesCount; ++$k)
-			{
-				$sub = $_path . '/+' . $hosts[$i] . '/' . $list[$k];
-				
-				if(is_file($sub))
-				{
-					$result[$j++] = $_path . '/+' . $hosts[$i] . '/' . $list[$k];
-				}
-			}
-		}
-		
-		return $result;
-	}
-
 	function values($_index = -1, $_path = PATH)
 	{
 		//
-		$_path = secure_path($_path, true);
 		$hosts = get_arguments($_index + 1);
 
 		//
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, false);
+			$hosts = get_hosts($_path, true);
 		}
 
 		if(count($hosts) === 0)
 		{
-			fprintf(STDERR, ' >> No hosts found' . PHP_EOL);
+			fprintf(STDERR, ' >> No hosts found (or invalid ones defined by you)' . PHP_EOL);
 			exit(1);
 		}
 		
 		$files = array();
 		$file = null;
+		$origLen = count($hosts);
 
 		for($i = 0, $j = 0; $i < count($hosts); ++$i)
 		{
-			$hosts[$i] = secure_host($hosts[$i]);
-			$file = secure_path($_path . '/' . $hosts[$i]);
+			$file = $_path . '/~' . $hosts[$i];
 			
-			if(is_file($file))
+			if(is_file($file) && is_readable($file))
 			{
 				$files[$j++] = $file;
 			}
 			else
 			{
-				fprintf(STDERR, ' >> No host \'%s\'' . PHP_EOL, $hosts[$i]);
+				fprintf(STDERR, ' >> No host \'%s\' (or it\'s file is not readable)' . PHP_EOL, $hosts[$i]);
 				array_splice($hosts, $i--, 1);
 			}
 		}
 		
 		$len = count($files);
-		
+
 		if($len === 0)
 		{
-			fprintf(STDERR, ' >> No host files left' . PHP_EOL);
+			fprintf(STDERR, ' >> No hosts left' . ($origLen > 0 ? ' (from originally %d defined ones)' : '') . PHP_EOL, $origLen);
 			exit(2);
 		}
 
 		$value = -1;
 		$maxLen = 0;
-		$len = 0;
-		
+		$currLen = 0;
+
 		for($i = 0; $i < $len; ++$i)
 		{
-			if(($len = strlen($hosts[$i])) > $maxLen)
+			if(($currLen = strlen($hosts[$i])) > $maxLen)
 			{
-				$maxLen = $len;
+				$maxLen = $currLen;
 			}
 		}
-		
-		$len = count($files);
-		$maxLen += 13;
+
+		++$maxLen;
 		$START = '%' . $maxLen . 's: ';
 		
 		for($i = 0; $i < $len; ++$i)
@@ -1236,21 +1183,51 @@ if(php_sapi_name() === 'cli')
 	function sync($_index = null, $_path = PATH)
 	{
 		//
-		$_path = secure_path($_path, true);
 		$hosts = get_arguments($_index + 1);
 		
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, true);
+			$hosts = get_hosts($_path, false);
 		}
+
+		$gotFile = null;
+		$gotDir = null;
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
-			if(!is_dir($_path . '/+' . $hosts[$i]))
+			$gotFile = is_file($_path . '/-' . $hosts[$i]);
+			$gotDir = is_dir($_path . '/+' . $hosts[$i]);
+			
+			if($gotFile && !$gotDir)
 			{
-				if(is_file($_path . '/-' . $hosts[$i]) && is_writable($_path . '/-' . $hosts[$i]))
+				if(is_writable($_path . '/-' . $hosts[$i]) && remove($_path . '/-' . $hosts[$i], false, true))
 				{
-					unlink($_path . '/-' . $hosts[$i]);
+					printf(' >> Count file for not existing cache directory of host \'%s\' deleted.' . PHP_EOL, $hosts[$i]);
+				}
+				else
+				{
+					fprintf(STDERR, ' >> Count file for non existing cache directory of host \'%s\' couldn\'t be deleted.' . PHP_EOL, $hosts[$i]);
+				}
+
+				array_splice($hosts, $i--, 1);
+			}
+			else if($gotFile && $gotDir)
+			{
+				if(!is_writable($_path . '/-' . $hosts[$i]))
+				{
+					fprintf(STDERR, ' >> Count file for host \'%s\' is not writable.' . PHP_EOL, $hosts[$i]);
+					array_splice($hosts, $i--, 1);
+				}
+			}
+			else if(!$gotDir)
+			{
+				if(is_file($_path . '/~' . $hosts[$i]))
+				{
+					fprintf(STDERR, ' >> No cache files for this host \'%s\' available (but the host itself exists)' . PHP_EOL, $hosts[$i]);
+				}
+				else
+				{
+					fprintf(STDERR, ' >> The whole host \'%s\' is not existing (neither cache nor value files)' . PHP_EOL, $hosts[$i]);
 				}
 
 				array_splice($hosts, $i--, 1);
@@ -1330,103 +1307,183 @@ if(php_sapi_name() === 'cli')
 
 	function clean($_index = -1, $_path = PATH, $_host = null)
 	{
-die('get_cache => get_hosts');
 		//
-		$result = array();
-		$cached = get_cache($_path, $_host);
-		$len = count($cached);
+		$hosts = get_arguments($_index + 1);
 		
-		if($len === 0)
+		if($hosts === null)
 		{
-			printf('No cache files available to clean.' . PHP_EOL);
-			exit(0);
+			$hosts = get_hosts($_path, false);
 		}
-		
-		$delete = array();
 
-		//
-		for($i = 0, $j = 0; $i < $len; ++$i)
+		if(count($hosts) === 0)
 		{
-			$time = (int)file_get_contents($cached[$i]);
-			$diff = timestamp($time);
-			
-			if($diff >= THRESHOLD)
-			{
-				$delete[$j++] = $cached[$i];
-			}
-		}
-		
-		//
-		$len = count($delete);
-		$success = array();
-		$errors = 0;
-		$dirs = array();
-		
-		if($len === 0)
-		{
-			fprintf(STDERR, ' >> No files for cleaning left');
-			
-			if(count($cached) === 0)
-			{
-				fprintf(STDERR, ' (had no real files)');
-			}
-			else
-			{
-				fprintf(STDERR, ' (all files are too young)');
-			}
-			
-			fprintf(STDERR, PHP_EOL);
+			fprintf(STDERR, ' >> No hosts available' . PHP_EOL);
 			exit(1);
 		}
-		else for($i = 0, $j = 0, $k = 0; $i < $len; ++$i)
+		
+		$originalLen = count($hosts);
+		
+		for($i = 0; $i < count($hosts); ++$i)
 		{
-			if(unlink($delete[$i]) === true)
+			if(! is_dir($_path . '/+' . $hosts[$i]))
 			{
-				$sub = dirname($delete[$i]);
+				fprintf(STDERR, ' >> No cache directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
+				array_splice($hosts, $i--, 1);
+			}
+		}
+
+		$len = count($hosts);
 				
-				if(!in_array($sub, $dirs))
+		if($len === 0)
+		{
+			fprintf(STDERR, ' >> No host left (of %d found)' . PHP_EOL, $originalLen);
+			exit(2);
+		}
+		else
+		{
+			$originalLen = $len;
+		}
+
+		//
+		$adapted = array();
+		$delete = array();
+		$origLen = 0;
+		$files = null;
+		$item = null;
+		$len = null;
+		$err = 0;
+		$inTime = 0;
+		
+		for($i = 0, $j = 0, $origLen = 0, $l = 0; $i < count($hosts); ++$i, $origLen = $j)
+		{
+			if(($len = count($files = count_files($_path . '/+' . $hosts[$i], false, false, true))) === 0)
+			{
+				printf(' >> No cache files for host \'%s\' collected' . PHP_EOL, $hosts[$i]);
+			}
+			else for($k = 0; $k < $len; ++$k)
+			{
+				$item = $_path . '/+' . $hosts[$i] . '/' . $files[$k];
+
+				if(is_readable($item))
 				{
-					$dirs[$k++] = dirname($delete[$i]);
+					if(timestamp((int)file_get_contents($item)) > THRESHOLD)
+					{
+						if(is_writable($item))
+						{
+							$delete[$j++] = $item;
+						}
+						else
+						{
+							fprintf(STDERR, ' >> File \'%s\' is no longer within THRESHOLD, but it\'s not writable!' . PHP_EOL, $item);
+							++$err;
+						}
+					}
+					else
+					{
+						++$inTime;
+					}
 				}
-				
-				$success[$j++] = $delete[$i];
+				else
+				{
+					fprintf(STDERR, ' >> File \'%s\' is not readable, so we can\'t read the timestamp in it..' . PHP_EOL, $files[$k]);
+					++$err;
+				}
+			}
+			
+			if($j > $origLen)
+			{
+				$adapted[$l++] = [ $hosts[$i], ($j - $origLen) ];
+			}
+		}
+
+		$len = count($delete);
+
+		if($len === 0)
+		{
+			printf(' >> No outdated files to delete (counted %d of these).' . PHP_EOL, $inTime);
+			
+			if($err > 0)
+			{
+				fprintf(STDERR, ' >> .. but there were %d errors. :-/' . PHP_EOL, $err);
+				exit(3);
+			}
+			
+			exit(0);
+		}
+		else
+		{
+			printf(' >> Found %d outdated cache files to delete; their hosts (w/ counts) are:' . PHP_EOL, $len, $inTime);
+			$adaptedLen = count($adapted);
+			
+			for($i = 0; $i < $adaptedLen; ++$i)
+			{
+				printf('    %s (%d)' . PHP_EOL, $adapted[$i][0], $adapted[$i][1]);
+			}
+			
+			printf(PHP_EOL);
+		}
+		
+		if(! prompt('Do you really want to remove %d cache files [yes/no]? '))
+		{
+			fprintf(STDERR, ' >> Aborted.' . PHP_EOL);
+			exit(4);
+		}
+		else
+		{
+			printf(PHP_EOL);
+		}
+		
+		$ok = 0;
+		$err = 0;
+		$len = count($delete);
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(remove($delete[$i], false, true))
+			{
+				++$ok;
 			}
 			else
 			{
-				++$errors;
+				++$err;
 			}
 		}
-		
-		$len = count($dirs);
-		
-		//
-		printf(' >> %d successfully cleaned' . PHP_EOL, count($success));
 
-		if($errors > 0)
+		printf(' >> Successfully deleted %d files! :-)' . PHP_EOL, $ok);
+		$ok = 0;
+		
+		$len = count($adapted);
+		
+		for($i = 0; $i < $len; ++$i)
 		{
-			fprintf(STDERR, ' >> %d cache files couldn\'t be deleted..' . PHP_EOL, $errors);
-			$errors = 0;
-		}
-		
-		$target = null;
-
-		for($i = 0, $j = 0; $i < $len; ++$i)
-		{
-			$sub = count_files($dirs[$i], false, false, false);
-			$target = str_replace('+', '-', $dirs[$i]);
-
-			if(file_put_contents($target, (string)$sub))
+			$item = count_files($_path . '/+' . ($adapted[$i] = $adapted[$i][0]), false, false, false, false);
+			
+			if(is_writable($_path . '/-' . $adapted[$i]))
 			{
-				printf(' >> File \'%s\' sync\'ed (counting %d files)' . PHP_EOL, $target, $sub);
+				if(file_put_contents($_path . '/-' . $adapted[$i], (string)$item) === false)
+				{
+					fprintf(STDERR, ' >> Synchronization for host \'%s\' failed (couldn\'t write to file)!' . PHP_EOL, $adapted[$i]);
+				}
+				else
+				{
+					++$ok;
+				}
 			}
 			else
 			{
-				fprintf(STDERR, ' >> File \'%s\' couldn\'t be written (for sync, with %d files)..' . PHP_EOL, $target, $sub);
+				fprintf(STDERR, ' >> Count file for host \'%s\' not writable (so synchronization not possible here)' . PHP_EOL, $adapted[$i]);
 			}
 		}
 		
-		//
-		exit();
+		printf(' >> Synchronization for %d hosts also succeeded! :-D' . PHP_EOL, $ok);
+		
+		if($err > 0)
+		{
+			fprintf(STDERR, ' >> Deletion of %d files failed.. :-(' . PHP_EOL, $err);
+			exit(5);
+		}
+
+		exit(0);
 	}
 
 	function purge($_index = -1, $_path = PATH, $_host = null)
@@ -1436,35 +1493,38 @@ die('get_cache => get_hosts');
 
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, true);
+			$hosts = get_hosts($_path, false);
 		}
 
-		$len = count($hosts);
-
-		if($len === 0)
+		if(count($hosts) === 0)
 		{
-			printf('No hosts available to purge their cache files..' . PHP_EOL);
+			printf('No hosts available to purge their cache files.' . PHP_EOL);
 			exit(0);
 		}
 		else for($i = 0; $i < count($hosts); ++$i)
 		{
 			if(!is_dir($_path . '/+' . $hosts[$i]) && !is_file($_path . '/-' . $hosts[$i]))
 			{
+				fprintf(STDERR, ' >> Neither cache nor count file for host \'%s\' found.' . PHP_EOL, $hosts[$i]);
 				array_splice($hosts, $i--, 1);
 			}
 		}
+		
+		$len = count($hosts);
 
-		if(count($hosts) === 0)
+		if($len === 0)
 		{
-			fprintf(STDERR, ' >> No hosts found' . PHP_EOL);
+			fprintf(STDERR, ' >> No hosts to purge the cache files' . PHP_EOL);
 			exit(1);
 		}
-
-		$input = prompt('Do you really want to purge the cache for ' . $len . ' hosts [yes/no]? ');
-		
-		if(!$input)
+		else for($i = 0; $i < $len; ++$i)
 		{
-			fprintf(STDERR, ' >> Aborting (as requested)!' . PHP_EOL);
+			printf(PHP_EOL . ' >> Selected host \'%s\' for purging all it\'s cache files.' . PHP_EOL, $hosts[$i]);
+		}
+
+		if(! (prompt('Do you really want to purge the cache for ' . count($hosts) . ' hosts [yes/no]? ')))
+		{
+			fprintf(STDERR, ' >> Aborting, as wished by you!' . PHP_EOL);
 			exit(2);
 		}
 		
@@ -1478,7 +1538,7 @@ die('get_cache => get_hosts');
 			
 			if(is_file($sub))
 			{
-				if(unlink($sub))
+				if(remove($sub, true, true))
 				{
 					$result[$r++] = $sub;
 				}
@@ -1564,7 +1624,6 @@ die('get_cache => get_hosts');
 
 	function unlog($_index = -1, $_path = (PATH . '/' . LOG))
 	{
-		$_path = secure_path($_path, true);
 		error_reporting(0);
 
 		if(! file_exists($_path))
@@ -1584,7 +1643,7 @@ die('get_cache => get_hosts');
 			fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
 			exit(2);
 		}
-		else if(unlink($_path) === false)
+		else if(remove($_path, false, true) === false)
 		{
 			fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, $_path);
 
@@ -1605,8 +1664,6 @@ die('get_cache => get_hosts');
 
 	function errors($_index = -1, $_path = (PATH . '/' . LOG))
 	{
-		$_path = secure_path($_path, true);
-		
 		if(! file_exists($_path))
 		{
 			printf(' >> No errors logged! :-D' . PHP_EOL, $_path);
@@ -1672,7 +1729,7 @@ die('get_cache => get_hosts');
 		{
 			values($i);
 		}
-		else if($argv[$i] === '-y' || $argv[$i] === '--sync')
+		else if($argv[$i] === '-n' || $argv[$i] === '--sync')
 		{
 			sync($i);
 		}
@@ -1781,7 +1838,7 @@ define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
-define('PATH_FILE', PATH . '/' . secure_path(HOST, true));
+define('PATH_FILE', PATH . '/~' . secure_path(HOST, true));
 define('PATH_DIR', PATH . '/+' . secure_path(HOST, true));
 define('PATH_COUNT', PATH . '/-' . secure_path(HOST, true));
 define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'])), true));
@@ -1907,7 +1964,7 @@ die('FIXME (some values get lost?)');
 
 			if($diff >= THRESHOLD)
 			{
-				if(unlink($_dir . '/' . $dirs[$i]) === false)
+				if(remove($_dir . '/' . $dirs[$i], true, true) === false)
 				{
 					log_error('File couldn\'t be deleted..', 'clean_files', $_dir . '/' . $dirs[$i], false);
 				}
