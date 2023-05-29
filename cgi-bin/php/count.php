@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.9.0
+ * v2.9.1
  */
 
 //
-define('VERSION', [ 2, 9, 0 ]);
+define('VERSION', [ 2, 9, 1 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -512,6 +512,7 @@ if(php_sapi_name() === 'cli')
 	else
 	{
 		define('ARGV', $argv);
+		define('ARGC', $argc);
 	}
 
 	//
@@ -559,18 +560,54 @@ if(php_sapi_name() === 'cli')
 		return $result;
 	}
 	
-	function get_arguments($_index, $_argv = ARGV)
+	function get_arguments($_index, $_die = true)
 	{
-		if(empty($_argv[$_index]))
+		if(gettype($_index) !== 'integer' || $_index < 0)
 		{
+			if($_die)
+			{
+				error('Invalid $_index argument');
+			}
+			
 			return null;
 		}
-		else if($_argv[$_index][0] === '-')
+		else if(ARGC <= $_index)
 		{
 			return null;
 		}
 		
-		return explode(',', $_argv[$_index]);
+		$result = array();
+
+		for($i = $_index, $j = 0; $i < ARGC; ++$i)
+		{
+			if(empty(ARGV[$i]))
+			{
+				continue;
+			}
+			else if(ARGV[$i][0] === '-')
+			{
+				break;
+			}
+			else
+			{
+				$item = explode(',', ARGV[$i]);
+				
+				for($k = 0; $k < count($item); ++$k)
+				{
+					if(! empty($item[$k]))
+					{
+						$result[$j++] = $item[$k];
+					}
+				}
+			}
+		}
+
+		if(empty($result))
+		{
+			return null;
+		}
+
+		return $result;		
 	}
 
 	//
@@ -1423,7 +1460,7 @@ die('get_cache => get_hosts');
 			exit(1);
 		}
 
-		$input = prompt('Do you really want to purge all cache files for ' . $len . ' hosts [yes/no]? ');
+		$input = prompt('Do you really want to purge the cache for ' . $len . ' hosts [yes/no]? ');
 		
 		if(!$input)
 		{
