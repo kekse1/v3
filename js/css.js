@@ -9,7 +9,7 @@
 	css = { camel };
 	
 	//
-	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW, _functional = true) => {
+	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
 			if(_throw)
@@ -78,9 +78,7 @@
 				
 				if(_string[i] === ')')
 				{
-					--open;
-					
-					if(open <= 0)
+					if(--open <= 0)
 					{
 						open = 0;
 						func.add(j);
@@ -92,7 +90,7 @@
 					++open;
 				}
 			}
-			else if(_string[i] === '(' && _functional)
+			else if(_string[i] === '(')
 			{
 				open = 1;
 				result[j] += '(';
@@ -197,6 +195,8 @@
 
 		//
 		var array = [];
+		const sub = Object.create(null);
+		const opened = [];
 		const quotes = String.quote;
 		const quoted = new Map();
 		var open = 0;
@@ -244,14 +244,7 @@
 				else if(_string[i] === '(')
 				{
 					++open;
-					array[j] = [ array[j][k] + '(' ];
-
-					if(! quoted.has(j))
-					{
-						quoted.set(j, new Set());
-					}
-
-					quoted.get(j).add(k);
+					array[j][k] += '(';
 				}
 				else if(_string[i] === ')')
 				{
@@ -339,7 +332,7 @@
 					}
 					else if(_parse)
 					{
-						array[i][k] = css.parse(array[i][k], _parse, _throw, false);
+						array[i][k] = css.parse(array[i][k], _parse, _throw);
 					}
 				}
 			}
