@@ -1166,13 +1166,13 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < $len; ++$i)
 		{
-			if(($value = file_get_contents($files[$i])) === false)
+			if(($value = (int)file_get_contents($files[$i])) === false)
 			{
 				fprintf(STDERR, $START . 'Unable to read host file' . PHP_EOL, $$hosts[$i]);
 			}
 			else
 			{
-				printf($START . $value . PHP_EOL, $hosts[$i]);
+				printf($START . (string)$value . PHP_EOL, $hosts[$i]);
 			}
 		}
 
