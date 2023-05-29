@@ -18,7 +18,7 @@ define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
-define('CLEAN', true);
+define('CLEAN', false);
 define('LIMIT', 32768);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
@@ -1561,7 +1561,11 @@ if(php_sapi_name() === 'cli')
 	//
 	if(isset($argv)) for($i = 1; $i < $argc; ++$i)
 	{
-		if($argv[$i] === '-?' || $argv[$i] === '--help')
+		if(strlen($argv[$i]) < 2 || $argv[$i][0] !== '-')
+		{
+			continue;
+		}
+		else if($argv[$i] === '-?' || $argv[$i] === '--help')
 		{
 			help($i);
 		}
