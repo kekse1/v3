@@ -1941,7 +1941,7 @@ function make_cookie()
 	));
 }
 
-function clean_files($_dir = PATH_DIR, $_file = PATH_FILE)
+function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 {
 	if(CLEAN === null)
 	{
@@ -1950,7 +1950,7 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_FILE)
 	}
 	else if(!is_dir($_dir))
 	{
-		return 0;
+		return init_count($_file, $_dir, false);
 	}
 
 	$files = count_files($_dir, false, false, true);
@@ -2006,7 +2006,15 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_FILE)
 
 function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
 {
-	$result = count_files($_directory, false, false, false);
+	if(is_dir($_directory))
+	{
+		$result = count_files($_directory, false, false, false);
+	}
+	else
+	{
+		$result = 0;
+	}
+
 	$written = file_put_contents($_path, (string)$result);
 
 	if($written === false)
