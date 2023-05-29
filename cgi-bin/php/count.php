@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.9.3
+ * v2.10.0
  */
 
 //
-define('VERSION', [ 2, 9, 3 ]);
+define('VERSION', [ 2, 10, 0 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -18,7 +18,7 @@ define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
-define('CLEAN', false);
+define('CLEAN', true);
 define('LIMIT', 32768);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
@@ -1943,7 +1943,6 @@ function make_cookie()
 
 function clean_files($_dir = PATH_DIR, $_file = PATH_FILE)
 {
-die('FIXME (some values get lost?)');
 	if(CLEAN === null)
 	{
 		log_error('Called function, but CLEAN === null', 'clean_files', '', false);
@@ -1954,63 +1953,72 @@ die('FIXME (some values get lost?)');
 		return 0;
 	}
 
-	$dirs = count_files($_dir, false, false, true);
-	$len = count($dirs);
-	$deleted = 0;
+	$files = count_files($_dir, false, false, true);
+	$len = count($files);
 
-	for($i = 0; $i < $len; ++$i)
+	if($len === 0)
 	{
-		if(!is_file($_dir . '/' . $dirs[$i]) || !is_readable($_dir . '/' . $dirs[$i]) || !is_writable($_dir . '/' . $dirs[$i]))
+		return 0;
+	}
+	
+	$item = null;
+	$items = array();
+	
+	for($i = 0, $j = 0; $i < $len; ++$i)
+	{
+		if(is_writable($item = $_dir . '/' . $files[$i]) && is_writable($item))
 		{
-			log_error('File is not a regular file, or it\'s not readable or writable..', 'clean_files', $_dir . '/' . $dirs[$i], false);
+			$items[$j++] = $item;
 		}
 		else
 		{
-			$time = (int)file_get_contents($_dir . '/' . $dirs[$i]);
-			$diff = timestamp($time);
-
-			if($diff >= THRESHOLD)
-			{
-				if(remove($_dir . '/' . $dirs[$i], true, true) === false)
-				{
-					log_error('File couldn\'t be deleted..', 'clean_files', $_dir . '/' . $dirs[$i], false);
-				}
-				else
-				{
-					++$deleted;
-				}
-			}
+			log_error('File is either not readable or not writable', 'clean_files', $item, false);
 		}
 	}
 
-	if($deleted > 0)
+	if(count($items) === 0)
 	{
-		$total = ($len - $deleted);
-
-		if($total < 0)
+		return 0;
+	}
+	else for($i = 0; $i < count($items); ++$i)
+	{
+		if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
 		{
-			log_error('Total count is below zero, as originally ' . $len . ' files, and ' . $deleted . ' deleted?', 'clean_files', $_dir, false);
-			return -1;
-		}
-		else if(file_put_contents($_file, (string)$total) === false)
-		{
-			log_error('Couldn\'t write new total count (' . $total . ') to file', 'clean_files', $_file, false);
-			return -1;
+			array_splice($items, $i--, 1);
 		}
 	}
+	
+	if(($len = count($items)) === 0)
+	{
+		return 0;
+	}
 
-	return $deleted;
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(remove($items[$i], false, false) === false)
+		{
+			log_error('Unable to remove() outdated file', 'clean_files', $items[$i], false);
+		}
+	}
+	
+	return init_count();
 }
 
-function init_count($_path = PATH_COUNT, $_directory = PATH_DIR)
+function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
 {
 	$result = count_files($_directory, false, false, false);
 	$written = file_put_contents($_path, (string)$result);
 
 	if($written === false)
 	{
-		log_error('Couldn\'t initialize count', 'init_count', $_path);
-		error('Couldn\'t initialize count');
+		log_error('Couldn\'t initialize count', 'init_count', $_path, $_die);
+
+		if($_die)
+		{
+			error('Couldn\'t initialize count');
+		}
+		
+		return false;
 	}
 
 	return $result;
@@ -2301,4 +2309,3 @@ if(SERVER)
 exit();
 
 ?>
-
