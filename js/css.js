@@ -39,7 +39,7 @@
 				}
 			}
 		}
-		
+
 		const quotes = String.quote;
 		const quoted = new Set();
 		const result = [''];
@@ -141,6 +141,11 @@
 			}
 			else if(func.has(j))
 			{
+				if(isInt(_parse) && _parse <= 1)
+				{
+					_parse = false;
+				}
+
 				result[i] = css.parse.functional(result[i], _parse, _throw);
 			}
 			else if(!_parse)
@@ -191,6 +196,10 @@
 		else if((_string = _string.trim()).length === 0)
 		{
 			return null;
+		}
+		else if(isInt(_parse) && _parse <= 0)
+		{
+			_parse = false;
 		}
 
 		//
@@ -314,7 +323,16 @@
 				key += _string[i];
 			}
 		}
-		
+
+		//
+		if(isInt(_parse))
+		{
+			if((--_parse) <= 0)
+			{
+				_parse = false;
+			}
+		}
+
 		//
 		var q;
 		

@@ -139,7 +139,18 @@
 
 			if(typeof _unit !== 'boolean')
 			{
-				if(isString(_unit, false))
+				if(isInt(_unit))
+				{
+					if(_unit <= 0)
+					{
+						_unit = false;
+					}
+					else
+					{
+						_unit = true;
+					}
+				}
+				else if(isString(_unit, false))
 				{
 					_unit = [ _unit ];
 				}
