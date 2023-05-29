@@ -65,7 +65,7 @@
 	
 	Object.defineProperty(HTMLElement.prototype, 'getStyle', { value: function(... _args)
 	{
-		var computed = null;
+		var style = null;
 
 		if(_args.length === 0)
 		{
@@ -75,13 +75,22 @@
 		{
 			if(Object.className(_args[i]) === 'CSSStyleDeclaration')
 			{
-				computed = _args.splice(i--, 1)[0];
+				style = _args.splice(i--, 1)[0];
+			}
+			else if(_args[i] === null)
+			{
+				_args.splice(i--, 1);
+				style = this.style;
 			}
 		}
 
 		if(! HTMLElement.isStyle(... _args))
 		{
 			return null;
+		}
+		else if(! style)
+		{
+			style = getComputedStyle(this);
 		}
 
 		const result = Object.create(null);
@@ -91,12 +100,7 @@
 		{
 			if((value = this.style.getPropertyValue(_args[i])).length === 0 || value === 'auto')
 			{
-				if(computed === null)
-				{
-					computed = getComputedStyle(this);
-				}
-
-				if((value = computed.getPropertyValue(_args[i])).length === 0)
+				if((value = style.getPropertyValue(_args[i])).length === 0)
 				{
 					value = null;
 				}
@@ -868,8 +872,25 @@
 		return _setProperty.call(this, camel.disable(_prop), ... _args);
 	}});
 
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'setPropertyValue', { value: function(_key, _value, _render = true)
+	{
+		if(camel)
+		{
+			_key = camel.disable(_key);
+		}
+
+		if(_render || typeof _value !== 'string')
+		{
+			_value = css.render(_value);
+		}
+
+		return this.setProperty(_key, _value);
+	}});
+
 	Object.defineProperty(CSSStyleDeclaration.prototype, 'getPropertyValue', { value: function(... _args)
 	{
+		var PARSE = false;
+
 		for(var i = 0; i < _args.length; ++i)
 		{
 			if(isString(_args[i], false))
@@ -883,9 +904,17 @@
 					_args.splice(i--, 1);
 				}
 			}
-			else
+			else if(typeof _args[i] === 'boolean')
 			{
-				_args.splice(i--, 1);
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(isInt(_args[i], null))
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(isArray(_args[i], true))
+			{
+				PARSE = _args.splice(i--, 1)[0];
 			}
 		}
 
@@ -901,7 +930,14 @@
 		{
 			camelOn = camel.enable(_args[i]);
 			camelOff = camel.disable(_args[i]);
+
 			value = _getPropertyValue.call(this, camelOff);
+
+			if(PARSE !== false)
+			{
+				value = css.parse(value, PARSE);
+			}
+
 			result[camelOn] = value;
 			result[camelOff] = value;
 		}

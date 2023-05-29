@@ -7,6 +7,60 @@
 
 	//
 	css = { camel };
+
+	//
+	Object.defineProperty(HTMLElement.prototype, 'parseStyle', { value: function(... _args)
+	{
+		var PARSE = true;
+
+		for(var i = 0; i < _args.length; ++i)
+		{
+			if(isArray(_args[i], true))
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(typeof _args[i] === 'boolean')
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(isInt(_args[i]))
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+		}
+
+		const result = this.getStyle(... _args);
+
+		if(typeof result === 'undefined' || result === null)
+		{
+			return result;
+		}
+		else if(! isObject(result))
+		{
+			return css.parse(result, PARSE);
+		}
+		else for(const idx in result)
+		{
+			result[idx] = css.parse(result[idx], PARSE);
+		}
+
+		return result;
+	}});
+
+	Object.defineProperty(HTMLElement.prototype, 'renderStyle', { value: function(_key, _value, _options, _callback, _throw)
+	{
+throw new Error('TODO');//w/ animation etc. @ setStyle()
+	}});
+
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'parse', { value: function(... _args)
+	{
+		return this.getPropertyValue(true, ... _args);
+	}});
+
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'render', { value: function(_key, _value, _parse = true)
+	{
+		return this.style.setPropertyValue(_key, _value, _parse);
+	}});
 	
 	//
 	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
