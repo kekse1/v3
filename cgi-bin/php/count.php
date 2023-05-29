@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.8.6
+ * v2.8.7
  */
 
 //
-define('VERSION', [ 2, 8, 6 ]);
+define('VERSION', [ 2, 8, 7 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -228,7 +228,15 @@ function errorLog($_reason, $_source = '', $_path = '', $_die = true)
 	
 	if($noLog)
 	{
-		fprintf(STDERR, ' >> ' . $data);
+		if(defined('STDERR'))
+		{
+			fprintf(STDERR, ' >> ' . $data);
+		}
+		else
+		{
+			die($data);
+		}
+
 		$result = $data;
 	}
 	else
@@ -1691,7 +1699,7 @@ unset($host);
 
 //
 define('PATH_FILE', PATH . '/' . securePath(HOST, true));
-define('PATH_DIR', PATH . '/+' . securePath(true));
+define('PATH_DIR', PATH . '/+' . securePath(HOST, true));
 define('PATH_COUNT', PATH . '/-' . securePath(HOST, true));
 define('PATH_IP', PATH_DIR . '/' . securePath((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'])), true));
 define('PATH_LOG', PATH . '/' . LOG);
