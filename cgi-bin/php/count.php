@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.9.2
+ * v2.9.3
  */
 
 //
-define('VERSION', [ 2, 9, 2 ]);
+define('VERSION', [ 2, 9, 3 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1517,9 +1517,16 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, ' >> No hosts to purge the cache files' . PHP_EOL);
 			exit(1);
 		}
-		else for($i = 0; $i < $len; ++$i)
+		else
 		{
-			printf(PHP_EOL . ' >> Selected host \'%s\' for purging all it\'s cache files.' . PHP_EOL, $hosts[$i]);
+			printf(PHP_EOL . ' >> Selected following hosts for purging all their cache/count files:' . PHP_EOL);
+
+			for($i = 0; $i < $len; ++$i)
+			{
+				printf('    %s' . PHP_EOL, $hosts[$i]);
+			}
+
+			printf(PHP_EOL);
 		}
 
 		if(! (prompt('Do you really want to purge the cache for ' . count($hosts) . ' hosts [yes/no]? ')))
