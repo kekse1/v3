@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.8.5
+ * v2.8.6
  */
 
 //
-define('VERSION', [ 2, 8, 5 ]);
+define('VERSION', [ 2, 8, 6 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1690,11 +1690,11 @@ define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
-define('PATH_FILE', securePath(PATH . '/' . HOST, true));
-define('PATH_DIR', securePath(PATH . '/+' . HOST, true));
-define('PATH_COUNT', securePath(PATH . '/-' . HOST, true));
-define('PATH_IP', securePath(PATH_DIR . '/' . (HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'])), true));
-define('PATH_LOG', securePath(PATH . '/' . LOG, true));
+define('PATH_FILE', PATH . '/' . securePath(HOST, true));
+define('PATH_DIR', PATH . '/+' . securePath(true));
+define('PATH_COUNT', PATH . '/-' . securePath(HOST, true));
+define('PATH_IP', PATH_DIR . '/' . securePath((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secureHost($_SERVER['REMOTE_ADDR'])), true));
+define('PATH_LOG', PATH . '/' . LOG);
 
 //
 header('Content-Type: ' . CONTENT);
@@ -1788,6 +1788,7 @@ function makeCookie()
 
 function cleanFiles($_dir = PATH_DIR, $_file = PATH_FILE)
 {
+die('FIXME (some values get lost?)');
 	if(CLEAN === null)
 	{
 		errorLog('Called function, but CLEAN === null', 'cleanFiles', '', false);
