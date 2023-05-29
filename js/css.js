@@ -88,7 +88,7 @@
 				result[j] += '(';
 				func.add(j);
 			}
-			else if(_string[i].isEmpty)
+			else if(_string[i].isEmpty || _string[i] === ',')
 			{
 				if(result[j].length > 0)
 				{
@@ -236,7 +236,7 @@
 				}
 				else if(_string[i].isEmpty)
 				{
-					if(array[j][k].length > 0)
+					if(array[j][k].length > 0 || (quoted.has(j) && quoted.get(j).has(k)))
 					{
 						array[j][++k] = '';
 					}
@@ -258,17 +258,17 @@
 					}
 					else
 					{
-						array[j][++k] = '';
-						
-						if(quoted.has(j))
+						if(array[j][k].length > 0 || (quoted.has(j) && quoted.get(j).has(k)))
 						{
-							quoted.get(j).add(k);
+							array[j][++k] = '';
 						}
-						else
+
+						if(! quoted.has(j))
 						{
 							quoted.set(j, new Set());
-							quoted.get(j).add(k);
 						}
+
+						quoted.get(j).add(k);
 					}
 				}
 			}
@@ -292,33 +292,15 @@
 			
 			for(var k = 0, l = 0; k < array[i].length; ++k, ++l)
 			{
-				if(q !== null && q.has(l))
+				if(q === null || !q.has(l))
 				{
-					continue;
-				}
-				else if(array[i][k].length === 0)
-				{
-					array[i].splice(k--, 1);
-					continue;
-				}
-				
-				if(_parse)
-				{
-					if(! isNaN(array[i][k]))
+					if(array[i][k].length === 0)
 					{
-						array[i][k] = Number(array[i][k]);
+						array[i].splice(k--, 1);
 					}
-					else switch(array[i][k].toLowerCase())
+					else if(_parse)
 					{
-						case 'auto':
-							array[i][k] = true;
-							break;
-						case 'none':
-							array[i][k] = false;
-							break;
-						default:
-							array[i][k] = getValue(array[i][k], _parse, false, false);
-							break;
+						array[i][k] = css.parse(array[i][k], _parse, _throw);
 					}
 				}
 			}
