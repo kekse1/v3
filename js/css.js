@@ -23,7 +23,12 @@
 		{
 			return null;
 		}
-		else if(!_parse)
+		else if(isInt(_parse) && _parse <= 0)
+		{
+			_parse = false;
+		}
+
+		if(!_parse)
 		{
 			return _string;
 		}
