@@ -4,6 +4,7 @@
 	//
 	const DEFAULT_THROW = true;
 	const DEFAULT_PARSE = true;
+	const DEFAULT_EXT = '';
 
 	/** Extended CSS value handling methods, etc.
 	 * @module css
@@ -13,65 +14,6 @@
 	css = { camel };
 
 	//
-	Object.defineProperty(HTMLElement.prototype, 'parseStyle', { value: function(... _args)
-	{
-		var PARSE = DEFAULT_PARSE;
-
-		for(var i = 0; i < _args.length; ++i)
-		{
-			if(isArray(_args[i], true))
-			{
-				PARSE = _args.splice(i--, 1)[0];
-			}
-			else if(typeof _args[i] === 'boolean')
-			{
-				PARSE = _args.splice(i--, 1)[0];
-			}
-			else if(isInt(_args[i]))
-			{
-				PARSE = _args.splice(i--, 1)[0];
-			}
-		}
-
-		const result = this.getStyle(... _args);
-
-		if(typeof result === 'undefined' || result === null)
-		{
-			return result;
-		}
-		else if(! isObject(result))
-		{
-			return css.parse(result, PARSE);
-		}
-		else for(const idx in result)
-		{
-			result[idx] = css.parse(result[idx], PARSE);
-		}
-
-		return result;
-	}});
-
-	Object.defineProperty(HTMLElement.prototype, 'renderStyle', { value: function(_key, _value, _options, _callback, _throw)
-	{
-throw new Error('TODO');//w/ animation etc. @ setStyle()
-	}});
-
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'parse', { value: function(... _args)
-	{
-		return this.getPropertyValue(true, ... _args);
-	}});
-
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'render', { value: function(_key, _value, _parse = true)
-	{
-		return this.style.setPropertyValue(_key, _value, _parse);
-	}});
-	
-	/** Parses CSS values (if _parse !== false).
-	 * @param {string|*} _string - the RAW CSS value. If not a String, either _throw or return.
-	 * @param {boolean|array|integer|string} [DEFAULT_PARSE] _parse
-	 * @param {boolean} [DEFAULT_THROW] _throw
-	 * @returns {string|number|boolean|array|object|*}
-	 */
 	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
@@ -82,13 +24,19 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 			
 			return _string;
 		}
-		else if((_string = _string.trim()).length === 0)
-		{
-			return null;
-		}
 		else if(isInt(_parse) && _parse <= 0)
 		{
 			_parse = false;
+		}
+
+		if((_string = _string.trim()).length === 0)
+		{
+			if(_parse)
+			{
+				return null;
+			}
+
+			return '';
 		}
 
 		if(!_parse)
@@ -250,12 +198,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 
-	/** Parses CSS functional style values
-	 * @param {string|*} _string - the whole value string, best w/ 'func()' key name, too.
-	 * @param {boolean|array|integer|string} [DEFAULT_PARSE] _parse
-	 * @param {boolean} [DEFAULT_THROW] _throw
-	 * @returns {object|array|string|*}
-	 */
+	//
 	css.parse.functional = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		//
 		if(typeof _string !== 'string')
@@ -466,11 +409,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 	
-	/** Better extraction of 'url()' CSS values.
-	 * @param {string|object} _string
-	 * @param {boolean} [DEFAULT_THROW] _throw
-	 * @returns {string|null}
-	 */
+	//
 	css.parse.url = (_string, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
@@ -504,12 +443,8 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return null;
 	};
 	
-	/** Render items to CSS value strings
-	 * @param {*} _item - Either supported types or any with .toString() implementation
-	 * @param {boolean} [DEFAULT_THROW] _throw
-	 * @returns {string}
-	 */
-	css.render = (_item, _throw = DEFAULT_THROW) => {
+	//
+	css.render = (_item, _ext = DEFAULT_EXT, _throw = DEFAULT_THROW) => {
 		var result;
 		
 		if(typeof _item === 'undefined' || _item === null)
@@ -526,7 +461,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		}
 		else if(isNumeric(_item, null))
 		{
-			result = _item.toString();
+			result = _item.toString() + _ext;
 		}
 		else if(isArray(_item, true))
 		{
@@ -552,12 +487,8 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 
-	/** Renders CSS functional style objects to their String form.
-	 * @param {object} _object - Arrays won't get rendered here (yet)
-	 * @param {boolean} [DEFAULT_THROW] _throw
-	 * @returns {string}
-	 */
-	css.render.functional = (_object, _throw = DEFAULT_THROW) => {
+	//
+	css.render.functional = (_object, _ext = DEFAULT_EXT, _throw = DEFAULT_THROW) => {
 		if(! isObject(_object, true, false))
 		{
 			if(typeof _object === 'string')
@@ -584,7 +515,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		for(var i = 0; i < keys.length; ++i)
 		{
 			result += keys[i] + '(';
-			result += css.render(_object[keys[i]], _throw);
+			result += css.render(_object[keys[i]], _ext, _throw);
 			result += ') ';
 		}
 		
@@ -597,7 +528,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 	};
 
 	//
-	const fromArray = (_array, _throw = DEFAULT_THROW) => {
+	const fromArray = (_array, _ext = DEFAULT_EXT, _throw = DEFAULT_THROW) => {
 		if(! isArray(_array, true))
 		{
 			if(_throw)
@@ -616,7 +547,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		
 		for(var i = 0; i < _array.length; ++i)
 		{
-			result += css.render(_array[i], _throw) + ' ';
+			result += css.render(_array[i], _ext, _throw) + ' ';
 		}
 		
 		if(result.length > 0)
@@ -628,7 +559,7 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 	};
 	
 	const fromObject = (_object, _throw = DEFAULT_THROW) => {
-		return css.render.functional(_object, _throw);
+		return css.render.functional(_object, _ext, _throw);
 	};
 	
 	//

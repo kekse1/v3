@@ -1,6 +1,5 @@
-# Big TODO: 'JSDoc'!
-I just decided to use 'JSDoc' here, which is also on my TODO (it'll be necessary to provide the JavaScript code with special
-comments, so the exports will be included in this documentation). **Big TODO!**.. More at [TODO.JSDoc.txt](/docs/TODO.JSDoc.txt)!
+# Big TODO
+Finish this documentation. Step by step..
 
 # Index
 * [Configuration](#Configuration)
@@ -177,7 +176,7 @@ Just to synchronize the '**js**/' and '**json**/' modules with the 'docs/modules
 '.md' for every module.. and btw, it'll be logged to 'stdout', so you'll know which modules need to be integrated
 into this overview/index (docs/modules.md). ;)~
 
-BUT it's still TODO; AND even more important: I'm going to use 'JSDoc', so this will be obsolete.. xD~
+TODO!!!
 
 ## '**status**/'
 The files in here are periodically handled by the 'js/dynamic{,.module}.js'. As follows..

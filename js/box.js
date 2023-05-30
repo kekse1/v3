@@ -280,7 +280,7 @@
 				}
 				else if(keys[i] in this.style)
 				{
-					this.style.setProperty(keys[i], css.render(_options[keys[i]]));
+					this.style.setProperty(keys[i], (typeof _options[keys[i]] === 'string' ? _options[keys[i]] : css.render(_options[keys[i]])));
 				}
 				else if(keys[i].startsWith('--'))
 				{

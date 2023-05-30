@@ -28,8 +28,7 @@ It covers these sections:
 * [Filesystem Structure](./docs/modules/README.md#Filesystem-structure)
 * [API Documentation](./docs/modules/README.md#API-documentation)
 
-I just decided to use 'JSDoc' here, which is also on my TODO (it'll be necessary to provide the JavaScript code with special
-comments, so the exports will be included in this documentation). More at [TODO.JSDoc.txt](./docs/TODO.JSDoc.txt)!
+The API documentation is still much TODO.
 
 ## scripts/
 

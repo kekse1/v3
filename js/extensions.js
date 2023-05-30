@@ -61,7 +61,50 @@
 		
 		return true;
 	}});
+
+	Object.defineProperty(HTMLElement.prototype, 'parseStyle', { value: function(... _args)
+	{
+		var PARSE = true;
+
+		for(var i = 0; i < _args.length; ++i)
+		{
+			if(isArray(_args[i], true))
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(typeof _args[i] === 'boolean')
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+			else if(isInt(_args[i]))
+			{
+				PARSE = _args.splice(i--, 1)[0];
+			}
+		}
+
+		const result = this.getStyle(... _args);
+
+		if(typeof result === 'undefined' || result === null)
+		{
+			return result;
+		}
+		else if(! isObject(result))
+		{
+			return css.parse(result, PARSE);
+		}
+		else for(const idx in result)
+		{
+			result[idx] = css.parse(result[idx], PARSE);
+		}
+
+		return result;
+	}});
 	
+	Object.defineProperty(HTMLElement.prototype, 'renderStyle', { value: function(... _args)
+	{
+throw new Error('TODO (w/ .setStyle() etc. w/ animation, callback, etc..)');
+	}});
+
 	Object.defineProperty(HTMLElement.prototype, 'getStyle', { value: function(... _args)
 	{
 		var style = null;
@@ -861,29 +904,34 @@
 	const _getPropertyPriority = CSSStyleDeclaration.prototype.getPropertyPriority;
 	const _removeProperty = CSSStyleDeclaration.prototype.removeProperty;
 
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'setProperty', { value: function(_prop, ... _args)
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'parse', { value: function(... _args)
 	{
-		if(camel)
+		return this.getPropertyValue(true, ... _args);
+	}});
+	
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'render', { value: function(_prop, _value, _priority, _ext = '')
+	{
+		return this.setProperty(_prop, _value, _priority, true, _ext);
+	}});
+	
+	Object.defineProperty(CSSStyleDeclaration.prototype, 'setProperty', { value: function(_prop, _value, _priority, _render = false, _ext = '')
+	{
+		if(typeof camel !== 'undefined')
 		{
 			_prop = camel.disable(_prop);
 		}
-
-		return _setProperty.call(this, camel.disable(_prop), ... _args);
-	}});
-
-	Object.defineProperty(CSSStyleDeclaration.prototype, 'setPropertyValue', { value: function(_key, _value, _render = true)
-	{
-		if(camel)
+		
+		if(typeof _priority === 'boolean')
 		{
-			_key = camel.disable(_key);
+			[ _priority, _render ] = [ _render, _priority ];
 		}
 
-		if(_render || typeof _value !== 'string')
+		if(_render)
 		{
-			_value = css.render(_value);
+			_value = css.render(_value, (typeof _ext === 'string' ? _ext : ''));
 		}
-
-		return this.setProperty(_key, _value);
+		
+		return _setProperty.call(this, _prop, _value, _priority);
 	}});
 
 	Object.defineProperty(CSSStyleDeclaration.prototype, 'getPropertyValue', { value: function(... _args)
@@ -927,17 +975,24 @@
 
 		for(var i = 0; i < _args.length; ++i)
 		{
-			camelOn = camel.enable(_args[i]);
-			camelOff = camel.disable(_args[i]);
-
-			value = _getPropertyValue.call(this, camelOff);
-
-			if(PARSE !== false)
+			if(_args[i].startsWith('--'))
 			{
-				value = css.parse(value, PARSE);
+				camelOn = null;
+				camelOff = _args[i];
+			}
+			else
+			{
+				camelOn = camel.enable(_args[i]);
+				camelOff = camel.disable(_args[i]);
 			}
 
-			result[camelOn] = value;
+			value = css.parse(_getPropertyValue.call(this, camelOff), PARSE);
+
+			if(camelOn !== null)
+			{
+				result[camelOn] = value;
+			}
+			
 			result[camelOff] = value;
 		}
 
