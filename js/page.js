@@ -1502,7 +1502,32 @@
 	}
 
 	//
+	const getBase = () => {
+		var result;
+
+		try
+		{
+			result = new URL(path.dirname(location.base) + '/', location.href).base;
+		}
+		catch(_error)
+		{
+			result = new URL(location.href).base;
+		}
+
+		return result;
+	};
+
+	//
 	window.addEventListener('ready', () => {
+		//
+		Page.originalBase = getBase();
+
+		//
+		if(location.pathname[location.pathname.length - 1] !== '/')
+		{
+			return;
+		}
+
 		const url = location.toURL();
 
 		if(location.hash.length > 1)
@@ -1539,7 +1564,7 @@
 	}, { once: true });
 
 	//
-	Page.originalBase = new URL(location.href).base;
+	Page.originalBase = getBase();
 
 	//
 	

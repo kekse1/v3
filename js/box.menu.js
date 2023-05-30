@@ -1170,14 +1170,34 @@
 
 		enable()
 		{
-			this.enabled = true;
-			this.setStyle('opacity', '0.1', true);
+			if(this.enabled)
+			{
+				return false;
+			}
+			else
+			{
+				this.enabled = true;
+			}
+
+			return true;
+			//following caused trouble, because animating menu item:
+			//this.setStyle('opacity', '0.1', true);
 		}
 
 		disable()
 		{
-			this.enabled = false;
-			this.setStyle('opacity', '1', true);
+			if(! this.enabled)
+			{
+				return false;
+			}
+			else
+			{
+				this.enabled = false;
+			}
+
+			return true;
+			//following caused trouble, because animating menu item:
+			//this.setStyle('opacity', '1', true);
 		}
 
 		getItemNode(_scale = null, _parent)
