@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.10.1
+ * v2.10.2
  */
 
 //
-define('VERSION', [ 2, 10, 1 ]);
+define('VERSION', [ 2, 10, 2 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -364,7 +364,7 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	else if(! is_dir($_path))
 	{
 		log_error('This is not a directory', 'count_files', $_path);
-		error('This is not a directory');
+		error('This is not a directory' . (defined('STDERR') ? PHP_EOL : ''));
 	}
 
 	$handle = opendir($_path);
@@ -603,15 +603,10 @@ if(php_sapi_name() === 'cli')
 		return $result;
 	}
 	
-	function get_arguments($_index, $_die = true)
+	function get_arguments($_index, $_hosts = true)
 	{
 		if(gettype($_index) !== 'integer' || $_index < 0)
 		{
-			if($_die)
-			{
-				error('Invalid $_index argument');
-			}
-			
 			return null;
 		}
 		else if(ARGC <= $_index)
@@ -642,6 +637,14 @@ if(php_sapi_name() === 'cli')
 						$result[$j++] = $item[$k];
 					}
 				}
+			}
+		}
+
+		if($_hosts) for($i = 0; $i < count($result); ++$i)
+		{
+			if(strlen($result[$i] = secure_host($result[$i], false)) === 0)
+			{
+				array_splice($result, $i--, 1);
 			}
 		}
 
@@ -1135,7 +1138,7 @@ if(php_sapi_name() === 'cli')
 	function values($_index = -1, $_path = PATH)
 	{
 		//
-		$hosts = get_arguments($_index + 1);
+		$hosts = get_arguments($_index + 1, true);
 
 		//
 		if($hosts === null)
@@ -1155,7 +1158,7 @@ if(php_sapi_name() === 'cli')
 
 		for($i = 0, $j = 0; $i < count($hosts); ++$i)
 		{
-			$file = $_path . '/~' . $hosts[$i];
+			$file = $_path . '/~' . secure_path($hosts[$i]);
 			
 			if(is_file($file) && is_readable($file))
 			{
@@ -1210,7 +1213,7 @@ if(php_sapi_name() === 'cli')
 	function sync($_index = null, $_path = PATH)
 	{
 		//
-		$hosts = get_arguments($_index + 1);
+		$hosts = get_arguments($_index + 1, true);
 		
 		if($hosts === null)
 		{
@@ -1222,6 +1225,8 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
+			$hosts[$i] = secure_path($hosts[$i]);
+
 			$gotFile = is_file($_path . '/-' . $hosts[$i]);
 			$gotDir = is_dir($_path . '/+' . $hosts[$i]);
 			
@@ -1335,7 +1340,7 @@ if(php_sapi_name() === 'cli')
 	function clean($_index = -1, $_path = PATH, $_host = null)
 	{
 		//
-		$hosts = get_arguments($_index + 1);
+		$hosts = get_arguments($_index + 1, true);
 		
 		if($hosts === null)
 		{
@@ -1352,6 +1357,8 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
+			$hosts[$i] = secure_path($hosts[$i]);
+
 			if(! is_dir($_path . '/+' . $hosts[$i]))
 			{
 				fprintf(STDERR, ' >> No cache directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
