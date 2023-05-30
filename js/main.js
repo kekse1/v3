@@ -2,6 +2,24 @@
 {
 
 	//
+	const _url = new URL(location.href);
+
+	while(_url.hostname[_url.hostname.length - 1] === '.')
+	{
+		_url.hostname = _url.hostname.slice(0, -1);
+	}
+
+	while(_url.pathname.includes('//'))
+	{
+		_url.pathname = _url.pathname.split('//').join('/');
+	}
+
+	if(_url.href !== location.href)
+	{
+		location.href = _url.href;
+	}
+
+	//
 	const DEFAULT_PATH = 'js';
 	const DEFAULT_RELOAD = false;
 

@@ -863,6 +863,13 @@
 			};
 
 			const setValue = (_request, _type, _value = _request.responseText, _anim = doAnimate, _cb) => {
+				const opacityIn = document.getVariable('page-opacity-duration-in', true);
+				const opacityOut = document.getVariable('page-opacity-duration-out', true);
+
+				_target.setStyle('opacity', '0', opacityOut, () => {
+					_target.setStyle('opacity', '1', opacityIn);
+				});
+
 				switch(_type)
 				{
 					case 'html':
@@ -1507,11 +1514,16 @@
 
 		try
 		{
-			result = new URL(path.dirname(location.base) + '/', location.href).base;
+			result = new URL(path.dirname(location.base), location.href).base;
 		}
 		catch(_error)
 		{
 			result = new URL(location.href).base;
+		}
+
+		if(result[result.length - 1] !== '/')
+		{
+			result += '/';
 		}
 
 		return result;
