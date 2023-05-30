@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.11.0
+ * v2.11.1
  */
 
 //
-define('VERSION', [ 2, 11, 0 ]);
+define('VERSION', [ 2, 11, 1 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -23,8 +23,7 @@ define('LIMIT', 32768);
 define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
-define('DRAW', false);
-define('DRAW_OPTION', true);
+define('DRAW', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 96);
 define('FONT', 'SourceCodePro');
@@ -997,17 +996,6 @@ if(php_sapi_name() === 'cli')
 			++$errors;
 		}
 
-		if(gettype(DRAW_OPTIOM) === 'boolean')
-		{
-			printf(START.'Boolean type' . PHP_EOL, 'DRAW_OPTIOM', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW_OPTION', 'BAD');
-			++$errors;
-		}
-		
 		if(gettype(SIZE) === 'integer' && SIZE > 0)
 		{
 			$limit = SIZE_LIMIT;
@@ -2320,11 +2308,14 @@ function get_font($_name, $_dir = PATH_FONTS)
 
 function drawing_options()
 {
-	if(! (DRAW || DRAW_OPTION))
-	{
-		return null;
-	}
-	//else
+	$result = array();
+
+	/*$result['font'] = ..
+	$result['size'] = ..
+	$result['fg'] = ..
+	$result['bg'] = ..*/
+
+	return $result;
 }
 
 function convert_color($_string)
@@ -2334,7 +2325,14 @@ function convert_color($_string)
 
 function draw_text($_text, $_font, $_size, $_fg, $_bg)
 {
+	die('TODO: draw_text()');
 	// see 'docs/drawing.php.txt'. :-)
+}
+
+function draw($_text)
+{
+	$options = drawing_options();
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg']);
 }
 
 //
@@ -2365,10 +2363,19 @@ if(CLIENT)
 }
 
 //
-$value = (string)$value;
-header('Content-Length: ' . strlen($value));
-echo $value;
 define('SENT', true);
+
+if(DRAW && isset($_GET['draw']))
+{
+die('TODO (?draw)');
+	header('Content-Type: image/png');
+	draw((string)$value);
+}
+else
+{
+	header('Content-Length: ' . strlen($value));
+	echo (string)$value;
+}
 
 //
 if(SERVER)
