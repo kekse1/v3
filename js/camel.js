@@ -3,8 +3,18 @@
 
 	//
 	const DEFAULT_CAMEL = '-';
+	const DEFAULT_FIX = true;
 
-	//
+	/** Camel case functions
+	 * @module camel
+	 */
+
+	/** Tries to detect whether a string is camel-cased or not.
+	 * Doesn't work in all cases, as some values can be both types.
+	 * @param {string} _string
+	 * @param {string} [DEFAULT_CAMEL] _camel - The separator, usually '-'
+	 * @returns {boolean}
+	 */
 	camel = (_string, _camel = DEFAULT_CAMEL) => {
 		if(typeof _camel === 'string')
 		{
@@ -34,12 +44,21 @@
 		{
 			return false;
 		}
+		else if(! _string.isLowerCase)
+		{
+			return true;
+		}
 
-		return true;
+		return null;
 	};
 
-	//
-	camel.enable = (_string, _camel = DEFAULT_CAMEL, _fix = false) => {
+	/** Converts a string to it's camel-case enabled form.
+	 * @param {string} _string - Input string to convert (can also be already camel-cased)
+	 * @param {string} [DEFAULT_CAMEL] _camel - The separator, usually '-'
+	 * @param {boolean} [DEFAULT_FIX] _fix - if(true), the rest of every component will be converted to lower-case
+	 * @returns {string}
+	 */
+	camel.enable = (_string, _camel = DEFAULT_CAMEL, _fix = DEFAULT_FIX) => {
 		const c = camel(_string, _camel);
 
 		if(c !== false)
@@ -68,10 +87,16 @@
 		return result;
 	};
 
-	camel.disable = (_string, _camel = DEFAULT_CAMEL, _fix = true) => {
+	/** Disables camel-case form in a string.
+	 * @param {string} _string - The input string (w/ or w/o enabled camel-case)
+	 * @param {string} [DEFAULT_CAMEL] _camel - Separator, usually '-'
+	 * @param {boolean} [DEFAULT_FIX] _fix - handles the case of the rest of every separate component
+	 * @returns {string}
+	 */
+	camel.disable = (_string, _camel = DEFAULT_CAMEL, _fix = DEFAULT_FIX) => {
 		const c = camel(_string, _camel);
 
-		if(c !== true)
+		if(c === false)
 		{
 			return _string;
 		}

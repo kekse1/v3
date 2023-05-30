@@ -3,7 +3,11 @@
 
 	//
 	const DEFAULT_THROW = true;
-	const DEFAULT_PARSE = false;
+	const DEFAULT_PARSE = true;
+
+	/** Extended CSS value handling methods, etc.
+	 * @module css
+	 */
 
 	//
 	css = { camel };
@@ -11,7 +15,7 @@
 	//
 	Object.defineProperty(HTMLElement.prototype, 'parseStyle', { value: function(... _args)
 	{
-		var PARSE = true;
+		var PARSE = DEFAULT_PARSE;
 
 		for(var i = 0; i < _args.length; ++i)
 		{
@@ -62,7 +66,12 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return this.style.setPropertyValue(_key, _value, _parse);
 	}});
 	
-	//
+	/** Parses CSS values (if _parse !== false).
+	 * @param {string|*} _string - the RAW CSS value. If not a String, either _throw or return.
+	 * @param {boolean|array|integer|string} [DEFAULT_PARSE] _parse
+	 * @param {boolean} [DEFAULT_THROW] _throw
+	 * @returns {string|number|boolean|array|object|*}
+	 */
 	css.parse = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
@@ -241,6 +250,12 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 
+	/** Parses CSS functional style values
+	 * @param {string|*} _string - the whole value string, best w/ 'func()' key name, too.
+	 * @param {boolean|array|integer|string} [DEFAULT_PARSE] _parse
+	 * @param {boolean} [DEFAULT_THROW] _throw
+	 * @returns {object|array|string|*}
+	 */
 	css.parse.functional = (_string, _parse = DEFAULT_PARSE, _throw = DEFAULT_THROW) => {
 		//
 		if(typeof _string !== 'string')
@@ -451,11 +466,19 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 	
-	//	
+	/** Better extraction of 'url()' CSS values.
+	 * @param {string|object} _string
+	 * @param {boolean} [DEFAULT_THROW] _throw
+	 * @returns {string|null}
+	 */
 	css.parse.url = (_string, _throw = DEFAULT_THROW) => {
 		if(typeof _string !== 'string')
 		{
-			if(_throw)
+			if(isObject(_string) && typeof _string.url === 'string')
+			{
+				return _string.url;
+			}
+			else if(_throw)
 			{
 				throw new Error('Invalid _string argument');
 			}
@@ -481,7 +504,11 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return null;
 	};
 	
-	//
+	/** Render items to CSS value strings
+	 * @param {*} _item - Either supported types or any with .toString() implementation
+	 * @param {boolean} [DEFAULT_THROW] _throw
+	 * @returns {string}
+	 */
 	css.render = (_item, _throw = DEFAULT_THROW) => {
 		var result;
 		
@@ -525,10 +552,19 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		return result;
 	};
 
+	/** Renders CSS functional style objects to their String form.
+	 * @param {object} _object - Arrays won't get rendered here (yet)
+	 * @param {boolean} [DEFAULT_THROW] _throw
+	 * @returns {string}
+	 */
 	css.render.functional = (_object, _throw = DEFAULT_THROW) => {
-		if(! isObject(_object, true))
+		if(! isObject(_object, true, false))
 		{
-			if(_throw)
+			if(typeof _object === 'string')
+			{
+				return _object;
+			}
+			else if(_throw)
 			{
 				throw new Error('Invalid _object argument');
 			}
@@ -544,7 +580,6 @@ throw new Error('TODO');//w/ animation etc. @ setStyle()
 		}
 		
 		var result = '';
-		var item;
 		
 		for(var i = 0; i < keys.length; ++i)
 		{

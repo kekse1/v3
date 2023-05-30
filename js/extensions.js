@@ -3,7 +3,6 @@
 
 	//
 	const DEFAULT_ARRANGE = true;
-	const DEFAULT_GET_VALUE = null;
 	const DEFAULT_THROW = true;
 
 	//
@@ -564,7 +563,7 @@
 	//
 	Object.defineProperty(HTMLElement.prototype, 'getVariable', { value: function(... _args)
 	{
-		var GET_VALUE = DEFAULT_GET_VALUE;
+		var GET_VALUE = false;
 		var DELETE_CACHE = false;
 
 		for(var i = 0; i < _args.length; ++i)
