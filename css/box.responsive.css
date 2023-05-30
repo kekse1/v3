@@ -20,8 +20,7 @@
 {
 	a-menu, .menu, #MENU
 	{
-		--min: 64px;
-		--max: 64px;
+		--max: 48px;
 		top: 16px;
 	}
 
@@ -40,8 +39,7 @@
 {
 	a-menu, .menu, #MENU
 	{
-		--min: 20px;
-		--max: 50px;
+		--max: 40px;
 		top: 8px;
 	}
 
@@ -60,8 +58,7 @@
 {
 	a-menu, .menu, #MENU
 	{
-		--min: 10px;
-		--max: 40px;
+		--max: 32px;
 		top: 4px;
 	}
 

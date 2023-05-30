@@ -22,6 +22,76 @@
 			this.parentAnimation = false;
 		}
 
+		static selectItem(_href, _resolve = false)
+		{
+			if(typeof _href !== 'string')
+			{
+				_href = '';
+			}
+			else if(is(_href, 'URL'))
+			{
+				a = _href.url;
+				b = _href.hash;
+			}
+			else
+			{
+				b = new URL(a = _href, (_resolve ? location.href : location.origin)).href;
+			}
+
+			var a, b;
+
+			if(_href[0] === '~')
+			{
+				a = _href;
+				b = '#' + _href;
+			}
+			else if(_href[0] === '#' && _href[1] === '~')
+			{
+				a = _href.substr(1);
+				b = _href;
+			}
+			else
+			{
+				a = _href;
+				b = _href;
+			}
+
+			const index = [ ... Menu.INDEX ];
+
+			if(index.length === 0)
+			{
+				return 0;
+			}
+
+			const items = [];
+
+			for(var i = 0, k = 0; i < index.length; ++i)
+			{
+				for(var j = 0; j < index[i].items.length; ++j)
+				{
+					if(index[i].items[j].node.href === a)
+					{
+						items[k++] = index[i].items[j];
+					}
+					else if(index[i].items[j].node.href === b)
+					{
+						items[k++] = index[i].items[j];
+					}
+					else
+					{
+						index[i].items[j].disable();
+					}
+				}
+			}
+
+			for(var i = 0; i < items.length; ++i)
+			{
+				items[i].enable();
+			}
+			
+			return items.length;
+		}
+
 		static outItems(_event, _callback, ... _exclude)
 		{
 			//
@@ -550,7 +620,6 @@
 			const TXT = this.getVariable('text-sin', ['px']);
 			const SIN = this.getVariable('sin', true);
 
-			const SCALE = 0.5;
 			var DELAY = 0;
 			var options = (_animate ? { duration: this.getVariable('duration-in', true), delay: 0, persist: true, opacity: false } : null);
 			this.clear(null, null);
@@ -579,7 +648,7 @@
 				const index = i;
 				const currentItem = this.items[index];
 
-				const node = currentItem.getItemNode(SCALE, this);
+				const node = currentItem.getItemNode(null, this);
 				const imageNode = node.imageNode;
 				const textNode = node.textNode;
 
@@ -1094,9 +1163,24 @@
 
 			//
 			this.checkOptions(_options);
+
+			//
+			this.SCALE = 1;
 		}
 
-		getItemNode(_scale, _parent)
+		enable()
+		{
+			this.enabled = true;
+			this.setStyle('opacity', '0.1', true);
+		}
+
+		disable()
+		{
+			this.enabled = false;
+			this.setStyle('opacity', '1', true);
+		}
+
+		getItemNode(_scale = null, _parent)
 		{
 			//
 			if(! _parent)
@@ -1216,7 +1300,7 @@
 
 		static onpointerup(_event, _target = _event.target, _callback, _out_items = true, _force = false)
 		{
-			if(_event.pointerType === 'mouse')
+			if(_event && _event.pointerType === 'mouse')
 			{
 				return;
 			}
@@ -1391,7 +1475,7 @@
 			{
 				return Menu.outItems(_event, () => {
 					return Menu.Item.onpointerout(_event, _target, _callback, false, _force);
-				}, _target, _event.relatedTarget);
+				}, _target, (_event ? _event.relatedTarget : null));
 			}
 			else
 			{
@@ -1709,7 +1793,7 @@
 				throw new Error('Invalid _value argument');
 			}
 
-			return this.setImageSize(this.scale(_value, _max, _min), _throw);
+			return this.setImageSize(this.scale(this.SCALE = _value, _max, _min), _throw);
 		}
 		
 		setImageSize(_size, _throw = DEFAULT_THROW)
