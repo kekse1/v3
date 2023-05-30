@@ -7,10 +7,7 @@
       <directory name="Kingston HyperX (4x8GB)">
       </directory>
     </directory>
-    <directory name="Autoradio">
-      <directory name="JVC KD-DB98BT">
-      </directory>
-    </directory>
+    <link name="Autoradio" target="Radio"></link>
     <link name="CPU" target="Prozessor"></link>
     <directory name="Drucker">
       <directory name="Canon PIXMA ix6850">
@@ -121,6 +118,10 @@
       <directory name="Intel Pentium 100 (MHz)">
       </directory>
       <directory name="Intel Pentium III (1 GHz)">
+      </directory>
+    </directory>
+    <directory name="Radio">
+      <directory name="JVC KD-DB98BT">
       </directory>
     </directory>
     <link name="RAM" target="Arbeitsspeicher"></link>

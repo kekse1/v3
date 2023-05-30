@@ -2,8 +2,7 @@ hardware/
 ├── Arbeitsspeicher
 │   ├── Kingston FURY Renegade (4x16GB)
 │   └── Kingston HyperX (4x8GB)
-├── Autoradio
-│   └── JVC KD-DB98BT
+├── Autoradio -> Radio
 ├── CPU -> Prozessor
 ├── Drucker
 │   ├── Canon PIXMA ix6850
@@ -64,6 +63,8 @@ hardware/
 │   ├── Intel i486SX (33 MHz)
 │   ├── Intel Pentium 100 (MHz)
 │   └── Intel Pentium III (1 GHz)
+├── Radio
+│   └── JVC KD-DB98BT
 ├── RAM -> Arbeitsspeicher
 ├── Satelliten-Finder
 │   └── DUR-line SF 4000 BT

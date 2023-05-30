@@ -6,10 +6,7 @@
       {"type":"directory","name":"Kingston HyperX (4x8GB)","contents":[
       ]}
     ]},
-    {"type":"directory","name":"Autoradio","contents":[
-      {"type":"directory","name":"JVC KD-DB98BT","contents":[
-      ]}
-    ]},
+    {"type":"link","name":"Autoradio","target":"Radio","contents":[]},
     {"type":"link","name":"CPU","target":"Prozessor","contents":[]},
     {"type":"directory","name":"Drucker","contents":[
       {"type":"directory","name":"Canon PIXMA ix6850","contents":[
@@ -120,6 +117,10 @@
       {"type":"directory","name":"Intel Pentium 100 (MHz)","contents":[
       ]},
       {"type":"directory","name":"Intel Pentium III (1 GHz)","contents":[
+      ]}
+    ]},
+    {"type":"directory","name":"Radio","contents":[
+      {"type":"directory","name":"JVC KD-DB98BT","contents":[
       ]}
     ]},
     {"type":"link","name":"RAM","target":"Arbeitsspeicher","contents":[]},
