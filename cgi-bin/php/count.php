@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.10.2
+ * v2.10.3
  */
 
 //
-define('VERSION', [ 2, 10, 2 ]);
+define('VERSION', [ 2, 10, 3 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -2027,15 +2027,21 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 		return 0;
 	}
 
+	$files = 0;
+
 	for($i = 0; $i < $len; ++$i)
 	{
 		if(remove($items[$i], false, false) === false)
 		{
 			log_error('Unable to remove() outdated file', 'clean_files', $items[$i], false);
 		}
+		else
+		{
+			++$files;
+		}
 	}
 	
-	return init_count();
+	return decrease_count($_file, $files);
 }
 
 function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
@@ -2066,7 +2072,7 @@ function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
 	return $result;
 }
 
-function get_count($_path = PATH_COUNT)
+function read_count($_path = PATH_COUNT)
 {
 	if(!file_exists($_path))
 	{
@@ -2074,7 +2080,7 @@ function get_count($_path = PATH_COUNT)
 	}
 	else if(!is_file($_path))
 	{
-		log_error('Count file is not a file', 'get_count', $_path);
+		log_error('Count file is not a file', 'read_count', $_path);
 		error('Count file is not a file');
 	}
 
@@ -2082,14 +2088,14 @@ function get_count($_path = PATH_COUNT)
 
 	if($result === false)
 	{
-		log_error('Couldn\'t read count value', 'get_count', $_path);
+		log_error('Couldn\'t read count value', 'read_count', $_path);
 		error('Couldn\'t read count value');
 	}
 
 	return (int)$result;
 }
 
-function set_count($_value, $_path = PATH_COUNT, $_get = true)
+function write_count($_value, $_path = PATH_COUNT, $_get = true)
 {
 	$result = null;
 
@@ -2097,12 +2103,12 @@ function set_count($_value, $_path = PATH_COUNT, $_get = true)
 	{
 		if(!is_file($_path))
 		{
-			log_error('Count file is not a regular file', 'set_count', $_path);
+			log_error('Count file is not a regular file', 'write_count', $_path);
 			error('Count file is not a regular file');
 		}
 		else if($_get)
 		{
-			$result = get_count($_path);
+			$result = read_count($_path);
 		}
 	}
 	else
@@ -2114,29 +2120,30 @@ function set_count($_value, $_path = PATH_COUNT, $_get = true)
 
 	if($written === false)
 	{
-		log_error('Unable to write count', 'set_count', $_path);
+		log_error('Unable to write count', 'write_count', $_path);
 		error('Unable to write count');
 	}
 
 	return $result;
 }
 
-function increase_count($_path = PATH_COUNT)
+function increase_count($_path = PATH_COUNT, $_by = 1)
 {
-	$count = get_count($_path);
-	set_count(++$count, $_path, false);
+	$count = (read_count($_path) + $_by);
+	write_count($count, $_path, false);
 	return $count;
 }
 
-function decrease_count($_path = PATH_COUNT)
+function decrease_count($_path = PATH_COUNT, $_by = 1)
 {
-	$count = get_count($_path);
+	$count = (read_count($_path) - $_by);
 
-	if($count > 0)
+	if($count < 0)
 	{
-		set_count(--$count, $_path, false);
+		$count = 0;
 	}
 
+	write_count($count, $_path, false);
 	return $count;
 }
 
@@ -2186,7 +2193,7 @@ function write_timestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
 			error('Not a writable file');
 		}
 	}
-	else if(get_count() > LIMIT)
+	else if(read_count() > LIMIT)
 	{
 		if($_clean)
 		{
@@ -2338,7 +2345,7 @@ if(SERVER)
 	}
 	else if(gettype(CLEAN) === 'integer')
 	{
-		$count = get_count();
+		$count = read_count();
 
 		if($count >= CLEAN)
 		{
