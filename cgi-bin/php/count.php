@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.10.3
+ * v2.11.0
  */
 
 //
-define('VERSION', [ 2, 10, 3 ]);
+define('VERSION', [ 2, 11, 0 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -27,10 +27,10 @@ define('DRAW', false);
 define('DRAW_PARAMS', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 96);
-define('FONT', 'Source Code Pro');
-define('FONT_LIMIT', [ 'Candara', 'Open Sans', 'Source Code Pro' ]);
-define('COLOR_FG', 'rgba(0, 0, 0, 1)');
-define('COLOR_BG', 'rgba(255, 255, 255, 0)');
+define('FONT', 'SourceCodePro');
+define('FONTS', 'fonts');
+define('FG', 'rgba(0, 0, 0, 1)');
+define('BG', 'rgba(255, 255, 255, 0)');
 
 //
 define('COOKIE_PATH', '/');
@@ -706,10 +706,11 @@ if(php_sapi_name() === 'cli')
 		}
 
 		printf(PHP_EOL);
-		printf('    -? / --help      (TODO)' . PHP_EOL);
+		printf('    -? / --help (TODO)' . PHP_EOL);
 		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
+		printf('    -f / --fonts (TODO)' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
 		printf('    -v / --values [host,..]' . PHP_EOL);
 		printf('    -n / --sync [host,..]' . PHP_EOL);
@@ -740,6 +741,12 @@ if(php_sapi_name() === 'cli')
 		}
 		
 		exit(0);
+	}
+
+	function fonts($_index = -1)
+	{
+		die('TODO: fonts()' . PHP_EOL);
+		//TODO: get_arguments(.., false) => optionally check for concrete font(s).
 	}
 	
 	function config($_index = -1)
@@ -810,8 +817,16 @@ if(php_sapi_name() === 'cli')
 		//
 		if(gettype(PATH) === 'string' && !empty(PATH))
 		{
-			printf(START.'Non-empty String (without further testing)' . PHP_EOL, 'PATH', 'OK', 'string');
-			++$ok;
+			if(is_dir(PATH) && is_writable(PATH))
+			{
+				printf(START.'Non-empty PATH String (directory exists and is writable :-)' . PHP_EOL, 'PATH', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Non-empty PATH String (BUT is no existing directory or is just not writable)' . PHP_EOL, 'PATH', 'WARN');
+				++$warnings;
+			}
 		}
 		else
 		{
@@ -1045,56 +1060,44 @@ if(php_sapi_name() === 'cli')
 			++$errors;
 		}
 
-		if(gettype(FONT_LIMIT) === 'array' && !empty(FONT_LIMIT))
+		if(gettype(FONTS) === 'string')
 		{
-			$valid = true;
-			$len = count(FONT_LIMIT);
-
-			for($i = 0; $i < $len; ++$i)
+			if(is_dir(FONTS) && is_readable(FONTS))//exectable? everywhere where dir!
 			{
-				if(gettype(FONT_LIMIT[$i]) !== 'string' || empty(FONT_LIMIT[$i]))
-				{
-					$valid = false;
-					break;
-				}
-			}
-
-			if($valid)
-			{
-				printf(START.'Non-empty Array with %d non-empty Strings in it' . PHP_EOL, 'FONT_LIMIT', 'OK', $len);
+				printf(START.'Non-empty PATH String (directory exists and is readable :-)' . PHP_EOL, 'FONTS', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty Array with only non-empty Strings in it' . PHP_EOL, 'FONT_LIMIT', 'BAD');
-				++$errors;
+				fprintf(STDERR, 'Non-empty String (BUT is not a directory or not readable)' . PHP_EOL, 'FONTS', 'WARN');
+				++$warnings;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'Not even a non-empty Array..' . PHP_EOL, 'FONT_LIMIT', 'BAD');
+			fprintf(STDERR, START.'No non-empty PATH String' . PHP_EOL, 'FONTS', 'BAD');
 			++$errors;
 		}
 
-		if(gettype(COLOR_FG) === 'string' && !empty(COLOR_FG))
+		if(gettype(FG) === 'string' && !empty(FG))
 		{
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'COLOR_FG', 'OK');
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'COLOR_FG', 'BAD');
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
 			++$errors;
 		}
 
-		if(gettype(COLOR_BG) === 'string' && !empty(COLOR_BG))
+		if(gettype(BG) === 'string' && !empty(BG))
 		{
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'COLOR_BG', 'OK');
+			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'COLOR_BG', 'BAD');
+			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
 			++$errors;
 		}
 
@@ -1782,6 +1785,10 @@ if(php_sapi_name() === 'cli')
 		{
 			hashes($i);
 		}
+		else if($argv[$i] === '-f' || $argv[$i] === '--fonts')
+		{
+			fonts($i);
+		}
 		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
 		{
 			clean($i);
@@ -1884,6 +1891,7 @@ define('PATH_DIR', PATH . '/+' . secure_path(HOST, true));
 define('PATH_COUNT', PATH . '/-' . secure_path(HOST, true));
 define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'])), true));
 define('PATH_LOG', PATH . '/' . LOG);
+define('PATH_FONTS', PATH . '/' . FONTS);
 
 //
 header('Content-Type: ' . CONTENT);
@@ -2297,6 +2305,33 @@ function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
 	}
 
 	return $result;
+}
+
+//
+function getFont($_name, $_dir = PATH_FONTS)
+{
+	// fonts/SourceCodePro.ttf
+	// fonts/OpenSans.ttf
+	// fonts/Candara.ttf
+}
+
+function getDrawingOptions()
+{
+	if(! (DRAW || DRAW_PARAMS))
+	{
+		return null;
+	}
+	//else
+}
+
+function convertColor($_string)
+{
+	//
+}
+
+function drawText($_text, $_font, $_size, $_fg, $_bg)
+{
+	// see 'docs/drawing.php.txt'. :-)
 }
 
 //
