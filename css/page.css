@@ -5,7 +5,7 @@
 	--page-scroll-inline: nearest;/*start*/
 	--page-scroll-block: start;
 	--page-fallback-type: text;/*html*/
-	--page-data-duration: 1800;
+	--page-data-duration: none;/*1800;*//*performance reasons..*/
 	--page-data-delay: 0;
 	--page-data-delete-mul: null;
 	--page-blink-duration: 2000;
