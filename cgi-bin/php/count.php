@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.11.1
+ * v2.11.2
  */
 
 //
-define('VERSION', [ 2, 11, 1 ]);
+define('VERSION', [ 2, 11, 2 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -26,10 +26,14 @@ define('NONE', '/');
 define('DRAW', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 96);
+define('SPACE', 32);
+define('SPACE_LIMIT', 192);
+define('PAD', 6);
+define('PAD_LIMIT', 64);
 define('FONT', 'SourceCodePro');
 define('FONTS', 'fonts');
-define('FG', 'rgba(0, 0, 0, 1)');
-define('BG', 'rgba(255, 255, 255, 0)');
+define('FG', '0, 0, 0, 1');
+define('BG', '255, 255, 255, 0');
 
 //
 define('COOKIE_PATH', '/');
@@ -74,6 +78,7 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 	}
 	else
 	{
+		header('Content-Type: ' . CONTENT);
 		die($_reason);
 	}
 
@@ -288,6 +293,8 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 		{
 			if($result === false)
 			{
+				header('Content-Type: ' . CONTENT);
+
 				if(gettype(ERROR) === 'string')
 				{
 					die(ERROR);
@@ -297,6 +304,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 			}
 			else if($_die && gettype(ERROR) === 'string')
 			{
+				header('Content-Type: ' . CONTENT);
 				die(ERROR);
 			}
 		}
@@ -1007,7 +1015,7 @@ if(php_sapi_name() === 'cli')
 
 			if($limit === null)
 			{
-				printf(START.'Integer above 0 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
+				fprintf(STDERR, START.'Integer above 0 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
 				++$warnings;
 			}
 			else if(SIZE > $limit)
@@ -1037,9 +1045,94 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
 			++$errors;
 		}
+		
+		if(gettype(SPACE) === 'integer' && SPACE >= 0)
+		{
+			$limit = SPACE_LIMIT;
+			
+			if(gettype($limit) !== 'integer')
+			{
+				$limit = null;
+			}
+			
+			if($limit === null)
+			{
+				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid SPACE_LIMIT)' . PHP_EOL, 'SPACE', 'WARN');
+				++$warnings;
+			}
+			else if(SPACE > $limit)
+			{
+				fprintf(STDERR, START.'Integer exceeds SPACE_LIMIT (%d)' . PHP_EOL, 'SPACE', 'BAD', $limit);
+				++$errors;
+			}
+			else
+			{
+				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'SPACE', 'OK', $limit);
+				++$ok;
+			}
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Integer (above -1 and below or equal to SPACE_LIMIT)' . PHP_EOL, 'SPACE', 'BAD');
+			++$errors;
+		}
+		
+		if(gettype(SPACE_LIMIT) === 'integer' && SPACE_LIMIT >= 0 && SPACE_LIMIT <= 512)
+		{
+			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'SPACE_LIMIT', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'SPACE_LIMIT', 'BAD');
+			++$errors;
+		}
+		
+		if(gettype(PAD) === 'integer' && PAD >= 0)
+		{
+			$limit = PAD_LIMIT;
+			
+			if(gettype($limit) !== 'integer')
+			{
+				$limit = null;
+			}
+			
+			if($limit === null)
+			{
+				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid PAD_LIMIT)' . PHP_EOL, 'PAD', 'WARN');
+				++$warnings;
+			}
+			else if(PAD > $limit)
+			{
+				fprintf(STDERR, START.'Integer exceeds SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'BAD', $limit);
+				++$errors;
+			}
+			else
+			{
+				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'OK');
+				++$ok;
+			}
+		}
+		else
+		{
+			fprintf(STDERR, START.'No Integer (above -1 and below or equal to SPACE_LIMIT)'. PHP_EOL, 'PAD', 'BAD');
+			++$errors;
+		}
+		
+		if(gettype(PAD_LIMIT) === 'integer' && PAD_LIMIT >= 0 && PAD_LIMIT <= 256)
+		{
+			printf(START.'Integer above -1 and below or equal to 256' . PHP_EOL, 'PAD_LIMIT', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 256' . PHP_EOL, 'PAD_LIMIT', 'BAD');
+			++$errors;
+		}
 
 		if(gettype(FONT) === 'string' && !empty(FONT))
 		{
+//FIXME/TODO/..test if font file really exists where it should be...!!!!
 			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FONT', 'OK');
 			++$ok;//w/o further tests!!!
 		}
@@ -1883,9 +1976,6 @@ define('PATH_LOG', PATH . '/' . LOG);
 define('PATH_FONTS', PATH . '/' . FONTS);
 
 //
-header('Content-Type: ' . CONTENT);
-
-//
 if(AUTO === null)
 {
 	error(NONE);
@@ -2310,8 +2400,13 @@ function drawing_options()
 {
 	$result = array();
 
-	/*$result['font'] = ..
-	$result['size'] = ..
+	//
+	//$result['font'] = ..
+	//$result['font'] = get_font($result['font']);
+	//
+	/*$result['size'] = ..
+	$result['space'] = ...//SPACE_LIMIT, ...
+	$result['pad'] = ...//PAD_LIMIT, ...
 	$result['fg'] = ..
 	$result['bg'] = ..*/
 
@@ -2321,18 +2416,66 @@ function drawing_options()
 function convert_color($_string)
 {
 	//
+	if(substr($_string, 0, 5) === 'rgba(')
+	{
+		$_string = substr($_string, 5);
+		
+		if($_string[strlen($_string) - 1] === ')')
+		{
+			$_string = substr($_string, 0, -1);
+		}
+	}
+	
+	//
+	//TODO/:
+	//" 23  ,  56, 79, 0.5" e.g. => [23,56,79,0.5]!
+	//
+die('TODO: convert_color()');
+	//
+	$result = array();
+	
+	//
+	
+	//
+	return $result;
 }
 
-function draw_text($_text, $_font, $_size, $_fg, $_bg)
+function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space)
 {
-	die('TODO: draw_text()');
-	// see 'docs/drawing.php.txt'. :-)
+	//
+	$textWidth = imagettfbbox($px, 0, $_font, $_text);
+	$textWidth = $textWidth[2] - $textWidth[0];
+	
+	//
+	$width = $textWidth + $_space;
+	$height = $px + $_pad;
+	
+	//
+	$image = imagecreatetruecolor($width, $height);
+	
+	//
+	$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
+	$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
+	imagefilledrectangle($image, 0, 0, $width, $height, $_bg);
+	
+	//
+	$x = (($width - $textWidth) / 2);
+	$y = ((($height - $px) / 2) + $px);
+	
+	//
+	imagettftext($image, $px, 0, $x, $y, $_fg, $_font, $_text);
+	
+	//
+	header('Content-Type: image/png');
+	imagepng($image);
+	imagedestroy($image);
 }
 
 function draw($_text)
 {
+die('TODO: "?draw"()');
 	$options = drawing_options();
-	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg']);
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space']);
 }
 
 //
@@ -2364,17 +2507,18 @@ if(CLIENT)
 
 //
 define('SENT', true);
+$value = (string)$value;
 
+//
 if(DRAW && isset($_GET['draw']))
 {
-die('TODO (?draw)');
-	header('Content-Type: image/png');
-	draw((string)$value);
+	draw($value);
 }
 else
 {
+	header('Content-Type: ' . CONTENT);
 	header('Content-Length: ' . strlen($value));
-	echo (string)$value;
+	echo $value;
 }
 
 //
