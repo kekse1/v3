@@ -5,8 +5,8 @@
 	--page-scroll-inline: nearest;/*start*/
 	--page-scroll-block: start;
 	--page-fallback-type: text;/*html*/
-	--page-opacity-duration-in: 1200;
-	--page-opacity-duration-out: 200;
+	--page-opacity-duration-in: 440;
+	--page-opacity-duration-out: 120;
 	--page-data-duration: none;/*1800;*//*performance reasons..*/
 	--page-data-delay: 0;
 	--page-data-delete-mul: null;
