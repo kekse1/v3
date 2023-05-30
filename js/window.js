@@ -127,17 +127,7 @@
 		}
 		else if(typeof _item === 'string')
 		{
-			if((_item = _item.trim()).length === 0)
-			{
-				if(! _unit)
-				{
-					return _item;
-				}
-
-				return 0;
-			}
-
-			if(typeof _unit !== 'boolean')
+			if(typeof _unit !== 'boolean' && _unit !== null)
 			{
 				if(isInt(_unit))
 				{
@@ -150,54 +140,111 @@
 						_unit = true;
 					}
 				}
-				else if(isString(_unit, false))
+				else if(typeof _unit === 'string')
 				{
-					_unit = [ _unit ];
+					if(_unit.length === 0)
+					{
+						_unit = [];
+					}
+					else
+					{
+						_unit = [ _unit ];
+					}
 				}
-				else if(! isArray(_unit, false))
+				else if(! isArray(_unit, true))
 				{
 					_unit = false;
 				}
 			}
 
+			if((_item = _item.trim()).length === 0)
+			{
+				if(! _unit)
+				{
+					return '';
+				}
+
+				return 0;
+			}
+
 			if(_unit)
 			{
-				if(! isArray(_unit))
-				{
+				//
+				const testItem = (_item) => {
 					if(_item.length === 0)
 					{
-						_item = 0;
+						return 0;
 					}
 					else if(_item[_item.length - 1] === 'n' && !_item.includes('.') && !isNaN(_item.slice(0, -1)))
 					{
-						_item = BigInt.from(_item.slice(0, -1));
+						return BigInt.from(_item.slice(0, -1));
 					}
-					else if(! isNaN(_item))
+					else if(!isNaN(_item))
 					{
-						_item = Number(_item);
+						return Number(_item);
 					}
+
+					return _item;
+				};
+
+				//
+				if(! isArray(_unit, true))
+				{
+					_item = testItem(_item);
 				}
 
 				if(typeof _item === 'string')
 				{
 					const r = _item.unit();
 
-					if(isArray(_unit, false) && _unit.length === 1 && r[1] === _unit[0])
+					if(typeof r === 'string')
+					{
+						_item = r;
+					}
+					else if(r[0] === 0)
 					{
 						_item = r[0];
 					}
-					else if(! isNaN(_item))
+					else if(r[1].length === 0)
 					{
-						_item = Number(_item);
+						_item = r[0];
 					}
-					else
+					else if(isArray(_unit, true))
+					{
+						if(_unit.length === 0)
+						{
+							_item = r[0];
+						}
+						else for(var i = 0; i < _unit.length; ++i)
+						{
+							if(_unit[i] === r[1])
+							{
+								if(_unit.length === 1)
+								{
+									_item = r[0];
+								}
+								else
+								{
+									_item = r;
+								}
+								break;
+							}
+						}
+					}
+
+					if(_item !== r[0] && _item !== r)
 					{
 						_item = r;
+					}
+
+					if(typeof _item === 'string')
+					{
+						_item = testItem(_item);
 					}
 				}
 			}
 
-			if(_int && isNumber(_item))
+			if(_unit !== null && _int && isNumber(_item))
 			{
 				_item = Math.int(_item);
 			}

@@ -39,7 +39,7 @@
 			return '';
 		}
 
-		if(!_parse)
+		if(!_parse && _parse !== null)
 		{
 			return _string;
 		}
@@ -256,7 +256,44 @@
 			}
 			else if(open)
 			{
-				if(quote.length > 0)
+				if(!_parse)
+				{
+					if(_string[i] === ')')
+					{
+						open = 0;
+					}
+					else
+					{
+						for(const q of quotes)
+						{
+							if(_string[i] === q)
+							{
+								quote = q;
+								break;
+							}
+						}
+
+						if(quote.length > 0)
+						{
+							if(_parse !== null)
+							{
+								array[j] += quote;
+							}
+
+							quote = '';
+							continue;
+						}
+						else if(! _string[i].isEmpty)
+						{
+							array[j] += _string[i];
+						}
+						else if(array[j].length > 0 && !array[j][array[j].length - 1].isEmpty)
+						{
+							array[j] += ' ';
+						}
+					}
+				}
+				else if(quote.length > 0)
 				{
 					if(_string[i] === quote)
 					{
@@ -333,7 +370,7 @@
 			else if(_string[i] === '(')
 			{
 				open = 1;
-				array[j] = [''];
+				array[j] = (_parse ? [''] : '');
 			}
 			else if(!_string[i].isEmpty)
 			{
@@ -359,7 +396,7 @@
 			
 			for(var k = 0, l = 0; k < array[i].length; ++k, ++l)
 			{
-				if(q === null || !q.has(l))
+				if(q === null || !q.has(l) || _parse === null)
 				{
 					if(array[i][k].length === 0)
 					{
@@ -429,7 +466,7 @@
 			return null;
 		}
 		
-		const obj = css.parse.functional(_string, false, _throw);
+		const obj = css.parse.functional(_string, null, _throw);
 		
 		if(typeof obj.url === 'string')
 		{
