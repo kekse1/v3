@@ -745,6 +745,7 @@ if(php_sapi_name() === 'cli')
 
 	function fonts($_index = -1)
 	{
+		// nur alle *.ttf listen!!
 		die('TODO: fonts()' . PHP_EOL);
 		//TODO: get_arguments(.., false) => optionally check for concrete font(s).
 	}
@@ -2308,14 +2309,16 @@ function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
 }
 
 //
-function getFont($_name, $_dir = PATH_FONTS)
+function get_font($_name, $_dir = PATH_FONTS)
 {
+	// nur aus *.ttf.
+	//
 	// fonts/SourceCodePro.ttf
 	// fonts/OpenSans.ttf
 	// fonts/Candara.ttf
 }
 
-function getDrawingOptions()
+function drawing_options()
 {
 	if(! (DRAW || DRAW_OPTION))
 	{
@@ -2324,12 +2327,12 @@ function getDrawingOptions()
 	//else
 }
 
-function convertColor($_string)
+function convert_color($_string)
 {
 	//
 }
 
-function drawText($_text, $_font, $_size, $_fg, $_bg)
+function draw_text($_text, $_font, $_size, $_fg, $_bg)
 {
 	// see 'docs/drawing.php.txt'. :-)
 }
