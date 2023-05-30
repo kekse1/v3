@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.10.0
+ * v2.10.1
  */
 
 //
-define('VERSION', [ 2, 10, 0 ]);
+define('VERSION', [ 2, 10, 1 ]);
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -367,38 +367,42 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 		error('This is not a directory');
 	}
 
-	$list = scandir($_path);
+	$handle = opendir($_path);
 
-	if($list === false)
+	if($handle === false)
 	{
-		log_error('Unable to scandir()', 'count_files', $_path);
-		error('Unable to scandir()');
+		log_error('Couldn\'t opendir()', 'count_files', $_path, false);
+		return false;
 	}
 
-	$len = count($list);
 	$result = ($_list ? array() : 0);
+	$index = 0;
 
-	for($i = 0, $j = 0; $i < $len; ++$i)
+	while($sub = readdir($handle))
 	{
-		if($list[$i] === '.' || $list[$i] === '..')
+		if($sub === false)
+		{
+			break;
+		}
+		else if($sub === '.' || $sub === '..')
 		{
 			continue;
 		}
-		else if($list[$i][0] === '.')
+		else if($sub[0] === '.')
 		{
 			continue;
 		}
-		else if($list[$i] === LOG)
+		else if($sub === LOG)
 		{
 			continue;
 		}
-		else if($_exclude)
+		else if($_exclude === true || $_exclude === null)
 		{
-			if($list[$i][0] === '-')
+			if($sub[0] === '-' || $sub[0] === '+')
 			{
 				continue;
 			}
-			else if($list[$i][0] === '+')
+			else if($_exclude === null && $sub[0] === '~')
 			{
 				continue;
 			}
@@ -406,30 +410,34 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 
 		if($_dir === false)
 		{
-			if(!is_file($_path . '/' . $list[$i]))
+			if(!is_file($_path . '/' . $sub))
 			{
 				continue;
 			}
 		}
 		else if($_dir === true)
 		{
-			if(!is_dir($_path . '/' . $list[$i]))
+			if(!is_dir($_path . '/' . $sub))
 			{
 				continue;
 			}
 		}
 		
-		if($_filter)
+		if($_filter === true || $_filter === null)
 		{
-			if($list[$i][0] === '~' || $list[$i][0] === '+' || $list[$i][0] === '-')
+			if($sub[0] === '~' || $sub[0] === '+' || $sub[0] === '-')
 			{
-				$list[$i] = substr($list[$i], 1);
+				$sub = substr($sub, 1);
+			}
+			else if($_filter === null)
+			{
+				continue;
 			}
 		}
 
 		if($_list)
 		{
-			$result[$j++] = $list[$i];
+			$result[$index++] = $sub;
 		}
 		else
 		{
@@ -437,6 +445,7 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 		}
 	}
 
+	closedir($handle);
 	return $result;
 }
 
@@ -446,9 +455,11 @@ function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 	//
 	if($_path[0] === '~' || basename($_path)[0] === '~')
 	{
+		log_error('Removing a value file is not permitted', 'remove', $_path, $_die);
+
 		if($_die)
 		{
-			error('Removing a *value* file is not permitted!');
+			error('Removing a value file is not permitted!');
 		}
 		
 		return false;
@@ -457,14 +468,42 @@ function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 	{
 		if(! $_recursive)
 		{
-			return !!(rmdir($_path));
+			if(rmdir($_path) === false)
+			{
+				log_error('Unable to rmdir() w/o _recursive', 'remove', $_path, $_die);
+
+				if($_die)
+				{
+					error('Unable to rmdir() w/o _recursive');
+				}
+
+				return false;
+			}
+
+			return true;
 		}
 		
 		$handle = opendir($_path);
+
+		if($handle === false)
+		{
+			log_error('Couldn\'t opendir()', 'remove', $_path, $_die);
+
+			if($_die)
+			{
+				error('Couldn\'t opendir()');
+			}
+
+			return false;
+		}
 		
 		while($sub = readdir($handle))
 		{
-			if($sub === '.' || $sub === '..')
+			if($sub === false)
+			{
+				break;
+			}
+			else if($sub === '.' || $sub === '..')
 			{
 				continue;
 			}
@@ -617,26 +656,14 @@ if(php_sapi_name() === 'cli')
 	//
 	function get_hosts($_path = PATH, $_values = true, $_null = false)
 	{
-		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, false);
+		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, null);
 		$result = array();
-		$item = null;
 
 		for($i = 0, $j = 0; $i < count($list); ++$i)
 		{
-			$item = $list[$i];
-			
-			if($item[0] === '+' || $item[0] === '-' || $item[0] === '~')
+			if(! in_array($list[$i], $result))
 			{
-				$item = substr($item, 1);
-			}
-			else
-			{
-				continue;
-			}
-			
-			if(! in_array($item, $result))
-			{
-				$result[$j++] = $item;
+				$result[$j++] = $list[$i];
 			}
 		}
 		
