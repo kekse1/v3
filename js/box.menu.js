@@ -1267,7 +1267,7 @@
 			//
 			if(! _target._originalPointerStyle)
 			{
-				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'color', 'text-shadow', 'background-color', 'border-radius', 'border' );
+				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'text-shadow', 'background-color', 'border-radius', 'border' );
 			}
 
 			//
@@ -1280,7 +1280,6 @@
 
 			//
 			keyframes.transform = [ null, `scale(${_target.getVariable('pointer-over-scale')})` ];
-			keyframes.color = [ null, _target.getVariable('pointer-over-color') ];
 			keyframes.textShadow = [ null, _target.getVariable('pointer-over-text-shadow') ];
 			keyframes.backgroundColor = [ null, _target.getVariable('pointer-over-background-color') ];
 			keyframes.opacity = [ null, ... _target.getVariable('pointer-over-opacity').split(' ') ];
@@ -1407,7 +1406,7 @@
 			//
 			if(! _target._originalPointerStyle)
 			{
-				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'color', 'text-shadow', 'background-color', 'border-radius', 'border' );
+				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'text-shadow', 'background-color', 'border-radius', 'border' );
 			}
 
 			//
@@ -1422,7 +1421,6 @@
 			keyframes.transform = [ null, 'none' ];
 			keyframes.filter = [ null, 'none' ];
 			keyframes.opacity = [ null, '1' ];
-			keyframes.color = [ null, _target._originalPointerStyle.color ];
 			keyframes.textShadow = [ null, _target._originalPointerStyle.textShadow ];
 			keyframes.backgroundColor = [ null, _target._originalPointerStyle.backgroundColor ];
 			keyframes.border = [ null, _target._originalPointerStyle.border ];
@@ -1543,14 +1541,14 @@
 			//
 			if(! _target._originalPointerStyle)
 			{
-				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'color', 'text-shadow', 'background-color', 'border-radius', 'border' );
+				_target._originalPointerStyle = getComputedStyle(_target.imageNode, 'text-shadow', 'background-color', 'border-radius', 'border' );
 			}
 
 			const opts = {
 				count: _target.node.getVariable('blink-count', true),
 				duration: _target.node.getVariable('blink-duration', true),
 				delay: 0,
-				colors: true,
+				color: false,
 				border: true,
 				persist: false,
 				state: false,
