@@ -197,13 +197,9 @@
 				{
 					const r = _item.unit();
 
-					if(typeof r === 'string')
+					if(typeof r === 'string' || isNumeric(r))
 					{
 						_item = r;
-					}
-					else if(r[0] === 0)
-					{
-						_item = r[0];
 					}
 					else if(r[1].length === 0)
 					{

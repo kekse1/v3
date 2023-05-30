@@ -1580,7 +1580,11 @@
 			result[0] = Number(result[0]);
 		}
 
-		if(negative)
+		if(result[0] === 0 || result[0] === 0n)
+		{
+			return result[0];
+		}
+		else if(negative)
 		{
 			if(typeof result[0] === 'string')
 			{
