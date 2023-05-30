@@ -24,7 +24,7 @@ define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
 define('DRAW', false);
-define('DRAW_PARAMS', true);
+define('DRAW_OPTION', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 96);
 define('FONT', 'SourceCodePro');
@@ -996,14 +996,14 @@ if(php_sapi_name() === 'cli')
 			++$errors;
 		}
 
-		if(gettype(DRAW_PARAMS) === 'boolean')
+		if(gettype(DRAW_OPTIOM) === 'boolean')
 		{
-			printf(START.'Boolean type' . PHP_EOL, 'DRAW_PARAMS', 'OK');
+			printf(START.'Boolean type' . PHP_EOL, 'DRAW_OPTIOM', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW_PARAMS', 'BAD');
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW_OPTION', 'BAD');
 			++$errors;
 		}
 		
@@ -2317,7 +2317,7 @@ function getFont($_name, $_dir = PATH_FONTS)
 
 function getDrawingOptions()
 {
-	if(! (DRAW || DRAW_PARAMS))
+	if(! (DRAW || DRAW_OPTION))
 	{
 		return null;
 	}
