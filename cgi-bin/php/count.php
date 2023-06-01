@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.11.2
+ * v2.11.3
  */
 
 //
-define('VERSION', [ 2, 11, 2 ]);
+define('VERSION', '2.11.3');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -25,7 +25,7 @@ define('ERROR', '/');
 define('NONE', '/');
 define('DRAW', true);
 define('SIZE', 24);
-define('SIZE_LIMIT', 96);
+define('SIZE_LIMIT', 128);
 define('SPACE', 32);
 define('SPACE_LIMIT', 192);
 define('PAD', 6);
@@ -690,7 +690,7 @@ if(php_sapi_name() === 'cli')
 	{
 		if($_version)
 		{
-			printf('v' . join('.', VERSION) . PHP_EOL);
+			printf('v' . VERSION . PHP_EOL);
 		}
 
 		if($_copyright)
@@ -2387,93 +2387,103 @@ function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
 }
 
 //
-function get_font($_name, $_dir = PATH_FONTS)
-{
-	// nur aus *.ttf.
-	//
-	// fonts/SourceCodePro.ttf
-	// fonts/OpenSans.ttf
-	// fonts/Candara.ttf
-}
-
-function drawing_options()
-{
-	$result = array();
-
-	//
-	//$result['font'] = ..
-	//$result['font'] = get_font($result['font']);
-	//
-	/*$result['size'] = ..
-	$result['space'] = ...//SPACE_LIMIT, ...
-	$result['pad'] = ...//PAD_LIMIT, ...
-	$result['fg'] = ..
-	$result['bg'] = ..*/
-
-	return $result;
-}
-
-function convert_color($_string)
-{
-	//
-	if(substr($_string, 0, 5) === 'rgba(')
-	{
-		$_string = substr($_string, 5);
-		
-		if($_string[strlen($_string) - 1] === ')')
-		{
-			$_string = substr($_string, 0, -1);
-		}
-	}
-	
-	//
-	//TODO/:
-	//" 23  ,  56, 79, 0.5" e.g. => [23,56,79,0.5]!
-	//
-die('TODO: convert_color()');
-	//
-	$result = array();
-	
-	//
-	
-	//
-	return $result;
-}
-
-function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space)
-{
-	//
-	$textWidth = imagettfbbox($px, 0, $_font, $_text);
-	$textWidth = $textWidth[2] - $textWidth[0];
-	
-	//
-	$width = $textWidth + $_space;
-	$height = $px + $_pad;
-	
-	//
-	$image = imagecreatetruecolor($width, $height);
-	
-	//
-	$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
-	$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
-	imagefilledrectangle($image, 0, 0, $width, $height, $_bg);
-	
-	//
-	$x = (($width - $textWidth) / 2);
-	$y = ((($height - $px) / 2) + $px);
-	
-	//
-	imagettftext($image, $px, 0, $x, $y, $_fg, $_font, $_text);
-	
-	//
-	header('Content-Type: image/png');
-	imagepng($image);
-	imagedestroy($image);
-}
-
 function draw($_text)
 {
 die('TODO: "?draw"()');
+
+	//
+	function secure_param($_value, $_key = null)
+	{
+		$len = min(strlen($_value), 255);
+		$result = '';
+	}
+
+	//
+	function get_font($_name, $_dir = PATH_FONTS)
+	{
+		// nur aus *.ttf.
+		//
+		// fonts/SourceCodePro.ttf
+		// fonts/OpenSans.ttf
+		// fonts/Candara.ttf
+	}
+
+	function drawing_options()
+	{
+		$result = array();
+
+		//
+		//$result['font'] = ..
+		//$result['font'] = get_font($result['font']);
+		//
+		/*$result['size'] = ..
+		$result['space'] = ...//SPACE_LIMIT, ...
+		$result['pad'] = ...//PAD_LIMIT, ...
+		$result['fg'] = ..
+		$result['bg'] = ..*/
+
+		return $result;
+	}
+
+	function convert_color($_string)
+	{
+		//
+		if(substr($_string, 0, 5) === 'rgba(')
+		{
+			$_string = substr($_string, 5);
+			
+			if($_string[strlen($_string) - 1] === ')')
+			{
+				$_string = substr($_string, 0, -1);
+			}
+		}
+		
+		//
+		//TODO/:
+		//" 23  ,  56, 79, 0.5" e.g. => [23,56,79,0.5]!
+		//
+	die('TODO: convert_color()');
+		//
+		$result = array();
+		
+		//
+		
+		//
+		return $result;
+	}
+
+	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space)
+	{
+		//
+		$textWidth = imagettfbbox($px, 0, $_font, $_text);
+		$textWidth = $textWidth[2] - $textWidth[0];
+		
+		//
+		$width = $textWidth + $_space;
+		$height = $px + $_pad;
+		
+		//
+		$image = imagecreatetruecolor($width, $height);
+		
+		//
+		$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
+		$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
+		imagefilledrectangle($image, 0, 0, $width, $height, $_bg);
+		
+		//
+		$x = (($width - $textWidth) / 2);
+		$y = ((($height - $px) / 2) + $px);
+		
+		//
+		imagettftext($image, $px, 0, $x, $y, $_fg, $_font, $_text);
+		
+		//
+		header('Content-Type: image/png');
+		imagepng($image);
+		imagedestroy($image);
+	}
+
+	//
 	$options = drawing_options();
 	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space']);
 }
