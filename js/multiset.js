@@ -186,10 +186,13 @@
 			return super.get(_key);
 		}
 
-		get(_key)
+		get get()
 		{
-			return this.has(_key);
+			return this.has;
 		}
 	}
 
+	//
+
 })();
+

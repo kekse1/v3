@@ -13,10 +13,10 @@ Whether floating point values will be reduced to an integer (see `Math.int()`).
 Will check the values, and will so also allow only numeric values (etc).
 
 ## add(_key)
-Like `.increase()`, but w/o optional '_by'.
+Alias for `.inc[rease]()`.
 
 ## sub(_key)
-Same style as `.add()`.. etc.
+Alias for `.dec[rease]()`.
 
 ## inc\[rease\](_key, _by = 1)
 You don't need to initialize via `.set()` or so..
