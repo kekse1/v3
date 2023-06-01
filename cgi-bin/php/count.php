@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.12.0
+ * v2.12.1
  */
 
 //
-define('VERSION', '2.12.0');
+define('VERSION', '2.12.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -2566,9 +2566,6 @@ function draw($_text)
 	{
 		//
 		$res = sendHeader(CONTENT);
-
-		//
-		log_error($_reason, '', '', $_die);
 
 		//
 		if($_die)
