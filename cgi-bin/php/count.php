@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.11.3
+ * v2.12.0
  */
 
 //
-define('VERSION', '2.11.3');
+define('VERSION', '2.12.0');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -24,12 +24,12 @@ define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
 define('DRAW', true);
-define('SIZE', 24);
-define('SIZE_LIMIT', 128);
-define('SPACE', 32);
-define('SPACE_LIMIT', 192);
-define('PAD', 6);
-define('PAD_LIMIT', 64);
+define('SIZE', 28);
+define('SIZE_LIMIT', 384);
+define('SPACE', 1);
+define('SPACE_LIMIT', 256);
+define('PAD', 1);
+define('PAD_LIMIT', 256);
 define('FONT', 'SourceCodePro');
 define('FONTS', 'fonts');
 define('FG', '0, 0, 0, 1');
@@ -42,6 +42,22 @@ define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
 
 //
+function sendHeader($_type = CONTENT)
+{
+	if(defined('SENT'))
+	{
+		return false;
+	}
+	else
+	{
+		define('SENT', true);
+	}
+	
+	header('Content-Type: ' . $_type);
+	return true;
+}
+
+
 function error($_reason, $_exit_code = 255, $_relay = false)
 {
 	if(gettype($_reason) !== 'string')
@@ -67,22 +83,12 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 
 		exit(255);
 	}
-	else if(defined('SENT'))
-	{
-		if($_relay)
-		{
-			return log_error($_reason, '', '', false);
-		}
-
-		return false;
-	}
 	else
 	{
-		header('Content-Type: ' . CONTENT);
-		die($_reason);
+		sendHeader(CONTENT);
 	}
-
-	return true;
+	
+	die($_reason);
 }
 
 function secure_host($_host, $_die = true)
@@ -239,6 +245,16 @@ function secure_path($_string, $_die = true)
 	return $result;
 }
 
+function ends_with($_haystack, $_needle)
+{
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
+
+	return (substr($_haystack, -strlen($_needle)) === $_needle);
+}
+
 function log_error($_reason, $_source = '', $_path = '', $_die = true)
 {
 	$noLog = false;
@@ -293,7 +309,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 		{
 			if($result === false)
 			{
-				header('Content-Type: ' . CONTENT);
+				sendHeader(CONTENT);
 
 				if(gettype(ERROR) === 'string')
 				{
@@ -304,7 +320,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 			}
 			else if($_die && gettype(ERROR) === 'string')
 			{
-				header('Content-Type: ' . CONTENT);
+				sendHeader(CONTENT);
 				die(ERROR);
 			}
 		}
@@ -338,7 +354,14 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 		}
 		else if(gettype(AUTO) === 'integer')
 		{
-			if(count_files($_path, false, true, false) >= AUTO)
+			$count = count_files($_path, false, true, false);
+
+			if($count === null)
+			{
+				log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
+				error(NONE);
+			}
+			else if($count >= AUTO)
 			{
 				log_error('AUTO is too low', 'check_path', $_file, false);
 				error(NONE);
@@ -361,7 +384,7 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 }
 
 //
-function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false, $_filter = false)
+function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false, $_filter = false, $_die = false)
 {
 	if(gettype($_path) !== 'string')
 	{
@@ -370,8 +393,13 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	}
 	else if(! is_dir($_path))
 	{
-		log_error('This is not a directory', 'count_files', $_path);
-		error('This is not a directory' . (defined('STDERR') ? PHP_EOL : ''));
+		if($_die)
+		{
+			log_error('This is not a directory', 'count_files', $_path);
+			error('This is not a directory' . (defined('STDERR') ? PHP_EOL : ''));
+		}
+
+		return null;
 	}
 
 	$handle = opendir($_path);
@@ -453,6 +481,42 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	}
 
 	closedir($handle);
+	return $result;
+}
+
+function count_fonts($_path, $_count = false, $_null = true)
+{
+	$result = count_files(FONTS, false, false, true, false);
+
+	if(!$result)
+	{
+		return null;
+	}
+
+	for($i = 0; $i < count($result); ++$i)
+	{
+		if(ends_with($result[$i], '.ttf'))
+		{
+			if(!$_count)
+			{
+				$result[$i] = substr($result[$i], 0, -4);
+			}
+		}
+		else
+		{
+			array_splice($result, $i--, 1);
+		}
+	}
+
+	if($_count)
+	{
+		return count($result);
+	}
+	else if($_null && count($result) === 0)
+	{
+		return null;
+	}
+	
 	return $result;
 }
 
@@ -667,6 +731,12 @@ if(php_sapi_name() === 'cli')
 	function get_hosts($_path = PATH, $_values = true, $_null = false)
 	{
 		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, null);
+
+		if($list === null)
+		{
+			return null;
+		}
+
 		$result = array();
 
 		for($i = 0, $j = 0; $i < count($list); ++$i)
@@ -717,7 +787,7 @@ if(php_sapi_name() === 'cli')
 		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
-		printf('    -f / --fonts (TODO)' . PHP_EOL);
+		printf('    -f / --fonts' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
 		printf('    -v / --values [host,..]' . PHP_EOL);
 		printf('    -n / --sync [host,..]' . PHP_EOL);
@@ -752,9 +822,82 @@ if(php_sapi_name() === 'cli')
 
 	function fonts($_index = -1)
 	{
-		// nur alle *.ttf listen!!
-		die('TODO: fonts()' . PHP_EOL);
-		//TODO: get_arguments(.., false) => optionally check for concrete font(s).
+		if(gettype(PATH) !== 'string' || empty(PATH))
+		{
+			fprintf(STDERR, ' >> \'PATH\' is not properly configured' . PHP_EOL);
+			exit(1);
+		}
+		else if(gettype(FONTS) !== 'string' || empty(FONTS))
+		{
+			fprintf(STDERR, ' >> \'FONTS\' path is not properly configured' . PHP_EOL);
+			exit(2);
+		}
+
+		$fonts = get_arguments($_index + 1, false);
+
+		if($fonts !== null)
+		{
+			for($i = 0; $i < count($fonts); ++$i)
+			{
+				if(($fonts[$i] = secure_path($fonts[$i])) === null)
+				{
+					array_splice($fonts, $i--, 1);
+				}
+				else if(ends_with($fonts[$i], '.ttf'))
+				{
+					$fonts[$i] = substr($fonts[$i], 0, -4);
+				}
+			}
+			
+			if(count($fonts) === 0)
+			{
+				fprintf(STDERR, ' >> No fonts left after securing their strings' . PHP_EOL);
+				exit(3);
+			}
+		}
+
+		$available = count_fonts(FONTS, false, true);
+
+		if($available === null)
+		{
+			fprintf(STDERR, ' >> No fonts installed in your fonts directory \'%s\'!' . PHP_EOL, FONTS);
+			exit(4);
+		}
+
+		$len = count($available);
+		printf(' >> You have %d fonts installed (in directory \'%s\')! :-)' . PHP_EOL . PHP_EOL, $len, FONTS);
+		
+		if($fonts === null)
+		{
+			for($i = 0; $i < $len; ++$i)
+			{
+				printf('    %s' . PHP_EOL, $available[$i]);
+			}
+		}
+		else
+		{
+			$item = 0;
+			$maxLen = 0;
+			$len = count($fonts);
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				if(($item = strlen($fonts[$i])) > $maxLen)
+				{
+					$maxLen = $item;
+				}
+			}
+			
+			++$maxLen;
+			$format = ' %' . $maxLen . 's: %s' . PHP_EOL;
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				printf($format, $fonts[$i], (in_array($fonts[$i], $available) ? 'YES :-)' : 'NO!'));
+			}
+		}
+
+		exit(0);
 	}
 	
 	function config($_index = -1)
@@ -995,8 +1138,24 @@ if(php_sapi_name() === 'cli')
 		//
 		if(gettype(DRAW) === 'boolean')
 		{
-			printf(START.'Boolean type' . PHP_EOL, 'DRAW', 'OK');
-			++$ok;
+			if(DRAW)
+			{
+				if(extension_loaded('gd'))
+				{
+					printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAW', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAW', 'WARN');
+					++$warnings;
+				}
+			}
+			else
+			{
+				printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAW', 'OK');
+				++$ok;
+			}
 		}
 		else
 		{
@@ -1109,7 +1268,7 @@ if(php_sapi_name() === 'cli')
 			}
 			else
 			{
-				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'OK');
+				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'OK', SPACE_LIMIT);
 				++$ok;
 			}
 		}
@@ -1119,22 +1278,36 @@ if(php_sapi_name() === 'cli')
 			++$errors;
 		}
 		
-		if(gettype(PAD_LIMIT) === 'integer' && PAD_LIMIT >= 0 && PAD_LIMIT <= 256)
+		if(gettype(PAD_LIMIT) === 'integer' && PAD_LIMIT >= 0 && PAD_LIMIT <= 512)
 		{
-			printf(START.'Integer above -1 and below or equal to 256' . PHP_EOL, 'PAD_LIMIT', 'OK');
+			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'PAD_LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 256' . PHP_EOL, 'PAD_LIMIT', 'BAD');
+			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'PAD_LIMIT', 'BAD');
 			++$errors;
 		}
 
 		if(gettype(FONT) === 'string' && !empty(FONT))
 		{
-//FIXME/TODO/..test if font file really exists where it should be...!!!!
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FONT', 'OK');
-			++$ok;//w/o further tests!!!
+			$available = count_fonts(FONTS, false, true);
+
+			if($available === null)
+			{
+				fprintf(STDERR, START.'A valid string, but you also need to install some fonts (see \'FONTS\' config)!' . PHP_EOL, 'FONT', 'WARN');
+				++$warnings;
+			}
+			else if(in_array(FONT, $available))
+			{
+				printf(START.'Valid font string, and the font is also available/installed in your \'FONTS\' directory. :-D' . PHP_EOL, 'FONT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Invalid string, because there\'s no such font available (see \'FONTS\')' . PHP_EOL, 'FONT', 'BAD');
+				++$errors;
+			}
 		}
 		else
 		{
@@ -1146,18 +1319,28 @@ if(php_sapi_name() === 'cli')
 		{
 			if(is_dir(FONTS) && is_readable(FONTS))//exectable? everywhere where dir!
 			{
-				printf(START.'Non-empty PATH String (directory exists and is readable :-)' . PHP_EOL, 'FONTS', 'OK');
-				++$ok;
+				$available = count_fonts(FONTS, true);
+				
+				if($available === 0)
+				{
+					fprintf(STDERR, START.'Valid path string (and directory exists), but NO FONTS installed there! :-(' . PHP_EOL, 'FONTS', 'WARN');
+					++$warnings;
+				}
+				else
+				{
+					printf(START.'Valid path string, and %d fonts are available there! :-)' . PHP_EOL, 'FONTS', 'OK', $available);
+					++$ok;
+				}
 			}
 			else
 			{
-				fprintf(STDERR, 'Non-empty String (BUT is not a directory or not readable)' . PHP_EOL, 'FONTS', 'WARN');
+				fprintf(STDERR, START.'Non-empty String (BUT is not a directory or not readable)' . PHP_EOL, 'FONTS', 'WARN');
 				++$warnings;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty PATH String' . PHP_EOL, 'FONTS', 'BAD');
+			fprintf(STDERR, START.'No valid PATH String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
 			++$errors;
 		}
 
@@ -1918,16 +2101,6 @@ function get_host($_die = true)
 	return $result;
 }
 
-function ends_with($_haystack, $_needle)
-{
-	if(strlen($_needle) > strlen($_haystack))
-	{
-		return false;
-	}
-
-	return (substr($_haystack, -strlen($_needle)) === $_needle);
-}
-
 function remove_port($_host, $_die = false)
 {
 	$result = null;
@@ -1973,7 +2146,6 @@ define('PATH_DIR', PATH . '/+' . secure_path(HOST, true));
 define('PATH_COUNT', PATH . '/-' . secure_path(HOST, true));
 define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'])), true));
 define('PATH_LOG', PATH . '/' . LOG);
-define('PATH_FONTS', PATH . '/' . FONTS);
 
 //
 if(AUTO === null)
@@ -2389,102 +2561,524 @@ function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
 //
 function draw($_text)
 {
-die('TODO: "?draw"()');
+	//
+	function draw_error($_reason, $_die = true)
+	{
+		//
+		$res = sendHeader(CONTENT);
+
+		//
+		log_error($_reason, '', '', $_die);
+
+		//
+		if($_die)
+		{
+			error($_reason);
+			exit(255);
+		}
+
+		return $res;
+	}
 
 	//
-	function secure_param($_value, $_key = null)
+	function get_param($_value, $_numeric = true, $_float = true, $_key = null)
 	{
-		$len = min(strlen($_value), 255);
+		if(strlen($_value) === 0)
+		{
+			return null;
+		}
+		else if(strlen($_value) > 255)
+		{
+			return null;
+		}
+
 		$result = '';
-	}
+		$byte = null;
+		$hadPoint = false;
+		$numeric = null;
+		$set = '';
+		$negative = false;
+		$remove = 0;
 
-	//
-	function get_font($_name, $_dir = PATH_FONTS)
-	{
-		// nur aus *.ttf.
-		//
-		// fonts/SourceCodePro.ttf
-		// fonts/OpenSans.ttf
-		// fonts/Candara.ttf
-	}
+		if($_numeric) while($_value[$remove] === '+' || $_value[$remove] === '-')
+		{
+			++$remove;
 
-	function drawing_options()
-	{
-		$result = array();
+			if($_value[0] === '-')
+			{
+				$negative = !$negative;
+			}
+		}
 
-		//
-		//$result['font'] = ..
-		//$result['font'] = get_font($result['font']);
-		//
-		/*$result['size'] = ..
-		$result['space'] = ...//SPACE_LIMIT, ...
-		$result['pad'] = ...//PAD_LIMIT, ...
-		$result['fg'] = ..
-		$result['bg'] = ..*/
+		if($remove > 0)
+		{
+			$_value = substr($_value, $remove);
+		}
+
+		$len = strlen($_value);
+
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(($byte = ord($_value[$i])) >= 97 && $byte <= 122)
+			{
+				$numeric = false;
+				$set = chr($byte);
+			}
+			else if($byte >= 65 && $byte <= 90)
+			{
+				$numeric = false;
+				$set = chr($byte);
+			}
+			else if($byte >= 48 && $byte <= 57)
+			{
+				$set = chr($byte);
+
+				if($numeric === null)
+				{
+					$numeric = true;
+				}
+			}
+			else if($byte === 46)
+			{
+				if($hadPoint)
+				{
+					$result = '';
+					break;
+				}
+				else if(!$_float)
+				{
+					$result = '';
+					break;
+				}
+				else
+				{
+					$hadPoint = true;
+					$set = '.';
+				}
+			}
+			else if($byte === 44)
+			{
+				$set = ',';
+				$numeric = false;
+			}
+			else if($byte === 40 || $byte === 41)
+			{
+				$set = chr($byte);
+			}
+			else
+			{
+				$set = '';
+			}
+
+			$result .= $set;
+		}
+
+		if(strlen($result) === 0)
+		{
+			$result = null;
+			$numeric = false;
+		}
+		else if(! $_numeric)
+		{
+			$numeric = false;
+		}
+		else if(! $_float && $hadPoint && $numeric)
+		{
+			$numeric = false;
+		}
+
+		if($numeric)
+		{
+			if($result === '.')
+			{
+				$result = null;
+				$numeric = false;
+			}
+			else
+			{
+				if($result[0] === '.')
+				{
+					$result = '0' . $result;
+				}
+				else if($result[strlen($result) - 1] === '.')
+				{
+					$result = substr($result, 0, -1);
+					$hadPoint = false;
+				}
+
+				if($hadPoint)
+				{
+					$result = (double)$result;
+				}
+				else
+				{
+					$result = (int)$result;
+				}
+
+				if($negative)
+				{
+					$result = -$result;
+				}
+			}
+		}
 
 		return $result;
 	}
 
-	function convert_color($_string)
+	//
+	function get_font($_name, $_dir = FONTS)
+	{
+		$available = count_fonts($_dir, false, true);
+
+		if($available === null)
+		{
+			return null;
+		}
+		else if(ends_with($_name, '.ttf'))
+		{
+			$_name = substr($_name, 0, -4);
+		}
+		
+		if(in_array($_name, $available))
+		{
+			return (FONTS . '/' . $_name . '.ttf');
+		}
+
+		return null;
+	}
+
+	function get_drawing_options($_die = true)
 	{
 		//
+		$result = array();
+
+		//
+		$result['size'] = get_param($_GET['size'], true, false, 'size');
+		$result['space'] = get_param($_GET['space'], true, false, 'space');
+		$result['pad'] = get_param($_GET['pad'], true, false, 'pad');
+		$result['font'] = get_param($_GET['font'], false, null, 'font');
+		$result['fg'] = get_param($_GET['fg'], false, null, 'fg');
+		$result['bg'] = get_param($_GET['bg'], false, null, 'bg');
+
+		//
+		if(! is_numeric($result['size']))
+		{
+			$result['size'] = SIZE;
+		}
+		else if($result['size'] > SIZE_LIMIT || $result['size'] < 0)
+		{
+			draw_error('\'?size\' exceeds limit (0 / ' . SIZE_LIMIT . ')', $_die);
+			return null;
+		}
+
+		if(! is_numeric($result['space']))
+		{
+			$result['space'] = SPACE;
+		}
+		else if($result['space'] > SPACE_LIMIT || $result['space'] < 0)
+		{
+			draw_error('\'?space\' exceeds limit (0 / ' . SPACE_LIMIT . ')', $_die);
+			return null;
+		}
+
+		if(! is_numeric($result['pad']))
+		{
+			$result['pad'] = PAD;
+		}
+		else if($result['pad'] > PAD_LIMIT || $result['pad'] < 0)
+		{
+			draw_error('\'?pad\' exceeds limit (0 / ' . PAD_LIMIT . ')', $_die);
+			return null;
+		}
+
+		if($result['font'] === null)
+		{
+			$result['font'] = FONT;
+		}
+
+		if(($result['font'] = get_font($result['font'])) === null)
+		{
+			draw_error('\'?font\' is not available', $_die);
+			return null;
+		}
+		else if(!is_file($result['font'] = realpath($result['font'])))
+		{
+			die('b');
+			draw_error('\'?font\' is valid, but no such file found', $_die);
+			return null;
+		}
+
+		if($result['fg'] === null)
+		{
+			$result['fg'] = FG;
+		}
+
+		if($result['bg'] === null)
+		{
+			$result['bg'] = BG;
+		}
+
+		$result['fg'] = get_color($result['fg'], true);
+
+		if($result['fg'] === null)
+		{
+			draw_error('\'?fg\' is no valid rgb/rgba color', $_die);
+			return null;
+		}
+
+		$result['bg'] = get_color($result['bg'], true);
+
+		if($result['bg'] === null)
+		{
+			draw_error('\'?bg\' is no valid rgb/rgba color', $_die);
+			return null;
+		}
+
+		return $result;
+	}
+
+	function get_color($_string, $_fix_gd = true)
+	{
+		//
+		$was = null;
+
 		if(substr($_string, 0, 5) === 'rgba(')
 		{
 			$_string = substr($_string, 5);
-			
-			if($_string[strlen($_string) - 1] === ')')
-			{
-				$_string = substr($_string, 0, -1);
-			}
+			$was = 'rgba';
 		}
-		
-		//
-		//TODO/:
-		//" 23  ,  56, 79, 0.5" e.g. => [23,56,79,0.5]!
-		//
-	die('TODO: convert_color()');
+		else if(substr($_string, 0, 4) === 'rgb(')
+		{
+			$_string = substr($_string, 4);
+			$was = 'rgb';
+		}
+			
+		if($_string[strlen($_string) - 1] === ')')
+		{
+			if($was === null)
+			{
+				return null;
+			}
+
+			$_string = substr($_string, 0, -1);
+		}
+		else if($was !== null)
+		{
+			return null;
+		}
+
 		//
 		$result = array();
-		
-		//
-		
-		//
+		$item = '';
+		$len = strlen($_string);
+		$byte = null;
+		$hadPoint = false;
+
+		for($i = 0, $j = 0; $i < $len; ++$i)
+		{
+			if($_string[$i] === ',')
+			{
+				if(strlen($item) === 0)
+				{
+					return null;
+				}
+
+				if($j === 3 && $hadPoint)
+				{
+					if($item[strlen($item) - 1] === '.')
+					{
+						$item = substr($item, 0, -1);
+						$hadPoint = false;
+					}
+				}
+
+				if($hadPoint)
+				{
+					$result[$j] = (float)$item;
+					break;
+				}
+
+				$result[$j++] = (int)$item;
+				$item = '';
+			}
+			else if(($byte = ord($_string[$i])) >= 48 && $byte <= 57)
+			{
+				if($j < 3 && strlen($item) >= 3)
+				{
+					return null;
+				}
+				
+				$item .= $_string[$i];
+			}
+			else if($_string[$i] === '.')
+			{
+				if($j < 3)
+				{
+					return null;
+				}
+				else if($hadPoint)
+				{
+					return null;
+				}
+				else if(strlen($item) === 0)
+				{
+					$item = '0';
+				}
+
+				$hadPoint = true;
+				$item .= '.';
+			}
+		}
+
+		if(strlen($item) > 0)
+		{
+			if($hadPoint)
+			{
+				if($item[0] === '.')
+				{
+					$item = '0' . $item;
+				}
+				else if($item[strlen($item) - 1] === '.')
+				{
+					$item = substr($item, 0, -1);
+					$hadPoint = false;
+				}
+			}
+
+			if($hadPoint)
+			{
+				$result[] = (float)$item;
+			}
+			else
+			{
+				$result[] = (int)$item;
+			}
+		}
+
+		$len = count($result);
+
+		if($len < 3)
+		{
+			return null;
+		}
+		else if($len < 4)
+		{
+			if($was === null || $was === 'rgb')
+			{
+				$result[3] = 1.0;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		else
+		{
+			if($was === 'rgb')
+			{
+				return null;
+			}
+			else if(gettype($result[3]) === 'integer')
+			{
+				$result[3] = (float)$result[3];
+			}
+		}
+
+		if($result[3] < 0 || $result[3] > 1)
+		{
+			return null;
+		}
+		else if($_fix_gd)
+		{
+			$result[3] = (int)(127 - ($result[3] * 127));
+		}
+
+		for($i = 0; $i < 3; ++$i)
+		{
+			if(gettype($result[$i]) !== 'integer')
+			{
+				return null;
+			}
+			else if($result[$i] < 0 || $result[$i] > 255)
+			{
+				return null;
+			}
+		}
+
 		return $result;
+	}
+
+	function ptToPx($_pt)
+	{
+		return ($_pt * 0.75);
+	}
+
+	function pxToPt($_px)
+	{
+		return ($_px / 0.75);
 	}
 
 	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space)
 	{
 		//
-		$textWidth = imagettfbbox($px, 0, $_font, $_text);
-		$textWidth = $textWidth[2] - $textWidth[0];
-		
+		if(defined('SENT'))
+		{
+			draw_error('Header already sent (unexpected here)');
+			return null;
+		}
+
 		//
-		$width = $textWidth + $_space;
-		$height = $px + $_pad;
-		
+		$px = $_size;
+		$pt = pxToPt($px);
+
+		//
+		$measure = imagettfbbox($pt, 0, $_font, $_text);
+		$textWidth = ($measure[2] - $measure[0]);
+		$textHeight = ($measure[1] - $measure[7]);
+
+		//
+		$width = pxToPt($textWidth + ($_space * 2));
+		$height = pxToPt($textHeight + ($_pad * 2));
+
 		//
 		$image = imagecreatetruecolor($width, $height);
-		
+		imagealphablending($image, false);
+		imagesavealpha($image, true);
+		imageantialias($image, true);
+
 		//
 		$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
 		$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
-		imagefilledrectangle($image, 0, 0, $width, $height, $_bg);
+		imagefill($image, 0, 0, $_bg);
+
+		//
+		$x = ptToPx(($width - $textWidth + $_space) / 2) + 2;
+		$y = ($height + $textHeight) / 2;
+
+		//
+		imagettftext($image, $pt, 0, $x, $y, $_fg, $_font, $_text);
 		
 		//
-		$x = (($width - $textWidth) / 2);
-		$y = ((($height - $px) / 2) + $px);
+		$sent = sendHeader('image/png');
 		
-		//
-		imagettftext($image, $px, 0, $x, $y, $_fg, $_font, $_text);
+		if($sent)
+		{
+			imagepng($image);
+		}
 		
-		//
-		header('Content-Type: image/png');
-		imagepng($image);
 		imagedestroy($image);
+		
+		if(!$sent)
+		{
+			draw_error('Header couldn\'t be sent');
+			return false;
+		}
+
+		return true;
 	}
 
 	//
-	$options = drawing_options();
+	$options = get_drawing_options();
 	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space']);
 }
 
@@ -2516,17 +3110,16 @@ if(CLIENT)
 }
 
 //
-define('SENT', true);
 $value = (string)$value;
 
 //
-if(DRAW && isset($_GET['draw']))
+if(DRAW && isset($_GET['draw']) && extension_loaded('gd'))
 {
 	draw($value);
 }
 else
 {
-	header('Content-Type: ' . CONTENT);
+	sendHeader(CONTENT);
 	header('Content-Length: ' . strlen($value));
 	echo $value;
 }
