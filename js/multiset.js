@@ -81,7 +81,7 @@
 				throw new Error('Invalid _value argument (not a Number)');
 			}
 
-			if(_value < 0 && !this.negative)
+			if(_value <= 0 && !this.negative)
 			{
 				_value = 0;
 			}
@@ -94,14 +94,14 @@
 			return _value;
 		}
 
-		add(_key)
+		get add()
 		{
-			return this.increase(_key, DEFAULT_INC);
+			return this.increase;
 		}
 
-		sub(_key)
+		get sub()
 		{
-			return this.decrease(_key, DEFAULT_DEC);
+			return this.decrease;
 		}
 
 		inc(_key, _by = DEFAULT_INC)
@@ -127,7 +127,7 @@
 				result = _by;
 			}
 
-			if(result < 0 && !this.negative)
+			if(result <= 0 && !this.negative)
 			{
 				result = 0;
 			}
@@ -163,7 +163,7 @@
 				result = -_by;
 			}
 
-			if(result < 0 && !this.negative)
+			if(result <= 0 && !this.negative)
 			{
 				result = 0;
 			}
@@ -193,4 +193,3 @@
 	}
 
 })();
-
