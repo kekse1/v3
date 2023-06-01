@@ -104,9 +104,14 @@
 			return this.decrease;
 		}
 
-		inc(_key, _by = DEFAULT_INC)
+		get inc()
 		{
-			return this.increase(_key, _by);
+			return this.increase;
+		}
+
+		get dec()
+		{
+			return this.decrease;
 		}
 
 		increase(_key, _by = DEFAULT_INC)
@@ -138,11 +143,6 @@
 
 			super.set(_key, result);
 			return result;
-		}
-
-		dec(_key, _by = DEFAULT_DEC)
-		{
-			return this.decrease(_key, _by);
 		}
 
 		decrease(_key, _by = DEFAULT_DEC)
