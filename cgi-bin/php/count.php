@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.1
+ * v2.14.2
  */
 
 //
-define('VERSION', '2.14.1');
+define('VERSION', '2.14.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -856,7 +856,7 @@ if(php_sapi_name() === 'cli')
 		return $result;
 	}
 	
-	function get_arguments($_index, $_hosts = true)
+	function get_arguments($_index, $_hosts = true, $_unique = true)
 	{
 		if(gettype($_index) !== 'integer' || $_index < 0)
 		{
@@ -904,6 +904,10 @@ if(php_sapi_name() === 'cli')
 		if(empty($result))
 		{
 			return null;
+		}
+		else if($_unique)
+		{
+			$result = array_unique($result);
 		}
 
 		return $result;		
