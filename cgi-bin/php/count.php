@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.8
+ * v2.14.0
  */
 
 //
-define('VERSION', '2.13.8');
+define('VERSION', '2.14.0');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -36,6 +36,7 @@ define('FONTS', 'fonts');
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
 define('AA', true);
+define('TYPE', 'png');
 
 //
 define('COOKIE_PATH', '/');
@@ -44,7 +45,7 @@ define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
 
 //
-function sendHeader($_type = CONTENT)
+function sendHeader($_type_value = CONTENT, $_raw = false)
 {
 	if(defined('SENT'))
 	{
@@ -54,8 +55,16 @@ function sendHeader($_type = CONTENT)
 	{
 		define('SENT', true);
 	}
-	
-	header('Content-Type: ' . $_type);
+
+	if($_raw)
+	{
+		header($_type_value);
+	}
+	else
+	{
+		header('Content-Type: ' . $_type_value);
+	}
+
 	return true;
 }
 
@@ -961,6 +970,7 @@ if(php_sapi_name() === 'cli')
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
 		printf('    -f / --fonts' . PHP_EOL);
+		printf('    -t / --types' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
 		printf('    -v / --values [host,..]' . PHP_EOL);
 		printf('    -n / --sync [host,..]' . PHP_EOL);
@@ -1067,6 +1077,116 @@ if(php_sapi_name() === 'cli')
 			for($i = 0; $i < $len; ++$i)
 			{
 				printf($format, $fonts[$i], (in_array($fonts[$i], $available) ? 'YES :-)' : 'NO!'));
+			}
+		}
+
+		exit(0);
+	}
+
+	function types($_index = -1)
+	{
+		if(!extension_loaded('gd'))
+		{
+			fprintf(STDERR, ' >> The GD library/extension is not loaded/available' . PHP_EOL);
+			exit(1);
+		}
+
+		$selection = get_arguments($_index + 1, false);
+		$types = imagetypes();
+
+		if($selection === null)
+		{
+			$png = ($types & IMG_PNG);
+			$jpg = ($types & IMG_JPG);
+
+			$avail = 0;
+			$avail += ($png ? 1 : 0);
+			$avail += ($jpg ? 1 : 0);
+
+			printf(' >> These are the %d available image types:' . PHP_EOL . PHP_EOL, $avail);
+
+			if($png)
+			{
+				printf('    png' . PHP_EOL);
+			}
+
+			if($jpg)
+			{
+				printf('    jpg' . PHP_EOL);
+			}
+
+			printf(PHP_EOL);
+		}
+		else
+		{
+			$sel = array();
+			$len = count($selection);
+
+			for($i = 0, $j = 0; $i < $len; ++$i)
+			{
+				if(($selection[$i] = strtolower($selection[$i]))[0] === '.')
+				{
+					$selection[$i] = substr($selection[$i], 1);
+				}
+
+				if($selection[$i] === 'png')
+				{
+					if(!in_array($selection[$i], $sel))
+					{
+						$sel[$j++] = $selection[$i];
+					}
+				}
+				else if($selection[$i] === 'jpg')
+				{
+					if(!in_array($selection[$i], $sel))
+					{
+						$sel[$j++] = $selection[$i];
+					}
+				}
+				else
+				{
+					fprintf(STDERR, ' >> Image type \'%s\' is invalid..' . PHP_EOL, $selection[$i]);
+				}
+			}
+
+			$selection = $sel;
+			$len = count($selection);
+
+			if($len > 0)
+			{
+				printf(PHP_EOL);
+			}
+
+			for($i = 0; $i < $len; ++$i)
+			{
+				switch($selection[$i])
+				{
+					case 'png':
+						if($types & IMG_PNG)
+						{
+							printf('    png: YES :-D' . PHP_EOL);
+						}
+						else
+						{
+							fprintf(STDERR, '    png: NO. :-(' . PHP_EOL);
+						}
+						break;
+					case 'jpg':
+						if($types & IMG_JPG)
+						{
+							printf('    jpg: YES :-D' . PHP_EOL);
+						}
+						else
+						{
+							fprintf(STDERR, '    jpg: NO. :-(' . PHP_EOL);
+						}
+						break;
+				}
+			}
+
+			if($len > 0)
+			{
+				printf(PHP_EOL);
 			}
 		}
 
@@ -1572,6 +1692,49 @@ if(php_sapi_name() === 'cli')
 		else
 		{
 			fprintf(STDERR, START.'Not a Boolean' . PHP_EOL, 'AA', 'BAD');
+			++$errors;
+		}
+
+		//
+		if(gettype(TYPE) === 'string' && !empty(TYPE))
+		{
+			if(!extension_loaded('gd'))
+			{
+				printf(START.'A non-empty String is valid, but I can\'t check for supported types atm.' . PHP_EOL, 'TYPE', 'WARN');
+				++$warnings;
+			}
+			else
+			{
+				$avail = imagetypes();
+				$result = null;
+
+				switch(strtolower(TYPE))
+				{
+					case 'png':
+						$result = ($avail & IMG_PNG);
+						break;
+					case 'jpg':
+						$result = ($avail & IMG_JPG);
+						break;
+					default:
+						break;
+				}
+
+				if($result)
+				{
+					printf(START.'Valid, supported image type.' . PHP_EOL, 'TYPE', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'Unsupported image type..' . PHP_EOL, 'TYPE', 'BAD');
+					++$errors;
+				}
+			}
+		}
+		else
+		{
+			fprintf(STDERR, START.'No valid (non-empty) String' . PHP_EOL, 'TYPE', 'BAD');
 			++$errors;
 		}
 
@@ -2269,6 +2432,10 @@ if(php_sapi_name() === 'cli')
 		{
 			fonts($i);
 		}
+		else if($argv[$i] === '-t' || $argv[$i] === '--types')
+		{
+			types($i);
+		}
 		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
 		{
 			clean($i);
@@ -2844,6 +3011,7 @@ function draw($_text)
 		$result['x'] = get_param('x', true, false);
 		$result['y'] = get_param('y', true, false);
 		$result['aa'] = get_param('aa', null);
+		$result['type'] = get_param('type', false);
 
 		//
 		if(! is_numeric($result['size']))
@@ -2940,7 +3108,35 @@ function draw($_text)
 		{
 			$result['aa'] = AA;
 		}
-		
+
+		if(gettype($result['type']) !== 'string')
+		{
+			$result['type'] = TYPE;
+		}
+
+		$types = imagetypes();
+
+		switch($result['type'] = strtolower($result['type']))
+		{
+			case 'png':
+				if(! ($types & IMG_PNG))
+				{
+					draw_error('\'?type\' is not supported', $_die);
+					return null;
+				}
+				break;
+			case 'jpg':
+				if(! ($types & IMG_JPG))
+				{
+					draw_error('\'?type\' is not supported', $_die);
+					return null;
+				}
+				break;
+			default:
+				draw_error('\'?type\' is not supported', $_die);
+				return null;
+		}
+
 		return $result;
 	}
 
@@ -3125,7 +3321,7 @@ function draw($_text)
 		return ($_px / 0.75);
 	}
 
-	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x, $_y, $_aa)
+	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x, $_y, $_aa, $_type)
 	{
 		//
 		if(defined('SENT'))
@@ -3174,15 +3370,25 @@ function draw($_text)
 
 		//
 		imagettftext($image, $pt, 0, $x, $y, $_fg, $_font, $_text);
-		
+
 		//
-		$sent = sendHeader('image/png');
-		
-		if($sent)
+		switch(strtolower($_type))
 		{
-			imagepng($image);
+			case 'png':
+				if($sent = sendHeader('image/png'))
+				{
+					imagepng($image);
+				}
+				break;
+			case 'jpg':
+				if($sent = sendHeader('image/jpeg'))
+				{
+					imagejpeg($image);
+				}
+				break;
 		}
 		
+		//
 		imagedestroy($image);
 		
 		if(!$sent)
@@ -3196,7 +3402,7 @@ function draw($_text)
 
 	//
 	$options = get_drawing_options();
-	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y'], $options['aa']);
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y'], $options['aa'], $options['type']);
 }
 
 //
