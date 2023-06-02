@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.3
+ * v2.14.4
  */
 
 //
-define('VERSION', '2.14.3');
+define('VERSION', '2.14.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -3424,15 +3424,24 @@ if(SERVER)
 
 //
 $value = read_value();
+$readonly = get_param('readonly', null);
 
-if(test())
+if(gettype($readonly) !== 'boolean')
 {
-	write_value(++$value);
+	$readonly = false;
 }
 
-if(CLIENT && !OVERRIDDEN)
+if(!$readonly)
 {
-	make_cookie();
+	if(test())
+	{
+		write_value(++$value);
+	}
+
+	if(CLIENT && !OVERRIDDEN)
+	{
+		make_cookie();
+	}
 }
 
 //
@@ -3456,7 +3465,7 @@ else
 }
 
 //
-if(SERVER)
+if(SERVER && !$readonly)
 {
 	//
 	write_timestamp();
