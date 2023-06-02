@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.2
+ * v2.14.3
  */
 
 //
-define('VERSION', '2.14.2');
+define('VERSION', '2.14.3');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -21,7 +21,7 @@ define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
 define('CLEAN', true);
 define('LIMIT', 32768);
-define('LOG', 'ERROR.log');
+define('LOG', 'count.log');
 define('ERROR', '/');
 define('NONE', '/');
 define('DRAW', true);
@@ -457,7 +457,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	$noLog = false;
 	$data = null;
 	
-	if(!defined('PATH_LOG'))
+	if(!defined('LOG') || empty(LOG))
 	{
 		$noLog = $_die = true;
 		$data = '';
@@ -491,7 +491,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	}
 	else
 	{
-		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
+		$result = file_put_contents(LOG, $data, FILE_APPEND);
 
 		if($result === false)
 		{
@@ -2313,7 +2313,7 @@ if(php_sapi_name() === 'cli')
 		exit(0);
 	}
 
-	function unlog($_index = -1, $_path = (PATH . '/' . LOG))
+	function unlog($_index = -1, $_path = LOG)
 	{
 		error_reporting(0);
 
@@ -2353,7 +2353,7 @@ if(php_sapi_name() === 'cli')
 		exit(0);
 	}
 
-	function errors($_index = -1, $_path = (PATH . '/' . LOG))
+	function errors($_index = -1, $_path = LOG)
 	{
 		if(! file_exists($_path))
 		{
@@ -2546,7 +2546,6 @@ define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
 define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
 define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
 define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
-define('PATH_LOG', PATH . '/' . LOG);
 
 //
 if(AUTO === null)
