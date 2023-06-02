@@ -293,11 +293,11 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = false)
 
 	if($_numeric === null && strlen($value) === 1)
 	{
-		if($value === '0')
+		if($value === '0' || $value === 'n' || $value === 'N')
 		{
 			return false;
 		}
-		else if($value === '1')
+		else if($value === '1' || $value === 'y' || $value === 'Y')
 		{
 			return true;
 		}
