@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.0
+ * v2.14.1
  */
 
 //
-define('VERSION', '2.14.0');
+define('VERSION', '2.14.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -25,8 +25,8 @@ define('LOG', 'ERROR.log');
 define('ERROR', '/');
 define('NONE', '/');
 define('DRAW', true);
-define('SIZE', 28);
-define('SIZE_LIMIT', 384);
+define('SIZE', 24);
+define('SIZE_LIMIT', 512);
 define('SPACE', 1);
 define('SPACE_LIMIT', 256);
 define('PAD', 1);
