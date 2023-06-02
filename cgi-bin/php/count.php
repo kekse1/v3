@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.1
+ * v2.13.2
  */
 
 //
-define('VERSION', '2.13.1');
+define('VERSION', '2.13.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -84,169 +84,164 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 
 		exit(255);
 	}
-	else
+	else if(! defined('SENT'))
 	{
 		sendHeader(CONTENT);
 	}
-	
+
+	if(gettype(ERROR) === 'string')
+	{
+		die(ERROR);
+	}
+
 	die($_reason);
 }
 
-function secure_host($_host, $_die = true)
-{
-	$length = min(strlen($_host), 255);
-	$result = '';
-	$byte = null;
-	$put = '';
-
-	for($i = 0; $i < $length; ++$i)
-	{
-		if($_host[$i] === '.')
-		{
-			if(strlen($result) === 0)
-			{
-				$put = '';
-			}
-			else if($result[strlen($result) - 1] === '.')
-			{
-				$put = '';
-			}
-			else
-			{
-				$put = '.';
-			}
-		}
-		else if($_host[$i] === ':')
-		{
-			$put = ':';
-		}
-		else if($_host[$i] === '-')
-		{
-			$put = '-';
-		}
-		else if(($byte = ord($_host[$i])) >= 48 && $byte <= 57)
-		{
-			$put = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$put = chr($byte + 32);
-		}
-		else if($byte >= 97 && $byte <= 122)
-		{
-			$put = chr($byte);
-		}
-		else
-		{
-			$put = '';
-		}
-
-		$result .= $put;
-	}
-
-	if(empty($result))
-	{
-		if($_die)
-		{
-			error('Secured host got no length');
-		}
-
-		$result = null;
-	}
-
-	return $result;
-}
-
-function secure_path($_string, $_die = true)
+function secure($_string, $_null = true, $_die = true)
 {
 	if(gettype($_string) !== 'string')
 	{
-		log_error('Invalid path $_string', 'secure_path', '', $_die);
-
 		if($_die)
 		{
-			error('Invalid path $_string');
+			error('Invalid $_string argument');
 		}
 		
-		return null;
+		if($_null)
+		{
+			return null;
+		}
+		
+		return '';
 	}
-	else while($_string[0] === '.' && $_string[1] === '/')
-	{
-		$_string = substr($_string, 2);
-	}
-
+	
 	$len = strlen($_string);
 	
 	if($len > 255)
 	{
-		log_error('Secured path string is too long (above 255 chars)', 'secure_path', $_string, $_die);
-
 		if($_die)
 		{
-			error('Secured path string is too long');
+			error('Argument $_string exceeded length limit (255)');
+		}
+
+		if($_null)
+		{
+			return null;
 		}
 		
-		return null;
+		return '';
 	}
 	
 	$result = '';
+	$byte = 0;
+	$add = '';
+	$l = 0;
 	
 	for($i = 0; $i < $len; ++$i)
 	{
-		if($_string[$i] === '.')
+		if(($byte = ord($_string[$i])) >= 97 && $byte <= 122)
 		{
-			if(strlen($result) === 0)
+			$add = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 46)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
 			{
-				continue;
+				$add = '';
 			}
-			else if($result[strlen($result) - 1] === '.')
+			else if($result[$l - 1] === '.')
 			{
-				continue;
+				$add = '';
+			}
+			else
+			{
+				$add = '.';
 			}
 		}
-		else if($_string[$i] === '/' || $_string[$i] === '\\')
+		else if($byte === 40 || $byte === 41)
 		{
-			if(strlen($result) === 0)
+			$add = chr($byte);
+		}
+		else if($byte >= 43 && $byte <= 45)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 47 || $byte === 92)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
 			{
-				continue;
+				$add = '';
 			}
-			else if($result[strlen($result) - 1] === '.')
+			else if($result[$l - 1] === chr($byte))
 			{
-				continue;
+				$add = '';
+			}
+			else
+			{
+				$add = chr($byte);
 			}
 		}
-		else if($_string[$i] === '*' || $_string[$i] === '?')
+		else if($byte === 58)
 		{
-			continue;
+			$add = ':';
 		}
-		else if(ord($_string[$i]) < 32)
+		else
 		{
 			continue;
 		}
 		
-		$result .= $_string[$i];
+		$result .= $add;
 	}
 	
-	if(empty($result))
+	if($_null && strlen($result) === 0)
 	{
-		log_error('Secured path string is/was empty', 'secure_path', $_string, $_die);
+		$result = null;
+	}
+	
+	return $result;
+}
 
+function secure_host($_string, $_null = true, $_die = true)
+{
+	$result = secure($_string, $_null, $_die);
+	
+	if($result !== null)
+	{
+		$result = strtolower($result);
+	}
+	
+	return $result;
+}
+
+function get_param($_key, $_numeric = false, $_float = true, $_die = false)
+{
+	if(gettype($_key) !== 'string')
+	{
 		if($_die)
 		{
-			error('Secured path string is/became empty');
+			error('Invalid $_key argument (not a non-emptyString)');
 		}
 		
 		return null;
 	}
-
-	return $result;
-}
-
-function get_param($_key, $_numeric = true, $_float = true)
-{
-	if(empty($_key))
+	else if(empty($_key))
 	{
-		//error?
+		if($_die)
+		{
+			error('Invalid $_key argument (may not be empty)');
+		}
+
 		return null;
 	}
 	else if(!isset($_GET[$_key]))
@@ -254,13 +249,9 @@ function get_param($_key, $_numeric = true, $_float = true)
 		return null;
 	}
 
-	$value = $_GET[$_key];
-
-	if(strlen($value) === 0)
-	{
-		return null;
-	}
-	else if(strlen($value) > 255)
+	$value = secure($_GET[$_key], true, $_die);
+	
+	if($value === null)
 	{
 		return null;
 	}
@@ -443,39 +434,19 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	
 	if($noLog)
 	{
-		if(defined('STDERR'))
-		{
-			fprintf(STDERR, ' >> ' . $data);
-		}
-		else if(! defined('SENT'))
-		{
-			die($data);
-		}
-
-		$result = $data;
+		error($result = $data);
 	}
 	else
 	{
 		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
 
-		if(! defined('SENT'))
+		if($result === false)
 		{
-			if($result === false)
-			{
-				sendHeader(CONTENT);
-
-				if(gettype(ERROR) === 'string')
-				{
-					die(ERROR);
-				}
-
-				die('Logging error: ' . substr($data, 0, -1));
-			}
-			else if($_die && gettype(ERROR) === 'string')
-			{
-				sendHeader(CONTENT);
-				die(ERROR);
-			}
+			error('Logging error: ' . substr($data, 0, -1));
+		}
+		else if($_die)
+		{
+			error('');
 		}
 	}
 
@@ -871,7 +842,7 @@ if(php_sapi_name() === 'cli')
 
 		if($_hosts) for($i = 0; $i < count($result); ++$i)
 		{
-			if(strlen($result[$i] = secure_host($result[$i], false)) === 0)
+			if(($result[$i] = secure_host($result[$i], true, false)) === null)
 			{
 				array_splice($result, $i--, 1);
 			}
@@ -997,7 +968,7 @@ if(php_sapi_name() === 'cli')
 		{
 			for($i = 0; $i < count($fonts); ++$i)
 			{
-				if(($fonts[$i] = secure_path($fonts[$i])) === null)
+				if(($fonts[$i] = secure($fonts[$i], true)) === null)
 				{
 					array_splice($fonts, $i--, 1);
 				}
@@ -1608,7 +1579,7 @@ if(php_sapi_name() === 'cli')
 
 		for($i = 0, $j = 0; $i < count($hosts); ++$i)
 		{
-			$file = $_path . '/~' . secure_path($hosts[$i]);
+			$file = $_path . '/~' . secure($hosts[$i], false);
 			
 			if(is_file($file) && is_readable($file))
 			{
@@ -1681,7 +1652,7 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
-			$hosts[$i] = secure_path($hosts[$i]);
+			$hosts[$i] = secure($hosts[$i], false);
 
 			$gotFile = is_file($_path . '/-' . $hosts[$i]);
 			$gotDir = is_dir($_path . '/+' . $hosts[$i]);
@@ -1813,7 +1784,7 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
-			$hosts[$i] = secure_path($hosts[$i]);
+			$hosts[$i] = secure($hosts[$i], false);
 
 			if(! is_dir($_path . '/+' . $hosts[$i]))
 			{
@@ -2296,7 +2267,14 @@ function get_host($_die = true)
 	}
 
 	//
-	return secure_host(remove_port($result, $_die), $_die);
+	$result = secure_host(remove_port($result, $_die), true, $_die);
+
+	if($result === null && $_die)
+	{
+		error('Invalid host');
+	}
+
+	return $result;
 }
 
 function remove_port($_host, $_die = false)
@@ -2337,10 +2315,10 @@ define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
-define('PATH_FILE', PATH . '/~' . secure_path(HOST, true));
-define('PATH_DIR', PATH . '/+' . secure_path(HOST, true));
-define('PATH_COUNT', PATH . '/-' . secure_path(HOST, true));
-define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'])), true));
+define('PATH_FILE', PATH . '/~' . secure(HOST, false));
+define('PATH_DIR', PATH . '/+' . secure(HOST, false));
+define('PATH_COUNT', PATH . '/-' . secure(HOST, false));
+define('PATH_IP', PATH_DIR . '/' . secure((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure($_SERVER['REMOTE_ADDR'])), false));
 define('PATH_LOG', PATH . '/' . LOG);
 
 //
@@ -2851,7 +2829,6 @@ function draw($_text)
 		}
 		else if(!is_file($result['font'] = realpath($result['font'])))
 		{
-			die('b');
 			draw_error('\'?font\' is valid, but no such file found', $_die);
 			return null;
 		}
