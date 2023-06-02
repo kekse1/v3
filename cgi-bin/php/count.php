@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.4
+ * v2.13.5
  */
 
 //
-define('VERSION', '2.13.4');
+define('VERSION', '2.13.5');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1535,6 +1535,18 @@ if(php_sapi_name() === 'cli')
 		else
 		{
 			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
+			++$errors;
+		}
+
+		//
+		if(gettype(AA) === 'boolean')
+		{
+			printf(START.'Is a boolean' . PHP_EOL, 'AA', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'Not a Boolean' . PHP_EOL, 'AA', 'BAD');
 			++$errors;
 		}
 
