@@ -2,19 +2,19 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.12.3
+ * v2.13.0
  */
 
 //
-define('VERSION', '2.12.3');
+define('VERSION', '2.13.0');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('PATH', 'count');
-define('OVERRIDE', false);
-define('CLIENT', true);
+define('OVERRIDE', true);
+define('CLIENT', false);
 define('SERVER', true);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
@@ -219,10 +219,6 @@ function secure_path($_string, $_die = true)
 		{
 			continue;
 		}
-		else if($_string[$i] === ':')
-		{
-			continue;
-		}
 		else if(ord($_string[$i]) < 32)
 		{
 			continue;
@@ -241,6 +237,158 @@ function secure_path($_string, $_die = true)
 		}
 		
 		return null;
+	}
+
+	return $result;
+}
+
+function get_param($_key, $_numeric = true, $_float = true)
+{
+	if(empty($_key))
+	{
+		//error?
+		return null;
+	}
+	else if(!isset($_GET[$_key]))
+	{
+		return null;
+	}
+
+	$value = $_GET[$_key];
+
+	if(strlen($value) === 0)
+	{
+		return null;
+	}
+	else if(strlen($value) > 255)
+	{
+		return null;
+	}
+
+	$result = '';
+	$byte = null;
+	$hadPoint = false;
+	$numeric = null;
+	$set = '';
+	$negative = false;
+	$remove = 0;
+
+	if($_numeric) while($value[$remove] === '+' || $value[$remove] === '-')
+	{
+		++$remove;
+
+		if($value[0] === '-')
+		{
+			$negative = !$negative;
+		}
+	}
+
+	if($remove > 0)
+	{
+		$value = substr($value, $remove);
+	}
+
+	$len = strlen($value);
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$set = chr($byte);
+
+			if($numeric === null)
+			{
+				$numeric = true;
+			}
+		}
+		else if($byte === 46)
+		{
+			if($hadPoint)
+			{
+				$result = '';
+				break;
+			}
+			else if(!$_float)
+			{
+				$result = '';
+				break;
+			}
+			else
+			{
+				$hadPoint = true;
+				$set = '.';
+			}
+		}
+		else if($byte === 44)
+		{
+			$set = ',';
+			$numeric = false;
+		}
+		else
+		{
+			$set = '';
+		}
+
+		$result .= $set;
+	}
+
+	if(strlen($result) === 0)
+	{
+		$result = null;
+		$numeric = false;
+	}
+	else if(! $_numeric)
+	{
+		$numeric = false;
+	}
+	else if(! $_float && $hadPoint && $numeric)
+	{
+		$numeric = false;
+	}
+
+	if($numeric)
+	{
+		if($result === '.')
+		{
+			$result = null;
+			$numeric = false;
+		}
+		else
+		{
+			if($result[0] === '.')
+			{
+				$result = '0' . $result;
+			}
+			else if($result[strlen($result) - 1] === '.')
+			{
+				$result = substr($result, 0, -1);
+				$hadPoint = false;
+			}
+
+			if($hadPoint)
+			{
+				$result = (double)$result;
+			}
+			else
+			{
+				$result = (int)$result;
+			}
+
+			if($negative)
+			{
+				$result = -$result;
+			}
+		}
 	}
 
 	return $result;
@@ -346,11 +494,15 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 	{
 		error('Directory isn\'t writable');
 	}
-	else if(AUTO !== true && !is_file($_file))
+	else if((AUTO !== true || OVERRIDDEN) && !is_file($_file))
 	{
-		if(AUTO === false)
+		if(OVERRIDDEN)
 		{
-			log_error('AUTO is false', 'check_path', $_file, false);
+			error(NONE);
+		}
+		else if(AUTO === false)
+		{
+			//log_error('AUTO is false', 'check_path', $_file, false);
 			error(NONE);
 		}
 		else if(gettype(AUTO) === 'integer')
@@ -359,18 +511,18 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 
 			if($count === null)
 			{
-				log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
+				//log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
 				error(NONE);
 			}
 			else if($count >= AUTO)
 			{
-				log_error('AUTO is too low', 'check_path', $_file, false);
+				//log_error('AUTO is too low', 'check_path', $_file, false);
 				error(NONE);
 			}
 		}
 		else
 		{
-			log_error('Invalid \'AUTO\' constant', 'check_path', $_file);
+			//log_error('Invalid \'AUTO\' constant', 'check_path', $_file);
 			error('Invalid \'AUTO\' constant');
 		}
 	}
@@ -394,9 +546,10 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	}
 	else if(! is_dir($_path))
 	{
+		log_error('This is not a directory', 'count_files', $_path, $_die);
+
 		if($_die)
 		{
-			log_error('This is not a directory', 'count_files', $_path);
 			error('This is not a directory' . (defined('STDERR') ? PHP_EOL : ''));
 		}
 
@@ -2117,7 +2270,7 @@ function get_host($_die = true)
 	//
 	if(OVERRIDE && ($result = get_param('override', false)))
 	{
-		//
+		define('OVERRIDDEN', true);
 	}
 	else if(! empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'][0] !== ':')
 	{
@@ -2130,6 +2283,12 @@ function get_host($_die = true)
 	else if($_die)
 	{
 		error('No server host/name applicable');
+	}
+	
+	//
+	if(!defined('OVERRIDDEN'))
+	{
+		define('OVERRIDDEN', false);
 	}
 
 	//
@@ -2205,7 +2364,7 @@ function test()
 {
 	$result = true;
 
-	if(CLIENT)
+	if(CLIENT && !OVERRIDDEN)
 	{
 		$result = test_cookie();
 	}
@@ -2611,159 +2770,6 @@ function draw($_text)
 	}
 
 	//
-	function get_param($_key, $_numeric = true, $_float = true)
-	{
-		if(empty($_key))
-		{
-			//error?
-			return null;
-		}
-		else if(!isset($_GET[$_key]))
-		{
-			return null;
-		}
-
-		$value = $_GET[$_key];
-
-		if(strlen($value) === 0)
-		{
-			return null;
-		}
-		else if(strlen($value) > 255)
-		{
-			return null;
-		}
-
-		$result = '';
-		$byte = null;
-		$hadPoint = false;
-		$numeric = null;
-		$set = '';
-		$negative = false;
-		$remove = 0;
-
-		if($_numeric) while($value[$remove] === '+' || $value[$remove] === '-')
-		{
-			++$remove;
-
-			if($value[0] === '-')
-			{
-				$negative = !$negative;
-			}
-		}
-
-		if($remove > 0)
-		{
-			$value = substr($value, $remove);
-		}
-
-		$len = strlen($value);
-
-		for($i = 0; $i < $len; ++$i)
-		{
-			if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
-			{
-				$numeric = false;
-				$set = chr($byte);
-			}
-			else if($byte >= 65 && $byte <= 90)
-			{
-				$numeric = false;
-				$set = chr($byte);
-			}
-			else if($byte >= 48 && $byte <= 57)
-			{
-				$set = chr($byte);
-
-				if($numeric === null)
-				{
-					$numeric = true;
-				}
-			}
-			else if($byte === 46)
-			{
-				if($hadPoint)
-				{
-					$result = '';
-					break;
-				}
-				else if(!$_float)
-				{
-					$result = '';
-					break;
-				}
-				else
-				{
-					$hadPoint = true;
-					$set = '.';
-				}
-			}
-			else if($byte === 44)
-			{
-				$set = ',';
-				$numeric = false;
-			}
-			else
-			{
-				$set = '';
-			}
-
-			$result .= $set;
-		}
-
-		if(strlen($result) === 0)
-		{
-			$result = null;
-			$numeric = false;
-		}
-		else if(! $_numeric)
-		{
-			$numeric = false;
-		}
-		else if(! $_float && $hadPoint && $numeric)
-		{
-			$numeric = false;
-		}
-
-		if($numeric)
-		{
-			if($result === '.')
-			{
-				$result = null;
-				$numeric = false;
-			}
-			else
-			{
-				if($result[0] === '.')
-				{
-					$result = '0' . $result;
-				}
-				else if($result[strlen($result) - 1] === '.')
-				{
-					$result = substr($result, 0, -1);
-					$hadPoint = false;
-				}
-
-				if($hadPoint)
-				{
-					$result = (double)$result;
-				}
-				else
-				{
-					$result = (int)$result;
-				}
-
-				if($negative)
-				{
-					$result = -$result;
-				}
-			}
-		}
-
-		return $result;
-	}
-
-	//
 	function get_font($_name, $_dir = FONTS)
 	{
 		$available = count_fonts($_dir, false, true);
@@ -3142,7 +3148,7 @@ if(test())
 	write_value(++$value);
 }
 
-if(CLIENT)
+if(CLIENT && !OVERRIDDEN)
 {
 	make_cookie();
 }
