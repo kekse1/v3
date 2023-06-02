@@ -2785,6 +2785,8 @@ function draw($_text)
 		$result['font'] = get_param('font', false);
 		$result['fg'] = get_param('fg', false);
 		$result['bg'] = get_param('bg', false);
+		$result['x'] = get_param('x', true, false);
+		$result['y'] = get_param('y', true, false);
 
 		//
 		if(! is_numeric($result['size']))
@@ -2857,6 +2859,24 @@ function draw($_text)
 		{
 			draw_error('\'?bg\' is no valid rgb/rgba color', $_die);
 			return null;
+		}
+
+		if($result['x'] === null)
+		{
+			$result['x'] = 2;
+		}
+		else if($result['x'] > 512 || $result['x'] < -512)
+		{
+			$result['x'] = 2;
+		}
+
+		if($result['y'] === null)
+		{
+			$result['y'] = 0;
+		}
+		else if($result['x'] > 512 || $result['y'] < -512)
+		{
+			$result['y'] = 0;
 		}
 
 		return $result;
@@ -3043,7 +3063,7 @@ function draw($_text)
 		return ($_px / 0.75);
 	}
 
-	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space)
+	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x = 0, $_y = 0)
 	{
 		//
 		if(defined('SENT'))
@@ -3077,8 +3097,8 @@ function draw($_text)
 		imagefill($image, 0, 0, $_bg);
 
 		//
-		$x = ptToPx(($width - $textWidth + $_space) / 2) + 2;
-		$y = ($height + $textHeight) / 2;
+		$x = ptToPx(($width - $textWidth + $_space) / 2) + $_x;
+		$y = (($height + $textHeight) / 2) + $_y;
 
 		//
 		imagettftext($image, $pt, 0, $x, $y, $_fg, $_font, $_text);
@@ -3104,7 +3124,7 @@ function draw($_text)
 
 	//
 	$options = get_drawing_options();
-	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space']);
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y']);
 }
 
 //
