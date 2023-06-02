@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.6
+ * v2.14.7
  */
 
 //
-define('VERSION', '2.14.6');
+define('VERSION', '2.14.7');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1990,8 +1990,13 @@ if(php_sapi_name() === 'cli')
 			}
 			
 			$new = count_files($_path . '/+' . $hosts[$i], false, false, false);
-			
-			if($orig === $new)
+
+			if($new === null)
+			{
+				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
+				++$errors;
+			}
+			else if($orig === $new)
 			{
 				printf(' >> Count for host \'%s\' *is* in sync. :-)' . PHP_EOL, $hosts[$i]);
 				++$correct;
@@ -2082,6 +2087,11 @@ if(php_sapi_name() === 'cli')
 			if(($len = count($files = count_files($_path . '/+' . $hosts[$i], false, false, true))) === 0)
 			{
 				printf(' >> No cache files for host \'%s\' collected' . PHP_EOL, $hosts[$i]);
+			}
+			else if($len === null)
+			{
+				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
+				++$err;
 			}
 			else for($k = 0; $k < $len; ++$k)
 			{
@@ -2180,8 +2190,12 @@ if(php_sapi_name() === 'cli')
 		for($i = 0; $i < $len; ++$i)
 		{
 			$item = count_files($_path . '/+' . ($adapted[$i] = $adapted[$i][0]), false, false, false, false);
-			
-			if(is_writable($_path . '/-' . $adapted[$i]))
+
+			if($item === null)
+			{
+				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $adapted[$i]);
+			}
+			else if(is_writable($_path . '/-' . $adapted[$i]))
 			{
 				if(file_put_contents($_path . '/-' . $adapted[$i], (string)$item) === false)
 				{
@@ -2686,6 +2700,13 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 	}
 
 	$files = count_files($_dir, false, false, true);
+
+	if($files === null)
+	{
+		log_error('Can\'t scan directory', 'clean_files', $_dir, false);
+		return 0;
+	}
+
 	$len = count($files);
 
 	if($len === 0)
@@ -2744,9 +2765,15 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 
 function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
 {
+	$result = null;
+
 	if(is_dir($_directory))
 	{
-		$result = count_files($_directory, false, false, false);
+		if(($result = count_files($_directory, false, false, false)) === null)
+		{
+			log_error('Can\'t scan directory', 'init_count', $_directory, $_die);
+			return 0;
+		}
 	}
 	else
 	{
