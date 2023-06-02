@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.8
+ * v2.14.9
  */
 
 //
-define('VERSION', '2.14.8');
+define('VERSION', '2.14.9');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -1909,6 +1909,7 @@ if(php_sapi_name() === 'cli')
 
 	function sync($_index = null, $_path = PATH)
 	{
+die('TODO (sync() w/ glob(); look above)');
 		//
 		$hosts = get_arguments($_index + 1, true, true);
 		$defined = null;
@@ -1928,6 +1929,191 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
 			exit(1);
 		}
+
+		$host = array();
+		$dirs = array();
+		$files = array();
+		$codes = array();
+		$item = null;
+		$len = -1;
+		$good = 0;
+		$ignored = 0;
+		
+		if($defined)
+		{
+			$len = count($hosts);
+			
+			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
+			{
+				$item = $_path . '/-' . $hosts[$i];
+				$item = glob($item, GLOB_BRACE);
+				$len = count($item);
+				$code = 0;
+				
+				for($j = 0; $j < $len; ++$j)
+				{
+					if(!(is_readable($item[$j]) && is_writable($item[$j])))
+					{
+						++$ignored;
+					}
+					else
+					{
+						$files[$f++] = $item[$j];
+						$item = substr(basename($item[$j]), 1);
+						
+						if(!in_array($item, $host))
+						{
+							$host[$h++] = $item;
+						}
+						
+						if(! isset($codes[$item]))
+						{
+							$codes[$item] = 0;
+						}
+						
+						$codes[$item] |= 1;
+						++$good;
+					}
+				}
+				
+				$item = $_path . '/+' . $hosts[$i];
+				$item = glob($item, GLOB_BRACE | GLOB_ONLYDIR);
+				$len = count($item);
+				
+				for($j = 0; $j < $len; ++$j)
+				{
+					if(!(is_readable($item[$j]) && is_writable($item[$j])))
+					{
+						++$ignored;
+					}
+					else
+					{
+						$dirs[$d++] = $item[$j];
+						$item = substr(basename($item[$j]), 1);
+						
+						if(!in_array($item, $host))
+						{
+							$host[$h++] = $item;
+						}
+
+						if(! isset($codes[$item]))
+						{
+							$codes[$item] = 0;
+						}
+						
+						$codes[$item] |= 2;
+						++$good;
+					}
+				}
+			}
+		}
+		else
+		{
+			$len = count($hosts);
+
+			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
+			{
+				if(! isset($codes[$hosts[$i]]))
+				{
+					$codes[$hosts[$i]] = 0;
+				}
+
+				$item = $_path . '/-' . $hosts[$i];
+				
+				if(is_file($item))
+				{
+					if(! (is_readable($item) && is_writable($item)))
+					{
+						++$ignored;
+					}
+					else
+					{
+						$files[$f++] = $item;
+						
+						if(!in_array($hosts[$i], $host))
+						{
+							$host[$h++] = $hosts[$i];
+						}
+						
+						$codes[$hosts[$i]] |= 1;
+						++$good;
+					}
+				}
+				
+				$item = $_path . '/+' . $hosts[$i];
+				
+				if(is_dir($item))
+				{
+					if(! (is_readable($item) && is_writable($item)))
+					{
+						++$ignored;
+					}
+					else
+					{
+						$dirs[$d++] = $item;
+						
+						if(!in_array($hosts[$i], $host))
+						{
+							$host[$h++] = $hosts[$i];
+						}
+						
+						$codes[$hosts[$i]] |= 2;
+						++$good;
+					}
+				}
+			}
+		}
+		
+		if($good === 0)
+		{
+			fprintf(STDERR, ' >> No items found' . PHP_EOL);
+			exit(2);
+		}
+		else
+		{
+			printf(' >> %d items can be synced' . PHP_EOL, $good);
+		}
+		
+		if($ignored > 0)
+		{
+			fprintf(STDERR, ' >> %d items must be ignored (insufficient permissions)' . PHP_EOL, $ignored);
+		}
+var_dump($host);
+var_dump($dirs);
+var_dump($files);
+var_dump($codes);
+die(' ....//');
+		// die globs ergaenzen um vorherige verzeichnis-tiefe. dann test @ glob().
+		// alle results im array als gesamter pfad-string. nur basename() (ohne '+'/'-') in $hosts[] hinein,
+		// $files[] den ganzen pfad..
+		//
+		// da ich '+' sowie '-' vergleiche.. wuerde ich den $files[] durchlaufen.. mom.
+		// struktur...
+		//
+		// glob() findet gemaesz host-namen in den datei-namen einmal '+' und einmal '-'. oder nur eines, oder keines.
+		//
+		// dann der untere rest... indem.. wir suchen glob(.., GLOB_ONLYDIR) fuer die verzeichnisse mit '+', die wir im
+		// $dir[] array aber nur mit basename sowie ohne '+' sichern. weiteres glob() .. hm, beide am besten direkt mit
+		// '+' sowie '-' suchen, um zu wissen, ob verz. oder dateien.. also zwei suchlaeufe in '$_path' dazu. fuer zwei
+		// arrays $dirs und $files. dort aber blosz die basename ohne [0]-char..
+		//
+		// hm.. ich wuerde dazu ein assoziatives array verwenden, zum vergleich, .. beide arrays hintereinander durchlaufen,
+		// und den basename im hash[basename] mit 
+		//
+		// wenn im array[a], so hash[key] |= 1; in[b] hash[key] |= 2; am ende nur "if(&1) => in[a]" und "if(&2) => in[b]",
+		// jeweils mit "$code &= 1|2". am ende if(($code & 1) && ($code & 2)) => IN BOTH ARRAYS! sonst nur (&1 in [a]) oder (&2) in [b], as "|=1/2"! ^_^
+		// 
+		
+		
+		// hosts "finden", also nicht die values, sondern die '+' sowie '-' @ cache etc..
+		//
+		// wenn ein '+', aber kein '-', muss '-' aus count_files() @ '+' erzeugt werden @ init... //zu protokoll @ init[]
+		// wenn ein '-', aber kein '+', wird einfach der '-'-file-cache unlink'ed.. //zu protokoll @ delete[]/..
+		// wenn beides, vergleich zw. count_files('+') sowie cache-'-'.
+		// if(in sync), bitte sync[]-protokoll-gebung; sonst update[]-protokoll, mit setzen der eben gezeahlten datei-menge unter '+' in die '-' hinein.
+		// FALLS ABER die '+'-zaehlung der ip-timestamp-files (0) ist.. so (a) entweder '-' und '+' ganz loeschen (JA!!!), sonst '-' mit (0)-init.. a: delete[];
+		//
+		// gleich bei purge() oder clean() dann? gleich weiter machen danach...
 
 		$gotFile = null;
 		$gotDir = null;
@@ -2053,6 +2239,7 @@ if(php_sapi_name() === 'cli')
 
 	function clean($_index = -1, $_path = PATH, $_host = null)
 	{
+die('TODO (clean() w/ glob(); look above..)');
 		//
 		$hosts = get_arguments($_index + 1, true, true);
 		
@@ -2245,6 +2432,7 @@ if(php_sapi_name() === 'cli')
 
 	function purge($_index = -1, $_path = PATH, $_host = null)
 	{
+die('TODO (purge() w/ glob(); look above..)');
 		//
 		$hosts = get_arguments($_index + 1, true, true);
 
