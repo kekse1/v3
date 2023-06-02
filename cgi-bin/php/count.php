@@ -2,17 +2,18 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.12.1
+ * v2.12.2
  */
 
 //
-define('VERSION', '2.12.1');
+define('VERSION', '2.12.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('PATH', 'count');
+define('OVERRIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
