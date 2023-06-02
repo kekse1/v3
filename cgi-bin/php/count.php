@@ -2920,11 +2920,11 @@ function draw($_text)
 
 		if($result['x'] === null)
 		{
-			$result['x'] = 2;
+			$result['x'] = 0;
 		}
 		else if($result['x'] > 512 || $result['x'] < -512)
 		{
-			$result['x'] = 2;
+			$result['x'] = 0;
 		}
 
 		if($result['y'] === null)
