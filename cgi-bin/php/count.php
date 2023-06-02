@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.5
+ * v2.14.6
  */
 
 //
-define('VERSION', '2.14.5');
+define('VERSION', '2.14.6');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -45,23 +45,50 @@ define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
 
 //
-function get_realpath($_path)
+function get_realpath($_path, $_fallback = true)
 {
 	$result = '';
-	
-	if(substr($_path, 0, 2) === './')
+
+	if($_path === '.')
+	{
+		$result = __DIR__;
+	}
+	else if($_path === '..')
+	{
+		$result = __DIR__ . '/../';
+	}
+	else if(substr($_path, 0, 2) === './')
 	{
 		$result = __DIR__ . substr($_path, 1);
+	}
+	else if(substr($_path, 0, 3) === '../')
+	{
+		$result = __DIR__ . '/' . $_path;
 	}
 	else
 	{
 		$result = $_path;
 	}
-	
-	return realpath($result);
+
+	$orig = $result;
+	$result = realpath($result);
+
+	if($result === false)
+	{
+		if($_fallback)
+		{
+			$result = $orig;
+		}
+		else
+		{
+			$result = null;
+		}
+	}
+
+	return $result;
 }
 
-define('PATH', get_realpath(DIR));
+define('PATH', get_realpath(DIR, true));
 define('PATH_LOG', get_realpath(LOG));
 define('PATH_FONTS', get_realpath(FONTS));
 
