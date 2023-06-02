@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.7
+ * v2.13.8
  */
 
 //
-define('VERSION', '2.13.7');
+define('VERSION', '2.13.8');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -2936,7 +2936,7 @@ function draw($_text)
 			$result['y'] = 0;
 		}
 		
-		if($result['aa'] === null)
+		if(gettype($result['aa']) !== 'boolean')
 		{
 			$result['aa'] = AA;
 		}
