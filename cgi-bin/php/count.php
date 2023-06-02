@@ -2750,12 +2750,12 @@ function draw($_text)
 		$result = array();
 
 		//
-		$result['size'] = get_param($_GET['size'], true, false, 'size');
-		$result['space'] = get_param($_GET['space'], true, false, 'space');
-		$result['pad'] = get_param($_GET['pad'], true, false, 'pad');
-		$result['font'] = get_param($_GET['font'], false, null, 'font');
-		$result['fg'] = get_param($_GET['fg'], false, null, 'fg');
-		$result['bg'] = get_param($_GET['bg'], false, null, 'bg');
+		$result['size'] = (isset($_GET['size']) ? get_param($_GET['size'], true, false, 'size') : null);
+		$result['space'] = (isset($_GET['space']) ? get_param($_GET['space'], true, false, 'space') : null);
+		$result['pad'] = (isset($_GET['pad']) ? get_param($_GET['pad'], true, false, 'pad') : null);
+		$result['font'] = (isset($_GET['font']) ? get_param($_GET['font'], false, null, 'font') : null);
+		$result['fg'] = (isset($_GET['fg']) ? get_param($_GET['fg'], false, null, 'fg') : null);
+		$result['bg'] = (isset($_GET['bg']) ? get_param($_GET['bg'], false, null, 'bg') : null);
 
 		//
 		if(! is_numeric($result['size']))
