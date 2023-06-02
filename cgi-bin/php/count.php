@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.12.2
+ * v2.12.3
  */
 
 //
-define('VERSION', '2.12.2');
+define('VERSION', '2.12.3');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -729,7 +729,7 @@ if(php_sapi_name() === 'cli')
 	}
 
 	//
-	function get_hosts($_path = PATH, $_values = true, $_null = false)
+	function get_hosts($_path = PATH, $_values = true)
 	{
 		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, null);
 
@@ -748,7 +748,7 @@ if(php_sapi_name() === 'cli')
 			}
 		}
 		
-		if($_null && count($result) === 0)
+		if(count($result) === 0)
 		{
 			return null;
 		}
@@ -987,6 +987,18 @@ if(php_sapi_name() === 'cli')
 		}
 
 		//
+		if(gettype(OVERRIDE) === 'boolean')
+		{
+			printf(START.'Boolean type, great.' . PHP_EOL, 'OVERRIDE', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
+			++$errors;
+		}
+
+		//
 		if(gettype(CLIENT) === 'boolean')
 		{
 			printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
@@ -1164,7 +1176,7 @@ if(php_sapi_name() === 'cli')
 			++$errors;
 		}
 
-		if(gettype(SIZE) === 'integer' && SIZE > 0)
+		if(gettype(SIZE) === 'integer' && SIZE > 5)
 		{
 			$limit = SIZE_LIMIT;
 
@@ -1172,10 +1184,14 @@ if(php_sapi_name() === 'cli')
 			{
 				$limit = null;
 			}
+			else if($limit < 6 || $limit > 512)
+			{
+				$limit = null;
+			}
 
 			if($limit === null)
 			{
-				fprintf(STDERR, START.'Integer above 0 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
+				fprintf(STDERR, START.'Integer above 5 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
 				++$warnings;
 			}
 			else if(SIZE > $limit)
@@ -1185,24 +1201,24 @@ if(php_sapi_name() === 'cli')
 			}
 			else
 			{
-				printf(START.'Integer above 0 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
+				printf(START.'Integer above 5 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer (above 0 and below or equal to SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'BAD');
+			fprintf(STDERR, START.'No Integer above 0 and below or equal to SIZE_LIMIT' . PHP_EOL, 'SIZE', 'BAD');
 			++$errors;
 		}
 
-		if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 0)
+		if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 6 && SIZE_LIMIT <= 512)
 		{
-			printf(START.'Integer above 0' . PHP_EOL, 'SIZE_LIMIT', 'OK');
+			printf(START.'Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
+			fprintf(STDERR, START.'No Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
 			++$errors;
 		}
 		
@@ -1211,6 +1227,10 @@ if(php_sapi_name() === 'cli')
 			$limit = SPACE_LIMIT;
 			
 			if(gettype($limit) !== 'integer')
+			{
+				$limit = null;
+			}
+			else if($limit < 0 || $limit > 512)
 			{
 				$limit = null;
 			}
@@ -1233,7 +1253,7 @@ if(php_sapi_name() === 'cli')
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer (above -1 and below or equal to SPACE_LIMIT)' . PHP_EOL, 'SPACE', 'BAD');
+			fprintf(STDERR, START.'No Integer above -1 and below or equal to SPACE_LIMIT' . PHP_EOL, 'SPACE', 'BAD');
 			++$errors;
 		}
 		
@@ -1256,6 +1276,10 @@ if(php_sapi_name() === 'cli')
 			{
 				$limit = null;
 			}
+			else if($limit < 0 || $limit > 512)
+			{
+				$limit = null;
+			}
 			
 			if($limit === null)
 			{
@@ -1275,7 +1299,7 @@ if(php_sapi_name() === 'cli')
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer (above -1 and below or equal to SPACE_LIMIT)'. PHP_EOL, 'PAD', 'BAD');
+			fprintf(STDERR, START.'No Integer above -1 and below or equal to SPACE_LIMIT'. PHP_EOL, 'PAD', 'BAD');
 			++$errors;
 		}
 		
@@ -1296,17 +1320,17 @@ if(php_sapi_name() === 'cli')
 
 			if($available === null)
 			{
-				fprintf(STDERR, START.'A valid string, but you also need to install some fonts (see \'FONTS\' config)!' . PHP_EOL, 'FONT', 'WARN');
+				fprintf(STDERR, START.'Valid string, but you also need to install some fonts' . PHP_EOL, 'FONT', 'WARN');
 				++$warnings;
 			}
 			else if(in_array(FONT, $available))
 			{
-				printf(START.'Valid font string, and the font is also available/installed in your \'FONTS\' directory. :-D' . PHP_EOL, 'FONT', 'OK');
+				printf(START.'Valid font string, and exists in your \'FONTS\' directory' . PHP_EOL, 'FONT', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Invalid string, because there\'s no such font available (see \'FONTS\')' . PHP_EOL, 'FONT', 'BAD');
+				fprintf(STDERR, START.'There\'s no such font available (see \'FONTS\')' . PHP_EOL, 'FONT', 'BAD');
 				++$errors;
 			}
 		}
@@ -1415,9 +1439,9 @@ if(php_sapi_name() === 'cli')
 			$hosts = get_hosts($_path, true);
 		}
 
-		if(count($hosts) === 0)
+		if($hosts === null)
 		{
-			fprintf(STDERR, ' >> No hosts found (or invalid ones defined by you)' . PHP_EOL);
+			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
 			exit(1);
 		}
 		
@@ -1489,6 +1513,12 @@ if(php_sapi_name() === 'cli')
 			$hosts = get_hosts($_path, false);
 		}
 
+		if($hosts === null)
+		{
+			fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
+			exit(1);
+		}
+
 		$gotFile = null;
 		$gotDir = null;
 		
@@ -1540,7 +1570,7 @@ if(php_sapi_name() === 'cli')
 		if($len === 0)
 		{
 			fprintf(STDERR, ' >> No cache directories found.' . PHP_EOL);
-			exit(1);
+			exit(2);
 		}
 		
 		$new = null;
@@ -1616,7 +1646,7 @@ if(php_sapi_name() === 'cli')
 			$hosts = get_hosts($_path, false);
 		}
 
-		if(count($hosts) === 0)
+		if($hosts === null)
 		{
 			fprintf(STDERR, ' >> No hosts available' . PHP_EOL);
 			exit(1);
@@ -1799,7 +1829,7 @@ if(php_sapi_name() === 'cli')
 			$hosts = get_hosts($_path, false);
 		}
 
-		if(count($hosts) === 0)
+		if($hosts === null)
 		{
 			printf('No hosts available to purge their cache files.' . PHP_EOL);
 			exit(0);
@@ -2085,7 +2115,11 @@ function get_host($_die = true)
 	$result = null;
 
 	//
-	if(! empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'][0] !== ':')
+	if(OVERRIDE && ($result = get_param('override', false)))
+	{
+		//
+	}
+	else if(! empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'][0] !== ':')
 	{
 		$result = $_SERVER['HTTP_HOST'];
 	}
@@ -2097,9 +2131,9 @@ function get_host($_die = true)
 	{
 		error('No server host/name applicable');
 	}
-	
+
 	//
-	return $result;
+	return secure_host(remove_port($result, $_die), $_die);
 }
 
 function remove_port($_host, $_die = false)
@@ -2135,8 +2169,6 @@ function remove_port($_host, $_die = false)
 
 //
 $host = get_host(true);
-$host = remove_port($host);
-$host = secure_host($host, true);
 define('HOST', $host);
 define('COOKIE', hash(HASH, $host));
 unset($host);
@@ -2579,13 +2611,25 @@ function draw($_text)
 	}
 
 	//
-	function get_param($_value, $_numeric = true, $_float = true, $_key = null)
+	function get_param($_key, $_numeric = true, $_float = true)
 	{
-		if(strlen($_value) === 0)
+		if(empty($_key))
+		{
+			//error?
+			return null;
+		}
+		else if(!isset($_GET[$_key]))
 		{
 			return null;
 		}
-		else if(strlen($_value) > 255)
+
+		$value = $_GET[$_key];
+
+		if(strlen($value) === 0)
+		{
+			return null;
+		}
+		else if(strlen($value) > 255)
 		{
 			return null;
 		}
@@ -2598,11 +2642,11 @@ function draw($_text)
 		$negative = false;
 		$remove = 0;
 
-		if($_numeric) while($_value[$remove] === '+' || $_value[$remove] === '-')
+		if($_numeric) while($value[$remove] === '+' || $value[$remove] === '-')
 		{
 			++$remove;
 
-			if($_value[0] === '-')
+			if($value[0] === '-')
 			{
 				$negative = !$negative;
 			}
@@ -2610,14 +2654,14 @@ function draw($_text)
 
 		if($remove > 0)
 		{
-			$_value = substr($_value, $remove);
+			$value = substr($value, $remove);
 		}
 
-		$len = strlen($_value);
+		$len = strlen($value);
 
 		for($i = 0; $i < $len; ++$i)
 		{
-			if(($byte = ord($_value[$i])) >= 97 && $byte <= 122)
+			if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
 			{
 				$numeric = false;
 				$set = chr($byte);
@@ -2658,10 +2702,6 @@ function draw($_text)
 			{
 				$set = ',';
 				$numeric = false;
-			}
-			else if($byte === 40 || $byte === 41)
-			{
-				$set = chr($byte);
 			}
 			else
 			{
@@ -2751,12 +2791,12 @@ function draw($_text)
 		$result = array();
 
 		//
-		$result['size'] = (isset($_GET['size']) ? get_param($_GET['size'], true, false, 'size') : null);
-		$result['space'] = (isset($_GET['space']) ? get_param($_GET['space'], true, false, 'space') : null);
-		$result['pad'] = (isset($_GET['pad']) ? get_param($_GET['pad'], true, false, 'pad') : null);
-		$result['font'] = (isset($_GET['font']) ? get_param($_GET['font'], false, null, 'font') : null);
-		$result['fg'] = (isset($_GET['fg']) ? get_param($_GET['fg'], false, null, 'fg') : null);
-		$result['bg'] = (isset($_GET['bg']) ? get_param($_GET['bg'], false, null, 'bg') : null);
+		$result['size'] = get_param('size', true, false);
+		$result['space'] = get_param('space', true, false);
+		$result['pad'] = get_param('pad', true, false);
+		$result['font'] = get_param('font', false);
+		$result['fg'] = get_param('fg', false);
+		$result['bg'] = get_param('bg', false);
 
 		//
 		if(! is_numeric($result['size']))
