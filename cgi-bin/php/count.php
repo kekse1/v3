@@ -3424,12 +3424,7 @@ if(SERVER)
 
 //
 $value = read_value();
-$readonly = get_param('readonly', null);
-
-if(gettype($readonly) !== 'boolean')
-{
-	$readonly = false;
-}
+$readonly = isset($_GET['readonly']);
 
 if(!$readonly)
 {
