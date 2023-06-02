@@ -2,18 +2,18 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.0
+ * v2.13.1
  */
 
 //
-define('VERSION', '2.13.0');
+define('VERSION', '2.13.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('PATH', 'count');
-define('OVERRIDE', false);
+define('OVERRIDE', true);
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
@@ -334,9 +334,13 @@ function get_param($_key, $_numeric = true, $_float = true)
 			$set = ',';
 			$numeric = false;
 		}
+		else if($byte === 58)
+		{
+			$set = ':';
+		}
 		else
 		{
-			$set = '';
+			continue;
 		}
 
 		$result .= $set;
