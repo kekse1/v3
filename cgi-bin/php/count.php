@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.5
+ * v2.13.7
  */
 
 //
-define('VERSION', '2.13.5');
+define('VERSION', '2.13.7');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -225,6 +225,36 @@ function secure_host($_string, $_null = true, $_die = true)
 	return $result;
 }
 
+function secure_path($_string, $_null = true, $_die = true)
+{
+	$value = secure($_string, $_null, $_die);
+
+	if($value === null)
+	{
+		return null;
+	}
+
+	$result = '';
+	$len = strlen($value);
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~')
+		{
+			continue;
+		}
+
+		$result .= $value[$i];
+	}
+
+	if($_null && strlen($result) === 0)
+	{
+		return null;
+	}
+
+	return $result;
+}
+
 function get_param($_key, $_numeric = false, $_float = true, $_die = false)
 {
 	if(gettype($_key) !== 'string')
@@ -323,20 +353,15 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = false)
 		}
 		else if($byte === 46)
 		{
+			$set = '.';
+
 			if($hadPoint)
 			{
-				$result = '';
-				break;
+				$numeric = false;
 			}
 			else if(!$_float)
 			{
-				$result = '';
-				break;
-			}
-			else
-			{
-				$hadPoint = true;
-				$set = '.';
+				$numeric = false;
 			}
 		}
 		else if($byte === 44)
@@ -987,7 +1012,7 @@ if(php_sapi_name() === 'cli')
 		{
 			for($i = 0; $i < count($fonts); ++$i)
 			{
-				if(($fonts[$i] = secure($fonts[$i], true)) === null)
+				if(($fonts[$i] = secure_path($fonts[$i], true)) === null)
 				{
 					array_splice($fonts, $i--, 1);
 				}
@@ -1610,7 +1635,7 @@ if(php_sapi_name() === 'cli')
 
 		for($i = 0, $j = 0; $i < count($hosts); ++$i)
 		{
-			$file = $_path . '/~' . secure($hosts[$i], false);
+			$file = $_path . '/~' . secure_path($hosts[$i], false);
 			
 			if(is_file($file) && is_readable($file))
 			{
@@ -1683,7 +1708,7 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
-			$hosts[$i] = secure($hosts[$i], false);
+			$hosts[$i] = secure_path($hosts[$i], false);
 
 			$gotFile = is_file($_path . '/-' . $hosts[$i]);
 			$gotDir = is_dir($_path . '/+' . $hosts[$i]);
@@ -1815,7 +1840,7 @@ if(php_sapi_name() === 'cli')
 		
 		for($i = 0; $i < count($hosts); ++$i)
 		{
-			$hosts[$i] = secure($hosts[$i], false);
+			$hosts[$i] = secure_path($hosts[$i], false);
 
 			if(! is_dir($_path . '/+' . $hosts[$i]))
 			{
@@ -2346,10 +2371,10 @@ define('COOKIE', hash(HASH, $host));
 unset($host);
 
 //
-define('PATH_FILE', PATH . '/~' . secure(HOST, false));
-define('PATH_DIR', PATH . '/+' . secure(HOST, false));
-define('PATH_COUNT', PATH . '/-' . secure(HOST, false));
-define('PATH_IP', PATH_DIR . '/' . secure((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure($_SERVER['REMOTE_ADDR'])), false));
+define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
+define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
+define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
+define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
 define('PATH_LOG', PATH . '/' . LOG);
 
 //
