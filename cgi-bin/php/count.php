@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.13.2
+ * v2.13.4
  */
 
 //
-define('VERSION', '2.13.2');
+define('VERSION', '2.13.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -35,6 +35,7 @@ define('FONT', 'SourceCodePro');
 define('FONTS', 'fonts');
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
+define('AA', true);
 
 //
 define('COOKIE_PATH', '/');
@@ -246,16 +247,34 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = false)
 	}
 	else if(!isset($_GET[$_key]))
 	{
+		/*if($_numeric === null)
+		{
+			return false;
+		}*/
+
 		return null;
 	}
+	/*else if($_numeric === null)
+	{
+		return true;
+	}*/
 
 	$value = secure($_GET[$_key], true, $_die);
-	
-	if($value === null)
+
+	if($_numeric === null && strlen($value) === 1)
 	{
+		if($value === '0')
+		{
+			return false;
+		}
+		else if($value === '1')
+		{
+			return true;
+		}
+
 		return null;
 	}
-
+	
 	$result = '';
 	$byte = null;
 	$hadPoint = false;
@@ -2787,6 +2806,7 @@ function draw($_text)
 		$result['bg'] = get_param('bg', false);
 		$result['x'] = get_param('x', true, false);
 		$result['y'] = get_param('y', true, false);
+		$result['aa'] = get_param('aa', null);
 
 		//
 		if(! is_numeric($result['size']))
@@ -2878,7 +2898,12 @@ function draw($_text)
 		{
 			$result['y'] = 0;
 		}
-
+		
+		if($result['aa'] === null)
+		{
+			$result['aa'] = AA;
+		}
+		
 		return $result;
 	}
 
@@ -3063,7 +3088,7 @@ function draw($_text)
 		return ($_px / 0.75);
 	}
 
-	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x = 0, $_y = 0)
+	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x, $_y, $_aa)
 	{
 		//
 		if(defined('SENT'))
@@ -3089,10 +3114,20 @@ function draw($_text)
 		$image = imagecreatetruecolor($width, $height);
 		imagealphablending($image, false);
 		imagesavealpha($image, true);
-		imageantialias($image, true);
+		imageantialias($image, $_aa);
+		imagealphablending($image, true);
 
 		//
 		$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
+
+		if(!$_aa)
+		{
+			if(($_fg = -$_fg) === 0)
+			{
+				$_fg = -1;
+			}
+		}
+		
 		$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
 		imagefill($image, 0, 0, $_bg);
 
@@ -3124,7 +3159,7 @@ function draw($_text)
 
 	//
 	$options = get_drawing_options();
-	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y']);
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y'], $options['aa']);
 }
 
 //
