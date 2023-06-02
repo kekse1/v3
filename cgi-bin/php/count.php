@@ -2,18 +2,18 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.4
+ * v2.14.5
  */
 
 //
-define('VERSION', '2.14.4');
+define('VERSION', '2.14.5');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
-define('PATH', 'count');
-define('OVERRIDE', true);
+define('DIR', 'count');
+define('OVERRIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
 define('HASH', 'sha3-256');
@@ -43,6 +43,27 @@ define('COOKIE_PATH', '/');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
+
+//
+function get_realpath($_path)
+{
+	$result = '';
+	
+	if(substr($_path, 0, 2) === './')
+	{
+		$result = __DIR__ . substr($_path, 1);
+	}
+	else
+	{
+		$result = $_path;
+	}
+	
+	return realpath($result);
+}
+
+define('PATH', get_realpath(DIR));
+define('PATH_LOG', get_realpath(LOG));
+define('PATH_FONTS', get_realpath(FONTS));
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
@@ -457,7 +478,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	$noLog = false;
 	$data = null;
 	
-	if(!defined('LOG') || empty(LOG))
+	if(!defined('PATH_LOG') || empty(PATH_LOG))
 	{
 		$noLog = $_die = true;
 		$data = '';
@@ -473,14 +494,14 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 
 		if(!empty($_path))
 		{
-			$data .= $_path;
+			$data .= basename($_path);
 		}
 
 		$data .= ')';
 	}
 	else if(!empty($_path))
 	{
-		$data .= '(' . $_path . ')';
+		$data .= '(' . basename($_path) . ')';
 	}
 
 	$data .= ': ' . $_reason . PHP_EOL;
@@ -491,7 +512,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	}
 	else
 	{
-		$result = file_put_contents(LOG, $data, FILE_APPEND);
+		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
 
 		if($result === false)
 		{
@@ -609,10 +630,6 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 		{
 			continue;
 		}
-		else if($sub === LOG)
-		{
-			continue;
-		}
 		else if($_exclude === true || $_exclude === null)
 		{
 			if($sub[0] === '-' || $sub[0] === '+')
@@ -668,7 +685,7 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 
 function count_fonts($_path, $_count = false, $_null = true)
 {
-	$result = count_files(FONTS, false, false, true, false);
+	$result = count_files(PATH_FONTS, false, false, true, false);
 
 	if(!$result)
 	{
@@ -1009,12 +1026,7 @@ if(php_sapi_name() === 'cli')
 
 	function fonts($_index = -1)
 	{
-		if(gettype(PATH) !== 'string' || empty(PATH))
-		{
-			fprintf(STDERR, ' >> \'PATH\' is not properly configured' . PHP_EOL);
-			exit(1);
-		}
-		else if(gettype(FONTS) !== 'string' || empty(FONTS))
+		if(gettype(PATH_FONTS) !== 'string' || empty(PATH_FONTS))
 		{
 			fprintf(STDERR, ' >> \'FONTS\' path is not properly configured' . PHP_EOL);
 			exit(2);
@@ -1043,7 +1055,7 @@ if(php_sapi_name() === 'cli')
 			}
 		}
 
-		$available = count_fonts(FONTS, false, true);
+		$available = count_fonts(PATH_FONTS, false, true);
 
 		if($available === null)
 		{
@@ -1267,18 +1279,18 @@ if(php_sapi_name() === 'cli')
 		{
 			if(is_dir(PATH) && is_writable(PATH))
 			{
-				printf(START.'Non-empty PATH String (directory exists and is writable :-)' . PHP_EOL, 'PATH', 'OK');
+				printf(START.'Non-empty path String (directory exists and is writable :-)' . PHP_EOL, 'DIR', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Non-empty PATH String (BUT is no existing directory or is just not writable)' . PHP_EOL, 'PATH', 'WARN');
+				fprintf(STDERR, START.'Non-empty path String (BUT is no existing directory or is just not writable)' . PHP_EOL, 'DIR', 'WARN');
 				++$warnings;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'PATH', 'BAD');
+			fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
 			++$errors;
 		}
 
@@ -1612,7 +1624,7 @@ if(php_sapi_name() === 'cli')
 
 		if(gettype(FONT) === 'string' && !empty(FONT))
 		{
-			$available = count_fonts(FONTS, false, true);
+			$available = count_fonts(PATH_FONTS, false, true);
 
 			if($available === null)
 			{
@@ -1638,9 +1650,9 @@ if(php_sapi_name() === 'cli')
 
 		if(gettype(FONTS) === 'string')
 		{
-			if(is_dir(FONTS) && is_readable(FONTS))//exectable? everywhere where dir!
+			if(is_dir(PATH_FONTS) && is_readable(PATH_FONTS))//exectable? everywhere where dir!
 			{
-				$available = count_fonts(FONTS, true);
+				$available = count_fonts(PATH_FONTS, true);
 				
 				if($available === 0)
 				{
@@ -1661,7 +1673,7 @@ if(php_sapi_name() === 'cli')
 		}
 		else
 		{
-			fprintf(STDERR, START.'No valid PATH String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
+			fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
 			++$errors;
 		}
 
@@ -2313,7 +2325,7 @@ if(php_sapi_name() === 'cli')
 		exit(0);
 	}
 
-	function unlog($_index = -1, $_path = LOG)
+	function unlog($_index = -1, $_path = PATH_LOG)
 	{
 		error_reporting(0);
 
@@ -2353,7 +2365,7 @@ if(php_sapi_name() === 'cli')
 		exit(0);
 	}
 
-	function errors($_index = -1, $_path = LOG)
+	function errors($_index = -1, $_path = PATH_LOG)
 	{
 		if(! file_exists($_path))
 		{
@@ -2978,7 +2990,7 @@ function draw($_text)
 	}
 
 	//
-	function get_font($_name, $_dir = FONTS)
+	function get_font($_name, $_dir = PATH_FONTS)
 	{
 		$available = count_fonts($_dir, false, true);
 
@@ -2991,12 +3003,17 @@ function draw($_text)
 			$_name = substr($_name, 0, -4);
 		}
 		
+		$result = null;
+
 		if(in_array($_name, $available))
 		{
-			return (FONTS . '/' . $_name . '.ttf');
+			if(!is_file($result = (PATH_FONTS . '/' . $_name . '.ttf')) || !is_readable($result))
+			{
+				$result = null;
+			}
 		}
 
-		return null;
+		return $result;
 	}
 
 	function get_drawing_options($_die = true)
@@ -3055,11 +3072,6 @@ function draw($_text)
 		if(($result['font'] = get_font($result['font'])) === null)
 		{
 			draw_error('\'?font\' is not available', $_die);
-			return null;
-		}
-		else if(!is_file($result['font'] = realpath($result['font'])))
-		{
-			draw_error('\'?font\' is valid, but no such file found', $_die);
 			return null;
 		}
 
