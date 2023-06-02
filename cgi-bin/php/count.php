@@ -3157,6 +3157,11 @@ if(CLIENT && !OVERRIDDEN)
 //
 $value = (string)$value;
 
+if(strlen($value) > 64)
+{
+	error('e');
+}
+
 //
 if(DRAW && isset($_GET['draw']) && extension_loaded('gd'))
 {
