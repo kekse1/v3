@@ -53,18 +53,18 @@ function get_realpath($_path, $_fallback = true)
 	{
 		$result = __DIR__;
 	}
-	else if($_path === '..')
+	/*else if($_path === '..')
 	{
 		$result = __DIR__ . '/../';
-	}
+	}*/
 	else if(substr($_path, 0, 2) === './')
 	{
 		$result = __DIR__ . substr($_path, 1);
 	}
-	else if(substr($_path, 0, 3) === '../')
+	/*else if(substr($_path, 0, 3) === '../')
 	{
 		$result = __DIR__ . '/' . $_path;
-	}
+	}*/
 	else
 	{
 		$result = $_path;
