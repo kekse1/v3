@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.7
+ * v2.14.8
  */
 
 //
-define('VERSION', '2.14.7');
+define('VERSION', '2.14.8');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -900,7 +900,7 @@ if(php_sapi_name() === 'cli')
 		return $result;
 	}
 	
-	function get_arguments($_index, $_hosts = true, $_unique = true)
+	function get_arguments($_index, $_null = true, $_unique = true)
 	{
 		if(gettype($_index) !== 'integer' || $_index < 0)
 		{
@@ -915,7 +915,7 @@ if(php_sapi_name() === 'cli')
 
 		for($i = $_index, $j = 0; $i < ARGC; ++$i)
 		{
-			if(empty(ARGV[$i]))
+			if(strlen(ARGV[$i]) === 0)
 			{
 				continue;
 			}
@@ -923,31 +923,16 @@ if(php_sapi_name() === 'cli')
 			{
 				break;
 			}
-			else
-			{
-				$item = explode(',', ARGV[$i]);
-				
-				for($k = 0; $k < count($item); ++$k)
-				{
-					if(! empty($item[$k]))
-					{
-						$result[$j++] = $item[$k];
-					}
-				}
-			}
+
+			$result[$j++] = ARGV[$i];
 		}
 
-		if($_hosts) for($i = 0; $i < count($result); ++$i)
+		if(count($result) === 0)
 		{
-			if(($result[$i] = secure_host($result[$i], true, false)) === null)
+			if($_null)
 			{
-				array_splice($result, $i--, 1);
+				return null;
 			}
-		}
-
-		if(empty($result))
-		{
-			return null;
 		}
 		else if($_unique)
 		{
@@ -1020,10 +1005,10 @@ if(php_sapi_name() === 'cli')
 		printf('    -f / --fonts' . PHP_EOL);
 		printf('    -t / --types' . PHP_EOL);
 		printf('    -c / --config' . PHP_EOL);
-		printf('    -v / --values [host,..]' . PHP_EOL);
-		printf('    -n / --sync [host,..]' . PHP_EOL);
-		printf('    -l / --clean [host,..]' . PHP_EOL);
-		printf('    -p / --purge [host,..]' . PHP_EOL);
+		printf('    -v / --values (*)' . PHP_EOL);
+		printf('    -n / --sync (*)' . PHP_EOL);
+		printf('    -l / --clean (*)' . PHP_EOL);
+		printf('    -p / --purge (*)' . PHP_EOL);
 		printf('    -e / --errors' . PHP_EOL);
 		printf('    -u / --unlog' . PHP_EOL);
 		printf(PHP_EOL);
@@ -1059,7 +1044,7 @@ if(php_sapi_name() === 'cli')
 			exit(2);
 		}
 
-		$fonts = get_arguments($_index + 1, false);
+		$fonts = get_arguments($_index + 1, true, true);
 
 		if($fonts !== null)
 		{
@@ -1134,7 +1119,7 @@ if(php_sapi_name() === 'cli')
 			exit(1);
 		}
 
-		$selection = get_arguments($_index + 1, false);
+		$selection = get_arguments($_index + 1, true, true);
 		$types = imagetypes();
 
 		if($selection === null)
@@ -1821,12 +1806,17 @@ if(php_sapi_name() === 'cli')
 	function values($_index = -1, $_path = PATH)
 	{
 		//
-		$hosts = get_arguments($_index + 1, true);
+		$hosts = get_arguments($_index + 1, true, true);
+		$defined = null;
 
-		//
 		if($hosts === null)
 		{
 			$hosts = get_hosts($_path, true);
+			$defined = false;
+		}
+		else
+		{
+			$defined = true;
 		}
 
 		if($hosts === null)
@@ -1834,23 +1824,38 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
 			exit(1);
 		}
-		
+
 		$files = array();
-		$file = null;
+		$item = null;
 		$origLen = count($hosts);
 
 		for($i = 0, $j = 0; $i < count($hosts); ++$i)
 		{
-			$file = $_path . '/~' . secure_path($hosts[$i], false);
-			
-			if(is_file($file) && is_readable($file))
+			if($defined)
 			{
-				$files[$j++] = $file;
+				$item = $_path . '/~' . $hosts[$i];
+				$item = glob($item, GLOB_BRACE);
+				$len = count($item);
+
+				if($len === 0)
+				{
+					fprintf(STDERR, ' >> No hosts matching glob \'%s\'' . PHP_EOL, $hosts[$i]);
+				}
+				else
+				{
+					for($k = 0; $k < $len; ++$k)
+					{
+						$files[$j++] = $item[$k];
+					}
+				}
+			}
+			else if(is_file(($item = $_path . '/~' . $hosts[$i])) && is_readable($item))
+			{
+				$files[$j++] = $item;
 			}
 			else
 			{
-				fprintf(STDERR, ' >> No host \'%s\' (or it\'s file is not readable)' . PHP_EOL, $hosts[$i]);
-				array_splice($hosts, $i--, 1);
+				fprintf(STDERR, ' >> File for host \'%s\' couldn\'t be read' . PHP_EOL, $hosts[$i]);
 			}
 		}
 		
@@ -1861,12 +1866,21 @@ if(php_sapi_name() === 'cli')
 			fprintf(STDERR, ' >> No hosts left' . ($origLen > 0 ? ' (from originally %d defined ones)' : '') . PHP_EOL, $origLen);
 			exit(2);
 		}
+		else
+		{
+			$hosts = array();
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				$hosts[$i] = substr(basename($files[$i]), 1);
+			}
+		}
 
 		$value = -1;
 		$maxLen = 0;
 		$currLen = 0;
 
-		for($i = 0; $i < $len; ++$i)
+		for($i = 0; $i < count($hosts); ++$i)
 		{
 			if(($currLen = strlen($hosts[$i])) > $maxLen)
 			{
@@ -1874,14 +1888,14 @@ if(php_sapi_name() === 'cli')
 			}
 		}
 
-		++$maxLen;
+		$maxLen += 2;
 		$START = '%' . $maxLen . 's: ';
 		
 		for($i = 0; $i < $len; ++$i)
 		{
 			if(($value = (int)file_get_contents($files[$i])) === false)
 			{
-				fprintf(STDERR, $START . 'Unable to read host file' . PHP_EOL, $$hosts[$i]);
+				fprintf(STDERR, $START . ' >> Unable to read host file' . PHP_EOL, $hosts[$i]);
 			}
 			else
 			{
@@ -1896,11 +1910,17 @@ if(php_sapi_name() === 'cli')
 	function sync($_index = null, $_path = PATH)
 	{
 		//
-		$hosts = get_arguments($_index + 1, true);
+		$hosts = get_arguments($_index + 1, true, true);
+		$defined = null;
 		
 		if($hosts === null)
 		{
 			$hosts = get_hosts($_path, false);
+			$defined = false;
+		}
+		else
+		{
+			$defined = true;
 		}
 
 		if($hosts === null)
@@ -2034,7 +2054,7 @@ if(php_sapi_name() === 'cli')
 	function clean($_index = -1, $_path = PATH, $_host = null)
 	{
 		//
-		$hosts = get_arguments($_index + 1, true);
+		$hosts = get_arguments($_index + 1, true, true);
 		
 		if($hosts === null)
 		{
@@ -2226,7 +2246,7 @@ if(php_sapi_name() === 'cli')
 	function purge($_index = -1, $_path = PATH, $_host = null)
 	{
 		//
-		$hosts = get_arguments($_index + 1);
+		$hosts = get_arguments($_index + 1, true, true);
 
 		if($hosts === null)
 		{
@@ -2372,7 +2392,7 @@ if(php_sapi_name() === 'cli')
 
 		if(! file_exists($_path))
 		{
-			fprintf(STDERR, ' >> There was no \'%s\' which could be deleted.' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, $_path);
 			exit(1);
 		}
 		else if(!is_file($_path))
