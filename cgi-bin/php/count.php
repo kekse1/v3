@@ -298,7 +298,10 @@ function secure_path($_string, $_null = true, $_die = true)
 	{
 		if($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~')
 		{
-			continue;
+			if(strlen($result) === 0)
+			{
+				continue;
+			}
 		}
 
 		$result .= $value[$i];
