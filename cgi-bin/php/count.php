@@ -4137,7 +4137,14 @@ if(! (READONLY || TEST))
 }
 
 //
-$value = (gettype(HIDE) === 'string' ? HIDE : (string)$value);
+if(gettype(HIDE) === 'string' && !TEST)
+{
+	$value = HIDE;
+}
+else
+{
+	$value = (string)$value;
+}
 
 if(strlen($value) > 64)
 {
