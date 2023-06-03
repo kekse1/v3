@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.1
+ * v2.15.2
  */
 
 //
-define('VERSION', '2.15.1');
+define('VERSION', '2.15.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -43,6 +43,12 @@ define('COOKIE_PATH', '/');
 define('COOKIE_SAME_SITE', 'Strict');
 define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
+
+//
+define('TEST', (isset($_GET['test'])));
+define('READONLY', (TEST || (isset($_GET['readonly']) || isset($_GET['ro']))));
+define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
+define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
 
 //
 function get_realpath($_path, $_fallback = true)
@@ -3121,442 +3127,446 @@ function remove_port($_host, $_die = false)
 }
 
 //
-$host = get_host(true);
-define('HOST', $host);
-define('COOKIE', hash(HASH, $host));
-unset($host);
-
-//
-define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
-define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
-define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
-define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
-
-//
-if(AUTO === null)
+if(!TEST)
 {
-	error(NONE);
-}
-else
-{
-	check_path(PATH, PATH_FILE);
-}
+	//
+	$host = get_host(true);
+	define('HOST', $host);
+	define('COOKIE', hash(HASH, $host));
+	unset($host);
 
-//
-function timestamp($_difference = null)
-{
-	if(gettype($_difference) !== 'integer')
+	//
+	define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
+	define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
+	define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
+	define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
+
+	//
+	if(AUTO === null)
 	{
-		return time();
+		error(NONE);
 	}
-	
-	return (time() - $_difference);
-}
-
-function test()
-{
-	$result = true;
-
-	if(CLIENT && !OVERRIDDEN)
+	else
 	{
-		$result = test_cookie();
+		check_path(PATH, PATH_FILE);
 	}
 
-	if($result && SERVER)
+	//
+	function timestamp($_difference = null)
 	{
-		$result = test_file();
-	}
-
-	return $result;
-}
-
-function test_file($_path = PATH_IP)
-{
-	if(file_exists($_path))
-	{
-		if(!is_file($_path))
+		if(gettype($_difference) !== 'integer')
 		{
-			log_error('Is not a regular file', 'test_file', $_path);
-			error('Is not a regular file');
+			return time();
 		}
-		else if(!is_readable($_path))
+		
+		return (time() - $_difference);
+	}
+
+	function test()
+	{
+		$result = true;
+
+		if(CLIENT && !OVERRIDDEN)
 		{
-			log_error('File can\'t be read', 'test_file', $_path);
-			error('File can\'t be read');
+			$result = test_cookie();
 		}
-		else if(timestamp(read_timestamp($_path)) < THRESHOLD)
+
+		if($result && SERVER)
+		{
+			$result = test_file();
+		}
+
+		return $result;
+	}
+
+	function test_file($_path = PATH_IP)
+	{
+		if(file_exists($_path))
+		{
+			if(!is_file($_path))
+			{
+				log_error('Is not a regular file', 'test_file', $_path);
+				error('Is not a regular file');
+			}
+			else if(!is_readable($_path))
+			{
+				log_error('File can\'t be read', 'test_file', $_path);
+				error('File can\'t be read');
+			}
+			else if(timestamp(read_timestamp($_path)) < THRESHOLD)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function test_cookie()
+	{
+		if(empty($_COOKIE[COOKIE]))
+		{
+			make_cookie();
+		}
+		else if(timestamp((int)$_COOKIE[COOKIE]) < THRESHOLD)
 		{
 			return false;
 		}
+
+		return true;
 	}
 
-	return true;
-}
-
-function test_cookie()
-{
-	if(empty($_COOKIE[COOKIE]))
+	function make_cookie()
 	{
-		make_cookie();
-	}
-	else if(timestamp((int)$_COOKIE[COOKIE]) < THRESHOLD)
-	{
-		return false;
+		return setcookie(COOKIE, timestamp(), array(
+			'expires' => (time() + THRESHOLD),
+			'secure' => COOKIE_SECURE,
+			'path' => COOKIE_PATH,
+			'samesite' => COOKIE_SAME_SITE,
+			'httponly' => COOKIE_HTTP_ONLY//,
+			//'domain' => COOKIE_DOMAIN
+		));
 	}
 
-	return true;
-}
-
-function make_cookie()
-{
-	return setcookie(COOKIE, timestamp(), array(
-		'expires' => (time() + THRESHOLD),
-		'secure' => COOKIE_SECURE,
-		'path' => COOKIE_PATH,
-		'samesite' => COOKIE_SAME_SITE,
-		'httponly' => COOKIE_HTTP_ONLY//,
-		//'domain' => COOKIE_DOMAIN
-	));
-}
-
-function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
-{
-	if(CLEAN === null)
+	function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 	{
-		log_error('Called function, but CLEAN === null', 'clean_files', '', false);
-		return -1;
-	}
-	else if(!is_dir($_dir))
-	{
-		return init_count($_file, $_dir, false);
-	}
-
-	$files = count_files($_dir, false, false, true);
-
-	if($files === null)
-	{
-		log_error('Can\'t scan directory', 'clean_files', $_dir, false);
-		return 0;
-	}
-
-	$len = count($files);
-
-	if($len === 0)
-	{
-		return 0;
-	}
-	
-	$item = null;
-	$items = array();
-	
-	for($i = 0, $j = 0; $i < $len; ++$i)
-	{
-		if(is_writable($item = $_dir . '/' . $files[$i]) && is_writable($item))
+		if(CLEAN === null)
 		{
-			$items[$j++] = $item;
+			log_error('Called function, but CLEAN === null', 'clean_files', '', false);
+			return -1;
 		}
-		else
+		else if(!is_dir($_dir))
 		{
-			log_error('File is either not readable or not writable', 'clean_files', $item, false);
+			return init_count($_file, $_dir, false);
 		}
-	}
 
-	$len = count($items);
-	
-	if($len === 0)
-	{
-		return 0;
-	}
-	else for($i = 0; $i < $len; ++$i)
-	{
-		if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
+		$files = count_files($_dir, false, false, true);
+
+		if($files === null)
 		{
-			array_splice($items, $i--, 1);
-			--$len;
-		}
-	}
-	
-	if($len === 0)
-	{
-		return 0;
-	}
-
-	$files = 0;
-
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(remove($items[$i], false, false) === false)
-		{
-			log_error('Unable to remove() outdated file', 'clean_files', $items[$i], false);
-		}
-		else
-		{
-			++$files;
-		}
-	}
-	
-	return decrease_count($_file, $files);
-}
-
-function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
-{
-	$result = null;
-
-	if(is_dir($_directory))
-	{
-		if(($result = count_files($_directory, false, false, false)) === null)
-		{
-			log_error('Can\'t scan directory', 'init_count', $_directory, $_die);
+			log_error('Can\'t scan directory', 'clean_files', $_dir, false);
 			return 0;
 		}
-	}
-	else
-	{
-		$result = 0;
-	}
 
-	$written = file_put_contents($_path, (string)$result);
+		$len = count($files);
 
-	if($written === false)
-	{
-		log_error('Couldn\'t initialize count', 'init_count', $_path, $_die);
-
-		if($_die)
+		if($len === 0)
 		{
-			error('Couldn\'t initialize count');
+			return 0;
 		}
 		
-		return false;
-	}
-
-	return $result;
-}
-
-function read_count($_path = PATH_COUNT)
-{
-	if(!file_exists($_path))
-	{
-		return init_count($_path);
-	}
-	else if(!is_file($_path))
-	{
-		log_error('Count file is not a file', 'read_count', $_path);
-		error('Count file is not a file');
-	}
-
-	$result = file_get_contents($_path);
-
-	if($result === false)
-	{
-		log_error('Couldn\'t read count value', 'read_count', $_path);
-		error('Couldn\'t read count value');
-	}
-
-	return (int)$result;
-}
-
-function write_count($_value, $_path = PATH_COUNT, $_get = true)
-{
-	$result = null;
-
-	if(file_exists($_path))
-	{
-		if(!is_file($_path))
+		$item = null;
+		$items = array();
+		
+		for($i = 0, $j = 0; $i < $len; ++$i)
 		{
-			log_error('Count file is not a regular file', 'write_count', $_path);
-			error('Count file is not a regular file');
+			if(is_writable($item = $_dir . '/' . $files[$i]) && is_writable($item))
+			{
+				$items[$j++] = $item;
+			}
+			else
+			{
+				log_error('File is either not readable or not writable', 'clean_files', $item, false);
+			}
 		}
-		else if($_get)
+
+		$len = count($items);
+		
+		if($len === 0)
 		{
-			$result = read_count($_path);
+			return 0;
 		}
-	}
-	else
-	{
-		$result = init_count($_path);
-	}
-
-	$written = file_put_contents($_path, (string)$_value);
-
-	if($written === false)
-	{
-		log_error('Unable to write count', 'write_count', $_path);
-		error('Unable to write count');
-	}
-
-	return $result;
-}
-
-function increase_count($_path = PATH_COUNT, $_by = 1)
-{
-	$count = (read_count($_path) + $_by);
-	write_count($count, $_path, false);
-	return $count;
-}
-
-function decrease_count($_path = PATH_COUNT, $_by = 1)
-{
-	$count = (read_count($_path) - $_by);
-
-	if($count < 0)
-	{
-		$count = 0;
-	}
-
-	write_count($count, $_path, false);
-	return $count;
-}
-
-function read_timestamp($_path = PATH_IP)
-{
-	if(file_exists($_path))
-	{
-		if(!is_file($_path))
+		else for($i = 0; $i < $len; ++$i)
 		{
-			log_error('Is not a file', 'read_timestamp', $_path);
-			error('Is not a file');
+			if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
+			{
+				array_splice($items, $i--, 1);
+				--$len;
+			}
 		}
-		else if(!is_readable($_path))
+		
+		if($len === 0)
 		{
-			log_error('File not readable', 'read_timestamp', $_path);
-			error('File not readable');
+			return 0;
+		}
+
+		$files = 0;
+
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(remove($items[$i], false, false) === false)
+			{
+				log_error('Unable to remove() outdated file', 'clean_files', $items[$i], false);
+			}
+			else
+			{
+				++$files;
+			}
+		}
+		
+		return decrease_count($_file, $files);
+	}
+
+	function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
+	{
+		$result = null;
+
+		if(is_dir($_directory))
+		{
+			if(($result = count_files($_directory, false, false, false)) === null)
+			{
+				log_error('Can\'t scan directory', 'init_count', $_directory, $_die);
+				return 0;
+			}
+		}
+		else
+		{
+			$result = 0;
+		}
+
+		$written = file_put_contents($_path, (string)$result);
+
+		if($written === false)
+		{
+			log_error('Couldn\'t initialize count', 'init_count', $_path, $_die);
+
+			if($_die)
+			{
+				error('Couldn\'t initialize count');
+			}
+			
+			return false;
+		}
+
+		return $result;
+	}
+
+	function read_count($_path = PATH_COUNT)
+	{
+		if(!file_exists($_path))
+		{
+			return init_count($_path);
+		}
+		else if(!is_file($_path))
+		{
+			log_error('Count file is not a file', 'read_count', $_path);
+			error('Count file is not a file');
 		}
 
 		$result = file_get_contents($_path);
 
 		if($result === false)
 		{
-			log_error('Unable to read timestamp', 'read_timestamp', $_path);
-			error('Unable to read timestamp');
+			log_error('Couldn\'t read count value', 'read_count', $_path);
+			error('Couldn\'t read count value');
 		}
 
 		return (int)$result;
 	}
 
-	return 0;
-}
-
-function write_timestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
-{
-	$existed = file_exists($_path);
-
-	if($existed)
+	function write_count($_value, $_path = PATH_COUNT, $_get = true)
 	{
-		if(!is_file($_path))
+		$result = null;
+
+		if(file_exists($_path))
 		{
-			log_error('It\'s no regular file', 'write_timestamp', $_path);
-			error('It\'s no regular file');
-		}
-		else if(!is_writable($_path))
-		{
-			log_error('Not a writable file', 'write_timestamp', $_path);
-			error('Not a writable file');
-		}
-	}
-	else if(read_count() > LIMIT)
-	{
-		if($_clean)
-		{
-			if(clean_files() > LIMIT)
+			if(!is_file($_path))
 			{
-				log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', $_path);
-				error('LIMIT exceeded, even after clean_files()');
+				log_error('Count file is not a regular file', 'write_count', $_path);
+				error('Count file is not a regular file');
+			}
+			else if($_get)
+			{
+				$result = read_count($_path);
+			}
+		}
+		else
+		{
+			$result = init_count($_path);
+		}
+
+		$written = file_put_contents($_path, (string)$_value);
+
+		if($written === false)
+		{
+			log_error('Unable to write count', 'write_count', $_path);
+			error('Unable to write count');
+		}
+
+		return $result;
+	}
+
+	function increase_count($_path = PATH_COUNT, $_by = 1)
+	{
+		$count = (read_count($_path) + $_by);
+		write_count($count, $_path, false);
+		return $count;
+	}
+
+	function decrease_count($_path = PATH_COUNT, $_by = 1)
+	{
+		$count = (read_count($_path) - $_by);
+
+		if($count < 0)
+		{
+			$count = 0;
+		}
+
+		write_count($count, $_path, false);
+		return $count;
+	}
+
+	function read_timestamp($_path = PATH_IP)
+	{
+		if(file_exists($_path))
+		{
+			if(!is_file($_path))
+			{
+				log_error('Is not a file', 'read_timestamp', $_path);
+				error('Is not a file');
+			}
+			else if(!is_readable($_path))
+			{
+				log_error('File not readable', 'read_timestamp', $_path);
+				error('File not readable');
+			}
+
+			$result = file_get_contents($_path);
+
+			if($result === false)
+			{
+				log_error('Unable to read timestamp', 'read_timestamp', $_path);
+				error('Unable to read timestamp');
+			}
+
+			return (int)$result;
+		}
+
+		return 0;
+	}
+
+	function write_timestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
+	{
+		$existed = file_exists($_path);
+
+		if($existed)
+		{
+			if(!is_file($_path))
+			{
+				log_error('It\'s no regular file', 'write_timestamp', $_path);
+				error('It\'s no regular file');
+			}
+			else if(!is_writable($_path))
+			{
+				log_error('Not a writable file', 'write_timestamp', $_path);
+				error('Not a writable file');
+			}
+		}
+		else if(read_count() > LIMIT)
+		{
+			if($_clean)
+			{
+				if(clean_files() > LIMIT)
+				{
+					log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', $_path);
+					error('LIMIT exceeded, even after clean_files()');
+					return null;
+				}
+			}
+			else
+			{
+				log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', $_path);
+				error('LIMIT exceeded; w/o clean_files() call');
 				return null;
 			}
 		}
-		else
-		{
-			log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', $_path);
-			error('LIMIT exceeded; w/o clean_files() call');
-			return null;
-		}
-	}
-	
-	$result = file_put_contents($_path, (string)timestamp());
-
-	if($result === false)
-	{
-		log_error('Unable to write timestamp', 'write_timestamp', $_path);
-		error('Unable to write timestamp');
-	}
-	else if(!$existed)
-	{
-		increase_count();
-	}
-
-	return $result;
-}
-
-function read_value($_path = PATH_FILE)
-{
-	if(file_exists($_path))
-	{
-		if(!is_file($_path))
-		{
-			log_error('It\'s not a regular file', 'read_value', $_path);
-			error('It\'s not a regular file');
-		}
-		else if(!is_readable($_path))
-		{
-			log_error('File is not readable', 'read_value', $_path);
-			error('File is not readable');
-		}
-
-		$result = file_get_contents($_path);
+		
+		$result = file_put_contents($_path, (string)timestamp());
 
 		if($result === false)
 		{
-			log_error('Unable to read value', 'read_value', $_path);
-			error('Unable to read value');
+			log_error('Unable to write timestamp', 'write_timestamp', $_path);
+			error('Unable to write timestamp');
+		}
+		else if(!$existed)
+		{
+			increase_count();
 		}
 
-		return (int)$result;
-	}
-	else
-	{
-		touch($_path);
+		return $result;
 	}
 
-	return 0;
-}
-
-function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
-{
-	if(file_exists($_path))
+	function read_value($_path = PATH_FILE)
 	{
-		if(!is_file($_path))
+		if(file_exists($_path))
 		{
-			log_error('Not a regular file', 'write_value', $_path, $_die);
+			if(!is_file($_path))
+			{
+				log_error('It\'s not a regular file', 'read_value', $_path);
+				error('It\'s not a regular file');
+			}
+			else if(!is_readable($_path))
+			{
+				log_error('File is not readable', 'read_value', $_path);
+				error('File is not readable');
+			}
+
+			$result = file_get_contents($_path);
+
+			if($result === false)
+			{
+				log_error('Unable to read value', 'read_value', $_path);
+				error('Unable to read value');
+			}
+
+			return (int)$result;
+		}
+		else
+		{
+			touch($_path);
+		}
+
+		return 0;
+	}
+
+	function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
+	{
+		if(file_exists($_path))
+		{
+			if(!is_file($_path))
+			{
+				log_error('Not a regular file', 'write_value', $_path, $_die);
+
+				if($_die)
+				{
+					error('Not a regular file');
+				}
+			}
+			else if(!is_writable($_path))
+			{
+				log_error('File is not writable', 'write_value', $_path, $_die);
+
+				if($_die)
+				{
+					error('File is not writable');
+				}
+			}
+		}
+
+		$result = file_put_contents($_path, (string)$_value);
+
+		if($result === false)
+		{
+			log_error('Unable to write value', 'write_value', $_path, $_die);
 
 			if($_die)
 			{
-				error('Not a regular file');
+				error('Unable to write value');
 			}
 		}
-		else if(!is_writable($_path))
-		{
-			log_error('File is not writable', 'write_value', $_path, $_die);
 
-			if($_die)
-			{
-				error('File is not writable');
-			}
-		}
+		return $result;
 	}
-
-	$result = file_put_contents($_path, (string)$_value);
-
-	if($result === false)
-	{
-		log_error('Unable to write value', 'write_value', $_path, $_die);
-
-		if($_die)
-		{
-			error('Unable to write value');
-		}
-	}
-
-	return $result;
 }
 
 //
@@ -4078,7 +4088,7 @@ function draw($_text, $_zero = ZERO)
 }
 
 //
-if(SERVER)
+if(SERVER && !(TEST || READONLY))
 {
 	if(! file_exists(PATH_DIR))
 	{
@@ -4090,12 +4100,6 @@ if(SERVER)
 		error('Not a directory');
 	}
 }
-
-//
-define('TEST', (isset($_GET['test'])));
-define('READONLY', (TEST || (isset($_GET['readonly']) || isset($_GET['ro']))));
-define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
-define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
 
 //
 $value = (TEST ? rand() : read_value());
