@@ -2148,7 +2148,7 @@ die('   ..........');*/
 
 				if($real === -1 && $cache === -1)
 				{
-					$info = '/';
+					$info = ' ';
 				}
 				else if($real > -1 && $cache !== $real)
 				{
@@ -2170,11 +2170,11 @@ die('   ..........');*/
 				}
 				else if($real === -1)
 				{
-					$info = '?';
+					$info = '/';
 				}
 				else
 				{
-					$info = '';
+					$info = (string)$real;
 				}
 
 				printf($format, $host, $value, $info);
