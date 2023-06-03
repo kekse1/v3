@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.4
+ * v2.15.5
  */
 
 //
-define('VERSION', '2.15.4');
+define('VERSION', '2.15.5');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -3642,7 +3642,7 @@ function draw($_text, $_zero = ZERO)
 			//
 			$image = imagecreatetruecolor(1, 1);
 			imagesavealpha($image, true);
-			imagefill($image, 0, 0, imagecolorallocatealpha($image, 0, 0, 0, 127));
+			imagefill($image, 0, 0, imagecolorallocatealpha($image, 255, 255, 255, 127));
 			
 			//
 			$sent = null;
