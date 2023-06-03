@@ -1,4 +1,4 @@
-<img src="https://kekse.biz/php/count.php?draw&override=github:kekse.biz&fg=120,130,40&size=48" />
+<img src="https://kekse.biz/php/count.php?draw&override=github:kekse.biz&fg=120,130,40&size=48&v=16" />
 
 # kekse.biz
 v3
