@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.9
+ * v2.14.10
  */
 
 //
-define('VERSION', '2.14.9');
+define('VERSION', '2.14.10');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -698,6 +698,14 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 
 		if($_list)
 		{
+			if($_filter === true || $_filter === null)
+			{
+				if(in_array($sub, $result))
+				{
+					continue;
+				}
+			}
+
 			$result[$index++] = $sub;
 		}
 		else
@@ -941,6 +949,166 @@ if(php_sapi_name() === 'cli')
 
 		return $result;		
 	}
+
+	function get_list($_index, $_values, $_path = PATH)
+	{
+		$list = null;
+
+		if(gettype($_index) === 'integer')
+		{
+			$list = get_arguments($_index, true, true);
+		}
+
+		$result = array();
+		$result['host'] = array();
+		$result['dir'] = array();
+		$result['file'] = array();
+		$result['value'] = array();
+		$result['code'] = array();
+
+		if($list === null)
+		{
+			$list = count_files($_path, ($_values ? false : null),
+				($_values ? true : false), true, false, false);
+
+			if($list === null || count($list) === 0)
+			{
+				$result = null;
+			}
+			else
+			{
+				$len = count($list);
+
+				for($i = 0, $h = 0, $d = 0, $f = 0, $v = 0; $i < $len; ++$i)
+				{
+					if($list[$i][0] !== '~' && $list[$i][0] !== '+' && $list[$i][0] !== '-')
+					{
+						continue;
+					}
+
+					$type = $list[$i][0];
+					$host = substr($list[$i], 1);
+					$path = $_dir . '/' . $list[$i];
+
+					if(!in_array($host, $result['host']))
+					{
+						$result['host'][$h++] = $host;
+					}
+
+					if(!isset($result['code'][$host]))
+					{
+						$result['code'][$host] = 0;
+					}
+
+					switch($type)
+					{
+						case '~':
+							if(!in_array($host, $result['value']))
+							{
+								$result['value'][$v++] = $host;
+							}
+							$result['code'][$host] |= 1;
+							break;
+						case '+':
+							if(!in_array($host, $result['dir']))
+							{
+								$result['dir'][$d++] = $host;
+							}
+							$result['code'][$host] |= 2;
+							break;
+						case '-':
+							if(!in_array($host, $result['file']))
+							{
+								$result['file'][$f++] = $host;
+							}
+							$result['code'][$host] |= 4;
+							break;
+					}
+				}
+			}
+		}
+		else
+		{
+			$item = '';
+			$len = count($list);
+
+			for($i = 0, $h = 0, $d = 0, $f = 0, $v = 0; $i < $len; ++$i)
+			{
+				$item = $_path . '/';
+
+				if($list[$i][0] !== '~' && $list[$i][0] !== '+' && $list[$i][0] !== '-')
+				{
+					if($_values === true)
+					{
+						$item .= '~';
+					}
+					else if($_values === false)
+					{
+						$item .= '{+,-}';
+					}
+					else if($_values === null)
+					{
+						$item .= '?';
+					}
+				}
+
+				$item .= $list[$i];
+				$item = glob($item, GLOB_BRACE);
+				$sub = count($item);
+				
+				for($j = 0; $j < $sub; ++$j)
+				{
+					$base = basename($item[$j]);
+					$host = substr($base, 1);
+					$type = $base[0];
+
+					if(!in_array($host, $result['host']))
+					{
+						$result['host'][$h++] = $host;
+					}
+
+					if(!isset($result['code'][$host]))
+					{
+						$result['code'][$host] = 0;
+					}
+
+					switch($type)
+					{
+						case '~':
+							if(!in_array($host, $result['value']))
+							{
+								$result['value'][$v++] = $host;
+							}
+							$result['code'][$host] |= 1;
+							break;
+						case '+':
+							if(!in_array($host, $result['dir']))
+							{
+								$result['dir'][$d++] = $host;
+							}
+							$result['code'][$host] |= 2;
+							break;
+						case '-':
+							if(!in_array($host, $result['file']))
+							{
+								$result['file'][$f++] = $host;
+							}
+							$result['code'][$host] |= 4;
+							break;
+					}
+				}
+			}
+		}
+
+		return $result;
+	}
+
+/*$a=get_list(1,true);
+$b=get_list(1,false);
+var_dump($a);
+printf(PHP_EOL.PHP_EOL);
+var_dump($b);
+die('   ..........');*/
 
 	//
 	function get_hosts($_path = PATH, $_values = true)
