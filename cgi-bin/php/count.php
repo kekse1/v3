@@ -1103,6 +1103,40 @@ if(php_sapi_name() === 'cli')
 			}
 		}
 
+		if($result !== null)
+		{
+			$c = 0;
+
+			if(count($result['host']) === 0)
+			{
+				$result['host'] = null;
+				++$c;
+			}
+
+			if(count($result['dir']) === 0)
+			{
+				$result['dir'] = null;
+				++$c;
+			}
+
+			if(count($result['file']) === 0)
+			{
+				$result['file'] = null;
+				++$c;
+			}
+
+			if(count($result['value']) === 0)
+			{
+				$result['value'] = null;
+				++$c;
+			}
+
+			if($c === 4)
+			{
+				$result = null;
+			}
+		}
+
 		return $result;
 	}
 
