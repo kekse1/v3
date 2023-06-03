@@ -28,12 +28,12 @@ define('NONE', '/');
 define('DRAWING', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 512);
-define('SPACE', 1);
-define('SPACE_LIMIT', 256);
-define('PAD', 1);
-define('PAD_LIMIT', 256);
 define('FONT', 'SourceCodePro');
 define('FONTS', 'fonts');
+define('H', 1);
+define('H_LIMIT', 256);
+define('V', 1);
+define('V_LIMIT', 256);
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
 define('AA', true);
@@ -1771,9 +1771,9 @@ die('   ..........');*/
 			++$errors;
 		}
 		
-		if(gettype(SPACE) === 'integer' && SPACE >= 0)
+		if(gettype(H) === 'integer' && H >= 0)
 		{
-			$limit = SPACE_LIMIT;
+			$limit = H_LIMIT;
 			
 			if(gettype($limit) !== 'integer')
 			{
@@ -1786,40 +1786,40 @@ die('   ..........');*/
 			
 			if($limit === null)
 			{
-				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid SPACE_LIMIT)' . PHP_EOL, 'SPACE', 'WARN');
+				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
 				++$warnings;
 			}
-			else if(SPACE > $limit)
+			else if(H > $limit)
 			{
-				fprintf(STDERR, START.'Integer exceeds SPACE_LIMIT (%d)' . PHP_EOL, 'SPACE', 'BAD', $limit);
+				fprintf(STDERR, START.'Integer exceeds H_LIMIT (%d)' . PHP_EOL, 'H', 'BAD', $limit);
 				++$errors;
 			}
 			else
 			{
-				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'SPACE', 'OK', $limit);
+				printf(START.'Integer above -1 and below or equal to H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above -1 and below or equal to SPACE_LIMIT' . PHP_EOL, 'SPACE', 'BAD');
+			fprintf(STDERR, START.'No Integer above -1 and below or equal to H_LIMIT' . PHP_EOL, 'H', 'BAD');
 			++$errors;
 		}
 		
-		if(gettype(SPACE_LIMIT) === 'integer' && SPACE_LIMIT >= 0 && SPACE_LIMIT <= 512)
+		if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
 		{
-			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'SPACE_LIMIT', 'OK');
+			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'SPACE_LIMIT', 'BAD');
+			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
 			++$errors;
 		}
 		
-		if(gettype(PAD) === 'integer' && PAD >= 0)
+		if(gettype(V) === 'integer' && V >= 0)
 		{
-			$limit = PAD_LIMIT;
+			$limit = V_LIMIT;
 			
 			if(gettype($limit) !== 'integer')
 			{
@@ -1832,34 +1832,34 @@ die('   ..........');*/
 			
 			if($limit === null)
 			{
-				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid PAD_LIMIT)' . PHP_EOL, 'PAD', 'WARN');
+				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
 				++$warnings;
 			}
-			else if(PAD > $limit)
+			else if(V > $limit)
 			{
-				fprintf(STDERR, START.'Integer exceeds SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'BAD', $limit);
+				fprintf(STDERR, START.'Integer exceeds V_IMIT (%d)' . PHP_EOL, 'V', 'BAD', $limit);
 				++$errors;
 			}
 			else
 			{
-				printf(START.'Integer above -1 and below or equal to SPACE_LIMIT (%d)' . PHP_EOL, 'PAD', 'OK', SPACE_LIMIT);
+				printf(START.'Integer above -1 and below or equal to V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above -1 and below or equal to SPACE_LIMIT'. PHP_EOL, 'PAD', 'BAD');
+			fprintf(STDERR, START.'No Integer above -1 and below or equal to V_LIMIT'. PHP_EOL, 'V', 'BAD');
 			++$errors;
 		}
 		
-		if(gettype(PAD_LIMIT) === 'integer' && PAD_LIMIT >= 0 && PAD_LIMIT <= 512)
+		if(gettype(V_LIMIT) === 'integer' && V_LIMIT >= 0 && V_LIMIT <= 512)
 		{
-			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'PAD_LIMIT', 'OK');
+			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'PAD_LIMIT', 'BAD');
+			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'BAD');
 			++$errors;
 		}
 
@@ -3735,13 +3735,13 @@ function draw($_text, $_zero = ZERO)
 		else
 		{
 			$result['size'] = get_param('size', true, false);
-			$result['space'] = get_param('space', true, false);
-			$result['pad'] = get_param('pad', true, false);
 			$result['font'] = get_param('font', false);
 			$result['fg'] = get_param('fg', false);
 			$result['bg'] = get_param('bg', false);
 			$result['x'] = get_param('x', true, false);
 			$result['y'] = get_param('y', true, false);
+			$result['h'] = get_param('h', true, false);
+			$result['v'] = get_param('v', true, false);
 			$result['aa'] = get_param('aa', null);
 		}
 
@@ -3756,23 +3756,23 @@ function draw($_text, $_zero = ZERO)
 			return null;
 		}
 
-		if(! is_numeric($result['space']))
+		if(! is_numeric($result['h']))
 		{
-			$result['space'] = SPACE;
+			$result['h'] = H;
 		}
-		else if($result['space'] > SPACE_LIMIT || $result['space'] < 0)
+		else if($result['h'] > H_LIMIT || $result['h'] < 0)
 		{
-			draw_error('\'?space\' exceeds limit (0 / ' . SPACE_LIMIT . ')', $_die);
+			draw_error('\'?h\' exceeds limit (0 / ' . H_LIMIT . ')', $_die);
 			return null;
 		}
 
-		if(! is_numeric($result['pad']))
+		if(! is_numeric($result['v']))
 		{
-			$result['pad'] = PAD;
+			$result['v'] = V;
 		}
-		else if($result['pad'] > PAD_LIMIT || $result['pad'] < 0)
+		else if($result['v'] > V_LIMIT || $result['v'] < 0)
 		{
-			draw_error('\'?pad\' exceeds limit (0 / ' . PAD_LIMIT . ')', $_die);
+			draw_error('\'?v\' exceeds limit (0 / ' . V_LIMIT . ')', $_die);
 			return null;
 		}
 
@@ -4020,7 +4020,7 @@ function draw($_text, $_zero = ZERO)
 		return ($_px / 0.75);
 	}
 	
-	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x, $_y, $_aa, $_type)
+	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_h, $_v, $_x, $_y, $_aa, $_type)
 	{
 		//
 		if(defined('SENT'))
@@ -4039,8 +4039,8 @@ function draw($_text, $_zero = ZERO)
 		$textHeight = ($measure[1] - $measure[7]);
 
 		//
-		$width = pxToPt($textWidth + ($_space * 2));
-		$height = pxToPt($textHeight + ($_pad * 2));
+		$width = pxToPt($textWidth + ($_h * 2));
+		$height = pxToPt($textHeight + ($_v * 2));
 
 		//
 		$image = imagecreatetruecolor($width, $height);
@@ -4063,7 +4063,7 @@ function draw($_text, $_zero = ZERO)
 		imagefill($image, 0, 0, $_bg);
 
 		//
-		$x = ptToPx(($width - $textWidth + $_space) / 2) + $_x;
+		$x = ptToPx(($width - $textWidth + $_h) / 2) + $_x;
 		$y = (($height + $textHeight) / 2) + $_y;
 
 		//
@@ -4102,7 +4102,7 @@ function draw($_text, $_zero = ZERO)
 
 	//
 	$options = get_drawing_options();
-	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['pad'], $options['space'], $options['x'], $options['y'], $options['aa'], $options['type']);
+	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['h'], $options['v'], $options['x'], $options['y'], $options['aa'], $options['type']);
 }
 
 //
