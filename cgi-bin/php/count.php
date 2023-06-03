@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.9
+ * v2.14.10
  */
 
 //
-define('VERSION', '2.14.9');
+define('VERSION', '2.14.10');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -602,7 +602,7 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 			error('Invalid \'AUTO\' constant');
 		}
 	}
-	else if(!is_writable($_file))
+	else if(file_exists($_file) && !is_writable($_file))
 	{
 		log_error('File is not writable', 'check_path', $_file);
 		error('File is not writable');
@@ -923,7 +923,11 @@ if(php_sapi_name() === 'cli')
 			{
 				break;
 			}
-
+			else if($_unique && in_array(ARGV[$i], $result))
+			{
+				continue;
+			}
+			
 			$result[$j++] = ARGV[$i];
 		}
 
@@ -933,10 +937,6 @@ if(php_sapi_name() === 'cli')
 			{
 				return null;
 			}
-		}
-		else if($_unique)
-		{
-			$result = array_unique($result);
 		}
 
 		return $result;		
@@ -1845,13 +1845,19 @@ if(php_sapi_name() === 'cli')
 				{
 					for($k = 0; $k < $len; ++$k)
 					{
-						$files[$j++] = $item[$k];
+						if(!in_array($item[$k], $files))
+						{
+							$files[$j++] = $item[$k];
+						}
 					}
 				}
 			}
 			else if(is_file(($item = $_path . '/~' . $hosts[$i])) && is_readable($item))
 			{
-				$files[$j++] = $item;
+				if(!in_array($item, $files))
+				{
+					$files[$j++] = $item;
+				}
 			}
 			else
 			{
@@ -1889,18 +1895,100 @@ if(php_sapi_name() === 'cli')
 		}
 
 		$maxLen += 2;
-		$START = '%' . $maxLen . 's: ';
-		
-		for($i = 0; $i < $len; ++$i)
+		$format = '%' . $maxLen . 's:  %-8d %1s' . PHP_EOL;
+		$cache = null;
+		$real = null;
+		$host = null;
+		$item = null;
+		$info = '';
+		$err = array();
+
+		for($i = 0, $e = 0; $i < $len; ++$i)
 		{
+			$host = substr(basename($files[$i]), 1);
+
 			if(($value = (int)file_get_contents($files[$i])) === false)
 			{
-				fprintf(STDERR, $START . ' >> Unable to read host file' . PHP_EOL, $hosts[$i]);
+				$err[$e++] = $host;
 			}
 			else
 			{
-				printf($START . (string)$value . PHP_EOL, $hosts[$i]);
+				if(is_dir($item = ($_path . '/+' . $host)) && is_readable($item))
+				{
+					if(($item = count_files($item, false, false, false, false, false)) === null)
+					{
+						$real = -1;
+					}
+					else
+					{
+						$real = $item;
+					}
+				}
+				else
+				{
+					$real = -1;
+				}
+
+				if(is_file($item = ($_path . '/-' . $host)) && is_readable($item))
+				{
+					if(!($cache = (int)file_get_contents($item)))
+					{
+						$cache = -1;
+					}
+				}
+				else
+				{
+					$cache = -1;
+				}
+
+				if($real === -1 && $cache === -1)
+				{
+					$info = '/';
+				}
+				else if($real > -1 && $cache !== $real)
+				{
+					if(!file_exists($item) || is_writable($item))
+					{
+						if(file_put_contents($item, (string)$real))
+						{
+							$info = '+';
+						}
+						else
+						{
+							$info = '-';
+						}
+					}
+					else
+					{
+						$info = '!';
+					}
+				}
+				else if($real === -1)
+				{
+					$info = '?';
+				}
+				else
+				{
+					$info = '';
+				}
+
+				printf($format, $host, $value, $info);
 			}
+		}
+
+		$errLen = count($err);
+		
+		if($errLen > 0)
+		{
+			fprintf(STDERR, PHP_EOL . ' >> Unable to read value files for the following hosts:' . PHP_EOL);
+			
+			for($i = 0; $i < $errLen; ++$i)
+			{
+				fprintf(STDERR, '    %s' . PHP_EOL, $err[$i]);
+			}
+			
+			printf(PHP_EOL);
+			exit(3);
 		}
 
 		//
@@ -2937,19 +3025,22 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 		}
 	}
 
-	if(count($items) === 0)
+	$len = count($items);
+	
+	if($len === 0)
 	{
 		return 0;
 	}
-	else for($i = 0; $i < count($items); ++$i)
+	else for($i = 0; $i < $len; ++$i)
 	{
 		if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
 		{
 			array_splice($items, $i--, 1);
+			--$len;
 		}
 	}
 	
-	if(($len = count($items)) === 0)
+	if($len === 0)
 	{
 		return 0;
 	}
