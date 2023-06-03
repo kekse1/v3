@@ -2,11 +2,19 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+<<<<<<< HEAD
  * v2.14.10
  */
 
 //
 define('VERSION', '2.14.10');
+=======
+ * v2.14.11
+ */
+
+//
+define('VERSION', '2.14.11');
+>>>>>>> c120e5a6967070d1bcbdf2e5d4a6dcc3d3eb68d7
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -298,7 +306,10 @@ function secure_path($_string, $_null = true, $_die = true)
 	{
 		if($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~')
 		{
-			continue;
+			if(strlen($result) === 0)
+			{
+				continue;
+			}
 		}
 
 		$result .= $value[$i];
@@ -602,7 +613,7 @@ function check_path($_path = PATH, $_file = PATH_FILE)
 			error('Invalid \'AUTO\' constant');
 		}
 	}
-	else if(!is_writable($_file))
+	else if(file_exists($_file) && !is_writable($_file))
 	{
 		log_error('File is not writable', 'check_path', $_file);
 		error('File is not writable');
@@ -931,7 +942,11 @@ if(php_sapi_name() === 'cli')
 			{
 				break;
 			}
-
+			else if($_unique && in_array(ARGV[$i], $result))
+			{
+				continue;
+			}
+			
 			$result[$j++] = ARGV[$i];
 		}
 
@@ -941,10 +956,6 @@ if(php_sapi_name() === 'cli')
 			{
 				return null;
 			}
-		}
-		else if($_unique)
-		{
-			$result = array_unique($result);
 		}
 
 		return $result;		
@@ -2013,13 +2024,19 @@ die('   ..........');*/
 				{
 					for($k = 0; $k < $len; ++$k)
 					{
-						$files[$j++] = $item[$k];
+						if(!in_array($item[$k], $files))
+						{
+							$files[$j++] = $item[$k];
+						}
 					}
 				}
 			}
 			else if(is_file(($item = $_path . '/~' . $hosts[$i])) && is_readable($item))
 			{
-				$files[$j++] = $item;
+				if(!in_array($item, $files))
+				{
+					$files[$j++] = $item;
+				}
 			}
 			else
 			{
@@ -2057,18 +2074,100 @@ die('   ..........');*/
 		}
 
 		$maxLen += 2;
-		$START = '%' . $maxLen . 's: ';
-		
-		for($i = 0; $i < $len; ++$i)
+		$format = '%' . $maxLen . 's:  %-8d %1s' . PHP_EOL;
+		$cache = null;
+		$real = null;
+		$host = null;
+		$item = null;
+		$info = '';
+		$err = array();
+
+		for($i = 0, $e = 0; $i < $len; ++$i)
 		{
+			$host = substr(basename($files[$i]), 1);
+
 			if(($value = (int)file_get_contents($files[$i])) === false)
 			{
-				fprintf(STDERR, $START . ' >> Unable to read host file' . PHP_EOL, $hosts[$i]);
+				$err[$e++] = $host;
 			}
 			else
 			{
-				printf($START . (string)$value . PHP_EOL, $hosts[$i]);
+				if(is_dir($item = ($_path . '/+' . $host)) && is_readable($item))
+				{
+					if(($item = count_files($item, false, false, false, false, false)) === null)
+					{
+						$real = -1;
+					}
+					else
+					{
+						$real = $item;
+					}
+				}
+				else
+				{
+					$real = -1;
+				}
+
+				if(is_file($item = ($_path . '/-' . $host)) && is_readable($item))
+				{
+					if(!($cache = (int)file_get_contents($item)))
+					{
+						$cache = -1;
+					}
+				}
+				else
+				{
+					$cache = -1;
+				}
+
+				if($real === -1 && $cache === -1)
+				{
+					$info = '/';
+				}
+				else if($real > -1 && $cache !== $real)
+				{
+					if(!file_exists($item) || is_writable($item))
+					{
+						if(file_put_contents($item, (string)$real))
+						{
+							$info = '+';
+						}
+						else
+						{
+							$info = '-';
+						}
+					}
+					else
+					{
+						$info = '!';
+					}
+				}
+				else if($real === -1)
+				{
+					$info = '?';
+				}
+				else
+				{
+					$info = '';
+				}
+
+				printf($format, $host, $value, $info);
 			}
+		}
+
+		$errLen = count($err);
+		
+		if($errLen > 0)
+		{
+			fprintf(STDERR, PHP_EOL . ' >> Unable to read value files for the following hosts:' . PHP_EOL);
+			
+			for($i = 0; $i < $errLen; ++$i)
+			{
+				fprintf(STDERR, '    %s' . PHP_EOL, $err[$i]);
+			}
+			
+			printf(PHP_EOL);
+			exit(3);
 		}
 
 		//
@@ -2246,34 +2345,60 @@ die('TODO (sync() w/ glob(); look above)');
 		{
 			fprintf(STDERR, ' >> %d items must be ignored (insufficient permissions)' . PHP_EOL, $ignored);
 		}
+		
+		//
+		//
+		//purge() und clean() gibt's noch (unten).
+		//purge() wird brute rmdir sein.. w/ prompt()!!!!!
+		//clean() saeubert (a) outdated '+' files.. und dekrementiert den zaehl-caeche entsprechend der anzahl geloeschter elemente..
+		//etc..
+		//
+		//
+		//BEST waere, ich setzt MIN. obige routine in eine abstrakte funktion, die auf dem gemeinsamen nenner basiert,
+		//dass wir eben + und - dateien erhalten, die existieren.. sowie beteiligte hosts und noch die codes, ob nichts, -, +, oder beides..
+		//kann man sicher gut gebrauchen, sowohl in diesem sync() wie auch purge() und clean().
+		//
+		//ueberpruefe das.. purge? muss jedenfalls hosts aus glob() codieren. und muss wissen, ob '+' fuer die hosts existieren, um sie zu
+		//loeschen.. und wenn '-' existieren, muessen die ebenso geloescht werden.. das geht mit beiden files[] sowie dirs[] gut, auf basis
+		//entweder aller hosts oder der glob() ausgewaehlten.. also gut, das ist schonmal gemeinsam.
+		//
+		//clean? braucht jedenfalls ebenso hosts aus glob(), oder eben alle... braucht auch evtl. '-'-cache, um dort zu dekrementieren nach
+		//der loesch-anzahl der '+'-files (!! also + nehmen, um count_files(), ...). oder will ich direkt durch count_files() in sync gehen?
+		//
+		//hm. clean() ist evtl. einfacher.. aber wir brauchen ebenso die hosts [bei denen '+'-files existieren], auch @ glob()!
+		//aber es reichen die hosts, um nur noch is_dir() zu testen, um dann count_files() alle dortigen files einzulesen, die dann in ihrem
+		//timestamp-inhalt geprueft werden. bestenfalls verwende ich garnicht mal die '-'-caches, sondern, da ich sowieso alle dateien ein-
+		//lesen muss, kann ich gleich die result-anzahl(-diff) als "neues" '-'-cache setzen!!! ...
+		//
+		//purge() wiederum braucht auch hosts, etc., auch @ glob(). aber nichtmal die datei-liste, das waere zuviel overhead im prinzip.
+		//es genuegt, das verzeichnis $_recursive=true zu loeschen @ remote()!!! danach, FALLS GANZ GELOSCHT (ERFOLGREICH), auch noch die
+		//evtl. is_file('-'..) loeschen. falls NICHT ERFOLGREICH geloescht, muss wohl am besten count_files() w/ int-result, um die neue
+		//'-' aus den rest-files zu init()...
+		//
+		//also, purge() braucht nur beteiligte hosts[]. den rest macht es selbst mit is_dir und is_file, etc.
+		//sowie clean() braucht .. lediglich alle '+'-verz., evtl. selbst durch blosze hosts() gefunden. schreibt - ohne lesen zu muessen.
+		//
+		//ich denke mir fast.. am besten eine abstrakte funktion allein dazu, dass..
+		//(a) je nachdem alle hosts als result.. erfahrungsgemaesz 'get_hosts()' somit ersetzt, aber eher dafuer noch der $values-param,
+		//	um zu unterscheiden zw. den '~'-value-files, die manchmal noetig sind, sowie den '-+'-cache-/..-files, manchmal noetig.
+		//	.. aber immer mit glob() support aus get_arguments()!! hier einfach je nach '$values' im glob noch '~' dazu am anfang,
+		//	oder sonst '?' als glob-char, um am ende evtl. noch heraus zu sortieren..!?!
+		//(b) EVTL. will ich die $code[s]-sache dazu? oder eher nur hier im sync?! JA...
+
 var_dump($host);
 var_dump($dirs);
 var_dump($files);
 var_dump($codes);
 die(' ....//');
-		// die globs ergaenzen um vorherige verzeichnis-tiefe. dann test @ glob().
-		// alle results im array als gesamter pfad-string. nur basename() (ohne '+'/'-') in $hosts[] hinein,
-		// $files[] den ganzen pfad..
-		//
-		// da ich '+' sowie '-' vergleiche.. wuerde ich den $files[] durchlaufen.. mom.
-		// struktur...
-		//
-		// glob() findet gemaesz host-namen in den datei-namen einmal '+' und einmal '-'. oder nur eines, oder keines.
-		//
-		// dann der untere rest... indem.. wir suchen glob(.., GLOB_ONLYDIR) fuer die verzeichnisse mit '+', die wir im
-		// $dir[] array aber nur mit basename sowie ohne '+' sichern. weiteres glob() .. hm, beide am besten direkt mit
-		// '+' sowie '-' suchen, um zu wissen, ob verz. oder dateien.. also zwei suchlaeufe in '$_path' dazu. fuer zwei
-		// arrays $dirs und $files. dort aber blosz die basename ohne [0]-char..
-		//
-		// hm.. ich wuerde dazu ein assoziatives array verwenden, zum vergleich, .. beide arrays hintereinander durchlaufen,
-		// und den basename im hash[basename] mit 
+
+		//PS: '-'/'~'/'+'-filter einfach angeben durch entweder "?" fuer alle, "~" fuer values, oder GLOB_BRACE @ "{+,-}"!!!! :D~
+
+
+		//@sync() ONLY:
 		//
 		// wenn im array[a], so hash[key] |= 1; in[b] hash[key] |= 2; am ende nur "if(&1) => in[a]" und "if(&2) => in[b]",
 		// jeweils mit "$code &= 1|2". am ende if(($code & 1) && ($code & 2)) => IN BOTH ARRAYS! sonst nur (&1 in [a]) oder (&2) in [b], as "|=1/2"! ^_^
 		// 
-		
-		
-		// hosts "finden", also nicht die values, sondern die '+' sowie '-' @ cache etc..
 		//
 		// wenn ein '+', aber kein '-', muss '-' aus count_files() @ '+' erzeugt werden @ init... //zu protokoll @ init[]
 		// wenn ein '-', aber kein '+', wird einfach der '-'-file-cache unlink'ed.. //zu protokoll @ delete[]/..
@@ -2281,7 +2406,13 @@ die(' ....//');
 		// if(in sync), bitte sync[]-protokoll-gebung; sonst update[]-protokoll, mit setzen der eben gezeahlten datei-menge unter '+' in die '-' hinein.
 		// FALLS ABER die '+'-zaehlung der ip-timestamp-files (0) ist.. so (a) entweder '-' und '+' ganz loeschen (JA!!!), sonst '-' mit (0)-init.. a: delete[];
 		//
-		// gleich bei purge() oder clean() dann? gleich weiter machen danach...
+		//again:
+		//
+		//(a) wenn ein '+', aber kein '-', muss '-' aus count_files() der '+' neu entstehen @ init. w/ ++$inits;
+		//(b) wenn ein '-', aber kein '+', loeschen des '-'-wertes.. w/ ++$unlinks;
+		//(c) wenn beides, vergleich zw. den count's..
+		//	wenn in sync, ++$ok; wenn nicht, ++$sync;
+
 
 		$gotFile = null;
 		$gotDir = null;
@@ -3105,19 +3236,22 @@ function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
 		}
 	}
 
-	if(count($items) === 0)
+	$len = count($items);
+	
+	if($len === 0)
 	{
 		return 0;
 	}
-	else for($i = 0; $i < count($items); ++$i)
+	else for($i = 0; $i < $len; ++$i)
 	{
 		if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
 		{
 			array_splice($items, $i--, 1);
+			--$len;
 		}
 	}
 	
-	if(($len = count($items)) === 0)
+	if($len === 0)
 	{
 		return 0;
 	}
