@@ -2,18 +2,18 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.3
+ * v2.15.4
  */
 
 //
-define('VERSION', '2.15.3');
+define('VERSION', '2.15.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('DIR', 'count');
-define('HIDE', null);
+define('HIDE', false);
 define('OVERRIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
@@ -1519,19 +1519,19 @@ die('   ..........');*/
 		}
 		
 		//
-		if(HIDE === null)
+		if(gettype(HIDE) === 'boolean')
 		{
-			printf(START.'Is (null), and may also be a String' . PHP_EOL, 'HIDE', 'OK');
+			printf(START.'Is a Boolean, and may also be a String' . PHP_EOL, 'HIDE', 'OK');
 			++$ok;
 		}
 		else if(gettype(HIDE) === 'string')
 		{
-			printf(START.'Is a String, and may also be (null)' . PHP_EOL, 'HIDE', 'OK');
+			printf(START.'Is a String, and may also be a Boolean' . PHP_EOL, 'HIDE', 'OK');
 			++$ok;
 		}
 		else
 		{
-			fprintf(STDERR, START.'Needs to be a String or (null)!' . PHP_EOL, 'HIDE', 'BAD');
+			fprintf(STDERR, START.'Needs to be a String or Boolean!' . PHP_EOL, 'HIDE', 'BAD');
 			++$errors;
 		}
 
@@ -4140,6 +4140,10 @@ if(! (READONLY || TEST))
 if(gettype(HIDE) === 'string' && !TEST)
 {
 	$value = HIDE;
+}
+else if(HIDE === true && !TEST)
+{
+	$value = (string)rand();
 }
 else
 {
