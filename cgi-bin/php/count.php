@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.14.11
+ * v2.15.1
  */
 
 //
-define('VERSION', '2.14.11');
+define('VERSION', '2.15.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -24,7 +24,7 @@ define('LIMIT', 32768);
 define('LOG', 'count.log');
 define('ERROR', '/');
 define('NONE', '/');
-define('DRAW', true);
+define('DRAWING', true);
 define('SIZE', 24);
 define('SIZE_LIMIT', 512);
 define('SPACE', 1);
@@ -967,7 +967,7 @@ if(php_sapi_name() === 'cli')
 		$result['dir'] = array();
 		$result['file'] = array();
 		$result['value'] = array();
-		$result['code'] = array();
+		$result['type'] = array();
 
 		if($list === null)
 		{
@@ -998,9 +998,9 @@ if(php_sapi_name() === 'cli')
 						$result['host'][$h++] = $host;
 					}
 
-					if(!isset($result['code'][$host]))
+					if(!isset($result['type'][$host]))
 					{
-						$result['code'][$host] = 0;
+						$result['type'][$host] = 0;
 					}
 
 					switch($type)
@@ -1010,21 +1010,21 @@ if(php_sapi_name() === 'cli')
 							{
 								$result['value'][$v++] = $host;
 							}
-							$result['code'][$host] |= 1;
+							$result['type'][$host] |= 1;
 							break;
 						case '+':
 							if(!in_array($host, $result['dir']))
 							{
 								$result['dir'][$d++] = $host;
 							}
-							$result['code'][$host] |= 2;
+							$result['type'][$host] |= 2;
 							break;
 						case '-':
 							if(!in_array($host, $result['file']))
 							{
 								$result['file'][$f++] = $host;
 							}
-							$result['code'][$host] |= 4;
+							$result['type'][$host] |= 4;
 							break;
 					}
 				}
@@ -1070,9 +1070,9 @@ if(php_sapi_name() === 'cli')
 						$result['host'][$h++] = $host;
 					}
 
-					if(!isset($result['code'][$host]))
+					if(!isset($result['type'][$host]))
 					{
-						$result['code'][$host] = 0;
+						$result['type'][$host] = 0;
 					}
 
 					switch($type)
@@ -1082,21 +1082,21 @@ if(php_sapi_name() === 'cli')
 							{
 								$result['value'][$v++] = $host;
 							}
-							$result['code'][$host] |= 1;
+							$result['type'][$host] |= 1;
 							break;
 						case '+':
 							if(!in_array($host, $result['dir']))
 							{
 								$result['dir'][$d++] = $host;
 							}
-							$result['code'][$host] |= 2;
+							$result['type'][$host] |= 2;
 							break;
 						case '-':
 							if(!in_array($host, $result['file']))
 							{
 								$result['file'][$f++] = $host;
 							}
-							$result['code'][$host] |= 4;
+							$result['type'][$host] |= 4;
 							break;
 					}
 				}
@@ -1674,30 +1674,30 @@ die('   ..........');*/
 		}
 
 		//
-		if(gettype(DRAW) === 'boolean')
+		if(gettype(DRAWING) === 'boolean')
 		{
-			if(DRAW)
+			if(DRAWING)
 			{
 				if(extension_loaded('gd'))
 				{
-					printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAW', 'OK');
+					printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
 					++$ok;
 				}
 				else
 				{
-					fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAW', 'WARN');
+					fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
 					++$warnings;
 				}
 			}
 			else
 			{
-				printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAW', 'OK');
+				printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAW', 'BAD');
+			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
 			++$errors;
 		}
 
@@ -2226,7 +2226,7 @@ die('TODO (sync() w/ glob(); look above)');
 		$host = array();
 		$dirs = array();
 		$files = array();
-		$codes = array();
+		$types = array();
 		$item = null;
 		$len = -1;
 		$good = 0;
@@ -2241,7 +2241,6 @@ die('TODO (sync() w/ glob(); look above)');
 				$item = $_path . '/-' . $hosts[$i];
 				$item = glob($item, GLOB_BRACE);
 				$len = count($item);
-				$code = 0;
 				
 				for($j = 0; $j < $len; ++$j)
 				{
@@ -2259,12 +2258,12 @@ die('TODO (sync() w/ glob(); look above)');
 							$host[$h++] = $item;
 						}
 						
-						if(! isset($codes[$item]))
+						if(! isset($types[$item]))
 						{
-							$codes[$item] = 0;
+							$types[$item] = 0;
 						}
 						
-						$codes[$item] |= 1;
+						$types[$item] |= 1;
 						++$good;
 					}
 				}
@@ -2289,12 +2288,12 @@ die('TODO (sync() w/ glob(); look above)');
 							$host[$h++] = $item;
 						}
 
-						if(! isset($codes[$item]))
+						if(! isset($types[$item]))
 						{
-							$codes[$item] = 0;
+							$types[$item] = 0;
 						}
 						
-						$codes[$item] |= 2;
+						$types[$item] |= 2;
 						++$good;
 					}
 				}
@@ -2306,9 +2305,9 @@ die('TODO (sync() w/ glob(); look above)');
 
 			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
 			{
-				if(! isset($codes[$hosts[$i]]))
+				if(! isset($types[$hosts[$i]]))
 				{
-					$codes[$hosts[$i]] = 0;
+					$types[$hosts[$i]] = 0;
 				}
 
 				$item = $_path . '/-' . $hosts[$i];
@@ -2328,7 +2327,7 @@ die('TODO (sync() w/ glob(); look above)');
 							$host[$h++] = $hosts[$i];
 						}
 						
-						$codes[$hosts[$i]] |= 1;
+						$types[$hosts[$i]] |= 1;
 						++$good;
 					}
 				}
@@ -2350,7 +2349,7 @@ die('TODO (sync() w/ glob(); look above)');
 							$host[$h++] = $hosts[$i];
 						}
 						
-						$codes[$hosts[$i]] |= 2;
+						$types[$hosts[$i]] |= 2;
 						++$good;
 					}
 				}
@@ -2414,7 +2413,7 @@ die('TODO (sync() w/ glob(); look above)');
 var_dump($host);
 var_dump($dirs);
 var_dump($files);
-var_dump($codes);
+var_dump($types);
 die(' ....//');
 
 		//PS: '-'/'~'/'+'-filter einfach angeben durch entweder "?" fuer alle, "~" fuer values, oder GLOB_BRACE @ "{+,-}"!!!! :D~
@@ -3561,8 +3560,97 @@ function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
 }
 
 //
-function draw($_text)
+function draw($_text, $_zero = ZERO)
 {
+	//
+	function get_drawing_type($_die = true)
+	{
+		$result = get_param('type', false);
+
+		if(gettype($result) !== 'string')
+		{
+			$result = TYPE;
+		}
+
+		$types = imagetypes();
+
+		switch($result = strtolower($result))
+		{
+			case 'png':
+				if(! ($types & IMG_PNG))
+				{
+					draw_error('\'?type\' is not supported', $_die);
+					return null;
+				}
+				break;
+			case 'jpg':
+				if(! ($types & IMG_JPG))
+				{
+					draw_error('\'?type\' is not supported', $_die);
+					return null;
+				}
+				break;
+			default:
+				draw_error('\'?type\' is not supported', $_die);
+				return null;
+		}
+
+		return $result;
+	}
+
+	//
+	if($_zero)
+	{
+		//
+		function draw_zero($_type)
+		{
+			//
+			if(defined('SENT'))
+			{
+				draw_error('Header already sent (unexpected here)');
+				return null;
+			}
+
+			//
+			$image = imagecreatetruecolor(1, 1);
+			imagesavealpha($image, true);
+			imagefill($image, 0, 0, imagecolorallocatealpha($image, 0, 0, 0, 127));
+			
+			//
+			$sent = null;
+			
+			switch(strtolower($_type))
+			{
+				case 'png':
+					if($sent = sendHeader('image/png'))
+					{
+						imagepng($image);
+					}
+					break;
+				case 'jpg':
+					if($sent = sendHeader('image/jpeg'))
+					{
+						imagejpeg($image);
+					}
+					break;
+			}
+			
+			//
+			imagedestroy($image);
+			
+			if(!$sent)
+			{
+				draw_error('Header couldn\'t be sent');
+				return false;
+			}
+			
+			return true;
+		}
+		
+		//
+		return draw_zero(get_drawing_type());
+	}
+
 	//
 	function draw_error($_reason, $_die = true)
 	{
@@ -3605,23 +3693,29 @@ function draw($_text)
 
 		return $result;
 	}
-
+	
 	function get_drawing_options($_die = true)
 	{
 		//
 		$result = array();
 
 		//
-		$result['size'] = get_param('size', true, false);
-		$result['space'] = get_param('space', true, false);
-		$result['pad'] = get_param('pad', true, false);
-		$result['font'] = get_param('font', false);
-		$result['fg'] = get_param('fg', false);
-		$result['bg'] = get_param('bg', false);
-		$result['x'] = get_param('x', true, false);
-		$result['y'] = get_param('y', true, false);
-		$result['aa'] = get_param('aa', null);
-		$result['type'] = get_param('type', false);
+		if(($result['type'] = get_drawing_type($_die)) === null)
+		{
+			return null;
+		}
+		else
+		{
+			$result['size'] = get_param('size', true, false);
+			$result['space'] = get_param('space', true, false);
+			$result['pad'] = get_param('pad', true, false);
+			$result['font'] = get_param('font', false);
+			$result['fg'] = get_param('fg', false);
+			$result['bg'] = get_param('bg', false);
+			$result['x'] = get_param('x', true, false);
+			$result['y'] = get_param('y', true, false);
+			$result['aa'] = get_param('aa', null);
+		}
 
 		//
 		if(! is_numeric($result['size']))
@@ -3712,34 +3806,6 @@ function draw($_text)
 		if(gettype($result['aa']) !== 'boolean')
 		{
 			$result['aa'] = AA;
-		}
-
-		if(gettype($result['type']) !== 'string')
-		{
-			$result['type'] = TYPE;
-		}
-
-		$types = imagetypes();
-
-		switch($result['type'] = strtolower($result['type']))
-		{
-			case 'png':
-				if(! ($types & IMG_PNG))
-				{
-					draw_error('\'?type\' is not supported', $_die);
-					return null;
-				}
-				break;
-			case 'jpg':
-				if(! ($types & IMG_JPG))
-				{
-					draw_error('\'?type\' is not supported', $_die);
-					return null;
-				}
-				break;
-			default:
-				draw_error('\'?type\' is not supported', $_die);
-				return null;
 		}
 
 		return $result;
@@ -3925,7 +3991,7 @@ function draw($_text)
 	{
 		return ($_px / 0.75);
 	}
-
+	
 	function draw_text($_text, $_font, $_size, $_fg, $_bg, $_pad, $_space, $_x, $_y, $_aa, $_type)
 	{
 		//
@@ -3950,7 +4016,6 @@ function draw($_text)
 
 		//
 		$image = imagecreatetruecolor($width, $height);
-		imagealphablending($image, false);
 		imagesavealpha($image, true);
 		imageantialias($image, $_aa);
 		imagealphablending($image, true);
@@ -3977,6 +4042,8 @@ function draw($_text)
 		imagettftext($image, $pt, 0, $x, $y, $_fg, $_font, $_text);
 
 		//
+		$sent = null;
+		
 		switch(strtolower($_type))
 		{
 			case 'png':
@@ -4025,10 +4092,16 @@ if(SERVER)
 }
 
 //
-$value = read_value();
-$readonly = isset($_GET['readonly']);
+define('TEST', (isset($_GET['test'])));
+define('READONLY', (TEST || (isset($_GET['readonly']) || isset($_GET['ro']))));
+define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
+define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
 
-if(!$readonly)
+//
+$value = (TEST ? rand() : read_value());
+
+//
+if(! (READONLY || TEST))
 {
 	if(test())
 	{
@@ -4050,9 +4123,9 @@ if(strlen($value) > 64)
 }
 
 //
-if(DRAW && isset($_GET['draw']) && extension_loaded('gd'))
+if(DRAW || ZERO)
 {
-	draw($value);
+	draw($value, ZERO);
 }
 else
 {
@@ -4062,7 +4135,7 @@ else
 }
 
 //
-if(SERVER && !$readonly)
+if(SERVER && !(READONLY || TEST))
 {
 	//
 	write_timestamp();
