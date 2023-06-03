@@ -2,17 +2,18 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.2
+ * v2.15.3
  */
 
 //
-define('VERSION', '2.15.2');
+define('VERSION', '2.15.3');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 define('AUTO', 32);
 define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
 define('DIR', 'count');
+define('HIDE', null);
 define('OVERRIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
@@ -1497,7 +1498,7 @@ die('   ..........');*/
 			++$errors;
 		}
 
-		//
+		//'DIR' vs. 'PATH'!??
 		if(gettype(PATH) === 'string' && !empty(PATH))
 		{
 			if(is_dir(PATH) && is_writable(PATH))
@@ -1514,6 +1515,23 @@ die('   ..........');*/
 		else
 		{
 			fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
+			++$errors;
+		}
+		
+		//
+		if(HIDE === null)
+		{
+			printf(START.'Is (null), and may also be a String' . PHP_EOL, 'HIDE', 'OK');
+			++$ok;
+		}
+		else if(gettype(HIDE) === 'string')
+		{
+			printf(START.'Is a String, and may also be (null)' . PHP_EOL, 'HIDE', 'OK');
+			++$ok;
+		}
+		else
+		{
+			fprintf(STDERR, START.'Needs to be a String or (null)!' . PHP_EOL, 'HIDE', 'BAD');
 			++$errors;
 		}
 
@@ -4119,11 +4137,12 @@ if(! (READONLY || TEST))
 }
 
 //
-$value = (string)$value;
+$value = (gettype(HIDE) === 'string' ? HIDE : (string)$value);
 
 if(strlen($value) > 64)
 {
-	error('e');
+	log_error('$value length exceeds limit (' . strlen($value) . ' chars)', '', '', false);
+	$value = 'e';
 }
 
 //
