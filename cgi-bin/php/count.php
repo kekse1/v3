@@ -4010,12 +4010,12 @@ function draw($_text, $_zero = ZERO)
 		return $result;
 	}
 
-	function ptToPx($_pt)
+	function pt2px($_pt)
 	{
 		return ($_pt * 0.75);
 	}
 
-	function pxToPt($_px)
+	function px2pt($_px)
 	{
 		return ($_px / 0.75);
 	}
@@ -4031,7 +4031,7 @@ function draw($_text, $_zero = ZERO)
 
 		//
 		$px = $_size;
-		$pt = pxToPt($px);
+		$pt = px2pt($px);
 
 		//
 		$measure = imagettfbbox($pt, 0, $_font, $_text);
@@ -4039,8 +4039,8 @@ function draw($_text, $_zero = ZERO)
 		$textHeight = ($measure[1] - $measure[7]);
 
 		//
-		$width = pxToPt($textWidth + ($_h * 2));
-		$height = pxToPt($textHeight + ($_v * 2));
+		$width = px2pt($textWidth + ($_h * 2));
+		$height = px2pt($textHeight + ($_v * 2));
 
 		//
 		$image = imagecreatetruecolor($width, $height);
@@ -4063,7 +4063,7 @@ function draw($_text, $_zero = ZERO)
 		imagefill($image, 0, 0, $_bg);
 
 		//
-		$x = ptToPx(($width - $textWidth + $_h) / 2) + $_x;
+		$x = pt2px(($width - $textWidth + $_h) / 2) + $_x;
 		$y = (($height + $textHeight) / 2) + $_y;
 
 		//
