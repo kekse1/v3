@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.9
+ * v2.16.0
  */
 
 //
-define('VERSION', '2.15.9');
+define('VERSION', '2.16.0');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -3245,21 +3245,18 @@ if(!TEST)
 			}
 			else if(AUTO === false)
 			{
-				//log_error('AUTO is false', 'check_path', $_file, false);
 				error(NONE);
 			}
 			else if(gettype(AUTO) === 'integer')
 			{
-				$count = count_files($_path, false, true, false);
+				$count = read_count();
 
-				if($count === null)
+				if(gettype($count) !== 'integer')
 				{
-					//log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
 					error(NONE);
 				}
 				else if($count >= AUTO)
 				{
-					//log_error('AUTO is too low', 'check_path', $_file, false);
 					error(NONE);
 				}
 			}
@@ -3277,16 +3274,6 @@ if(!TEST)
 		
 		//
 		return true;
-	}
-
-	//
-	if(AUTO === null)
-	{
-		error(NONE);
-	}
-	else
-	{
-		check_path(PATH, PATH_FILE);
 	}
 
 	//
@@ -3378,71 +3365,44 @@ if(!TEST)
 			return init_count($_file, $_dir, false);
 		}
 
-		$files = count_files($_dir, false, false, true);
-
-		if($files === null)
+		$handle = opendir($_dir);
+		
+		if(!$handle)
 		{
-			log_error('Can\'t scan directory', 'clean_files', $_dir, false);
-			return 0;
-		}
-
-		$len = count($files);
-
-		if($len === 0)
-		{
-			return 0;
+			log_error('Can\'t opendir()', 'clean_files', $_dir);
+			error('Can\'t opendir()');
 		}
 		
-		$item = null;
-		$items = array();
+		$result = 0;
 		
-		for($i = 0, $j = 0; $i < $len; ++$i)
+		while($sub = readdir($handle))
 		{
-			if(is_writable($item = $_dir . '/' . $files[$i]) && is_writable($item))
+			if($sub === false)
 			{
-				$items[$j++] = $item;
+				break;
+			}
+			else if($sub === '.' || $sub === '..')
+			{
+				continue;
 			}
 			else
 			{
-				log_error('File is either not readable or not writable', 'clean_files', $item, false);
+				$sub = realpath($_dir . '/' . $sub);
 			}
-		}
-
-		$len = count($items);
-		
-		if($len === 0)
-		{
-			return 0;
-		}
-		else for($i = 0; $i < $len; ++$i)
-		{
-			if(timestamp((int)file_get_contents($items[$i])) <= THRESHOLD)
+				
+			if(timestamp((int)file_get_contents($sub)) <= THRESHOLD)
 			{
-				array_splice($items, $i--, 1);
-				--$len;
+				++$result;
+			}
+			else if(! remove($sub, false, false))
+			{
+				log_error('Unable to remove() outdated file', 'clean_files', $sub, false);
+				++$result;
 			}
 		}
 		
-		if($len === 0)
-		{
-			return 0;
-		}
-
-		$files = 0;
-
-		for($i = 0; $i < $len; ++$i)
-		{
-			if(remove($items[$i], false, false) === false)
-			{
-				log_error('Unable to remove() outdated file', 'clean_files', $items[$i], false);
-			}
-			else
-			{
-				++$files;
-			}
-		}
-		
-		return decrease_count($_file, $files);
+		closedir($handle);
+		return write_count($result, $_file, false);
 	}
 
 	function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
@@ -3704,6 +3664,16 @@ if(!TEST)
 		}
 
 		return $result;
+	}
+	
+	//
+	if(AUTO === null)
+	{
+		error(NONE);
+	}
+	else
+	{
+		check_path(PATH, PATH_FILE);
 	}
 }
 
@@ -4243,6 +4213,28 @@ if(! (READONLY || TEST))
 }
 
 //
+if(SERVER && !(READONLY || TEST))
+{
+	//
+	write_timestamp();
+
+	//
+	if(CLEAN === true)
+	{
+		clean_files();
+	}
+	else if(gettype(CLEAN) === 'integer')
+	{
+		$count = read_count();
+
+		if($count >= CLEAN)
+		{
+			clean_files();
+		}
+	}
+}
+
+//
 if(gettype(HIDE) === 'string' && !TEST)
 {
 	$value = HIDE;
@@ -4272,28 +4264,6 @@ else
 	sendHeader(CONTENT);
 	header('Content-Length: ' . strlen($value));
 	echo $value;
-}
-
-//
-if(SERVER && !(READONLY || TEST))
-{
-	//
-	write_timestamp();
-
-	//
-	if(CLEAN === true)
-	{
-		clean_files();
-	}
-	else if(gettype(CLEAN) === 'integer')
-	{
-		$count = read_count();
-
-		if($count >= CLEAN)
-		{
-			clean_files();
-		}
-	}
 }
 
 //
