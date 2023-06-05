@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.1
+ * v2.16.2
  */
 
 //
-define('VERSION', '2.16.1');
+define('VERSION', '2.16.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -702,11 +702,7 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 		{
 			break;
 		}
-		else if($sub === '.' || $sub === '..')
-		{
-			continue;
-		}
-		else if($sub[0] === '.')
+		else if($sub[0] === '.' || $sub === '..')
 		{
 			continue;
 		}
@@ -3381,7 +3377,7 @@ if(!TEST)
 			{
 				break;
 			}
-			else if($sub === '.' || $sub === '..')
+			else if($sub[0] === '.' || $sub === '..')
 			{
 				continue;
 			}
@@ -3407,15 +3403,35 @@ if(!TEST)
 
 	function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
 	{
-		$result = null;
+		$result = 0;
 
 		if(is_dir($_directory))
 		{
-			if(($result = count_files($_directory, false, false, false)) === null)
+			$handle = opendir($_directory);
+
+			if($handle === false)
 			{
-				log_error('Can\'t scan directory', 'init_count', $_directory, $_die);
-				return 0;
+				log_error('Can\'t opendir()', 'init_count', $_directory, $_die);
+				return result;
 			}
+
+			while($sub = readdir($handle))
+			{
+				if($sub === false)
+				{
+					break;
+				}
+				else if($sub[0] === '.' || $sub === '..')
+				{
+					continue;
+				}
+				else
+				{
+					++$result;
+				}
+			}
+
+			closedir($handle);
 		}
 		else
 		{
