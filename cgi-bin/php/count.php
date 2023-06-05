@@ -3199,10 +3199,10 @@ if(!TEST)
 	unset($host);
 
 	//
-	define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
-	define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
-	define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
-	define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
+	define('PATH_FILE', realpath(PATH . '/~' . secure_path(HOST, false)));
+	define('PATH_DIR', realpath(PATH . '/+' . secure_path(HOST, false)));
+	define('PATH_COUNT', realpath(PATH . '/-' . secure_path(HOST, false)));
+	define('PATH_IP', realpath(PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false)));
 
 	//
 	function check_path($_path = PATH, $_file = PATH_FILE)
