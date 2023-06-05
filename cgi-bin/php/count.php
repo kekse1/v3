@@ -63,7 +63,6 @@ function check_path_char($_path)
 		case '+':
 		case '-':
 			return false;
-			break;
 	}
 	
 	return true;
@@ -127,7 +126,7 @@ function get_realpath($_path, $_fallback = true, $_die = true)
 }
 
 define('PATH', get_realpath(DIR, true, true));
-define('PATH_LOG', get_realpath(LOG, true, true));
+define('PATH_LOG', get_realpath(LOG, true, false));
 define('PATH_FONTS', get_realpath(FONTS, true, true));
 
 //
