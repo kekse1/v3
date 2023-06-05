@@ -2,12 +2,13 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.6
+ * v2.15.7
  */
 
 //
-define('VERSION', '2.15.6');
+define('VERSION', '2.15.7');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
+define('HELP', 'https://github.com/kekse1/count.php/');
 
 //
 define('AUTO', 32);
@@ -52,8 +53,29 @@ define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
 define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
 
 //
+function check_path_char($_path)
+{
+	$_path = basename($_path);
+	
+	switch($_path[0])
+	{
+		case '~':
+		case '+':
+		case '-':
+			return false;
+			break;
+	}
+	
+	return true;
+}
+
 function get_realpath($_path, $_fallback = true)
 {
+	if(!check_path_char($_path))
+	{
+		die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')');
+	}
+	
 	$result = '';
 
 	if($_path === '.')
@@ -135,11 +157,11 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 	{
 		if(defined('STDERR'))
 		{
-			fprintf(STDERR, ' >> ' . $_reason);
+			fprintf(STDERR, ' >> ' . $_reason . PHP_EOL);
 		}
 		else
 		{
-			die(' >> ' . $_reason);
+			die(' >> ' . $_reason . PHP_EOL);
 		}
 
 		if(gettype($_exit_code) === 'integer')
@@ -565,61 +587,66 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 }
 
 //
-function check_path($_path = PATH, $_file = PATH_FILE)
+function get_files($_path, $_count = false, $_null = true, $_die = true)
 {
-	//
-	if(!file_exists($_path))
+	if(!is_dir($_path))
 	{
-		error('Directory doesn\'t exist!');
-	}
-	else if(!is_dir($_path))
-	{
-		error('Path doesn\'t point to a directory');
-	}
-	else if(!is_writable($_path))
-	{
-		error('Directory isn\'t writable');
-	}
-	else if((AUTO !== true || OVERRIDDEN) && !is_file($_file))
-	{
-		if(OVERRIDDEN)
-		{
-			error(NONE);
-		}
-		else if(AUTO === false)
-		{
-			//log_error('AUTO is false', 'check_path', $_file, false);
-			error(NONE);
-		}
-		else if(gettype(AUTO) === 'integer')
-		{
-			$count = count_files($_path, false, true, false);
+		log_error('Path is not an existing directory', 'get_files', $_path, $_die);
 
-			if($count === null)
-			{
-				//log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
-				error(NONE);
-			}
-			else if($count >= AUTO)
-			{
-				//log_error('AUTO is too low', 'check_path', $_file, false);
-				error(NONE);
-			}
+		if($_die)
+		{
+			error('Path is not an existing directory');
+		}
+		
+		return null;
+	}
+	
+	$handle = opendir($_path);
+	
+	if($handle === false)
+	{
+		log_error('Directory couldn\'t be opened', 'get_files', $_path, $_die);
+		
+		if($_die)
+		{
+			error('Directory couldn\'t be opened');
+		}
+		
+		return null;
+	}
+	
+	$result = ($_count ? 0 : array());
+	$index = 0;
+	
+	while($sub = readdir($handle))
+	{
+		if($sub === false)
+		{
+			break;
+		}
+		else if($sub[0] === '.' || $sub === '..')
+		{
+			continue;
+		}
+		
+		if($_count)
+		{
+			++$result;
 		}
 		else
 		{
-			//log_error('Invalid \'AUTO\' constant', 'check_path', $_file);
-			error('Invalid \'AUTO\' constant');
+			$result[$index++] = $sub;
 		}
 	}
-	else if(file_exists($_file) && !is_writable($_file))
+	
+	closedir($handle);
+	
+	if($_null && !$_count && count($result) === 0)
 	{
-		log_error('File is not writable', 'check_path', $_file);
-		error('File is not writable');
+		return null;
 	}
 	
-	//
-	return true;
+	return $result;
 }
 
 //
@@ -1215,7 +1242,7 @@ die('   ..........');*/
 		}
 
 		printf(PHP_EOL);
-		printf('    -? / --help (TODO)' . PHP_EOL);
+		printf('    -? / --help' . PHP_EOL);
 		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
@@ -1233,11 +1260,6 @@ die('   ..........');*/
 		exit(0);
 	}
 
-	function help($_index = -1)
-	{
-		die('TODO: help()' . PHP_EOL);
-	}
-	
 	function hashes($_index = -1)
 	{
 		printf(' >> So, these are the available hash(ing) algorithms:' . PHP_EOL . PHP_EOL);
@@ -1503,18 +1525,18 @@ die('   ..........');*/
 			++$errors;
 		}
 
-		//'DIR' vs. 'PATH'!??
+		//
 		if(gettype(PATH) === 'string' && !empty(PATH))
 		{
 			if(is_dir(PATH) && is_writable(PATH))
 			{
-				printf(START.'Non-empty path String (directory exists and is writable :-)' . PHP_EOL, 'DIR', 'OK');
+				printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Non-empty path String (BUT is no existing directory or is just not writable)' . PHP_EOL, 'DIR', 'WARN');
-				++$warnings;
+				fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
+				++$errors;
 			}
 		}
 		else
@@ -1668,10 +1690,18 @@ die('   ..........');*/
 		}
 
 		//
-		if(gettype(LOG) === 'string' && !empty(LOG))
+		if(gettype(PATH_LOG) === 'string' && !empty(PATH_LOG))
 		{
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'LOG', 'OK');
-			++$ok;
+			if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
+			{
+				printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
+				++$errors;
+			}
 		}
 		else
 		{
@@ -1870,21 +1900,31 @@ die('   ..........');*/
 
 		if(gettype(FONT) === 'string' && !empty(FONT))
 		{
-			$available = count_fonts(PATH_FONTS, false, true);
-
-			if($available === null)
+			$test = null;
+			
+			if(is_dir(PATH_FONTS))
 			{
-				fprintf(STDERR, START.'Valid string, but you also need to install some fonts' . PHP_EOL, 'FONT', 'WARN');
+				$test = PATH_FONTS . '/' . FONT . '.ttf';
+				
+				if(is_file($test) && is_readable($test))
+				{
+					$test = true;
+				}
+			}
+
+			if($test === null)
+			{
+				fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
 				++$warnings;
 			}
-			else if(in_array(FONT, $available))
+			else if($test)
 			{
-				printf(START.'Valid font string, and exists in your \'FONTS\' directory' . PHP_EOL, 'FONT', 'OK');
+				printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'There\'s no such font available (see \'FONTS\')' . PHP_EOL, 'FONT', 'BAD');
+				fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
 				++$errors;
 			}
 		}
@@ -1894,26 +1934,27 @@ die('   ..........');*/
 			++$errors;
 		}
 
-		if(gettype(FONTS) === 'string')
+		if(gettype(PATH_FONTS) === 'string' && !empty(PATH_FONTS))
 		{
-			if(is_dir(PATH_FONTS) && is_readable(PATH_FONTS))//exectable? everywhere where dir!
+			if(is_dir(PATH_FONTS))
 			{
-				$available = count_fonts(PATH_FONTS, true);
+				$test = glob(PATH_FONTS . '/*.ttf');
+				$len = count($test);
 				
-				if($available === 0)
+				if($len > 0)
 				{
-					fprintf(STDERR, START.'Valid path string (and directory exists), but NO FONTS installed there! :-(' . PHP_EOL, 'FONTS', 'WARN');
-					++$warnings;
+					printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
+					++$ok;
 				}
 				else
 				{
-					printf(START.'Valid path string, and %d fonts are available there! :-)' . PHP_EOL, 'FONTS', 'OK', $available);
-					++$ok;
+					fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
+					++$warnings;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'Non-empty String (BUT is not a directory or not readable)' . PHP_EOL, 'FONTS', 'WARN');
+				fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
 				++$warnings;
 			}
 		}
@@ -3012,6 +3053,13 @@ die('TODO (purge() w/ glob(); look above..)');
 	}
 
 	//
+	function help($_index = -1)
+	{
+		printf(HELP . PHP_EOL);
+		exit(0);
+	}
+
+	//
 	if(isset($argv)) for($i = 1; $i < $argc; ++$i)
 	{
 		if(strlen($argv[$i]) < 2 || $argv[$i][0] !== '-')
@@ -3163,6 +3211,64 @@ if(!TEST)
 	define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
 	define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
 	define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
+
+	//
+	function check_path($_path = PATH, $_file = PATH_FILE)
+	{
+		//
+		if(!file_exists($_path))
+		{
+			error('Directory doesn\'t exist!');
+		}
+		else if(!is_dir($_path))
+		{
+			error('Path doesn\'t point to a directory');
+		}
+		else if(!is_writable($_path))
+		{
+			error('Directory isn\'t writable');
+		}
+		else if((AUTO !== true || OVERRIDDEN) && !is_file($_file))
+		{
+			if(OVERRIDDEN)
+			{
+				error(NONE);
+			}
+			else if(AUTO === false)
+			{
+				//log_error('AUTO is false', 'check_path', $_file, false);
+				error(NONE);
+			}
+			else if(gettype(AUTO) === 'integer')
+			{
+				$count = count_files($_path, false, true, false);
+
+				if($count === null)
+				{
+					//log_error('Seems to be an invalid PATH (can\'t count_files())', 'check_path', $_path, false);
+					error(NONE);
+				}
+				else if($count >= AUTO)
+				{
+					//log_error('AUTO is too low', 'check_path', $_file, false);
+					error(NONE);
+				}
+			}
+			else
+			{
+				//log_error('Invalid \'AUTO\' constant', 'check_path', $_file);
+				error('Invalid \'AUTO\' constant');
+			}
+		}
+		else if(file_exists($_file) && !is_writable($_file))
+		{
+			log_error('File is not writable', 'check_path', $_file);
+			error('File is not writable');
+		}
+		
+		//
+		return true;
+	}
 
 	//
 	if(AUTO === null)
