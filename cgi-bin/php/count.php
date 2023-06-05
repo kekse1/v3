@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.7
+ * v2.15.8
  */
 
 //
-define('VERSION', '2.15.7');
+define('VERSION', '2.15.8');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -649,7 +649,6 @@ function get_files($_path, $_count = false, $_null = true, $_die = true)
 	return $result;
 }
 
-//
 function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false, $_filter = false, $_die = false)
 {
 	if(gettype($_path) !== 'string')
@@ -752,42 +751,6 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 	}
 
 	closedir($handle);
-	return $result;
-}
-
-function count_fonts($_path, $_count = false, $_null = true)
-{
-	$result = count_files(PATH_FONTS, false, false, true, false);
-
-	if(!$result)
-	{
-		return null;
-	}
-
-	for($i = 0; $i < count($result); ++$i)
-	{
-		if(ends_with($result[$i], '.ttf'))
-		{
-			if(!$_count)
-			{
-				$result[$i] = substr($result[$i], 0, -4);
-			}
-		}
-		else
-		{
-			array_splice($result, $i--, 1);
-		}
-	}
-
-	if($_count)
-	{
-		return count($result);
-	}
-	else if($_null && count($result) === 0)
-	{
-		return null;
-	}
-	
 	return $result;
 }
 
@@ -1178,7 +1141,30 @@ if(php_sapi_name() === 'cli')
 
 		return $result;
 	}
+	
+	function get_fonts($_path = PATH_FONTS, $_ext = false)
+	{
+		$result = glob($_path . '/*.ttf');
+		$len = count($result);
+		
+		if($len === 0)
+		{
+			return null;
+		}
+		else for($i = 0; $i < $len; ++$i)
+		{
+			$result[$i] = basename($result[$i]);
+			
+			if(!$_ext)
+			{
+				$result[$i] = substr($result[$i], 0, -4);
+			}
+		}
+		
+		return $result;
+	}
 
+//
 /*$a=get_list(1,true);
 $b=get_list(1,false);
 var_dump($a);
@@ -1279,7 +1265,12 @@ die('   ..........');*/
 	{
 		if(gettype(PATH_FONTS) !== 'string' || empty(PATH_FONTS))
 		{
-			fprintf(STDERR, ' >> \'FONTS\' path is not properly configured' . PHP_EOL);
+			fprintf(STDERR, ' >> \'FONTS\' directory is not properly configured' . PHP_EOL);
+			exit(1);
+		}
+		else if(! is_dir(PATH_FONTS))
+		{
+			fprintf(STDERR, ' >> \'FONTS\' directory doesn\'t exist.' . PHP_EOL);
 			exit(2);
 		}
 
@@ -1306,7 +1297,7 @@ die('   ..........');*/
 			}
 		}
 
-		$available = count_fonts(PATH_FONTS, false, true);
+		$available = get_fonts(PATH_FONTS, false);
 
 		if($available === null)
 		{
@@ -1347,6 +1338,7 @@ die('   ..........');*/
 			}
 		}
 
+		printf(PHP_EOL);
 		exit(0);
 	}
 
@@ -3809,28 +3801,14 @@ function draw($_text, $_zero = ZERO)
 	//
 	function get_font($_name, $_dir = PATH_FONTS)
 	{
-		$available = count_fonts($_dir, false, true);
-
-		if($available === null)
+		$path = ($_dir . '/' . $_name . '.ttf');
+		
+		if(is_file($path) && is_readable($path))
 		{
-			return null;
-		}
-		else if(ends_with($_name, '.ttf'))
-		{
-			$_name = substr($_name, 0, -4);
+			return $path;
 		}
 		
-		$result = null;
-
-		if(in_array($_name, $available))
-		{
-			if(!is_file($result = (PATH_FONTS . '/' . $_name . '.ttf')) || !is_readable($result))
-			{
-				$result = null;
-			}
-		}
-
-		return $result;
+		return null;
 	}
 	
 	function get_drawing_options($_die = true)
