@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.5
+ * v2.15.6
  */
 
 //
-define('VERSION', '2.15.5');
+define('VERSION', '2.15.6');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
@@ -872,6 +872,11 @@ if(php_sapi_name() === 'cli')
 		define('ARGV', $argv);
 		define('ARGC', $argc);
 	}
+	
+	//
+	define('TYPE_VALUE', 1);
+	define('TYPE_DIR', 2);
+	define('TYPE_FILE', 4);
 
 	//
 	function prompt($_string, $_return = false, $_repeat = true)
@@ -1017,21 +1022,21 @@ if(php_sapi_name() === 'cli')
 							{
 								$result['value'][$v++] = $host;
 							}
-							$result['type'][$host] |= 1;
+							$result['type'][$host] |= TYPE_VALUE;
 							break;
 						case '+':
 							if(!in_array($host, $result['dir']))
 							{
 								$result['dir'][$d++] = $host;
 							}
-							$result['type'][$host] |= 2;
+							$result['type'][$host] |= TYPE_DIR;
 							break;
 						case '-':
 							if(!in_array($host, $result['file']))
 							{
 								$result['file'][$f++] = $host;
 							}
-							$result['type'][$host] |= 4;
+							$result['type'][$host] |= TYPE_FILE;
 							break;
 					}
 				}
@@ -1089,21 +1094,21 @@ if(php_sapi_name() === 'cli')
 							{
 								$result['value'][$v++] = $host;
 							}
-							$result['type'][$host] |= 1;
+							$result['type'][$host] |= TYPE_VALUE;
 							break;
 						case '+':
 							if(!in_array($host, $result['dir']))
 							{
 								$result['dir'][$d++] = $host;
 							}
-							$result['type'][$host] |= 2;
+							$result['type'][$host] |= TYPE_DIR;
 							break;
 						case '-':
 							if(!in_array($host, $result['file']))
 							{
 								$result['file'][$f++] = $host;
 							}
-							$result['type'][$host] |= 4;
+							$result['type'][$host] |= TYPE_FILE;
 							break;
 					}
 				}
