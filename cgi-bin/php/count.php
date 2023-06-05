@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.15.8
+ * v2.15.9
  */
 
 //
-define('VERSION', '2.15.8');
+define('VERSION', '2.15.9');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -69,11 +69,16 @@ function check_path_char($_path)
 	return true;
 }
 
-function get_realpath($_path, $_fallback = true)
+function get_realpath($_path, $_fallback = true, $_die = true)
 {
 	if(!check_path_char($_path))
 	{
-		die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')');
+		if($_die)
+		{
+			die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')');
+		}
+
+		return null;
 	}
 	
 	$result = '';
@@ -104,7 +109,11 @@ function get_realpath($_path, $_fallback = true)
 
 	if($result === false)
 	{
-		if($_fallback)
+		if($_die)
+		{
+			die('Invalid path (realpath() returned false)');
+		}
+		else if($_fallback)
 		{
 			$result = $orig;
 		}
@@ -117,9 +126,9 @@ function get_realpath($_path, $_fallback = true)
 	return $result;
 }
 
-define('PATH', get_realpath(DIR, true));
-define('PATH_LOG', get_realpath(LOG));
-define('PATH_FONTS', get_realpath(FONTS));
+define('PATH', get_realpath(DIR, true, true));
+define('PATH_LOG', get_realpath(LOG, true, true));
+define('PATH_FONTS', get_realpath(FONTS, true, true));
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
