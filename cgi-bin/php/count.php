@@ -70,7 +70,16 @@ function check_path_char($_path)
 
 function get_realpath($_path, $_fallback = true, $_die = true)
 {
-	if(!check_path_char($_path))
+	if(empty($_path))
+	{
+		if($_die)
+		{
+			die('Path may not be empty');
+		}
+
+		return null;
+	}
+	else if(!check_path_char($_path))
 	{
 		if($_die)
 		{
