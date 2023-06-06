@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.7
+ * v2.16.8
  */
 
 //
-define('VERSION', '2.16.7');
+define('VERSION', '2.16.8');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -70,10 +70,16 @@ function check_path_char($_path)
 
 function join_path(... $_args)
 {
+	if(count($_args) === 0)
+	{
+		die('Invalid argument count');
+	}
+
 	$result = '';
 	$len = count($_args);
 	$rem = 0;
 	$sub = 0;
+	$abs = null;
 
 	for($i = 0; $i < $len; ++$i)
 	{
@@ -81,33 +87,68 @@ function join_path(... $_args)
 		{
 			die('Invalid argument[' . $i . ']');
 		}
-		else if(empty($_args[$i]))
+		else if($abs === null)
+		{
+			$abs = (!empty($_args[$i]) && $_args[$i][0] === '/');
+		}
+
+		if(empty($_args[$i]))
 		{
 			continue;
 		}
 		else
 		{
-			$sub = strlen($result);
+			$rem = 0;
+			$sub = strlen($_args[$i]);
 
-			if($sub > 0)
+			while($rem < $sub && $_args[$i][$rem] === '/')
 			{
+				++$rem;
+			}
+
+			if($rem > 0)
+			{
+				$_args[$i] = substr($_args[$i], $rem);
+			}
+			
+			if(strlen($_args[$i]) > 0)
+			{
+				$result .= '/' . $_args[$i];
+				$sub = strlen($result);
 				$rem = 0;
 
-				while($_args[$i][$rem] === '/')
+				while(($sub - $rem) > 0 && $result[$sub - 1 - $rem] === '/')
 				{
 					++$rem;
 				}
 
 				if($rem > 0)
 				{
-					$_args[$i] = substr($_args[$i], $rem);
+					$result = substr($result, 0, -$rem);
 				}
 			}
-			
-			if(strlen($_args[$i]) > 0)
-			{
-				$result .= (($sub === 0 || $result[$sub - 1] === '/') ? '' : '/') . $_args[$i];
-			}
+		}
+	}
+
+	$sub = strlen($result);
+
+	if($sub > 0)
+	{
+		$rem = 0;
+
+		while($rem < $sub && $result[$rem] === '/')
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, $rem);
+		}
+
+		if($abs)
+		{
+			$result = '/' . $result;
 		}
 	}
 
