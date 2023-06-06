@@ -166,7 +166,7 @@ function get_path($_path, $_check = false, $_file = false)
 	}
 	else if(!check_path_char($_path))
 	{
-		die('Invalid path (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
+		die('Invalid path \'' . $_path . '\' (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
 	}
 	else if($_path === '/')
 	{
@@ -202,12 +202,12 @@ function get_path($_path, $_check = false, $_file = false)
 		{
 			if(!is_dir(dirname($result)))
 			{
-				die('Directory doesn\'t exist');
+				die('Directory of path \'' . $_path . '\' doesn\'t exist');
 			}
 		}
 		else if(!is_dir($result))
 		{
-			die('This path doesn\'t exist');
+			die('Directory \'' . $_path . '\' doesn\'t exist');
 		}
 	}
 
