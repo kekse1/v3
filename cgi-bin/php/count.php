@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.8
+ * v2.16.9
  */
 
 //
-define('VERSION', '2.16.8');
+define('VERSION', '2.16.9');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -154,7 +154,7 @@ function join_path(... $_args)
 	return $result;
 }
 
-function get_path($_path, $_check = false)
+function get_path($_path, $_check = false, $_file = false)
 {
 	if(gettype($_path) !== 'string')
 	{
@@ -198,7 +198,14 @@ function get_path($_path, $_check = false)
 
 	if($_check)
 	{
-		if(!file_exists($result))
+		if($_file)
+		{
+			if(!is_dir(dirname($result)))
+			{
+				die('Directory doesn\'t exist');
+			}
+		}
+		else if(!is_dir($result))
 		{
 			die('This path doesn\'t exist');
 		}
@@ -207,12 +214,12 @@ function get_path($_path, $_check = false)
 	return $result;
 }
 
-define('PATH', get_path(DIR, true));
-define('PATH_LOG', get_path(LOG, false));
+define('PATH', get_path(DIR, true, false));
+define('PATH_LOG', get_path(LOG, false, true));
 
 if(DRAWING)
 {
-	define('PATH_FONTS', get_path(FONTS, true));
+	define('PATH_FONTS', get_path(FONTS, true, false));
 }
 else
 {
