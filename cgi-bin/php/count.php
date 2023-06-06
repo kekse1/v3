@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.6
+ * v2.16.7
  */
 
 //
-define('VERSION', '2.16.6');
+define('VERSION', '2.16.7');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -68,6 +68,52 @@ function check_path_char($_path)
 	return true;
 }
 
+function join_path(... $_args)
+{
+	$result = '';
+	$len = count($_args);
+	$rem = 0;
+	$sub = 0;
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(gettype($_args[$i]) !== 'string')
+		{
+			die('Invalid argument[' . $i . ']');
+		}
+		else if(empty($_args[$i]))
+		{
+			continue;
+		}
+		else
+		{
+			$sub = strlen($result);
+
+			if($sub > 0)
+			{
+				$rem = 0;
+
+				while($_args[$i][$rem] === '/')
+				{
+					++$rem;
+				}
+
+				if($rem > 0)
+				{
+					$_args[$i] = substr($_args[$i], $rem);
+				}
+			}
+			
+			if(strlen($_args[$i]) > 0)
+			{
+				$result .= (($sub === 0 || $result[$sub - 1] === '/') ? '' : '/') . $_args[$i];
+			}
+		}
+	}
+
+	return $result;
+}
+
 function get_path($_path, $_check = false)
 {
 	if(gettype($_path) !== 'string')
@@ -82,14 +128,14 @@ function get_path($_path, $_check = false)
 	{
 		die('Invalid path (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
 	}
-	else if($_path === '/' || $_path === '\\')
+	else if($_path === '/')
 	{
 		die('The root directory is not allowed here');
 	}
 	
 	$result = '';
 
-	if($_path[0] === '/' || $_path[0] === '\\')
+	if($_path[0] === '/')
 	{
 		$result = $_path;
 	}
@@ -274,7 +320,7 @@ function secure($_string, $_null = true, $_die = true)
 		{
 			$add = chr($byte);
 		}
-		else if($byte === 47 || $byte === 92)
+		else if($byte === 47)
 		{
 			$l = strlen($result);
 			
@@ -706,14 +752,14 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 
 		if($_dir === false)
 		{
-			if(!is_file($_path . '/' . $sub))
+			if(!is_file(join_path($_path, $sub)))
 			{
 				continue;
 			}
 		}
 		else if($_dir === true)
 		{
-			if(!is_dir($_path . '/' . $sub))
+			if(!is_dir(join_path($_path, $sub)))
 			{
 				continue;
 			}
@@ -807,11 +853,11 @@ function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 			{
 				continue;
 			}
-			else if(is_dir($_path . '/' . $sub))
+			else if(is_dir(join_path($_path, $sub)))
 			{
 				remove($_path . '/' . $sub, true, $_die, $_depth_current + 1);
 			}
-			else if(unlink($_path . '/' . $sub) === false)
+			else if(unlink(join_path($_path, $sub)))
 			{
 				return false;
 			}
@@ -988,7 +1034,7 @@ if(php_sapi_name() === 'cli')
 
 					$type = $list[$i][0];
 					$host = substr($list[$i], 1);
-					$path = $_dir . '/' . $list[$i];
+					$path = join_path($_dir, $list[$i]);
 
 					if(!in_array($host, $result['host']))
 					{
@@ -1896,7 +1942,7 @@ die('   ..........');*/
 			
 			if(is_dir(PATH_FONTS))
 			{
-				$test = PATH_FONTS . '/' . FONT . '.ttf';
+				$test = join_path(PATH_FONTS, FONT . '.ttf');
 				
 				if(is_file($test) && is_readable($test))
 				{
@@ -2688,7 +2734,7 @@ die('TODO (clean() w/ glob(); look above..)');
 			}
 			else for($k = 0; $k < $len; ++$k)
 			{
-				$item = $_path . '/+' . $hosts[$i] . '/' . $files[$k];
+				$item = join_path($_path, '+' . $hosts[$i], $files[$k]);
 
 				if(is_readable($item))
 				{
@@ -3199,10 +3245,10 @@ if(!TEST)
 	unset($host);
 
 	//
-	define('PATH_FILE', PATH . '/~' . secure_path(HOST, false));
-	define('PATH_DIR', PATH . '/+' . secure_path(HOST, false));
-	define('PATH_COUNT', PATH . '/-' . secure_path(HOST, false));
-	define('PATH_IP', PATH_DIR . '/' . secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false));
+	define('PATH_FILE', join_path(PATH, '~' . secure_path(HOST, false)));
+	define('PATH_DIR', join_path(PATH, '+' . secure_path(HOST, false)));
+	define('PATH_COUNT', join_path(PATH, '-' . secure_path(HOST, false)));
+	define('PATH_IP', join_path(PATH_DIR, secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false)));
 
 	//
 	function check_path($_path = PATH, $_file = PATH_FILE)
@@ -3379,7 +3425,7 @@ if(!TEST)
 			}
 			else
 			{
-				$sub = realpath($_dir . '/' . $sub);
+				$sub = join_path($_dir, $sub);
 			}
 			
 			if(!is_file($sub))
@@ -3421,7 +3467,7 @@ if(!TEST)
 				{
 					continue;
 				}
-				else if(is_file($_directory . '/' . $sub))
+				else if(is_file(join_path($_directory, $sub)))
 				{
 					++$result;
 				}
@@ -3800,7 +3846,7 @@ function draw($_text, $_zero = ZERO)
 	//
 	function get_font($_name, $_dir = PATH_FONTS)
 	{
-		$path = ($_dir . '/' . $_name . '.ttf');
+		$path = join_path($_dir, $_name . '.ttf');
 		
 		if(is_file($path) && is_readable($path))
 		{
