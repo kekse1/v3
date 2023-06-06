@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.4
+ * v2.16.5
  */
 
 //
-define('VERSION', '2.16.4');
+define('VERSION', '2.16.5');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -68,25 +68,15 @@ function check_path_char($_path)
 	return true;
 }
 
-function get_realpath($_path, $_fallback = true, $_die = true)
+function get_realpath($_path, $_fallback = false)
 {
 	if(empty($_path))
 	{
-		if($_die)
-		{
-			die('Path may not be empty');
-		}
-
-		return null;
+		die('Path may not be empty' . PHP_EOL);
 	}
 	else if(!check_path_char($_path))
 	{
-		if($_die)
-		{
-			die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')');
-		}
-
-		return null;
+		die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
 	}
 	
 	$result = '';
@@ -117,26 +107,30 @@ function get_realpath($_path, $_fallback = true, $_die = true)
 
 	if($result === false)
 	{
-		if($_die)
-		{
-			die('Invalid path (realpath() returned false)');
-		}
-		else if($_fallback)
+		if($_fallback)
 		{
 			$result = $orig;
 		}
 		else
 		{
-			$result = null;
+			die('Invalid path (realpath() returned false))');
 		}
 	}
 
 	return $result;
 }
 
-define('PATH', get_realpath(DIR, true, true));
-define('PATH_LOG', get_realpath(LOG, true, false));
-define('PATH_FONTS', get_realpath(FONTS, true, true));
+define('PATH', get_realpath(DIR, false));
+define('PATH_LOG', get_realpath(LOG, true));
+
+if(DRAWING)
+{
+	define('PATH_FONTS', get_realpath(FONTS, false));
+}
+else
+{
+	define('PATH_FONTS', null);
+}
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
@@ -1144,6 +1138,11 @@ if(php_sapi_name() === 'cli')
 	
 	function get_fonts($_path = PATH_FONTS, $_ext = false)
 	{
+		if($_path === null)
+		{
+			return null;
+		}
+
 		$result = glob($_path . '/*.ttf');
 		$len = count($result);
 		
