@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.3
+ * v2.16.4
  */
 
 //
-define('VERSION', '2.16.3');
+define('VERSION', '2.16.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -637,16 +637,11 @@ function get_files($_path, $_count = false, $_null = true, $_die = true)
 	
 	while($sub = readdir($handle))
 	{
-		if($sub === false)
-		{
-			break;
-		}
-		else if($sub[0] === '.' || $sub === '..')
+		if($sub[0] === '.' || $sub === '..')
 		{
 			continue;
 		}
-		
-		if($_count)
+		else if($_count)
 		{
 			++$result;
 		}
@@ -698,11 +693,7 @@ function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = fa
 
 	while($sub = readdir($handle))
 	{
-		if($sub === false)
-		{
-			break;
-		}
-		else if($sub[0] === '.' || $sub === '..')
+		if($sub[0] === '.' || $sub === '..')
 		{
 			continue;
 		}
@@ -817,11 +808,7 @@ function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 		
 		while($sub = readdir($handle))
 		{
-			if($sub === false)
-			{
-				break;
-			}
-			else if($sub === '.' || $sub === '..')
+			if($sub === '.' || $sub === '..')
 			{
 				continue;
 			}
@@ -3245,13 +3232,26 @@ if(!TEST)
 			}
 			else if(gettype(AUTO) === 'integer')
 			{
-				$count = read_count();
+				$count = 0;
+				$handle = opendir($_path);
 
-				if(gettype($count) !== 'integer')
+				if($handle === false)
 				{
+					log_error('Can\'t opendir()', 'check_path', $_path, false);
 					error(NONE);
 				}
-				else if($count >= AUTO)
+
+				while($sub = readdir($handle))
+				{
+					if($sub[0] === '~')
+					{
+						++$count;
+					}
+				}
+
+				closedir($handle);
+
+				if($count >= AUTO)
 				{
 					error(NONE);
 				}
@@ -3373,11 +3373,7 @@ if(!TEST)
 		
 		while($sub = readdir($handle))
 		{
-			if($sub === false)
-			{
-				break;
-			}
-			else if($sub[0] === '.' || $sub === '..')
+			if($sub[0] === '.' || $sub === '..')
 			{
 				continue;
 			}
@@ -3421,11 +3417,7 @@ if(!TEST)
 
 			while($sub = readdir($handle))
 			{
-				if($sub === false)
-				{
-					break;
-				}
-				else if($sub[0] === '.' || $sub === '..')
+				if($sub[0] === '.' || $sub === '..')
 				{
 					continue;
 				}
