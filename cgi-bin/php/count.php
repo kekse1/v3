@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.2
+ * v2.16.3
  */
 
 //
-define('VERSION', '2.16.2');
+define('VERSION', '2.16.3');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -3385,8 +3385,12 @@ if(!TEST)
 			{
 				$sub = realpath($_dir . '/' . $sub);
 			}
-				
-			if(timestamp((int)file_get_contents($sub)) <= THRESHOLD)
+			
+			if(!is_file($sub))
+			{
+				continue;
+			}
+			else if(timestamp((int)file_get_contents($sub)) <= THRESHOLD)
 			{
 				++$result;
 			}
@@ -3425,7 +3429,7 @@ if(!TEST)
 				{
 					continue;
 				}
-				else
+				else if(is_file($_directory . '/' . $sub))
 				{
 					++$result;
 				}
