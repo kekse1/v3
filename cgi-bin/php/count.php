@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.4
+ * v2.16.6
  */
 
 //
-define('VERSION', '2.16.4');
+define('VERSION', '2.16.6');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -68,75 +68,70 @@ function check_path_char($_path)
 	return true;
 }
 
-function get_realpath($_path, $_fallback = true, $_die = true)
+function get_path($_path, $_check = false)
 {
-	if(empty($_path))
+	if(gettype($_path) !== 'string')
 	{
-		if($_die)
-		{
-			die('Path may not be empty');
-		}
-
-		return null;
+		die('Path needs to be (non-empty) String');
+	}
+	else if(empty($_path))
+	{
+		die('Path may not be empty' . PHP_EOL);
 	}
 	else if(!check_path_char($_path))
 	{
-		if($_die)
-		{
-			die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')');
-		}
-
-		return null;
+		die('Invalid path (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
+	}
+	else if($_path === '/' || $_path === '\\')
+	{
+		die('The root directory is not allowed here');
 	}
 	
 	$result = '';
 
-	if($_path === '.')
+	if($_path[0] === '/' || $_path[0] === '\\')
+	{
+		$result = $_path;
+	}
+	else if($_path === '.')
 	{
 		$result = __DIR__;
 	}
-	/*else if($_path === '..')
-	{
-		$result = __DIR__ . '/../';
-	}*/
 	else if(substr($_path, 0, 2) === './')
 	{
 		$result = __DIR__ . substr($_path, 1);
 	}
-	/*else if(substr($_path, 0, 3) === '../')
+	else if(getcwd() !== false)
 	{
-		$result = __DIR__ . '/' . $_path;
-	}*/
+		$result = getcwd() . '/' . $_path;
+	}
 	else
 	{
 		$result = $_path;
 	}
 
-	$orig = $result;
-	$result = realpath($result);
-
-	if($result === false)
+	if($_check)
 	{
-		if($_die)
+		if(!file_exists($result))
 		{
-			die('Invalid path (realpath() returned false)');
-		}
-		else if($_fallback)
-		{
-			$result = $orig;
-		}
-		else
-		{
-			$result = null;
+			die('This path doesn\'t exist');
 		}
 	}
 
 	return $result;
 }
 
-define('PATH', get_realpath(DIR, true, true));
-define('PATH_LOG', get_realpath(LOG, true, false));
-define('PATH_FONTS', get_realpath(FONTS, true, true));
+define('PATH', get_path(DIR, true));
+define('PATH_LOG', get_path(LOG, false));
+
+if(DRAWING)
+{
+	define('PATH_FONTS', get_path(FONTS, true));
+}
+else
+{
+	define('PATH_FONTS', null);
+}
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
@@ -1144,6 +1139,11 @@ if(php_sapi_name() === 'cli')
 	
 	function get_fonts($_path = PATH_FONTS, $_ext = false)
 	{
+		if($_path === null)
+		{
+			return null;
+		}
+
 		$result = glob($_path . '/*.ttf');
 		$len = count($result);
 		
