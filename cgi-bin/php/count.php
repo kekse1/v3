@@ -2,17 +2,17 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.16.9
+ * v2.17.0
  */
 
 //
-define('VERSION', '2.16.9');
+define('VERSION', '2.17.0');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
 //
 define('AUTO', 32);
-define('THRESHOLD', 7200);//2 hours (60 * 60 * 2 seconds)
+define('THRESHOLD', 7200);
 define('DIR', 'count');
 define('HIDE', false);
 define('OVERRIDE', false);
@@ -53,6 +53,101 @@ define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
 define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
 
 //
+function normalize($_string, $_die = true)
+{
+	if(gettype($_string) !== 'string')
+	{
+		if($_die)
+		{
+			die('Invalid $_string argument');
+		}
+		
+		return null;
+	}
+	
+	$len = strlen($_string);
+	
+	if($len === 0)
+	{
+		return '.';
+	}
+	
+	$abs = ($_string[0] === '/');
+	$dir = ($_string[$len - 1] === '/');
+	$split = explode('/', $_string);
+	$result = array();
+	$minus = 0;
+	$item = '';
+	
+	while(count($split) > 0)
+	{
+		switch($item = array_shift($split))
+		{
+			case '':
+			case '.':
+				break;
+			case '..':
+				if(count($result) === 0)
+				{
+					++$minus;
+				}
+				else
+				{
+					array_pop($result);
+				}
+				break;
+			default:
+				array_push($result, $item);
+				break;
+		}
+	}
+	
+	if($abs)
+	{
+		array_unshift($result, '');
+	}
+	else while(--$minus >= 0)
+	{
+		array_unshift($result, '..');
+	}
+	
+	if($dir)
+	{
+		array_push($result, '');
+	}
+	
+	//
+	return implode('/', $result);
+}
+
+function join_path(... $_args)
+{
+	if(count($_args) === 0)
+	{
+		die('Invalid argument count');
+	}
+
+	$len = count($_args);
+	$result = '';
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(gettype($_args[$i]) !== 'string')
+		{
+			die('Invalid argument[' . $i . ']');
+		}
+
+		$result .= $_args[$i] . '/';
+	}
+	
+	if(strlen($result) > 0)
+	{
+		$result = substr($result, 0, -1);
+	}
+	
+	return normalize($result);
+}
+
 function check_path_char($_path)
 {
 	$_path = basename($_path);
@@ -66,92 +161,6 @@ function check_path_char($_path)
 	}
 	
 	return true;
-}
-
-function join_path(... $_args)
-{
-	if(count($_args) === 0)
-	{
-		die('Invalid argument count');
-	}
-	else if(gettype($_args[0]) !== 'string')
-	{
-		die('Invalid argument[0]');
-	}
-
-	$result = '';
-	$len = count($_args);
-	$rem = 0;
-	$sub = 0;
-	$abs = (!empty($_args[0]) && $_args[0][0] === '/');
-
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(gettype($_args[$i]) !== 'string')
-		{
-			die('Invalid argument[' . $i . ']');
-		}
-		else if(empty($_args[$i]) || $_args[$i] === '/')
-		{
-			continue;
-		}
-		else
-		{
-			$rem = 0;
-			$sub = strlen($_args[$i]);
-
-			while($rem < $sub && $_args[$i][$rem] === '/')
-			{
-				++$rem;
-			}
-
-			if($rem > 0)
-			{
-				$_args[$i] = substr($_args[$i], $rem);
-			}
-			
-			if(strlen($_args[$i]) > 0)
-			{
-				$result .= '/' . $_args[$i];
-				$sub = strlen($result);
-				$rem = 0;
-
-				while(($sub - $rem) > 0 && $result[$sub - 1 - $rem] === '/')
-				{
-					++$rem;
-				}
-
-				if($rem > 0)
-				{
-					$result = substr($result, 0, -$rem);
-				}
-			}
-		}
-	}
-
-	$sub = strlen($result);
-
-	if($sub > 0)
-	{
-		$rem = 0;
-
-		while($rem < $sub && $result[$rem] === '/')
-		{
-			++$rem;
-		}
-
-		if($rem > 0)
-		{
-			$result = substr($result, $rem);
-		}
-
-		if($abs)
-		{
-			$result = '/' . $result;
-		}
-	}
-
-	return $result;
 }
 
 function get_path($_path, $_check = false, $_file = false)
@@ -191,10 +200,12 @@ function get_path($_path, $_check = false, $_file = false)
 	{
 		$result = getcwd() . '/' . $_path;
 	}
-	else
+	else if(($result = realpath($_path)) === false)
 	{
 		$result = $_path;
 	}
+	
+	$result = normalize($result);
 
 	if($_check)
 	{
@@ -225,6 +236,16 @@ else
 {
 	define('PATH_FONTS', null);
 }
+
+if(! (is_readable(PATH) && is_writable(PATH)))
+{
+	die('Your \'DIR\' path is not readable and writable');
+}
+else if(DRAWING && !is_readable(PATH_FONTS))
+{
+	die('Your \'FONTS\' path is not readable');
+}
+//TODO maybe: also check PATH_LOG or it's basename?
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
@@ -275,6 +296,10 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 		}
 
 		exit(255);
+	}
+	else if(defined('FIN'))
+	{
+		return null;
 	}
 	else if(! defined('SENT'))
 	{
@@ -430,12 +455,9 @@ function secure_path($_string, $_null = true, $_die = true)
 
 	for($i = 0; $i < $len; ++$i)
 	{
-		if($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~')
+		if(strlen($result) === 0 && ($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~'))
 		{
-			if(strlen($result) === 0)
-			{
-				continue;
-			}
+			continue;
 		}
 
 		$result .= $value[$i];
@@ -4318,28 +4340,6 @@ if(! (READONLY || TEST))
 }
 
 //
-if(SERVER && !(READONLY || TEST))
-{
-	//
-	write_timestamp();
-
-	//
-	if(CLEAN === true)
-	{
-		clean_files();
-	}
-	else if(gettype(CLEAN) === 'integer')
-	{
-		$count = read_count();
-
-		if($count >= CLEAN)
-		{
-			clean_files();
-		}
-	}
-}
-
-//
 if(gettype(HIDE) === 'string' && !TEST)
 {
 	$value = HIDE;
@@ -4369,6 +4369,31 @@ else
 	sendHeader(CONTENT);
 	header('Content-Length: ' . strlen($value));
 	echo $value;
+}
+
+//
+define('FIN', true);
+
+//
+if(SERVER && !(READONLY || TEST))
+{
+	//
+	write_timestamp();
+
+	//
+	if(CLEAN === true)
+	{
+		clean_files();
+	}
+	else if(gettype(CLEAN) === 'integer')
+	{
+		$count = read_count();
+
+		if($count >= CLEAN)
+		{
+			clean_files();
+		}
+	}
 }
 
 //
