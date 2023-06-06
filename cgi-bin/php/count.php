@@ -2,11 +2,19 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+<<<<<<< HEAD
  * v2.16.6
  */
 
 //
 define('VERSION', '2.16.6');
+=======
+ * v2.16.5
+ */
+
+//
+define('VERSION', '2.16.5');
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -68,23 +76,34 @@ function check_path_char($_path)
 	return true;
 }
 
+<<<<<<< HEAD
 function get_path($_path, $_check = false)
+=======
+function get_realpath($_path, $_fallback = false)
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 {
 	if(gettype($_path) !== 'string')
 	{
+<<<<<<< HEAD
 		die('Path needs to be (non-empty) String');
 	}
 	else if(empty($_path))
 	{
+=======
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 		die('Path may not be empty' . PHP_EOL);
 	}
 	else if(!check_path_char($_path))
 	{
+<<<<<<< HEAD
 		die('Invalid path (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
 	}
 	else if($_path === '/' || $_path === '\\')
 	{
 		die('The root directory is not allowed here');
+=======
+		die('Invalid path configured (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 	}
 	
 	$result = '';
@@ -112,21 +131,40 @@ function get_path($_path, $_check = false)
 
 	if($_check)
 	{
+<<<<<<< HEAD
 		if(!file_exists($result))
 		{
 			die('This path doesn\'t exist');
+=======
+		if($_fallback)
+		{
+			$result = $orig;
+		}
+		else
+		{
+			die('Invalid path (realpath() returned false))');
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 		}
 	}
 
 	return $result;
 }
 
+<<<<<<< HEAD
 define('PATH', get_path(DIR, true));
 define('PATH_LOG', get_path(LOG, false));
 
 if(DRAWING)
 {
 	define('PATH_FONTS', get_path(FONTS, true));
+=======
+define('PATH', get_realpath(DIR, false));
+define('PATH_LOG', get_realpath(LOG, true));
+
+if(DRAWING)
+{
+	define('PATH_FONTS', get_realpath(FONTS, false));
+>>>>>>> 90f8bd20707fbcc8f74fc3514d7b87f1c538e11f
 }
 else
 {
