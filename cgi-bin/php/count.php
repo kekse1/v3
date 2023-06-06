@@ -74,12 +74,16 @@ function join_path(... $_args)
 	{
 		die('Invalid argument count');
 	}
+	else if(gettype($_args[0]) !== 'string')
+	{
+		die('Invalid argument[0]');
+	}
 
 	$result = '';
 	$len = count($_args);
 	$rem = 0;
 	$sub = 0;
-	$abs = null;
+	$abs = (!empty($_args[0]) && $_args[0][0] === '/');
 
 	for($i = 0; $i < $len; ++$i)
 	{
@@ -87,12 +91,7 @@ function join_path(... $_args)
 		{
 			die('Invalid argument[' . $i . ']');
 		}
-		else if($abs === null)
-		{
-			$abs = (!empty($_args[$i]) && $_args[$i][0] === '/');
-		}
-
-		if(empty($_args[$i]) || $_args[$i] === '/')
+		else if(empty($_args[$i]) || $_args[$i] === '/')
 		{
 			continue;
 		}
