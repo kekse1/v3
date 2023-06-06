@@ -92,7 +92,7 @@ function join_path(... $_args)
 			$abs = (!empty($_args[$i]) && $_args[$i][0] === '/');
 		}
 
-		if(empty($_args[$i]))
+		if(empty($_args[$i]) || $_args[$i] === '/')
 		{
 			continue;
 		}
