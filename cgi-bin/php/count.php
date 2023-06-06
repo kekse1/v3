@@ -15,9 +15,9 @@ define('AUTO', 32);
 define('THRESHOLD', 7200);
 define('DIR', 'count');
 define('HIDE', false);
+define('OVERRIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
-define('OVERRIDE', false);
 define('HASH', 'sha3-256');
 define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
@@ -136,10 +136,8 @@ function join_path(... $_args)
 		{
 			die('Invalid argument[' . $i . ']');
 		}
-		else if(!empty($_args[$i]))
-		{
-			$result .= $_args[$i] . '/';
-		}
+
+		$result .= $_args[$i] . '/';
 	}
 	
 	if(strlen($result) > 0)
@@ -208,6 +206,11 @@ function get_path($_path, $_check = false, $_file = false)
 	}
 	
 	$result = normalize($result);
+	
+	if($result === '/')
+	{
+		die('Root directory reached, which is not allowed here');
+	}
 
 	if($_check)
 	{
