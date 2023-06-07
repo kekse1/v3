@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.18.1
+ * v2.18.2
  */
 
 //
-define('VERSION', '2.18.1');
+define('VERSION', '2.18.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -155,12 +155,16 @@ function join_path(... $_args)
 	return normalize($result);
 }
 
-function check_path_char($_path)
+function check_path_char($_path, $_basename = true)
 {
-	$_path = basename($_path);
+	if($_basename)
+	{
+		$_path = basename($_path);
+	}
 	
 	switch($_path[0])
 	{
+		case '.':
 		case '~':
 		case '+':
 		case '-':
@@ -180,14 +184,6 @@ function get_path($_path, $_check = false, $_file = false)
 	{
 		die('Path may not be empty' . (CLI ? PHP_EOL : ''));
 	}
-	else if(!check_path_char($_path))
-	{
-		die('Invalid path \'' . $_path . '\' (may not begin with \'~\', \'+\' or \'-\')' . (CLI ? PHP_EOL : ''));
-	}
-	else if($_path === '/')
-	{
-		die('The root directory is not allowed here' . (CLI ? PHP_EOL : ''));
-	}
 	
 	$result = '';
 
@@ -197,26 +193,46 @@ function get_path($_path, $_check = false, $_file = false)
 	}
 	else if($_path === '.')
 	{
-		$result = __DIR__;
+		if(($result = getcwd()) === false)
+		{
+			if(($result = realpath($_path)) === false)
+			{
+				$result = $_path;
+			}
+		}
 	}
 	else if(substr($_path, 0, 2) === './')
 	{
-		$result = __DIR__ . substr($_path, 1);
+		if(getcwd() !== false)
+		{
+			$result = getcwd() . substr($_path, 1);
+		}
+		else
+		{
+			die('The \'getcwd()\' function doesn\'t work');
+		}
 	}
-	else if(getcwd() !== false)
+	else
 	{
-		$result = getcwd() . '/' . $_path;
-	}
-	else if(($result = realpath($_path)) === false)
-	{
-		$result = $_path;
+		$result = __DIR__ . ($_path[0] === '/' ? '' : '/') . $_path;
 	}
 	
-	$result = normalize($result);
+	if(gettype($result) === 'string')
+	{
+		$result = normalize($result);
+	}
+	else
+	{
+		return null;
+	}
 	
 	if($result === '/')
 	{
 		die('Root directory reached, which is not allowed here' . (CLI ? PHP_EOL : ''));
+	}
+	else if(!check_path_char($result, true))
+	{
+		die('Path may not start with one of [ \'.\', \'~\', \'+\', \'-\' ]');
 	}
 
 	if($_check)
