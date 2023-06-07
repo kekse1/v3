@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.17.0
+ * v2.17.1
  */
 
 //
-define('VERSION', '2.17.0');
+define('VERSION', '2.17.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -425,10 +425,26 @@ function secure($_string, $_null = true, $_die = true)
 		
 		$result .= $add;
 	}
-	
-	if($_null && strlen($result) === 0)
+
+	$len = strlen($result);
+
+	if($_null && $len === 0)
 	{
 		$result = null;
+	}
+	else if($len > 0)
+	{
+		$rem = 0;
+
+		while(($len - 1 - $rem) >= 0 && $result[$len - 1 - $rem] === '.')
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, 0, -$rem);
+		}
 	}
 	
 	return $result;
@@ -533,8 +549,9 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = false)
 	$set = '';
 	$negative = false;
 	$remove = 0;
+	$len = strlen($value);
 
-	if($_numeric) while($value[$remove] === '+' || $value[$remove] === '-')
+	if($_numeric) while($remove < ($len - 1) && $value[$remove] === '+' || $value[$remove] === '-')
 	{
 		++$remove;
 
