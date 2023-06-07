@@ -1,15 +1,11 @@
 <?php
+//
 namespace counter;
 
-/*
- * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.18.4
- */
-
 //
-define('VERSION', '2.18.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
+define('VERSION', '2.18.5');
 
 //
 define('RAW', false);
@@ -1373,10 +1369,11 @@ die('   ..........');*/
 		printf('    -? / --help' . PHP_EOL);
 		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
+		printf('    -c / --config' . PHP_EOL);
 		printf('    -h / --hashes' . PHP_EOL);
 		printf('    -f / --fonts' . PHP_EOL);
 		printf('    -t / --types' . PHP_EOL);
-		printf('    -c / --config' . PHP_EOL);
+		printf('    -s / --set (...TODO)' . PHP_EOL);
 		printf('    -v / --values (*)' . PHP_EOL);
 		printf('    -n / --sync (*)' . PHP_EOL);
 		printf('    -l / --clean (*)' . PHP_EOL);
@@ -2220,6 +2217,15 @@ die('   ..........');*/
 		exit(1);
 	}
 	
+	function set($_index = -1)
+	{
+		//by default set (0)
+		//either for a specified host, or to all which match a *glob*..
+		//also to init a host, if !AUTO!
+		//and use 'prompt()' if file was not already existing!
+die('TODO: set()');
+	}
+
 	function values($_index = -1)
 	{
 		//
@@ -3220,6 +3226,10 @@ die('TODO (purge() w/ glob(); look above..)');
 		else if($argv[$i] === '-C' || $argv[$i] === '--copyright')
 		{
 			info($i, false, true);
+		}
+		else if($argv[$i] === '-s' || $argv[$i] === '--set')
+		{
+			set($i);
 		}
 		else if($argv[$i] === '-v' || $argv[$i] === '--values')
 		{
