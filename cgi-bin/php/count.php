@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.17.1
+ * v2.17.2
  */
 
 //
-define('VERSION', '2.17.1');
+define('VERSION', '2.17.2');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -31,9 +31,9 @@ define('SIZE', 24);
 define('SIZE_LIMIT', 512);
 define('FONT', 'SourceCodePro');
 define('FONTS', 'fonts');
-define('H', 1);
+define('H', 0);
 define('H_LIMIT', 256);
-define('V', 1);
+define('V', 0);
 define('V_LIMIT', 256);
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
@@ -47,10 +47,16 @@ define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
 define('COOKIE_HTTP_ONLY', true);
 
 //
-define('TEST', (isset($_GET['test'])));
-define('READONLY', (TEST || (isset($_GET['readonly']) || isset($_GET['ro']))));
-define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
-define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
+define('CLI', (php_sapi_name() === 'cli'));
+
+//
+if(!CLI)
+{
+	define('TEST', (isset($_GET['test'])));
+	define('READONLY', (TEST || (isset($_GET['readonly']) || isset($_GET['ro']))));
+	define('ZERO', (DRAWING && isset($_GET['zero']) && extension_loaded('gd')));
+	define('DRAW', (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd'))));
+}
 
 //
 function normalize($_string, $_die = true)
@@ -59,7 +65,7 @@ function normalize($_string, $_die = true)
 	{
 		if($_die)
 		{
-			die('Invalid $_string argument');
+			die('Invalid $_string argument' . (CLI ? PHP_EOL : ''));
 		}
 		
 		return null;
@@ -124,7 +130,7 @@ function join_path(... $_args)
 {
 	if(count($_args) === 0)
 	{
-		die('Invalid argument count');
+		die('Invalid argument count' . (CLI ? PHP_EOL : ''));
 	}
 
 	$len = count($_args);
@@ -134,7 +140,7 @@ function join_path(... $_args)
 	{
 		if(gettype($_args[$i]) !== 'string')
 		{
-			die('Invalid argument[' . $i . ']');
+			die('Invalid argument[' . $i . ']' . (CLI ? PHP_EOL : ''));
 		}
 
 		$result .= $_args[$i] . '/';
@@ -167,19 +173,19 @@ function get_path($_path, $_check = false, $_file = false)
 {
 	if(gettype($_path) !== 'string')
 	{
-		die('Path needs to be (non-empty) String');
+		die('Path needs to be (non-empty) String' . (CLI ? PHP_EOL : ''));
 	}
 	else if(empty($_path))
 	{
-		die('Path may not be empty' . PHP_EOL);
+		die('Path may not be empty' . (CLI ? PHP_EOL : ''));
 	}
 	else if(!check_path_char($_path))
 	{
-		die('Invalid path \'' . $_path . '\' (may not begin with \'~\', \'+\' or \'-\')' . PHP_EOL);
+		die('Invalid path \'' . $_path . '\' (may not begin with \'~\', \'+\' or \'-\')' . (CLI ? PHP_EOL : ''));
 	}
 	else if($_path === '/')
 	{
-		die('The root directory is not allowed here');
+		die('The root directory is not allowed here' . (CLI ? PHP_EOL : ''));
 	}
 	
 	$result = '';
@@ -209,7 +215,7 @@ function get_path($_path, $_check = false, $_file = false)
 	
 	if($result === '/')
 	{
-		die('Root directory reached, which is not allowed here');
+		die('Root directory reached, which is not allowed here' . (CLI ? PHP_EOL : ''));
 	}
 
 	if($_check)
@@ -218,12 +224,12 @@ function get_path($_path, $_check = false, $_file = false)
 		{
 			if(!is_dir(dirname($result)))
 			{
-				die('Directory of path \'' . $_path . '\' doesn\'t exist');
+				die('Directory of path \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
 			}
 		}
 		else if(!is_dir($result))
 		{
-			die('Directory \'' . $_path . '\' doesn\'t exist');
+			die('Directory \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
 		}
 	}
 
@@ -242,15 +248,22 @@ else
 	define('PATH_FONTS', null);
 }
 
-if(! (is_readable(PATH) && is_writable(PATH)))
+if(! (is_readable(PATH)))// && is_writable(PATH)))
 {
-	die('Your \'DIR\' path is not readable and writable');
+	die('Your \'DIR\' path is not readable' . (CLI ? PHP_EOL : ''));// and writable');
 }
 else if(DRAWING && !is_readable(PATH_FONTS))
 {
-	die('Your \'FONTS\' path is not readable');
+	die('Your \'FONTS\' path is not readable' . (CLI ? PHP_EOL : ''));
 }
-//TODO maybe: also check PATH_LOG or it's basename?
+else if(!is_dir(dirname(PATH_LOG)))
+{
+	die('Your \'LOG\' directory is not a directory' . (CLI ? PHP_EOL : ''));
+}
+else if(is_file(PATH_LOG) && !is_writable(PATH_LOG))
+{
+	die('Your existing \'LOG\' file is not writable' . (CLI ? PHP_EOL : ''));
+}
 
 //
 function sendHeader($_type_value = CONTENT, $_raw = false)
@@ -279,12 +292,16 @@ function sendHeader($_type_value = CONTENT, $_raw = false)
 
 function error($_reason, $_exit_code = 255, $_relay = false)
 {
-	if(gettype($_reason) !== 'string')
+	if(defined('FIN'))// && FIN)
+	{
+		return null;
+	}
+	else if(gettype($_reason) !== 'string')
 	{
 		$_reason = (string)$_reason;
 	}
 	
-	if(php_sapi_name() === 'cli')
+	if(CLI)
 	{
 		if(defined('STDERR'))
 		{
@@ -301,10 +318,6 @@ function error($_reason, $_exit_code = 255, $_relay = false)
 		}
 
 		exit(255);
-	}
-	else if(defined('FIN'))
-	{
-		return null;
 	}
 	else if(! defined('SENT'))
 	{
@@ -736,6 +749,8 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 }
 
 //
+//FIXME/TODO/get_files und count_files evtl. im CLI-bereich allein..!?! wird doch nicht sonst eingesetzt, eh? :D~
+//
 function get_files($_path, $_count = false, $_null = true, $_die = true)
 {
 	if(!is_dir($_path))
@@ -978,12 +993,12 @@ function remove($_path, $_recursive = true, $_die = true, $_depth_current = 0)
 }
 
 //
-if(php_sapi_name() === 'cli')
+if(CLI)
 {
 	//
 	if(! (defined('STDIN') && defined('STDOUT')))
 	{
-		die(' >> Running in \'cli\' mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
+		die(' >> Running in CLI mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
 	}
 	else if(!isset($argv))
 	{
@@ -1087,7 +1102,7 @@ if(php_sapi_name() === 'cli')
 		return $result;		
 	}
 
-	function get_list($_index, $_values, $_path = PATH)
+	function get_list($_index, $_values)
 	{
 		$list = null;
 
@@ -1105,7 +1120,7 @@ if(php_sapi_name() === 'cli')
 
 		if($list === null)
 		{
-			$list = count_files($_path, ($_values ? false : null),
+			$list = count_files(PATH, ($_values ? false : null),
 				($_values ? true : false), true, false, false);
 
 			if($list === null || count($list) === 0)
@@ -1125,7 +1140,6 @@ if(php_sapi_name() === 'cli')
 
 					$type = $list[$i][0];
 					$host = substr($list[$i], 1);
-					$path = join_path($_dir, $list[$i]);
 
 					if(!in_array($host, $result['host']))
 					{
@@ -1171,7 +1185,7 @@ if(php_sapi_name() === 'cli')
 
 			for($i = 0, $h = 0, $d = 0, $f = 0, $v = 0; $i < $len; ++$i)
 			{
-				$item = $_path . '/';
+				$item = PATH . '/';
 
 				if($list[$i][0] !== '~' && $list[$i][0] !== '+' && $list[$i][0] !== '-')
 				{
@@ -1273,33 +1287,6 @@ if(php_sapi_name() === 'cli')
 
 		return $result;
 	}
-	
-	function get_fonts($_path = PATH_FONTS, $_ext = false)
-	{
-		if($_path === null)
-		{
-			return null;
-		}
-
-		$result = glob($_path . '/*.ttf');
-		$len = count($result);
-		
-		if($len === 0)
-		{
-			return null;
-		}
-		else for($i = 0; $i < $len; ++$i)
-		{
-			$result[$i] = basename($result[$i]);
-			
-			if(!$_ext)
-			{
-				$result[$i] = substr($result[$i], 0, -4);
-			}
-		}
-		
-		return $result;
-	}
 
 //
 /*$a=get_list(1,true);
@@ -1310,9 +1297,9 @@ var_dump($b);
 die('   ..........');*/
 
 	//
-	function get_hosts($_path = PATH, $_values = true)
+	function get_hosts($_values = true)
 	{
-		$list = count_files($_path, ($_values ? false : null), ($_values ? true : false), true, null);
+		$list = count_files(PATH, ($_values ? false : null), ($_values ? true : false), true, null);
 
 		if($list === null)
 		{
@@ -1434,16 +1421,20 @@ die('   ..........');*/
 			}
 		}
 
-		$available = get_fonts(PATH_FONTS, false);
-
-		if($available === null)
+		$available = glob(join_path(PATH_FONTS, '/*.ttf'));
+		$len = count($available);
+		
+		if($len === 0)
 		{
-			fprintf(STDERR, ' >> No fonts installed in your fonts directory \'%s\'!' . PHP_EOL, FONTS);
+			fprintf(STDERR, ' >> No fonts installed in your fonts directory \'%s\'!' . PHP_EOL, basename(PATH_FONTS));
 			exit(4);
 		}
+		else for($i = 0; $i < $len; ++$i)
+		{
+			$available[$i] = basename($available[$i], '.ttf');
+		}
 
-		$len = count($available);
-		printf(' >> You have %d fonts installed (in directory \'%s\')! :-)' . PHP_EOL . PHP_EOL, $len, FONTS);
+		printf(' >> You have %d fonts installed (in directory \'%s\')! :-)' . PHP_EOL . PHP_EOL, $len, basename(PATH_FONTS));
 		
 		if($fonts === null)
 		{
@@ -1935,38 +1926,34 @@ die('   ..........');*/
 			++$errors;
 		}
 		
-		if(gettype(H) === 'integer' && H >= 0)
+		if(gettype(H) === 'integer')
 		{
 			$limit = H_LIMIT;
 			
-			if(gettype($limit) !== 'integer')
-			{
-				$limit = null;
-			}
-			else if($limit < 0 || $limit > 512)
+			if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
 			{
 				$limit = null;
 			}
 			
 			if($limit === null)
 			{
-				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
+				fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
 				++$warnings;
 			}
-			else if(H > $limit)
+			else if(H > $limit || H < -$limit)
 			{
 				fprintf(STDERR, START.'Integer exceeds H_LIMIT (%d)' . PHP_EOL, 'H', 'BAD', $limit);
 				++$errors;
 			}
 			else
 			{
-				printf(START.'Integer above -1 and below or equal to H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
+				printf(START.'Integer within H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above -1 and below or equal to H_LIMIT' . PHP_EOL, 'H', 'BAD');
+			fprintf(STDERR, START.'No Integer (within H_LIMIT)' . PHP_EOL, 'H', 'BAD');
 			++$errors;
 		}
 		
@@ -1981,38 +1968,34 @@ die('   ..........');*/
 			++$errors;
 		}
 		
-		if(gettype(V) === 'integer' && V >= 0)
+		if(gettype(V) === 'integer')
 		{
 			$limit = V_LIMIT;
 			
-			if(gettype($limit) !== 'integer')
-			{
-				$limit = null;
-			}
-			else if($limit < 0 || $limit > 512)
+			if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
 			{
 				$limit = null;
 			}
 			
 			if($limit === null)
 			{
-				fprintf(STDERR, START.'Integer above -1 (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
+				fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
 				++$warnings;
 			}
-			else if(V > $limit)
+			else if(V > $limit || V < -$limit)
 			{
 				fprintf(STDERR, START.'Integer exceeds V_IMIT (%d)' . PHP_EOL, 'V', 'BAD', $limit);
 				++$errors;
 			}
 			else
 			{
-				printf(START.'Integer above -1 and below or equal to V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
+				printf(START.'Integer within V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
 				++$ok;
 			}
 		}
 		else
 		{
-			fprintf(STDERR, START.'No Integer above -1 and below or equal to V_LIMIT'. PHP_EOL, 'V', 'BAD');
+			fprintf(STDERR, START.'No Integer (within V_LIMIT)'. PHP_EOL, 'V', 'BAD');
 			++$errors;
 		}
 		
@@ -2207,7 +2190,7 @@ die('   ..........');*/
 		exit(1);
 	}
 	
-	function values($_index = -1, $_path = PATH)
+	function values($_index = -1)
 	{
 		//
 		$hosts = get_arguments($_index + 1, true, true);
@@ -2215,7 +2198,7 @@ die('   ..........');*/
 
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, true);
+			$hosts = get_hosts(true);
 			$defined = false;
 		}
 		else
@@ -2237,7 +2220,7 @@ die('   ..........');*/
 		{
 			if($defined)
 			{
-				$item = $_path . '/~' . $hosts[$i];
+				$item = join_path(PATH, '~' . $hosts[$i]);
 				$item = glob($item, GLOB_BRACE);
 				$len = count($item);
 
@@ -2256,7 +2239,7 @@ die('   ..........');*/
 					}
 				}
 			}
-			else if(is_file(($item = $_path . '/~' . $hosts[$i])) && is_readable($item))
+			else if(is_file($item = join_path(PATH, '~' . $hosts[$i])) && is_readable($item))
 			{
 				if(!in_array($item, $files))
 				{
@@ -2317,7 +2300,7 @@ die('   ..........');*/
 			}
 			else
 			{
-				if(is_dir($item = ($_path . '/+' . $host)) && is_readable($item))
+				if(is_dir($item = join_path(PATH, '+' . $host)) && is_readable($item))
 				{
 					if(($item = count_files($item, false, false, false, false, false)) === null)
 					{
@@ -2333,7 +2316,7 @@ die('   ..........');*/
 					$real = -1;
 				}
 
-				if(is_file($item = ($_path . '/-' . $host)) && is_readable($item))
+				if(is_file($item = join_path(PATH, '-' . $host)) && is_readable($item))
 				{
 					if(!($cache = (int)file_get_contents($item)))
 					{
@@ -2399,7 +2382,7 @@ die('   ..........');*/
 		exit(0);
 	}
 
-	function sync($_index = null, $_path = PATH)
+	function sync($_index = -1)
 	{
 die('TODO (sync() w/ glob(); look above)');
 		//
@@ -2408,7 +2391,7 @@ die('TODO (sync() w/ glob(); look above)');
 		
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, false);
+			$hosts = get_hosts(false);
 			$defined = false;
 		}
 		else
@@ -2437,7 +2420,7 @@ die('TODO (sync() w/ glob(); look above)');
 			
 			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
 			{
-				$item = $_path . '/-' . $hosts[$i];
+				$item = join_path(PATH, '-' . $hosts[$i]);
 				$item = glob($item, GLOB_BRACE);
 				$len = count($item);
 				
@@ -2467,7 +2450,7 @@ die('TODO (sync() w/ glob(); look above)');
 					}
 				}
 				
-				$item = $_path . '/+' . $hosts[$i];
+				$item = join_path(PATH, '+' . $hosts[$i]);
 				$item = glob($item, GLOB_BRACE | GLOB_ONLYDIR);
 				$len = count($item);
 				
@@ -2509,7 +2492,7 @@ die('TODO (sync() w/ glob(); look above)');
 					$types[$hosts[$i]] = 0;
 				}
 
-				$item = $_path . '/-' . $hosts[$i];
+				$item = join_path(PATH, '-' . $hosts[$i]);
 				
 				if(is_file($item))
 				{
@@ -2531,7 +2514,7 @@ die('TODO (sync() w/ glob(); look above)');
 					}
 				}
 				
-				$item = $_path . '/+' . $hosts[$i];
+				$item = join_path(PATH, '+' . $hosts[$i]);
 				
 				if(is_dir($item))
 				{
@@ -2760,7 +2743,7 @@ die(' ....//');
 		exit();
 	}
 
-	function clean($_index = -1, $_path = PATH, $_host = null)
+	function clean($_index = -1, $_host = null)
 	{
 die('TODO (clean() w/ glob(); look above..)');
 		//
@@ -2768,7 +2751,7 @@ die('TODO (clean() w/ glob(); look above..)');
 		
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, false);
+			$hosts = get_hosts(false);
 		}
 
 		if($hosts === null)
@@ -2783,7 +2766,7 @@ die('TODO (clean() w/ glob(); look above..)');
 		{
 			$hosts[$i] = secure_path($hosts[$i], false);
 
-			if(! is_dir($_path . '/+' . $hosts[$i]))
+			if(! is_dir(join_path(PATH, '+' . $hosts[$i])))
 			{
 				fprintf(STDERR, ' >> No cache directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
 				array_splice($hosts, $i--, 1);
@@ -2814,7 +2797,7 @@ die('TODO (clean() w/ glob(); look above..)');
 		
 		for($i = 0, $j = 0, $origLen = 0, $l = 0; $i < count($hosts); ++$i, $origLen = $j)
 		{
-			if(($len = count($files = count_files($_path . '/+' . $hosts[$i], false, false, true))) === 0)
+			if(($len = count($files = count_files(join_path(PATH, '+' . $hosts[$i]), false, false, true))) === 0)
 			{
 				printf(' >> No cache files for host \'%s\' collected' . PHP_EOL, $hosts[$i]);
 			}
@@ -2825,7 +2808,7 @@ die('TODO (clean() w/ glob(); look above..)');
 			}
 			else for($k = 0; $k < $len; ++$k)
 			{
-				$item = join_path($_path, '+' . $hosts[$i], $files[$k]);
+				$item = join_path(PATH, '+' . $hosts[$i], $files[$k]);
 
 				if(is_readable($item))
 				{
@@ -2919,15 +2902,15 @@ die('TODO (clean() w/ glob(); look above..)');
 		
 		for($i = 0; $i < $len; ++$i)
 		{
-			$item = count_files($_path . '/+' . ($adapted[$i] = $adapted[$i][0]), false, false, false, false);
+			$item = count_files(join_path(PATH, '+' . ($adapted[$i] = $adapted[$i][0])), false, false, false, false);
 
 			if($item === null)
 			{
 				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $adapted[$i]);
 			}
-			else if(is_writable($_path . '/-' . $adapted[$i]))
+			else if(is_writable(join_path(PATH, '-' . $adapted[$i])))
 			{
-				if(file_put_contents($_path . '/-' . $adapted[$i], (string)$item) === false)
+				if(file_put_contents(join_path(PATH, '-' . $adapted[$i]), (string)$item) === false)
 				{
 					fprintf(STDERR, ' >> Synchronization for host \'%s\' failed (couldn\'t write to file)!' . PHP_EOL, $adapted[$i]);
 				}
@@ -2953,7 +2936,7 @@ die('TODO (clean() w/ glob(); look above..)');
 		exit(0);
 	}
 
-	function purge($_index = -1, $_path = PATH, $_host = null)
+	function purge($_index = -1, $_host = null)
 	{
 die('TODO (purge() w/ glob(); look above..)');
 		//
@@ -2961,7 +2944,7 @@ die('TODO (purge() w/ glob(); look above..)');
 
 		if($hosts === null)
 		{
-			$hosts = get_hosts($_path, false);
+			$hosts = get_hosts(false);
 		}
 
 		if($hosts === null)
@@ -2971,7 +2954,7 @@ die('TODO (purge() w/ glob(); look above..)');
 		}
 		else for($i = 0; $i < count($hosts); ++$i)
 		{
-			if(!is_dir($_path . '/+' . $hosts[$i]) && !is_file($_path . '/-' . $hosts[$i]))
+			if(!is_dir(join_path(PATH, '+' . $hosts[$i])) && !is_file(join_path(PATH, '-' . $hosts[$i])))
 			{
 				fprintf(STDERR, ' >> Neither cache nor count file for host \'%s\' found.' . PHP_EOL, $hosts[$i]);
 				array_splice($hosts, $i--, 1);
@@ -3009,7 +2992,7 @@ die('TODO (purge() w/ glob(); look above..)');
 		
 		for($i = 0, $r = 0, $e = 0; $i < count($hosts); ++$i)
 		{
-			$sub = $_path . '/-' . $hosts[$i];
+			$sub = join_path(PATH, '-' . $hosts[$i]);
 			
 			if(is_file($sub))
 			{
@@ -3027,7 +3010,7 @@ die('TODO (purge() w/ glob(); look above..)');
 				$errors[$e++] = $sub;
 			}
 			
-			$sub = $_path . '/+' . $hosts[$i];
+			$sub = join_path(PATH, '+' . $hosts[$i]);
 			
 			if(is_dir($sub))
 			{
@@ -3097,32 +3080,32 @@ die('TODO (purge() w/ glob(); look above..)');
 		exit(0);
 	}
 
-	function unlog($_index = -1, $_path = PATH_LOG)
+	function unlog($_index = -1)
 	{
 		error_reporting(0);
 
-		if(! file_exists($_path))
+		if(! file_exists(PATH_LOG))
 		{
-			fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, basename(PATH_LOG));
 			exit(1);
 		}
-		else if(!is_file($_path))
+		else if(!is_file(PATH_LOG))
 		{
-			fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, PATH_LOG);
 		}
 
-		$input = prompt('Do you really want to delete the file \'' . $_path . '\' [yes/no]? ');
+		$input = prompt('Do you really want to delete the file \'' . basename(PATH_LOG) . '\' [yes/no]? ');
 
 		if(!$input)
 		{
 			fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
 			exit(2);
 		}
-		else if(remove($_path, false, true) === false)
+		else if(remove(PATH_LOG, false, true) === false)
 		{
-			fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, basename(PATH_LOG));
 
-			if(! is_file($_path))
+			if(! is_file(PATH_LOG))
 			{
 				fprintf(STDERR, ' >> I think it\'s not a regular file, could this be the reason why?' . PHP_EOL);
 			}
@@ -3131,27 +3114,27 @@ die('TODO (purge() w/ glob(); look above..)');
 		}
 		else
 		{
-			printf(' >> The \'%s\' is no longer.. :-)' . PHP_EOL, $_path);
+			printf(' >> The \'%s\' is no longer.. :-)' . PHP_EOL, basename(PATH_LOG));
 		}
 
 		exit(0);
 	}
 
-	function errors($_index = -1, $_path = PATH_LOG)
+	function errors($_index = -1)
 	{
-		if(! file_exists($_path))
+		if(! file_exists(PATH_LOG))
 		{
-			printf(' >> No errors logged! :-D' . PHP_EOL, $_path);
+			printf(' >> No errors logged! :-D' . PHP_EOL);
 			exit(0);
 		}
-		else if(!is_file($_path))
+		else if(!is_file(PATH_LOG))
 		{
-			fprintf(STDERR, ' >> \'%s\' is not a file! Please delete asap!!' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> \'%s\' is not a file! Please delete asap!!' . PHP_EOL, basename(PATH_LOG));
 			exit(1);
 		}
-		else if(!is_readable($_path))
+		else if(!is_readable(PATH_LOG))
 		{
-			fprintf(STDERR, ' >> Log file \'%s\' is not readable! Please correct this asap!!' . PHP_EOL, $_path);
+			fprintf(STDERR, ' >> Log file \'%s\' is not readable! Please correct this asap!!' . PHP_EOL, basename(PATH_LOG));
 			exit(2);
 		}
 
@@ -3170,14 +3153,14 @@ die('TODO (purge() w/ glob(); look above..)');
 			return $res;
 		}
 
-		$result = count_lines($_path);
+		$result = count_lines(PATH_LOG);
 
 		if($result < 0)
 		{
 			$result = 0;
 		}
 
-		printf(' >> There are %d error log lines in \'%s\'..' . PHP_EOL, $result, $_path);
+		printf(' >> There are %d error log lines in \'%s\'..' . PHP_EOL, $result, basename(PATH_LOG));
 		exit(0);
 	}
 
@@ -3342,22 +3325,13 @@ if(!TEST)
 	define('PATH_IP', join_path(PATH_DIR, secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false)));
 
 	//
-	function check_path($_path = PATH, $_file = PATH_FILE)
+	function check_auto()
 	{
-		//
-		if(!file_exists($_path))
+		if(AUTO === true && !OVERRIDDEN)
 		{
-			error('Directory doesn\'t exist!');
+			return;
 		}
-		else if(!is_dir($_path))
-		{
-			error('Path doesn\'t point to a directory');
-		}
-		else if(!is_writable($_path))
-		{
-			error('Directory isn\'t writable');
-		}
-		else if((AUTO !== true || OVERRIDDEN) && !is_file($_file))
+		else if(!is_file(PATH_FILE))
 		{
 			if(OVERRIDDEN)
 			{
@@ -3370,11 +3344,11 @@ if(!TEST)
 			else if(gettype(AUTO) === 'integer')
 			{
 				$count = 0;
-				$handle = opendir($_path);
+				$handle = opendir(PATH);
 
 				if($handle === false)
 				{
-					log_error('Can\'t opendir()', 'check_path', $_path, false);
+					log_error('Can\'t opendir()', 'check_path', PATH, false);
 					error(NONE);
 				}
 
@@ -3395,18 +3369,15 @@ if(!TEST)
 			}
 			else
 			{
-				//log_error('Invalid \'AUTO\' constant', 'check_path', $_file);
+				log_error('Invalid \'AUTO\' constant', 'check_path', '', false);
 				error('Invalid \'AUTO\' constant');
 			}
 		}
-		else if(file_exists($_file) && !is_writable($_file))
+		else if(file_exists(PATH_FILE) && !is_writable(PATH_FILE))
 		{
-			log_error('File is not writable', 'check_path', $_file);
+			log_error('File is not writable', 'check_path', PATH_FILE);
 			error('File is not writable');
 		}
-		
-		//
-		return true;
 	}
 
 	//
@@ -3437,21 +3408,21 @@ if(!TEST)
 		return $result;
 	}
 
-	function test_file($_path = PATH_IP)
+	function test_file()
 	{
-		if(file_exists($_path))
+		if(file_exists(PATH_IP))
 		{
-			if(!is_file($_path))
+			if(!is_file(PATH_IP))
 			{
-				log_error('Is not a regular file', 'test_file', $_path);
+				log_error('Is not a regular file', 'test_file', PATH_IP);
 				error('Is not a regular file');
 			}
-			else if(!is_readable($_path))
+			else if(!is_readable(PATH_IP))
 			{
-				log_error('File can\'t be read', 'test_file', $_path);
+				log_error('File can\'t be read', 'test_file', PATH_IP);
 				error('File can\'t be read');
 			}
-			else if(timestamp(read_timestamp($_path)) < THRESHOLD)
+			else if(timestamp(read_timestamp()) < THRESHOLD)
 			{
 				return false;
 			}
@@ -3486,23 +3457,23 @@ if(!TEST)
 		));
 	}
 
-	function clean_files($_dir = PATH_DIR, $_file = PATH_COUNT)
+	function clean_files()
 	{
 		if(CLEAN === null)
 		{
 			log_error('Called function, but CLEAN === null', 'clean_files', '', false);
 			return -1;
 		}
-		else if(!is_dir($_dir))
+		else if(!is_dir(PATH_DIR))
 		{
-			return init_count($_file, $_dir, false);
+			return init_count(false);
 		}
 
-		$handle = opendir($_dir);
+		$handle = opendir(PATH_DIR);
 		
 		if(!$handle)
 		{
-			log_error('Can\'t opendir()', 'clean_files', $_dir);
+			log_error('Can\'t opendir()', 'clean_files', PATH_DIR);
 			error('Can\'t opendir()');
 		}
 		
@@ -3516,7 +3487,7 @@ if(!TEST)
 			}
 			else
 			{
-				$sub = join_path($_dir, $sub);
+				$sub = join_path(PATH_DIR, $sub);
 			}
 			
 			if(!is_file($sub))
@@ -3535,20 +3506,20 @@ if(!TEST)
 		}
 		
 		closedir($handle);
-		return write_count($result, $_file, false);
+		return write_count($result, false);
 	}
 
-	function init_count($_path = PATH_COUNT, $_directory = PATH_DIR, $_die = false)
+	function init_count($_die = false)
 	{
 		$result = 0;
 
-		if(is_dir($_directory))
+		if(is_dir(PATH_DIR))
 		{
-			$handle = opendir($_directory);
+			$handle = opendir(PATH_DIR);
 
 			if($handle === false)
 			{
-				log_error('Can\'t opendir()', 'init_count', $_directory, $_die);
+				log_error('Can\'t opendir()', 'init_count', PATH_DIR, $_die);
 				return result;
 			}
 
@@ -3558,7 +3529,7 @@ if(!TEST)
 				{
 					continue;
 				}
-				else if(is_file(join_path($_directory, $sub)))
+				else if(is_file(join_path(PATH_DIR, $sub)))
 				{
 					++$result;
 				}
@@ -3571,11 +3542,11 @@ if(!TEST)
 			$result = 0;
 		}
 
-		$written = file_put_contents($_path, (string)$result);
+		$written = file_put_contents(PATH_COUNT, (string)$result);
 
 		if($written === false)
 		{
-			log_error('Couldn\'t initialize count', 'init_count', $_path, $_die);
+			log_error('Couldn\'t initialize count', 'init_count', PATH_COUNT, $_die);
 
 			if($_die)
 			{
@@ -3588,101 +3559,101 @@ if(!TEST)
 		return $result;
 	}
 
-	function read_count($_path = PATH_COUNT)
+	function read_count()
 	{
-		if(!file_exists($_path))
+		if(!file_exists(PATH_COUNT))
 		{
-			return init_count($_path);
+			return init_count();
 		}
-		else if(!is_file($_path))
+		else if(!is_file(PATH_COUNT) || !is_writable(PATH_COUNT))
 		{
-			log_error('Count file is not a file', 'read_count', $_path);
-			error('Count file is not a file');
+			log_error('Count file is not a file, or it\'s not writable', 'read_count', PATH_COUNT);
+			error('Count file is not a file, or it\'s not writable');
 		}
 
-		$result = file_get_contents($_path);
+		$result = file_get_contents(PATH_COUNT);
 
 		if($result === false)
 		{
-			log_error('Couldn\'t read count value', 'read_count', $_path);
+			log_error('Couldn\'t read count value', 'read_count', PATH_COUNT);
 			error('Couldn\'t read count value');
 		}
 
 		return (int)$result;
 	}
 
-	function write_count($_value, $_path = PATH_COUNT, $_get = true)
+	function write_count($_value, $_get = true)
 	{
 		$result = null;
 
-		if(file_exists($_path))
+		if(file_exists(PATH_COUNT))
 		{
-			if(!is_file($_path))
+			if(!is_file(PATH_COUNT))
 			{
-				log_error('Count file is not a regular file', 'write_count', $_path);
+				log_error('Count file is not a regular file', 'write_count', PATH_COUNT);
 				error('Count file is not a regular file');
 			}
 			else if($_get)
 			{
-				$result = read_count($_path);
+				$result = read_count();
 			}
 		}
 		else
 		{
-			$result = init_count($_path);
+			$result = init_count();
 		}
 
-		$written = file_put_contents($_path, (string)$_value);
+		$written = file_put_contents(PATH_COUNT, (string)$_value);
 
 		if($written === false)
 		{
-			log_error('Unable to write count', 'write_count', $_path);
+			log_error('Unable to write count', 'write_count', PATH_COUNT);
 			error('Unable to write count');
 		}
 
 		return $result;
 	}
 
-	function increase_count($_path = PATH_COUNT, $_by = 1)
+	function increase_count($_by = 1)
 	{
-		$count = (read_count($_path) + $_by);
-		write_count($count, $_path, false);
-		return $count;
+		$result = (read_count() + $_by);
+		write_count($result, false);
+		return $result;
 	}
 
-	function decrease_count($_path = PATH_COUNT, $_by = 1)
+	function decrease_count($_by = 1)
 	{
-		$count = (read_count($_path) - $_by);
+		$result = (read_count() - $_by);
 
-		if($count < 0)
+		if($result < 0)
 		{
-			$count = 0;
+			$result = 0;
 		}
 
-		write_count($count, $_path, false);
-		return $count;
+		write_count($result, false);
+		return $result;
 	}
 
-	function read_timestamp($_path = PATH_IP)
+	function read_timestamp()
 	{
-		if(file_exists($_path))
+		if(file_exists(PATH_IP))
 		{
-			if(!is_file($_path))
+			if(!is_file(PATH_IP))
 			{
-				log_error('Is not a file', 'read_timestamp', $_path);
+				log_error('Is not a file', 'read_timestamp', PATH_IP);
 				error('Is not a file');
 			}
-			else if(!is_readable($_path))
+			else if(!is_readable(PATH_IP))
 			{
-				log_error('File not readable', 'read_timestamp', $_path);
+				log_error('File not readable', 'read_timestamp', PATH_IP);
 				error('File not readable');
 			}
 
-			$result = file_get_contents($_path);
+			$result = file_get_contents(PATH_IP);
 
 			if($result === false)
 			{
-				log_error('Unable to read timestamp', 'read_timestamp', $_path);
+				log_error('Unable to read timestamp', 'read_timestamp', PATH_IP);
 				error('Unable to read timestamp');
 			}
 
@@ -3692,20 +3663,20 @@ if(!TEST)
 		return 0;
 	}
 
-	function write_timestamp($_path = PATH_IP, $_clean = (CLEAN !== null))
+	function write_timestamp($_clean = (CLEAN !== null))
 	{
-		$existed = file_exists($_path);
+		$existed = file_exists(PATH_IP);
 
 		if($existed)
 		{
-			if(!is_file($_path))
+			if(!is_file(PATH_IP))
 			{
-				log_error('It\'s no regular file', 'write_timestamp', $_path);
+				log_error('It\'s no regular file', 'write_timestamp', PATH_IP);
 				error('It\'s no regular file');
 			}
-			else if(!is_writable($_path))
+			else if(!is_writable(PATH_IP))
 			{
-				log_error('Not a writable file', 'write_timestamp', $_path);
+				log_error('Not a writable file', 'write_timestamp', PATH_IP);
 				error('Not a writable file');
 			}
 		}
@@ -3715,24 +3686,24 @@ if(!TEST)
 			{
 				if(clean_files() > LIMIT)
 				{
-					log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', $_path);
+					log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', PATH_IP);
 					error('LIMIT exceeded, even after clean_files()');
 					return null;
 				}
 			}
 			else
 			{
-				log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', $_path);
+				log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', PATH_IP);
 				error('LIMIT exceeded; w/o clean_files() call');
 				return null;
 			}
 		}
 
-		$result = file_put_contents($_path, (string)timestamp());
+		$result = file_put_contents(PATH_IP, (string)timestamp());
 
 		if($result === false)
 		{
-			log_error('Unable to write timestamp', 'write_timestamp', $_path);
+			log_error('Unable to write timestamp', 'write_timestamp', PATH_IP);
 			error('Unable to write timestamp');
 		}
 		else if(!$existed)
@@ -3743,55 +3714,67 @@ if(!TEST)
 		return $result;
 	}
 
-	function read_value($_path = PATH_FILE)
+	function read_value()
 	{
-		if(file_exists($_path))
+		if(file_exists(PATH_FILE))
 		{
-			if(!is_file($_path))
+			if(!is_file(PATH_FILE))
 			{
-				log_error('It\'s not a regular file', 'read_value', $_path);
+				log_error('It\'s not a regular file', 'read_value', PATH_FILE);
 				error('It\'s not a regular file');
 			}
-			else if(!is_readable($_path))
+			else if(!is_readable(PATH_FILE))
 			{
-				log_error('File is not readable', 'read_value', $_path);
+				log_error('File is not readable', 'read_value', PATH_FILE);
 				error('File is not readable');
 			}
 
-			$result = file_get_contents($_path);
+			$result = file_get_contents(PATH_FILE);
 
 			if($result === false)
 			{
-				log_error('Unable to read value', 'read_value', $_path);
+				log_error('Unable to read value', 'read_value', PATH_FILE);
 				error('Unable to read value');
 			}
 
 			return (int)$result;
 		}
-		else
+		else if((file_put_contents(PATH_FILE, '0')) === false)
 		{
-			touch($_path);
+			touch(PATH_FILE);
 		}
 
 		return 0;
 	}
 
-	function write_value($_value = 0, $_path = PATH_FILE, $_die = false)
+	function write_value($_value, $_die = false)
 	{
-		if(file_exists($_path))
+		if(gettype($_value) !== 'integer' || $_value < 0)
 		{
-			if(!is_file($_path))
+			log_error('Value was no integer, or it was below zero', 'write_value', '', $_die);
+			
+			if($_die)
 			{
-				log_error('Not a regular file', 'write_value', $_path, $_die);
+				error('Value was no integer, or it was below zero');
+			}
+			
+			return 0;
+		}
+
+		if(file_exists(PATH_FILE))
+		{
+			if(!is_file(PATH_FILE))
+			{
+				log_error('Not a regular file', 'write_value', PATH_FILE, $_die);
 
 				if($_die)
 				{
 					error('Not a regular file');
 				}
 			}
-			else if(!is_writable($_path))
+			else if(!is_writable(PATH_FILE))
 			{
-				log_error('File is not writable', 'write_value', $_path, $_die);
+				log_error('File is not writable', 'write_value', PATH_FILE, $_die);
 
 				if($_die)
 				{
@@ -3800,11 +3783,11 @@ if(!TEST)
 			}
 		}
 
-		$result = file_put_contents($_path, (string)$_value);
+		$result = file_put_contents(PATH_FILE, (string)$_value);
 
 		if($result === false)
 		{
-			log_error('Unable to write value', 'write_value', $_path, $_die);
+			log_error('Unable to write value', 'write_value', PATH_FILE, $_die);
 
 			if($_die)
 			{
@@ -3820,10 +3803,8 @@ if(!TEST)
 	{
 		error(NONE);
 	}
-	else
-	{
-		check_path(PATH, PATH_FILE);
-	}
+
+	check_auto();
 }
 
 //
@@ -3935,13 +3916,22 @@ function draw($_text, $_zero = ZERO)
 	}
 
 	//
-	function get_font($_name, $_dir = PATH_FONTS)
+	function get_font($_name)
 	{
-		$path = join_path($_dir, $_name . '.ttf');
-		
-		if(is_file($path) && is_readable($path))
+		if(gettype($_name) !== 'string')
 		{
-			return $path;
+			return null;
+		}
+		else if(substr($_name, -4) !== '.ttf')
+		{
+			$_name .= '.ttf';
+		}
+		
+		$result = join_path(PATH_FONTS, $_name);
+
+		if(is_file($result) && is_readable($result))
+		{
+			return $result;
 		}
 		
 		return null;
@@ -3985,9 +3975,9 @@ function draw($_text, $_zero = ZERO)
 		{
 			$result['h'] = H;
 		}
-		else if($result['h'] > H_LIMIT || $result['h'] < 0)
+		else if($result['h'] > H_LIMIT || $result['h'] < -H_LIMIT)
 		{
-			draw_error('\'?h\' exceeds limit (0 / ' . H_LIMIT . ')', $_die);
+			draw_error('\'?h\' exceeds limit (' . H_LIMIT . ')', $_die);
 			return null;
 		}
 
@@ -3995,9 +3985,9 @@ function draw($_text, $_zero = ZERO)
 		{
 			$result['v'] = V;
 		}
-		else if($result['v'] > V_LIMIT || $result['v'] < 0)
+		else if($result['v'] > V_LIMIT || $result['v'] < -V_LIMIT)
 		{
-			draw_error('\'?v\' exceeds limit (0 / ' . V_LIMIT . ')', $_die);
+			draw_error('\'?v\' exceeds limit (' . V_LIMIT . ')', $_die);
 			return null;
 		}
 
@@ -4268,6 +4258,13 @@ function draw($_text, $_zero = ZERO)
 		$height = px2pt($textHeight + ($_v * 2));
 
 		//
+		if($width < 1 || $height < 1)
+		{
+			draw_error('Resulting width/height below 1');
+			return null;
+		}
+
+		//
 		$image = imagecreatetruecolor($width, $height);
 		imagesavealpha($image, true);
 		imageantialias($image, $_aa);
@@ -4328,20 +4325,6 @@ function draw($_text, $_zero = ZERO)
 	//
 	$options = get_drawing_options();
 	return draw_text($_text, $options['font'], $options['size'], $options['fg'], $options['bg'], $options['h'], $options['v'], $options['x'], $options['y'], $options['aa'], $options['type']);
-}
-
-//
-if(SERVER && !(TEST || READONLY))
-{
-	if(! file_exists(PATH_DIR))
-	{
-		mkdir(PATH_DIR);
-	}
-	else if(!is_dir(PATH_DIR))
-	{
-		log_error('Not a directory', '', PATH_DIR);
-		error('Not a directory');
-	}
 }
 
 //
