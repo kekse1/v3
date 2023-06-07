@@ -4482,7 +4482,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 //
 if(!RAW)
 {
-	counter(null, READONLY);
+	counter();
 }
 
 ?>
