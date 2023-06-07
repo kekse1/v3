@@ -2,11 +2,11 @@
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.18.0
+ * v2.18.1
  */
 
 //
-define('VERSION', '2.18.0');
+define('VERSION', '2.18.1');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -3255,7 +3255,7 @@ die('TODO (purge() w/ glob(); look above..)');
 //
 function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 {
-	if(RAW && (gettype($_host) !== 'string' || empty($_host)))
+	if(RAW && empty($_SERVER) && (gettype($_host) !== 'string' || empty($_host)))
 	{
 		if($_die)
 		{
