@@ -1,12 +1,13 @@
 <?php
+namespace counter;
 
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * v2.18.2
+ * v2.18.4
  */
 
 //
-define('VERSION', '2.18.2');
+define('VERSION', '2.18.4');
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
 
@@ -3271,13 +3272,13 @@ die('TODO (purge() w/ glob(); look above..)');
 //
 function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 {
-	if(RAW && empty($_SERVER) && (gettype($_host) !== 'string' || empty($_host)))
+	if(RAW && CLI && (gettype($_host) !== 'string' || empty($_host)))
 	{
 		if($_die)
 		{
 			die('Invalid $_host (needs to be defined in RAW mode)' . (CLI ? PHP_EOL : ''));
 		}
-		
+
 		return null;
 	}
 
@@ -3332,7 +3333,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				error('Invalid host');
 			}
 		}
-
+		
 		return $result;
 	}
 
