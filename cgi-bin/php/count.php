@@ -1,11 +1,11 @@
 <?php
 //
-namespace counter;
+namespace kekse\counter;
 
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.19.2');
+define('VERSION', '2.19.3');
 
 //
 define('RAW', false);
