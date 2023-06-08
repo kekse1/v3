@@ -5,7 +5,7 @@ namespace counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.19.0');
+define('VERSION', '2.19.1');
 
 //
 define('RAW', false);
@@ -48,13 +48,10 @@ define('COOKIE_HTTP_ONLY', true);
 define('CLI', (php_sapi_name() === 'cli'));
 
 //
-if(!CLI || RAW)
-{
-	define('TEST', (RAW ? null : (isset($_GET['test']))));
-	define('READONLY', (RAW ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
-	define('ZERO', (RAW ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
-	define('DRAW', (RAW ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
-}
+define('TEST', (RAW && CLI ? null : (isset($_GET['test']))));
+define('RO', (RAW && CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+define('ZERO', (RAW && CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
+define('DRAW', (RAW && CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
 
 //
 function normalize($_string, $_die = !RAW)
@@ -850,7 +847,7 @@ function remove($_path, $_recursive = true, $_die = !RAW, $_safety = true, $_dep
 }
 
 //
-if(CLI && !RAW)
+if(CLI)
 {
 	//
 	if(! (defined('STDIN') && defined('STDOUT')))
@@ -979,7 +976,7 @@ if(CLI && !RAW)
 		return $result;		
 	}
 
-	function get_list($_index, $_null = true)
+	function get_list($_index)
 	{
 		//
 		function get_item($_sub, &$_result)
@@ -1097,7 +1094,7 @@ if(CLI && !RAW)
 			
 			closedir($handle);
 
-			if($found === 0 && $_null)
+			if($found === 0)
 			{
 				$result = null;
 			}
@@ -1125,7 +1122,7 @@ if(CLI && !RAW)
 				}
 			}
 
-			if($found === 0 && $_null)
+			if($found === 0)
 			{
 				$result = null;
 			}
@@ -1163,10 +1160,6 @@ if(CLI && !RAW)
 			{
 				$result = null;
 			}
-		}
-		else if($_null && count($result) === 0)
-		{
-			$result = null;
 		}
 
 		return $result;
@@ -2072,7 +2065,7 @@ die('TODO: set()');
 	function values($_index = -1, $_purge = false, $_clean = false)
 	{
 		//
-		$list = get_list($_index, true);
+		$list = get_list($_index);
 
 		if($list === null)
 		{
@@ -3671,14 +3664,14 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	$value = (TEST ? rand() : $real);
 	
 	//
-	if(! (READONLY || TEST) && !$_read_only)
+	if(! (RO || TEST || $_read_only))
 	{
 		if(test())
 		{
 			write_value(++$value);
 		}
 
-		if(CLIENT && !OVERRIDDEN)
+		if(CLIENT && !OVERRIDDEN && !CLI)
 		{
 			make_cookie();
 		}
@@ -3723,7 +3716,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	}
 
 	//
-	if(SERVER && !(READONLY || TEST) && !(defined('DONE') && DONE) && !$_read_only)
+	if(SERVER && !(RO || TEST) && !(defined('DONE') && DONE) && !$_read_only)
 	{
 		//
 		write_timestamp();
