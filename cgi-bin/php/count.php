@@ -48,10 +48,10 @@ define('COOKIE_HTTP_ONLY', true);
 define('CLI', (php_sapi_name() === 'cli'));
 
 //
-define('TEST', (RAW && CLI ? null : (isset($_GET['test']))));
-define('RO', (RAW && CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
-define('ZERO', (RAW && CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
-define('DRAW', (RAW && CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
+define('TEST', (CLI ? null : (isset($_GET['test']))));
+define('RO', (CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+define('ZERO', (CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
+define('DRAW', (CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
 
 //
 function normalize($_string, $_die = !RAW)
