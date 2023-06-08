@@ -5,7 +5,7 @@ namespace kekse;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.19.4');
+define('VERSION', '2.20.0');
 
 //
 define('RAW', false);
@@ -39,30 +39,10 @@ define('AA', true);
 define('TYPE', 'png');
 
 //
-define('COOKIE_PATH', '/');
-define('COOKIE_SAME_SITE', 'Strict');
-define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
-define('COOKIE_HTTP_ONLY', true);
-
-//
-define('CLI', (php_sapi_name() === 'cli'));
-
-//
-define('TEST', (CLI ? null : (isset($_GET['test']))));
-define('RO', (CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
-define('ZERO', (CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
-define('DRAW', (CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
-
-//
-function normalize($_string, $_die = !RAW)
+function normalize($_string)
 {
 	if(gettype($_string) !== 'string')
 	{
-		if($_die)
-		{
-			die('Invalid $_string argument' . (CLI ? PHP_EOL : ''));
-		}
-		
 		return null;
 	}
 	
@@ -135,7 +115,7 @@ function join_path(... $_args)
 {
 	if(count($_args) === 0)
 	{
-		die('Invalid argument count' . (CLI ? PHP_EOL : ''));
+		return null;
 	}
 
 	$len = count($_args);
@@ -159,232 +139,18 @@ function join_path(... $_args)
 	return normalize($result);
 }
 
-function check_path_char($_path, $_basename = true)
-{
-	if($_basename)
-	{
-		$_path = basename($_path);
-	}
-	
-	switch($_path[0])
-	{
-		case '.':
-		case '~':
-		case '+':
-		case '-':
-			return false;
-	}
-	
-	return true;
-}
-
-function get_path($_path, $_check = false, $_file = false)
-{
-	if(gettype($_path) !== 'string')
-	{
-		die('Path needs to be (non-empty) String' . (CLI ? PHP_EOL : ''));
-	}
-	else if(empty($_path))
-	{
-		die('Path may not be empty' . (CLI ? PHP_EOL : ''));
-	}
-	
-	$result = '';
-
-	if($_path[0] === '/')
-	{
-		$result = $_path;
-	}
-	else if($_path === '.')
-	{
-		if(($result = getcwd()) === false)
-		{
-			if(($result = realpath($_path)) === false)
-			{
-				$result = $_path;
-			}
-		}
-	}
-	else if(substr($_path, 0, 2) === './')
-	{
-		if(getcwd() !== false)
-		{
-			$result = getcwd() . substr($_path, 1);
-		}
-		else
-		{
-			die('The \'getcwd()\' function doesn\'t work');
-		}
-	}
-	else
-	{
-		$result = __DIR__ . ($_path[0] === '/' ? '' : '/') . $_path;
-	}
-	
-	if(gettype($result) === 'string')
-	{
-		$result = normalize($result);
-	}
-	else
-	{
-		return null;
-	}
-	
-	if($result === '/')
-	{
-		die('Root directory reached, which is not allowed here' . (CLI ? PHP_EOL : ''));
-	}
-	else if(!check_path_char($result, true))
-	{
-		die('Path may not start with one of [ \'.\', \'~\', \'+\', \'-\' ]');
-	}
-
-	if($_check)
-	{
-		if($_file)
-		{
-			if(!is_dir(dirname($result)))
-			{
-				die('Directory of path \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
-			}
-		}
-		else if(!is_dir($result))
-		{
-			die('Directory \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
-		}
-	}
-
-	return $result;
-}
-
-define('PATH', get_path(DIR, true, false));
-define('PATH_LOG', get_path(LOG, false, true));
-
-if(DRAWING || CLI)
-{
-	define('PATH_FONTS', get_path(FONTS, (CLI ? false : true), false));
-}
-else
-{
-	define('PATH_FONTS', null);
-}
-
-if(! (is_readable(PATH)))// && is_writable(PATH)))
-{
-	die('Your \'DIR\' path is not readable' . (CLI ? PHP_EOL : ''));// and writable');
-}
-else if(DRAWING && !is_readable(PATH_FONTS))
-{
-	die('Your \'FONTS\' path is not readable' . (CLI ? PHP_EOL : ''));
-}
-else if(!is_dir(dirname(PATH_LOG)))
-{
-	die('Your \'LOG\' directory is not a directory' . (CLI ? PHP_EOL : ''));
-}
-else if(is_file(PATH_LOG) && !is_writable(PATH_LOG))
-{
-	die('Your existing \'LOG\' file is not writable' . (CLI ? PHP_EOL : ''));
-}
-
-//
-function sendHeader($_type_value = CONTENT, $_raw = false)
-{
-	if(defined('SENT'))
-	{
-		return false;
-	}
-	else
-	{
-		define('SENT', true);
-	}
-
-	if($_raw)
-	{
-		header($_type_value);
-	}
-	else
-	{
-		header('Content-Type: ' . $_type_value);
-	}
-
-	return true;
-}
-
-
-function error($_reason, $_exit_code = 255, $_relay = false)
-{
-	if(defined('FIN'))// && FIN)
-	{
-		return null;
-	}
-	else if(gettype($_reason) !== 'string')
-	{
-		$_reason = (string)$_reason;
-	}
-	
-	if(CLI)
-	{
-		if(defined('STDERR'))
-		{
-			fprintf(STDERR, ' >> ' . $_reason . PHP_EOL);
-		}
-		else
-		{
-			die(' >> ' . $_reason . PHP_EOL);
-		}
-
-		if(gettype($_exit_code) === 'integer')
-		{
-			exit($_exit_code);
-		}
-
-		exit(255);
-	}
-	else if(! defined('SENT'))
-	{
-		sendHeader(CONTENT);
-	}
-
-	if(gettype(ERROR) === 'string')
-	{
-		die(ERROR);
-	}
-
-	die($_reason);
-}
-
-function secure($_string, $_null = true, $_die = !RAW)
+function secure($_string)
 {
 	if(gettype($_string) !== 'string')
 	{
-		if($_die)
-		{
-			error('Invalid $_string argument');
-		}
-		
-		if($_null)
-		{
-			return null;
-		}
-		
-		return '';
+		return null;
 	}
 	
 	$len = strlen($_string);
 	
 	if($len > 255)
 	{
-		if($_die)
-		{
-			error('Argument $_string exceeded length limit (255)');
-		}
-
-		if($_null)
-		{
-			return null;
-		}
-		
-		return '';
+		return null;
 	}
 	
 	$result = '';
@@ -491,17 +257,17 @@ function secure($_string, $_null = true, $_die = !RAW)
 		$len = strlen($result);
 	}
 
-	if($_null && $len === 0)
+	if($len === 0)
 	{
-		$result = null;
+		return null;
 	}
 	
 	return $result;
 }
 
-function secure_host($_string, $_null = true, $_die = !RAW)
+function secure_host($_string)
 {
-	$result = secure($_string, $_null, $_die);
+	$result = secure($_string);
 	
 	if($result !== null)
 	{
@@ -511,59 +277,105 @@ function secure_host($_string, $_null = true, $_die = !RAW)
 	return $result;
 }
 
-function secure_path($_string, $_null = true, $_die = !RAW)
+function secure_path($_string)
 {
-	return secure($_string, $_null, $_die);
+	return secure($_string);
 }
 
-function get_param($_key, $_numeric = false, $_float = true, $_die = !RAW)
+//
+//TODO/$_depth argument!!
+//
+function remove($_path, $_recursive = false, $_depth_current = 0)
 {
-	if(gettype($_key) !== 'string')
+	if(is_dir($_path))
 	{
-		if($_die)
+		if(! $_recursive)
 		{
-			error('Invalid $_key argument (not a non-emptyString)');
+			if(rmdir($_path) === false)
+			{
+				return false;
+			}
+			
+			return true;
 		}
 		
+		$handle = opendir($_path);
+
+		if($handle === false)
+		{
+			return false;
+		}
+		
+		while($sub = readdir($handle))
+		{
+			if($sub === '.' || $sub === '..')
+			{
+				continue;
+			}
+			else if(is_dir(join_path($_path, $sub)))
+			{
+				remove(join_path($_path, $sub), $_recursive, $_depth_current + 1);
+			}
+			else if(unlink(join_path($_path, $sub)) === false)
+			{
+				return false;
+			}
+		}
+		
+		closedir($handle);
+		
+		if(rmdir($_path) === false)
+		{
+			return false;
+		}
+	}
+	else if(file_exists($_path))
+	{
+		if(unlink($_path) === false)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+function get_param($_key, $_numeric = false, $_float = true)
+{
+	//
+	//TODO/maybe relay from $_GET[] => $_SERVER[] then!?! ^_^
+	//
+	if(CLI)
+	{
+		return null;
+	}
+	else if(gettype($_key) !== 'string')
+	{
 		return null;
 	}
 	else if(empty($_key))
 	{
-		if($_die)
-		{
-			error('Invalid $_key argument (may not be empty)');
-		}
-
 		return null;
 	}
 	else if(!isset($_GET[$_key]))
 	{
-		/*if($_numeric === null)
-		{
-			return false;
-		}*/
-
 		return null;
 	}
-	/*else if($_numeric === null)
-	{
-		return true;
-	}*/
 
-	$value = secure($_GET[$_key], true, $_die);
+	$value = secure($_GET[$_key]);
 
-	if($_numeric === null && strlen($value) === 1)
+	if($_numeric === null) switch(strtolower($value)[0])
 	{
-		if($value === '0' || $value === 'n' || $value === 'N')
-		{
+		case '0':
+		case 'y':
 			return false;
-		}
-		else if($value === '1' || $value === 'y' || $value === 'Y')
-		{
-			return true;
-		}
-
-		return null;
+		case '1':
+		case 'n':
+			return false;
 	}
 	
 	$result = '';
@@ -575,7 +387,7 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = !RAW)
 	$remove = 0;
 	$len = strlen($value);
 
-	if($_numeric) while($remove < ($len - 1) && $value[$remove] === '+' || $value[$remove] === '-')
+	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
 	{
 		++$remove;
 
@@ -695,8 +507,14 @@ function get_param($_key, $_numeric = false, $_float = true, $_die = !RAW)
 	return $result;
 }
 
-function ends_with($_haystack, $_needle)
+function ends_with($_haystack, $_needle, $_case_sensitive = true)
 {
+	if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
+	}
+	
 	if(strlen($_needle) > strlen($_haystack))
 	{
 		return false;
@@ -705,460 +523,139 @@ function ends_with($_haystack, $_needle)
 	return (substr($_haystack, -strlen($_needle)) === $_needle);
 }
 
-function log_error($_reason, $_source = '', $_path = '', $_die = !RAW)
+function starts_with($_haystack, $_needle, $_case_sensitive = true)
 {
-	$noLog = false;
-	$data = null;
+	if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
+	}
+
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
 	
-	if(!defined('PATH_LOG') || empty(PATH_LOG))
-	{
-		$noLog = $_die = !RAW;
-		$data = '';
-	}
-	else
-	{
-		$data = '[' . (string)time() . ']';
-	}
-
-	if(!empty($_source))
-	{
-		$data .= $_source . '(';
-
-		if(!empty($_path))
-		{
-			$data .= basename($_path);
-		}
-
-		$data .= ')';
-	}
-	else if(!empty($_path))
-	{
-		$data .= '(' . basename($_path) . ')';
-	}
-
-	$data .= ': ' . $_reason . PHP_EOL;
-	
-	if($noLog)
-	{
-		error($result = $data);
-	}
-	else
-	{
-		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
-
-		if($result === false)
-		{
-			error('Logging error: ' . substr($data, 0, -1));
-		}
-		else if($_die)
-		{
-			error('');
-		}
-	}
-
-	return $result;
+	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
 }
 
 //
-function remove($_path, $_recursive = true, $_die = !RAW, $_safety = true, $_depth_current = 0)
+if($argc !== null && $argv !== null)
+{
+	define('ARGC', $argc);
+	define('ARGV', $argv);
+}
+
+//
+function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 {
 	//
-	if($_safety && ($_path[0] === '~' || basename($_path)[0] === '~'))
-	{
-		log_error('Removing a value file is not permitted', 'remove', $_path, $_die);
+	define('COOKIE_PATH', '/');
+	define('COOKIE_SAME_SITE', 'Strict');
+	define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
+	define('COOKIE_HTTP_ONLY', true);
 
-		if($_die)
+	//
+	define('CLI', (php_sapi_name() === 'cli'));
+
+	//
+	define('TEST', (CLI ? null : (isset($_GET['test']))));
+	define('RO', (CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+	define('ZERO', (CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
+	define('DRAW', (CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
+
+	function check_path_char($_path, $_basename = true)
+	{
+		if($_basename)
 		{
-			error('Removing a value file is not permitted!');
+			$_path = basename($_path);
 		}
 		
-		return false;
-	}
-	else if(is_dir($_path))
-	{
-		if(! $_recursive)
+		switch($_path[0])
 		{
-			if(rmdir($_path) === false)
-			{
-				log_error('Unable to rmdir() w/o _recursive', 'remove', $_path, $_die);
+			case '.':
+			case '~':
+			case '+':
+			case '-':
+				return false;
+		}
+		
+		return true;
+	}
 
-				if($_die)
+	function get_path($_path, $_check = false, $_file = false)
+	{
+		if(gettype($_path) !== 'string')
+		{
+			die('Path needs to be (non-empty) String' . (CLI ? PHP_EOL : ''));
+		}
+		else if(empty($_path))
+		{
+			die('Path may not be empty' . (CLI ? PHP_EOL : ''));
+		}
+		
+		$result = '';
+
+		if($_path[0] === '/')
+		{
+			$result = $_path;
+		}
+		else if($_path === '.')
+		{
+			if(($result = getcwd()) === false)
+			{
+				if(($result = realpath($_path)) === false)
 				{
-					error('Unable to rmdir() w/o _recursive');
+					$result = $_path;
 				}
-
-				return false;
-			}
-
-			return true;
-		}
-		
-		$handle = opendir($_path);
-
-		if($handle === false)
-		{
-			log_error('Couldn\'t opendir()', 'remove', $_path, $_die);
-
-			if($_die)
-			{
-				error('Couldn\'t opendir()');
-			}
-
-			return false;
-		}
-		
-		while($sub = readdir($handle))
-		{
-			if($sub === '.' || $sub === '..')
-			{
-				continue;
-			}
-			else if(is_dir(join_path($_path, $sub)))
-			{
-				remove($_path . '/' . $sub, true, $_die, $_depth_current + 1);
-			}
-			else if(unlink(join_path($_path, $sub)))
-			{
-				return false;
 			}
 		}
-		
-		closedir($handle);
-		
-		if(rmdir($_path) === false)
+		else if(substr($_path, 0, 2) === './')
 		{
-			return false;
-		}
-	}
-	else if(file_exists($_path))
-	{
-		if(unlink($_path) === false)
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
-	
-	//
-	return true;
-}
-
-//
-if(CLI && !RAW)
-{
-	//
-	if(! (defined('STDIN') && defined('STDOUT')))
-	{
-		die(' >> Running in CLI mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
-	}
-	else if(!isset($argv))
-	{
-		fprintf(STDOUT, ' >> Warning: the \'%s\' is not defined (so no parameters can be defined here)' . PHP_EOL, '$argv');
-	}
-	else
-	{
-		define('ARGV', $argv);
-		define('ARGC', $argc);
-	}
-	
-	//
-	define('TYPE_VALUE', 1);
-	define('TYPE_DIR', 2);
-	define('TYPE_FILE', 4);
-
-	//
-	function prompt($_string, $_return = false, $_repeat = true)
-	{
-		function get($_str, $_ret = false)
-		{
-			$res = readline($_str);
-			
-			if($_ret)
+			if(getcwd() !== false)
 			{
-				return $res;
-			}
-			else if(empty($res))
-			{
-				return null;
+				$result = getcwd() . substr($_path, 1);
 			}
 			else
 			{
-				$res = strtolower($res);
-				
-				switch($res[0])
-				{
-					case 'y':
-						return true;
-					case 'n':
-						return false;
-				}
+				die('The \'getcwd()\' function doesn\'t work');
 			}
-			
-			return null;
 		}
-		
-		$result = get($_string, $_return);
+		else
+		{
+			$result = __DIR__ . ($_path[0] === '/' ? '' : '/') . $_path;
+		}
 		
 		if(gettype($result) === 'string')
 		{
-			return $result;
-		}
-		else while($result === null)
-		{
-			$result = get($_string);
-		}
-		
-		return $result;
-	}
-
-	function get_arguments($_index, $_secure = false, $_null = true, $_unique = true)
-	{
-		if(gettype($_index) !== 'integer' || $_index < 0)
-		{
-			if($_null)
-			{
-				return null;
-			}
-			
-			return array();
-		}
-		
-		if(ARGC <= $_index)
-		{
-			if($_null)
-			{
-				return null;
-			}
-			
-			return array();
-		}
-		
-		$result = array();
-
-		for($i = $_index + 1, $j = 0; $i < ARGC; ++$i)
-		{
-			if(strlen(ARGV[$i]) === 0)
-			{
-				continue;
-			}
-			else if(ARGV[$i][0] === '-')
-			{
-				break;
-			}
-
-			if($_unique && in_array(ARGV[$i], $result))
-			{
-				continue;
-			}
-
-			$result[$j++] = ARGV[$i];
-		}
-
-		if($_secure) for($i = 0; $i < count($result); ++$i)
-		{
-			if(($result[$i] = secure($result[$i], true, false)) === null)
-			{
-				array_splice($result, $i--, 1);
-			}
-		}
-
-		if(count($result) === 0)
-		{
-			if($_null)
-			{
-				return null;
-			}
-		}
-
-		return $result;		
-	}
-
-	function get_list($_index)
-	{
-		//
-		function get_item($_sub, &$_result)
-		{
-			$type = $_sub[0];
-			$host = substr($_sub, 1);
-			
-			if(!in_array($host, $_result['host']))
-			{
-				$_result['host'][] = $host;
-			}
-			
-			if(!isset($_result['type'][$host]))
-			{
-				$_result['type'][$host] = 0;
-			}
-			
-			switch($type)
-			{
-				case '~':
-					if(!in_array($host, $_result['value']))
-					{
-						$_result['value'][] = $host;
-					}
-					
-					$_result['type'][$host] |= TYPE_VALUE;
-					break;
-				case '+':
-					if(!in_array($host, $_result['dir']))
-					{
-						$_result['dir'][] = $host;
-					}
-					
-					$_result['type'][$host] |= TYPE_DIR;
-					break;
-				case '-':
-					if(!in_array($host, $_result['file']))
-					{
-						$_result['file'][] = $host;
-					}
-					
-					$_result['type'][$host] |= TYPE_FILE;
-					break;
-			}
-			
-			return $_result;
-		}
-
-		//
-		$list = null;
-
-		if(gettype($_index) === 'integer')
-		{
-			$list = get_arguments($_index, false, true, true);
-		}
-
-		$result = array();
-		$result['host'] = array();
-		$result['dir'] = array();
-		$result['file'] = array();
-		$result['value'] = array();
-		$result['type'] = array();
-		$result['rest'] = array();
-		
-		if($list === null)
-		{
-			$handle = opendir(PATH);
-			
-			if($handle === false)
-			{
-				log_error('Can\'t opendir()', 'get_list', PATH, true);
-				error('Can\'t opendir()');
-			}
-			
-			$next = null;
-			$found = 0;
-			
-			while($sub = readdir($handle))
-			{
-				if($sub[0] === '.' || $sub === '..')
-				{
-					continue;
-				}
-				else
-				{
-					switch($sub[0])
-					{
-						case '~':
-						case '+':
-						case '-':
-							if(strlen($sub) > 1)
-							{
-								$next = false;
-							}
-							else
-							{
-								$next = true;
-							}
-							break;
-						default:
-							$next = true;
-							break;
-					}
-
-					if($next)
-					{
-						$result['rest'][] = $sub;
-						continue;
-					}
-				}
-				
-				get_item($sub, $result);
-				++$found;
-			}
-			
-			closedir($handle);
-
-			if($found === 0)
-			{
-				$result = null;
-			}
+			$result = normalize($result);
 		}
 		else
 		{
-			$len = count($list);
-			$found = 0;
-			$sub;
-			
-			for($i = 0; $i < $len; ++$i)
-			{
-				$sub = join_path(PATH, '{~,+,-}' . $list[$i]);
-				$sub = glob($sub, GLOB_BRACE);
-				$subLen = count($sub);
-				
-				if($subLen === 0)
-				{
-					continue;
-				}
-				else for($j = 0; $j < $subLen; ++$j)
-				{
-					get_item(basename($sub[$j]), $result);
-					++$found;
-				}
-			}
-
-			if($found === 0)
-			{
-				$result = null;
-			}
+			return null;
+		}
+		
+		if($result === '/')
+		{
+			die('Root directory reached, which is not allowed here' . (CLI ? PHP_EOL : ''));
+		}
+		else if(!check_path_char($result, true))
+		{
+			die('Path may not start with one of [ \'.\', \'~\', \'+\', \'-\' ]');
 		}
 
-		if($result !== null)
+		if($_check)
 		{
-			$c = 0;
-
-			if(count($result['host']) === 0)
+			if($_file)
 			{
-				$result['host'] = null;
-				++$c;
+				if(!is_dir(dirname($result)))
+				{
+					die('Directory of path \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
+				}
 			}
-
-			if(count($result['dir']) === 0)
+			else if(!is_dir($result))
 			{
-				$result['dir'] = null;
-				++$c;
-			}
-
-			if(count($result['file']) === 0)
-			{
-				$result['file'] = null;
-				++$c;
-			}
-
-			if(count($result['value']) === 0)
-			{
-				$result['value'] = null;
-				++$c;
-			}
-
-			if($c === 4)
-			{
-				$result = null;
+				die('Directory \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
 			}
 		}
 
@@ -1166,1058 +663,1403 @@ if(CLI && !RAW)
 	}
 
 	//
-	function info($_index = -1, $_version = true, $_copyright = true)
+	define('PATH', get_path(DIR, true, false));
+	define('PATH_LOG', get_path(LOG, false, true));
+
+	if(DRAWING || CLI)
 	{
-		if($_version)
-		{
-			printf('v' . VERSION . PHP_EOL);
-		}
-
-		if($_copyright)
-		{
-			printf('Copyright (c) %s' . PHP_EOL, COPYRIGHT);
-		}
-
-		exit(0);
+		define('PATH_FONTS', get_path(FONTS, (CLI ? false : true), false));
+	}
+	else
+	{
+		define('PATH_FONTS', null);
 	}
 
-	function syntax($_argc)
+	//
+	if(! (is_readable(PATH)))// && is_writable(PATH)))
 	{
-		if($_argc > 1)
+		die('Your \'DIR\' path is not readable' . (CLI ? PHP_EOL : ''));// and writable');
+	}
+	else if(DRAWING && !is_readable(PATH_FONTS))
+	{
+		die('Your \'FONTS\' path is not readable' . (CLI ? PHP_EOL : ''));
+	}
+	else if(!is_dir(dirname(PATH_LOG)))
+	{
+		die('Your \'LOG\' directory is not a directory' . (CLI ? PHP_EOL : ''));
+	}
+	else if(is_file(PATH_LOG) && !is_writable(PATH_LOG))
+	{
+		die('Your existing \'LOG\' file is not writable' . (CLI ? PHP_EOL : ''));
+	}
+
+	//
+	function sendHeader($_type_value = CONTENT, $_raw = false)
+	{
+		if(defined('SENT'))
 		{
-			fprintf(STDERR, ' >> Invalid syntax (parameter, if any, not available)' . PHP_EOL);
+			return false;
 		}
 		else
 		{
-			printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL);
+			define('SENT', true);
 		}
 
-		printf(PHP_EOL);
-		printf('    -? / --help' . PHP_EOL);
-		printf('    -V / --version' . PHP_EOL);
-		printf('    -C / --copyright' . PHP_EOL);
-		printf('    -s / --set (...TODO)' . PHP_EOL);
-		printf('    -v / --values (*)' . PHP_EOL);
-		printf('    -n / --sync (*)' . PHP_EOL);
-		printf('    -l / --clean (*)' . PHP_EOL);
-		printf('    -p / --purge (*)' . PHP_EOL);
-		printf('    -c / --check' . PHP_EOL);
-		printf('    -h / --hashes' . PHP_EOL);
-		printf('    -f / --fonts' . PHP_EOL);
-		printf('    -t / --types' . PHP_EOL);
-		printf('    -e / --errors' . PHP_EOL);
-		printf('    -u / --unlog' . PHP_EOL);
-		printf(PHP_EOL);
-
-		exit(0);
-	}
-
-	function hashes($_index = -1)
-	{
-		$list = hash_algos();
-		$len = count($list);
-		
-		for($i = 0; $i < $len; ++$i)
+		if($_raw)
 		{
-			printf($list[$i] . PHP_EOL);
-		}
-		
-		exit(0);
-	}
-
-	function fonts($_index = -1)
-	{
-		if(gettype(PATH_FONTS) !== 'string' || empty(PATH_FONTS))
-		{
-			fprintf(STDERR, ' >> \'FONTS\' directory is not properly configured' . PHP_EOL);
-			exit(1);
-		}
-		else if(! is_dir(PATH_FONTS))
-		{
-			fprintf(STDERR, ' >> \'FONTS\' directory doesn\'t exist.' . PHP_EOL);
-			exit(2);
-		}
-
-		$fonts = get_arguments($_index, false, true, true);
-		$result = array();
-		$defined;
-
-		if($fonts === null)
-		{
-			$defined = -1;
-			$result = glob(join_path(PATH_FONTS, '*.ttf'), GLOB_BRACE);
-			$len = count($result);
-			
-			if($len === 0)
-			{
-				$result = null;
-			}
-			else for($i = 0; $i < $len; ++$i)
-			{
-				$result[$i] = basename($result[$i], '.ttf');
-			}
+			header($_type_value);
 		}
 		else
 		{
-			$defined = count($fonts);
-			$len = count($fonts);
-			$idx = 0;
-			
-			for($i = 0; $i < $len; ++$i)
+			header('Content-Type: ' . $_type_value);
+		}
+
+		return true;
+	}
+
+
+	function error($_reason, $_exit_code = 255, $_relay = false)
+	{
+		if(defined('FIN') && FIN)
+		{
+			return null;
+		}
+		else if(gettype($_reason) !== 'string')
+		{
+			$_reason = (string)$_reason;
+		}
+		
+		if(CLI)
+		{
+			if(defined('STDERR'))
 			{
+				fprintf(STDERR, ' >> ' . $_reason . PHP_EOL);
+			}
+			else
+			{
+				die(' >> ' . $_reason . PHP_EOL);
+			}
 
-				$sub = glob(join_path(PATH_FONTS, basename($fonts[$i], '.ttf') . '.ttf'));
-				$subLen = count($sub);
+			if(gettype($_exit_code) === 'integer')
+			{
+				exit($_exit_code);
+			}
 
-				if($subLen === 0)
+			exit(255);
+		}
+		else if(! defined('SENT'))
+		{
+			sendHeader(CONTENT);
+		}
+
+		if(gettype(ERROR) === 'string')
+		{
+			die(ERROR);
+		}
+
+		die($_reason);
+	}
+
+	function log_error($_reason, $_source = '', $_path = '', $_die = !RAW)
+	{
+		$noLog = false;
+		$data = null;
+		
+		if(!defined('PATH_LOG') || empty(PATH_LOG))
+		{
+			$noLog = $_die = !RAW;
+			$data = '';
+		}
+		else
+		{
+			$data = '[' . (string)time() . ']';
+		}
+
+		if(!empty($_source))
+		{
+			$data .= $_source . '(';
+
+			if(!empty($_path))
+			{
+				$data .= basename($_path);
+			}
+
+			$data .= ')';
+		}
+		else if(!empty($_path))
+		{
+			$data .= '(' . basename($_path) . ')';
+		}
+
+		$data .= ': ' . $_reason . PHP_EOL;
+		
+		if($noLog)
+		{
+			error($result = $data);
+		}
+		else
+		{
+			$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
+
+			if($result === false)
+			{
+				error('Logging error: ' . substr($data, 0, -1));
+			}
+			else if($_die)
+			{
+				error('');
+			}
+		}
+
+		return $result;
+	}
+
+	//
+	if(CLI && !RAW)
+	{
+		//
+		if(! (defined('STDIN') && defined('STDOUT')))
+		{
+			die(' >> Running in CLI mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
+		}
+		
+		//
+		define('TYPE_VALUE', 1);
+		define('TYPE_DIR', 2);
+		define('TYPE_FILE', 4);
+
+		//
+		function prompt($_string, $_return = false, $_repeat = true)
+		{
+			function get($_str, $_ret = false)
+			{
+				$res = readline($_str);
+				
+				if($_ret)
+				{
+					return $res;
+				}
+				else if(empty($res))
+				{
+					return null;
+				}
+				else
+				{
+					$res = strtolower($res);
+					
+					switch($res[0])
+					{
+						case 'y':
+							return true;
+						case 'n':
+							return false;
+					}
+				}
+				
+				return null;
+			}
+			
+			$result = get($_string, $_return);
+			
+			if(gettype($result) === 'string')
+			{
+				return $result;
+			}
+			else while($result === null)
+			{
+				$result = get($_string);
+			}
+			
+			return $result;
+		}
+
+		function get_arguments($_index, $_secure = false, $_null = true, $_unique = true)
+		{
+			if(gettype($_index) !== 'integer' || $_index < 0)
+			{
+				if($_null)
+				{
+					return null;
+				}
+				
+				return array();
+			}
+			
+			if(ARGC <= $_index)
+			{
+				if($_null)
+				{
+					return null;
+				}
+				
+				return array();
+			}
+			
+			$result = array();
+
+			for($i = $_index + 1, $j = 0; $i < ARGC; ++$i)
+			{
+				if(strlen(ARGV[$i]) === 0)
 				{
 					continue;
 				}
-				else for($j = 0; $j < $subLen; ++$j)
+				else if(ARGV[$i][0] === '-')
 				{
-					$result[$idx++] = basename($sub[$j], '.ttf');
+					break;
+				}
+
+				if($_unique && in_array(ARGV[$i], $result))
+				{
+					continue;
+				}
+
+				$result[$j++] = ARGV[$i];
+			}
+
+			if($_secure) for($i = 0; $i < count($result); ++$i)
+			{
+				if(($result[$i] = secure($result[$i])) === null)
+				{
+					array_splice($result, $i--, 1);
 				}
 			}
+
+			if(count($result) === 0)
+			{
+				if($_null)
+				{
+					return null;
+				}
+			}
+
+			return $result;		
+		}
+
+		function get_list($_index)
+		{
+			//
+			function get_item($_sub, &$_result)
+			{
+				$type = $_sub[0];
+				$host = substr($_sub, 1);
+				
+				if(!in_array($host, $_result['host']))
+				{
+					$_result['host'][] = $host;
+				}
+				
+				if(!isset($_result['type'][$host]))
+				{
+					$_result['type'][$host] = 0;
+				}
+				
+				switch($type)
+				{
+					case '~':
+						if(!in_array($host, $_result['value']))
+						{
+							$_result['value'][] = $host;
+						}
+						
+						$_result['type'][$host] |= TYPE_VALUE;
+						break;
+					case '+':
+						if(!in_array($host, $_result['dir']))
+						{
+							$_result['dir'][] = $host;
+						}
+						
+						$_result['type'][$host] |= TYPE_DIR;
+						break;
+					case '-':
+						if(!in_array($host, $_result['file']))
+						{
+							$_result['file'][] = $host;
+						}
+						
+						$_result['type'][$host] |= TYPE_FILE;
+						break;
+				}
+				
+				return $_result;
+			}
+
+			//
+			$list = null;
+
+			if(gettype($_index) === 'integer')
+			{
+				$list = get_arguments($_index, false, true, true);
+			}
+
+			$result = array();
+			$result['host'] = array();
+			$result['dir'] = array();
+			$result['file'] = array();
+			$result['value'] = array();
+			$result['type'] = array();
+			$result['rest'] = array();
 			
-			if($idx === 0)
+			if($list === null)
 			{
-				$result = null;
+				$handle = opendir(PATH);
+				
+				if($handle === false)
+				{
+					log_error('Can\'t opendir()', 'get_list', PATH, true);
+					error('Can\'t opendir()');
+				}
+				
+				$next = null;
+				$found = 0;
+				
+				while($sub = readdir($handle))
+				{
+					if($sub[0] === '.' || $sub === '..')
+					{
+						continue;
+					}
+					else
+					{
+						switch($sub[0])
+						{
+							case '~':
+							case '+':
+							case '-':
+								if(strlen($sub) > 1)
+								{
+									$next = false;
+								}
+								else
+								{
+									$next = true;
+								}
+								break;
+							default:
+								$next = true;
+								break;
+						}
+
+						if($next)
+						{
+							$result['rest'][] = $sub;
+							continue;
+						}
+					}
+					
+					get_item($sub, $result);
+					++$found;
+				}
+				
+				closedir($handle);
+
+				if($found === 0)
+				{
+					$result = null;
+				}
 			}
-		}
-
-		if($result === null)
-		{
-			fprintf(STDERR, ' >> No fonts found.' . PHP_EOL);
-			exit(3);
-		}
-		
-		$len = count($result);
-		printf(' >> Found %d fonts' . ($defined === -1 ? '' : ' (by %d globs)') . PHP_EOL . PHP_EOL, $len, $defined);
-		
-		for($i = 0; $i < $len; ++$i)
-		{
-			printf('    %s' . PHP_EOL, $result[$i]);
-		}
-
-		printf(PHP_EOL);
-		exit(0);
-	}
-
-	function types($_index = -1)
-	{
-		if(!extension_loaded('gd'))
-		{
-			fprintf(STDERR, ' >> The GD library/extension is not loaded/available' . PHP_EOL);
-			exit(1);
-		}
-
-die('TODO: same as in fonts()!');
-		/*
-		$selection = get_arguments($_index + 1, true, true);
-		$types = imagetypes();
-
-		if($selection === null)
-		{
-			$png = ($types & IMG_PNG);
-			$jpg = ($types & IMG_JPG);
-
-			$avail = 0;
-			$avail += ($png ? 1 : 0);
-			$avail += ($jpg ? 1 : 0);
-
-			printf(' >> These are the %d available image types:' . PHP_EOL . PHP_EOL, $avail);
-
-			if($png)
+			else
 			{
-				printf('    png' . PHP_EOL);
+				$len = count($list);
+				$found = 0;
+				$sub;
+				
+				for($i = 0; $i < $len; ++$i)
+				{
+					$sub = join_path(PATH, '{~,+,-}' . $list[$i]);
+					$sub = glob($sub, GLOB_BRACE);
+					$subLen = count($sub);
+					
+					if($subLen === 0)
+					{
+						continue;
+					}
+					else for($j = 0; $j < $subLen; ++$j)
+					{
+						get_item(basename($sub[$j]), $result);
+						++$found;
+					}
+				}
+
+				if($found === 0)
+				{
+					$result = null;
+				}
 			}
 
-			if($jpg)
+			if($result !== null)
 			{
-				printf('    jpg' . PHP_EOL);
+				$c = 0;
+
+				if(count($result['host']) === 0)
+				{
+					$result['host'] = null;
+					++$c;
+				}
+
+				if(count($result['dir']) === 0)
+				{
+					$result['dir'] = null;
+					++$c;
+				}
+
+				if(count($result['file']) === 0)
+				{
+					$result['file'] = null;
+					++$c;
+				}
+
+				if(count($result['value']) === 0)
+				{
+					$result['value'] = null;
+					++$c;
+				}
+
+				if($c === 4)
+				{
+					$result = null;
+				}
+			}
+
+			return $result;
+		}
+
+		//
+		function info($_index = -1, $_version = true, $_copyright = true)
+		{
+			if($_version)
+			{
+				printf('v' . VERSION . PHP_EOL);
+			}
+
+			if($_copyright)
+			{
+				printf('Copyright (c) %s' . PHP_EOL, COPYRIGHT);
+			}
+
+			exit(0);
+		}
+
+		function syntax($_argc)
+		{
+			if($_argc > 1)
+			{
+				fprintf(STDERR, ' >> Invalid syntax (parameter, if any, not available)' . PHP_EOL);
+			}
+			else
+			{
+				printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL);
 			}
 
 			printf(PHP_EOL);
+			printf('    -? / --help' . PHP_EOL);
+			printf('    -V / --version' . PHP_EOL);
+			printf('    -C / --copyright' . PHP_EOL);
+			printf('    -s / --set (...TODO)' . PHP_EOL);
+			printf('    -v / --values (*)' . PHP_EOL);
+			printf('    -n / --sync (*)' . PHP_EOL);
+			printf('    -l / --clean (*)' . PHP_EOL);
+			printf('    -p / --purge (*)' . PHP_EOL);
+			printf('    -c / --check' . PHP_EOL);
+			printf('    -h / --hashes' . PHP_EOL);
+			printf('    -f / --fonts' . PHP_EOL);
+			printf('    -t / --types' . PHP_EOL);
+			printf('    -e / --errors' . PHP_EOL);
+			printf('    -u / --unlog' . PHP_EOL);
+			printf(PHP_EOL);
+
+			exit(0);
 		}
-		else
+
+		function hashes($_index = -1)
 		{
-			$sel = array();
-			$len = count($selection);
-
-			for($i = 0, $j = 0; $i < $len; ++$i)
-			{
-				if(($selection[$i] = strtolower($selection[$i]))[0] === '.')
-				{
-					$selection[$i] = substr($selection[$i], 1);
-				}
-
-				if($selection[$i] === 'png')
-				{
-					if(!in_array($selection[$i], $sel))
-					{
-						$sel[$j++] = $selection[$i];
-					}
-				}
-				else if($selection[$i] === 'jpg')
-				{
-					if(!in_array($selection[$i], $sel))
-					{
-						$sel[$j++] = $selection[$i];
-					}
-				}
-				else
-				{
-					fprintf(STDERR, ' >> Image type \'%s\' is invalid..' . PHP_EOL, $selection[$i]);
-				}
-			}
-
-			$selection = $sel;
-			$len = count($selection);
-
-			if($len > 0)
-			{
-				printf(PHP_EOL);
-			}
-
+			$list = hash_algos();
+			$len = count($list);
+			
 			for($i = 0; $i < $len; ++$i)
 			{
-				switch($selection[$i])
-				{
-					case 'png':
-						if($types & IMG_PNG)
-						{
-							printf('    png: YES :-D' . PHP_EOL);
-						}
-						else
-						{
-							fprintf(STDERR, '    png: NO. :-(' . PHP_EOL);
-						}
-						break;
-					case 'jpg':
-						if($types & IMG_JPG)
-						{
-							printf('    jpg: YES :-D' . PHP_EOL);
-						}
-						else
-						{
-							fprintf(STDERR, '    jpg: NO. :-(' . PHP_EOL);
-						}
-						break;
-				}
-			}
-
-			if($len > 0)
-			{
-				printf(PHP_EOL);
-			}
-		}
-
-		exit(0);*/
-	}
-	
-	function config($_index = -1)
-	{
-		//
-		printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
-		fprintf(STDERR, ' >> Beware: the DRAWING options are not finished in this --check/-c function! JFYI..' . PHP_EOL);
-		printf(PHP_EOL);
-
-		//
-		$ok = 0;
-		$errors = 0;
-		$warnings = 0;
-
-		//
-		define('START', '%12s: %-7s');
-		
-		//
-		if(gettype(RAW) === 'boolean')
-		{
-			printf(START.'A boolean value' . PHP_EOL, 'RAW', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Not a boolean value' . PHP_EOL, 'RAW', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(AUTO) === 'boolean')
-		{
-			printf(START.'Boolean type (and could also be an Integer above 0)' . PHP_EOL, 'AUTO', 'OK');
-			++$ok;
-		}
-		else if(gettype(AUTO) === 'integer')
-		{
-			if(AUTO < 0)
-			{
-				fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'AUTO', 'BAD');
-				++$errors;
-			}
-			else if(AUTO === 0)
-			{
-				fprintf(STDERR, START.'Integer, but equals 0 - where (false) would be better' . PHP_EOL, 'AUTO', 'WARN');
-				++$warnings;
-			}
-			else
-			{
-				printf(START.'Integer above 0 (and could also be a Boolean)' . PHP_EOL, 'AUTO', 'OK');
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'Neither a Boolean nor an Integer above 0/1' . PHP_EOL, 'AUTO', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
-		{
-			if(THRESHOLD < 1)
-			{
-				fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
-				++$errors;
-			}
-			else
-			{
-				printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(PATH) === 'string' && !empty(PATH))
-		{
-			if(is_dir(PATH) && is_writable(PATH))
-			{
-				printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
-				++$errors;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
-			++$errors;
-		}
-		
-		//
-		if(gettype(HIDE) === 'boolean')
-		{
-			printf(START.'Is a Boolean, and may also be a String' . PHP_EOL, 'HIDE', 'OK');
-			++$ok;
-		}
-		else if(gettype(HIDE) === 'string')
-		{
-			printf(START.'Is a String, and may also be a Boolean' . PHP_EOL, 'HIDE', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Needs to be a String or Boolean!' . PHP_EOL, 'HIDE', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(OVERRIDE) === 'boolean')
-		{
-			printf(START.'Boolean type, great.' . PHP_EOL, 'OVERRIDE', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(CLIENT) === 'boolean')
-		{
-			printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'CLIENT', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(SERVER) === 'boolean')
-		{
-			printf(START.'Boolean type' . PHP_EOL, 'SERVER', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'SERVER', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(HASH) === 'string' && !empty(HASH))
-		{
-			if(in_array(HASH, hash_algos()))
-			{
-				printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
-				++$errors;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(HASH_IP) === 'boolean')
-		{
-			printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
-			++$errors;
-		}
-
-		//
-		if(gettype(CONTENT) === 'string' && !empty(CONTENT))
-		{
-			printf(START.'Non-empty String' . PHP_EOL, 'CONTENT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'CONTENT', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(CLEAN === null)
-		{
-			printf(START.'Equals (null), and could also be a Boolean or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
-			++$ok;
-		}
-		else if(gettype(CLEAN) === 'boolean')
-		{
-			printf(START.'Boolean type, and could also be (null) or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
-			++$ok;
-		}
-		else if(gettype(CLEAN) === 'integer')
-		{
-			if(CLEAN <= 0)
-			{
-				fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'CLEAN', 'BAD');
-				++$errors;
-			}
-			else if(CLEAN === 0)
-			{
-				fprintf(STDERR, START.'Integer, but equals 0 (that should be (true) instead)' . PHP_EOL, 'CLEAN', 'WARN');
-				++$warnings;
-			}
-			else
-			{
-				printf(START.'Integer above 1 (and could also be (null) or a Boolean type)' . PHP_EOL, 'CLEAN', 'OK');
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'Neither (null), Boolean type nor Integer above 0/1' . PHP_EOL, 'CLEAN', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(LIMIT) === 'integer' && LIMIT > -1)
-		{
-			printf(START.'Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(PATH_LOG) === 'string' && !empty(PATH_LOG))
-		{
-			if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
-			{
-				printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
-				++$errors;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(ERROR) === 'string')
-		{
-			printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
-			++$ok;
-		}
-
-		if(gettype(NONE) === 'string')
-		{
-			printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(DRAWING) === 'boolean')
-		{
-			if(DRAWING)
-			{
-				if(extension_loaded('gd'))
-				{
-					printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
-					++$ok;
-				}
-				else
-				{
-					fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
-					++$warnings;
-				}
-			}
-			else
-			{
-				printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
-			++$errors;
-		}
-
-		if(gettype(SIZE) === 'integer' && SIZE > 5)
-		{
-			$limit = SIZE_LIMIT;
-
-			if(gettype($limit) !== 'integer')
-			{
-				$limit = null;
-			}
-			else if($limit < 6 || $limit > 512)
-			{
-				$limit = null;
-			}
-
-			if($limit === null)
-			{
-				fprintf(STDERR, START.'Integer above 5 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
-				++$warnings;
-			}
-			else if(SIZE > $limit)
-			{
-				fprintf(STDERR, START.'Integer exceeds SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'BAD', $limit);
-				++$errors;
-			}
-			else
-			{
-				printf(START.'Integer above 5 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer above 0 and below or equal to SIZE_LIMIT' . PHP_EOL, 'SIZE', 'BAD');
-			++$errors;
-		}
-
-		if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 6 && SIZE_LIMIT <= 512)
-		{
-			printf(START.'Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
-			++$errors;
-		}
-		
-		if(gettype(H) === 'integer')
-		{
-			$limit = H_LIMIT;
-			
-			if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
-			{
-				$limit = null;
+				printf($list[$i] . PHP_EOL);
 			}
 			
-			if($limit === null)
-			{
-				fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
-				++$warnings;
-			}
-			else if(H > $limit || H < -$limit)
-			{
-				fprintf(STDERR, START.'Integer exceeds H_LIMIT (%d)' . PHP_EOL, 'H', 'BAD', $limit);
-				++$errors;
-			}
-			else
-			{
-				printf(START.'Integer within H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer (within H_LIMIT)' . PHP_EOL, 'H', 'BAD');
-			++$errors;
-		}
-		
-		if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
-		{
-			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
-			++$errors;
-		}
-		
-		if(gettype(V) === 'integer')
-		{
-			$limit = V_LIMIT;
-			
-			if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
-			{
-				$limit = null;
-			}
-			
-			if($limit === null)
-			{
-				fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
-				++$warnings;
-			}
-			else if(V > $limit || V < -$limit)
-			{
-				fprintf(STDERR, START.'Integer exceeds V_IMIT (%d)' . PHP_EOL, 'V', 'BAD', $limit);
-				++$errors;
-			}
-			else
-			{
-				printf(START.'Integer within V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
-				++$ok;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No Integer (within V_LIMIT)'. PHP_EOL, 'V', 'BAD');
-			++$errors;
-		}
-		
-		if(gettype(V_LIMIT) === 'integer' && V_LIMIT >= 0 && V_LIMIT <= 512)
-		{
-			printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'BAD');
-			++$errors;
+			exit(0);
 		}
 
-		if(gettype(FONT) === 'string' && !empty(FONT))
+		function fonts($_index = -1)
 		{
-			$test = null;
-			
-			if(is_dir(PATH_FONTS))
+			if(gettype(PATH_FONTS) !== 'string' || empty(PATH_FONTS))
 			{
-				$test = join_path(PATH_FONTS, FONT . '.ttf');
+				fprintf(STDERR, ' >> \'FONTS\' directory is not properly configured' . PHP_EOL);
+				exit(1);
+			}
+			else if(! is_dir(PATH_FONTS))
+			{
+				fprintf(STDERR, ' >> \'FONTS\' directory doesn\'t exist.' . PHP_EOL);
+				exit(2);
+			}
+
+			$fonts = get_arguments($_index, false, true, true);
+			$result = array();
+			$defined;
+
+			if($fonts === null)
+			{
+				$defined = -1;
+				$result = glob(join_path(PATH_FONTS, '*.ttf'), GLOB_BRACE);
+				$len = count($result);
 				
-				if(is_file($test) && is_readable($test))
+				if($len === 0)
 				{
-					$test = true;
+					$result = null;
 				}
-			}
-
-			if($test === null)
-			{
-				fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
-				++$warnings;
-			}
-			else if($test)
-			{
-				printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
-				++$ok;
+				else for($i = 0; $i < $len; ++$i)
+				{
+					$result[$i] = basename($result[$i], '.ttf');
+				}
 			}
 			else
 			{
-				fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
-				++$errors;
-			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
-			++$errors;
-		}
-
-		if(gettype(PATH_FONTS) === 'string' && !empty(PATH_FONTS))
-		{
-			if(is_dir(PATH_FONTS))
-			{
-				$test = glob(PATH_FONTS . '/*.ttf');
-				$len = count($test);
+				$defined = count($fonts);
+				$len = count($fonts);
+				$idx = 0;
 				
-				if($len > 0)
+				for($i = 0; $i < $len; ++$i)
 				{
-					printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
-					++$ok;
+
+					$sub = glob(join_path(PATH_FONTS, basename($fonts[$i], '.ttf') . '.ttf'));
+					$subLen = count($sub);
+
+					if($subLen === 0)
+					{
+						continue;
+					}
+					else for($j = 0; $j < $subLen; ++$j)
+					{
+						$result[$idx++] = basename($sub[$j], '.ttf');
+					}
 				}
-				else
+				
+				if($idx === 0)
 				{
-					fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
-					++$warnings;
+					$result = null;
 				}
 			}
-			else
+
+			if($result === null)
 			{
-				fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
-				++$warnings;
+				fprintf(STDERR, ' >> No fonts found.' . PHP_EOL);
+				exit(3);
 			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
-			++$errors;
+			
+			$len = count($result);
+			printf(' >> Found %d fonts' . ($defined === -1 ? '' : ' (by %d globs)') . PHP_EOL . PHP_EOL, $len, $defined);
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				printf('    %s' . PHP_EOL, $result[$i]);
+			}
+
+			printf(PHP_EOL);
+			exit(0);
 		}
 
-		if(gettype(FG) === 'string' && !empty(FG))
-		{
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
-			++$errors;
-		}
-
-		if(gettype(BG) === 'string' && !empty(BG))
-		{
-			printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(AA) === 'boolean')
-		{
-			printf(START.'Is a boolean' . PHP_EOL, 'AA', 'OK');
-			++$ok;
-		}
-		else
-		{
-			fprintf(STDERR, START.'Not a Boolean' . PHP_EOL, 'AA', 'BAD');
-			++$errors;
-		}
-
-		//
-		if(gettype(TYPE) === 'string' && !empty(TYPE))
+		function types($_index = -1)
 		{
 			if(!extension_loaded('gd'))
 			{
-				printf(START.'A non-empty String is valid, but I can\'t check for supported types atm.' . PHP_EOL, 'TYPE', 'WARN');
-				++$warnings;
+				fprintf(STDERR, ' >> The GD library/extension is not loaded/available' . PHP_EOL);
+				exit(1);
+			}
+
+	die('TODO: same as in fonts()!');
+			/*
+			$selection = get_arguments($_index + 1, true, true);
+			$types = imagetypes();
+
+			if($selection === null)
+			{
+				$png = ($types & IMG_PNG);
+				$jpg = ($types & IMG_JPG);
+
+				$avail = 0;
+				$avail += ($png ? 1 : 0);
+				$avail += ($jpg ? 1 : 0);
+
+				printf(' >> These are the %d available image types:' . PHP_EOL . PHP_EOL, $avail);
+
+				if($png)
+				{
+					printf('    png' . PHP_EOL);
+				}
+
+				if($jpg)
+				{
+					printf('    jpg' . PHP_EOL);
+				}
+
+				printf(PHP_EOL);
 			}
 			else
 			{
-				$avail = imagetypes();
-				$result = null;
+				$sel = array();
+				$len = count($selection);
 
-				switch(strtolower(TYPE))
+				for($i = 0, $j = 0; $i < $len; ++$i)
 				{
-					case 'png':
-						$result = ($avail & IMG_PNG);
-						break;
-					case 'jpg':
-						$result = ($avail & IMG_JPG);
-						break;
-					default:
-						break;
+					if(($selection[$i] = strtolower($selection[$i]))[0] === '.')
+					{
+						$selection[$i] = substr($selection[$i], 1);
+					}
+
+					if($selection[$i] === 'png')
+					{
+						if(!in_array($selection[$i], $sel))
+						{
+							$sel[$j++] = $selection[$i];
+						}
+					}
+					else if($selection[$i] === 'jpg')
+					{
+						if(!in_array($selection[$i], $sel))
+						{
+							$sel[$j++] = $selection[$i];
+						}
+					}
+					else
+					{
+						fprintf(STDERR, ' >> Image type \'%s\' is invalid..' . PHP_EOL, $selection[$i]);
+					}
 				}
 
-				if($result)
+				$selection = $sel;
+				$len = count($selection);
+
+				if($len > 0)
 				{
-					printf(START.'Valid, supported image type.' . PHP_EOL, 'TYPE', 'OK');
+					printf(PHP_EOL);
+				}
+
+				for($i = 0; $i < $len; ++$i)
+				{
+					switch($selection[$i])
+					{
+						case 'png':
+							if($types & IMG_PNG)
+							{
+								printf('    png: YES :-D' . PHP_EOL);
+							}
+							else
+							{
+								fprintf(STDERR, '    png: NO. :-(' . PHP_EOL);
+							}
+							break;
+						case 'jpg':
+							if($types & IMG_JPG)
+							{
+								printf('    jpg: YES :-D' . PHP_EOL);
+							}
+							else
+							{
+								fprintf(STDERR, '    jpg: NO. :-(' . PHP_EOL);
+							}
+							break;
+					}
+				}
+
+				if($len > 0)
+				{
+					printf(PHP_EOL);
+				}
+			}
+
+			exit(0);*/
+		}
+		
+		function config($_index = -1)
+		{
+			//
+			printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
+			fprintf(STDERR, ' >> Beware: the DRAWING options are not finished in this --check/-c function! JFYI..' . PHP_EOL);
+			printf(PHP_EOL);
+
+			//
+			$ok = 0;
+			$errors = 0;
+			$warnings = 0;
+
+			//
+			define('START', '%12s: %-7s');
+			
+			//
+			if(gettype(RAW) === 'boolean')
+			{
+				printf(START.'A boolean value' . PHP_EOL, 'RAW', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not a boolean value' . PHP_EOL, 'RAW', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(AUTO) === 'boolean')
+			{
+				printf(START.'Boolean type (and could also be an Integer above 0)' . PHP_EOL, 'AUTO', 'OK');
+				++$ok;
+			}
+			else if(gettype(AUTO) === 'integer')
+			{
+				if(AUTO < 0)
+				{
+					fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'AUTO', 'BAD');
+					++$errors;
+				}
+				else if(AUTO === 0)
+				{
+					fprintf(STDERR, START.'Integer, but equals 0 - where (false) would be better' . PHP_EOL, 'AUTO', 'WARN');
+					++$warnings;
+				}
+				else
+				{
+					printf(START.'Integer above 0 (and could also be a Boolean)' . PHP_EOL, 'AUTO', 'OK');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'Neither a Boolean nor an Integer above 0/1' . PHP_EOL, 'AUTO', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
+			{
+				if(THRESHOLD < 1)
+				{
+					fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
+					++$errors;
+				}
+				else
+				{
+					printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(PATH) === 'string' && !empty(PATH))
+			{
+				if(is_dir(PATH) && is_writable(PATH))
+				{
+					printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
 					++$ok;
 				}
 				else
 				{
-					fprintf(STDERR, START.'Unsupported image type..' . PHP_EOL, 'TYPE', 'BAD');
+					fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
 					++$errors;
 				}
 			}
-		}
-		else
-		{
-			fprintf(STDERR, START.'No valid (non-empty) String' . PHP_EOL, 'TYPE', 'BAD');
-			++$errors;
-		}
-
-		//
-		printf(PHP_EOL);
-
-		if($errors === 0)
-		{
-			printf(' >> All %d OK', $ok);
-
-			if($warnings > 0)
+			else
 			{
-				fprintf(STDERR, ', but there are %d warnings.', $warnings);
+				fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
+				++$errors;
+			}
+			
+			//
+			if(gettype(HIDE) === 'boolean')
+			{
+				printf(START.'Is a Boolean, and may also be a String' . PHP_EOL, 'HIDE', 'OK');
+				++$ok;
+			}
+			else if(gettype(HIDE) === 'string')
+			{
+				printf(START.'Is a String, and may also be a Boolean' . PHP_EOL, 'HIDE', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Needs to be a String or Boolean!' . PHP_EOL, 'HIDE', 'BAD');
+				++$errors;
 			}
 
-			printf('.' . PHP_EOL);
-		}
-		else
-		{
-			printf(' >> Only %d were OK..' . PHP_EOL, $ok);
-			fprintf(STDERR, ' >> %d errors' . PHP_EOL, $errors);
-			fprintf(STDERR, ' >> %d warnings' . PHP_EOL, $warnings);
-		}
-
-		if($errors === 0)
-		{
-			if($warnings === 0)
+			//
+			if(gettype(OVERRIDE) === 'boolean')
 			{
-				printf(' >> So everything\'s fine. Just continue to use this script. ;)~' . PHP_EOL);
-				exit(0);
+				printf(START.'Boolean type, great.' . PHP_EOL, 'OVERRIDE', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
+				++$errors;
 			}
 
-			fprintf(STDERR, ' >> So it\'s OK to use this script, but maybe you should fix the %d warnings?' . PHP_EOL, $warnings);
-			exit(2);
-		}
+			//
+			if(gettype(CLIENT) === 'boolean')
+			{
+				printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'CLIENT', 'BAD');
+				++$errors;
+			}
 
-		fprintf(STDERR, ' >> So you\'ve to fix %d errors (and %d warnings) now.' . PHP_EOL, $errors, $warnings);
-		exit(1);
-	}
-	
-	function set($_index = -1)
-	{
-		//by default set (0)
-		//either for a specified host, or to all which match a *glob*..
-		//also to init a host, if !AUTO!
-		//and use 'prompt()' if file was not already existing!
-die('TODO: set()');
-	}
+			//
+			if(gettype(SERVER) === 'boolean')
+			{
+				printf(START.'Boolean type' . PHP_EOL, 'SERVER', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'SERVER', 'BAD');
+				++$errors;
+			}
 
-	function sync($_index = -1)
-	{
-		return values($_index, true, true);
-	}
-	
-	function purge($_index = -1)
-	{
-		return values($_index, true, false);
-	}
-	
-	function clean($_index = -1)
-	{
-		return values($_index, false, true);
-	}
-	
-	// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
-	function values($_index = -1, $_purge = false, $_clean = false)
-	{
-die('TODO');//and don't forget 'prompt()'!!
-		//
-		$list = get_list($_index);
+			//
+			if(gettype(HASH) === 'string' && !empty(HASH))
+			{
+				if(in_array(HASH, hash_algos()))
+				{
+					printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
+				++$errors;
+			}
 
-		if($list === null)
-		{
-			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+			//
+			if(gettype(HASH_IP) === 'boolean')
+			{
+				printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
+				++$errors;
+			}
+
+			//
+			if(gettype(CONTENT) === 'string' && !empty(CONTENT))
+			{
+				printf(START.'Non-empty String' . PHP_EOL, 'CONTENT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'CONTENT', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(CLEAN === null)
+			{
+				printf(START.'Equals (null), and could also be a Boolean or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
+				++$ok;
+			}
+			else if(gettype(CLEAN) === 'boolean')
+			{
+				printf(START.'Boolean type, and could also be (null) or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
+				++$ok;
+			}
+			else if(gettype(CLEAN) === 'integer')
+			{
+				if(CLEAN <= 0)
+				{
+					fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'CLEAN', 'BAD');
+					++$errors;
+				}
+				else if(CLEAN === 0)
+				{
+					fprintf(STDERR, START.'Integer, but equals 0 (that should be (true) instead)' . PHP_EOL, 'CLEAN', 'WARN');
+					++$warnings;
+				}
+				else
+				{
+					printf(START.'Integer above 1 (and could also be (null) or a Boolean type)' . PHP_EOL, 'CLEAN', 'OK');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'Neither (null), Boolean type nor Integer above 0/1' . PHP_EOL, 'CLEAN', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(LIMIT) === 'integer' && LIMIT > -1)
+			{
+				printf(START.'Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(PATH_LOG) === 'string' && !empty(PATH_LOG))
+			{
+				if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
+				{
+					printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(ERROR) === 'string')
+			{
+				printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
+				++$ok;
+			}
+
+			if(gettype(NONE) === 'string')
+			{
+				printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(DRAWING) === 'boolean')
+			{
+				if(DRAWING)
+				{
+					if(extension_loaded('gd'))
+					{
+						printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
+						++$ok;
+					}
+					else
+					{
+						fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
+						++$warnings;
+					}
+				}
+				else
+				{
+					printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(SIZE) === 'integer' && SIZE > 5)
+			{
+				$limit = SIZE_LIMIT;
+
+				if(gettype($limit) !== 'integer')
+				{
+					$limit = null;
+				}
+				else if($limit < 6 || $limit > 512)
+				{
+					$limit = null;
+				}
+
+				if($limit === null)
+				{
+					fprintf(STDERR, START.'Integer above 5 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
+					++$warnings;
+				}
+				else if(SIZE > $limit)
+				{
+					fprintf(STDERR, START.'Integer exceeds SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'BAD', $limit);
+					++$errors;
+				}
+				else
+				{
+					printf(START.'Integer above 5 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer above 0 and below or equal to SIZE_LIMIT' . PHP_EOL, 'SIZE', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 6 && SIZE_LIMIT <= 512)
+			{
+				printf(START.'Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
+				++$errors;
+			}
+			
+			if(gettype(H) === 'integer')
+			{
+				$limit = H_LIMIT;
+				
+				if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
+				{
+					$limit = null;
+				}
+				
+				if($limit === null)
+				{
+					fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
+					++$warnings;
+				}
+				else if(H > $limit || H < -$limit)
+				{
+					fprintf(STDERR, START.'Integer exceeds H_LIMIT (%d)' . PHP_EOL, 'H', 'BAD', $limit);
+					++$errors;
+				}
+				else
+				{
+					printf(START.'Integer within H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer (within H_LIMIT)' . PHP_EOL, 'H', 'BAD');
+				++$errors;
+			}
+			
+			if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
+			{
+				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
+				++$errors;
+			}
+			
+			if(gettype(V) === 'integer')
+			{
+				$limit = V_LIMIT;
+				
+				if(gettype($limit) !== 'integer' || $limit > 512 || $limit < 0)
+				{
+					$limit = null;
+				}
+				
+				if($limit === null)
+				{
+					fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
+					++$warnings;
+				}
+				else if(V > $limit || V < -$limit)
+				{
+					fprintf(STDERR, START.'Integer exceeds V_IMIT (%d)' . PHP_EOL, 'V', 'BAD', $limit);
+					++$errors;
+				}
+				else
+				{
+					printf(START.'Integer within V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer (within V_LIMIT)'. PHP_EOL, 'V', 'BAD');
+				++$errors;
+			}
+			
+			if(gettype(V_LIMIT) === 'integer' && V_LIMIT >= 0 && V_LIMIT <= 512)
+			{
+				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(FONT) === 'string' && !empty(FONT))
+			{
+				$test = null;
+				
+				if(is_dir(PATH_FONTS))
+				{
+					$test = join_path(PATH_FONTS, FONT . '.ttf');
+					
+					if(is_file($test) && is_readable($test))
+					{
+						$test = true;
+					}
+				}
+
+				if($test === null)
+				{
+					fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
+					++$warnings;
+				}
+				else if($test)
+				{
+					printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(PATH_FONTS) === 'string' && !empty(PATH_FONTS))
+			{
+				if(is_dir(PATH_FONTS))
+				{
+					$test = glob(PATH_FONTS . '/*.ttf');
+					$len = count($test);
+					
+					if($len > 0)
+					{
+						printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
+						++$ok;
+					}
+					else
+					{
+						fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
+						++$warnings;
+					}
+				}
+				else
+				{
+					fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
+					++$warnings;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(FG) === 'string' && !empty(FG))
+			{
+				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(BG) === 'string' && !empty(BG))
+			{
+				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(AA) === 'boolean')
+			{
+				printf(START.'Is a boolean' . PHP_EOL, 'AA', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not a Boolean' . PHP_EOL, 'AA', 'BAD');
+				++$errors;
+			}
+
+			//
+			if(gettype(TYPE) === 'string' && !empty(TYPE))
+			{
+				if(!extension_loaded('gd'))
+				{
+					printf(START.'A non-empty String is valid, but I can\'t check for supported types atm.' . PHP_EOL, 'TYPE', 'WARN');
+					++$warnings;
+				}
+				else
+				{
+					$avail = imagetypes();
+					$result = null;
+
+					switch(strtolower(TYPE))
+					{
+						case 'png':
+							$result = ($avail & IMG_PNG);
+							break;
+						case 'jpg':
+							$result = ($avail & IMG_JPG);
+							break;
+						default:
+							break;
+					}
+
+					if($result)
+					{
+						printf(START.'Valid, supported image type.' . PHP_EOL, 'TYPE', 'OK');
+						++$ok;
+					}
+					else
+					{
+						fprintf(STDERR, START.'Unsupported image type..' . PHP_EOL, 'TYPE', 'BAD');
+						++$errors;
+					}
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No valid (non-empty) String' . PHP_EOL, 'TYPE', 'BAD');
+				++$errors;
+			}
+
+			//
+			printf(PHP_EOL);
+
+			if($errors === 0)
+			{
+				printf(' >> All %d OK', $ok);
+
+				if($warnings > 0)
+				{
+					fprintf(STDERR, ', but there are %d warnings.', $warnings);
+				}
+
+				printf('.' . PHP_EOL);
+			}
+			else
+			{
+				printf(' >> Only %d were OK..' . PHP_EOL, $ok);
+				fprintf(STDERR, ' >> %d errors' . PHP_EOL, $errors);
+				fprintf(STDERR, ' >> %d warnings' . PHP_EOL, $warnings);
+			}
+
+			if($errors === 0)
+			{
+				if($warnings === 0)
+				{
+					printf(' >> So everything\'s fine. Just continue to use this script. ;)~' . PHP_EOL);
+					exit(0);
+				}
+
+				fprintf(STDERR, ' >> So it\'s OK to use this script, but maybe you should fix the %d warnings?' . PHP_EOL, $warnings);
+				exit(2);
+			}
+
+			fprintf(STDERR, ' >> So you\'ve to fix %d errors (and %d warnings) now.' . PHP_EOL, $errors, $warnings);
 			exit(1);
 		}
-
-		//
-		$result = array(
-			'values' => array(),
-			'removed' => array(),
-			'cleaned' => array(),
-			'synced' => array(),
-			'count' => array(),
-			'rest' => array()
-		);
 		
-		//
-		$hosts = $list['host'];
-		$h = count($hosts);
-		
-		//
-		for($i = 0; $i < $h; ++$i)
+		function set($_index = -1)
 		{
-			$type = $list['type'][$hosts[$i]];
-			$rem = 0;
-			
-			if($_clean && ($type & TYPE_DIR))
-			{
-				$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
-				$counting = 0;
-				
-				if($handle !== false)
-				{
-					while($sub = readdir($handle))
-					{
-						if($sub[0] === '.' || $sub === '..')
-						{
-							continue;
-						}
-						
-						$p = join_path(PATH, '+' . $hosts[$i], $sub);
-						
-						if(!is_file($p))
-						{
-							continue;
-						}
-						else
-						{
-							++$counting;
-						}
-						
-						if(! (is_readable($p) && is_writable($p)))
-						{
-							continue;
-						}
-						
-						$time = file_get_contents($p);
-						
-						if($time === false)
-						{
-							continue;
-						}
-						else
-						{
-							$time = timestamp((int)$time);
-						}
-						
-						if($time <= THRESHOLD)
-						{
-							continue;
-						}
-						
-						if(remove($p, false, false))
-						{
-							if(!isset($result['cleaned'][$hosts[$i]]))
-							{
-								$result['cleaned'][$hosts[$i]] = 1;
-							}
-							else
-							{
-								++$result['cleaned'][$hosts[$i]];
-							}
-							
-							--$counting;
-							$rem |= 1;
-						}
-					}
-				}
-				
-				$orig = null;
-				
-				if($type & TYPE_FILE)
-				{
-					$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
-					
-					if($orig !== false)
-					{
-						$orig = (int)$orig;
-					}
-				}
-				
-				if((file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$counting)) !== false)
-				{
-					if($orig !== $counting)
-					{
-						$result['synced'][$hosts[$i]] = [ $counting, $orig ];
-					}
-					
-					$result['count'][$hosts[$i]] = $counting;
-				}
-			}
-			
-			if($type & TYPE_VALUE)
-			{
-				$value = file_get_contents(join_path(PATH, '~' . $hosts[$i]));
-				
-				if($value !== false)
-				{
-					$result['values'][$hosts[$i]] = (int)$value;
-				}
+			//by default set (0)
+			//either for a specified host, or to all which match a *glob*..
+			//also to init a host, if !AUTO!
+			//and use 'prompt()' if file was not already existing!
+	die('TODO: set()');
+		}
 
-				$orig = null;
-				$real = null;
+		function sync($_index = -1)
+		{
+			return values($_index, true, true);
+		}
+		
+		function purge($_index = -1)
+		{
+			return values($_index, true, false);
+		}
+		
+		function clean($_index = -1)
+		{
+			return values($_index, false, true);
+		}
+		
+		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
+		function values($_index = -1, $_purge = false, $_clean = false)
+		{
+	die('TODO');//and don't forget 'prompt()'!!
+			//
+			$list = get_list($_index);
+
+			if($list === null)
+			{
+				fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+				exit(1);
+			}
+
+			//
+			$result = array(
+				'values' => array(),
+				'removed' => array(),
+				'cleaned' => array(),
+				'synced' => array(),
+				'count' => array(),
+				'rest' => array()
+			);
+			
+			//
+			$hosts = $list['host'];
+			$h = count($hosts);
+			
+			//
+			for($i = 0; $i < $h; ++$i)
+			{
+				$type = $list['type'][$hosts[$i]];
+				$rem = 0;
 				
-				if($type & TYPE_FILE)
-				{
-					$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
-					
-					if($orig === false)
-					{
-						$orig = null;
-					}
-					else
-					{
-						$orig = (int)$orig;
-					}
-				}
-				
-				if($type & TYPE_DIR)
+				if($_clean && ($type & TYPE_DIR))
 				{
 					$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
+					$counting = 0;
 					
-					if($handle === false)
+					if($handle !== false)
 					{
-						$real = null;
-					}
-					else
-					{
-						$real = 0;
-						
 						while($sub = readdir($handle))
 						{
 							if($sub[0] === '.' || $sub === '..')
@@ -2227,34 +2069,166 @@ die('TODO');//and don't forget 'prompt()'!!
 							
 							$p = join_path(PATH, '+' . $hosts[$i], $sub);
 							
-							if(is_file($p))
+							if(!is_file($p))
 							{
-								++$real;
+								continue;
 							}
-							else if($_purge && remove($p, true, false))
+							else
 							{
-								$rem |= 2;
-							}
-						}
-						
-						if($real === 0 && $_purge)
-						{
-							if(remove(join_path(PATH, '+' . $hosts[$i]), true, false))
-							{
-								$rem |= 4;
+								++$counting;
 							}
 							
-							if(remove(join_path(PATH, '-' . $hosts[$i]), false, false))
+							if(! (is_readable($p) && is_writable($p)))
 							{
-								$rem |= 8;
+								continue;
+							}
+							
+							$time = file_get_contents($p);
+							
+							if($time === false)
+							{
+								continue;
+							}
+							else
+							{
+								$time = timestamp((int)$time);
+							}
+							
+							if($time <= THRESHOLD)
+							{
+								continue;
+							}
+							
+							if(remove($p, false))
+							{
+								if(!isset($result['cleaned'][$hosts[$i]]))
+								{
+									$result['cleaned'][$hosts[$i]] = 1;
+								}
+								else
+								{
+									++$result['cleaned'][$hosts[$i]];
+								}
+								
+								--$counting;
+								$rem |= 1;
 							}
 						}
 					}
+					
+					$orig = null;
+					
+					if($type & TYPE_FILE)
+					{
+						$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
+						
+						if($orig !== false)
+						{
+							$orig = (int)$orig;
+						}
+					}
+					
+					if((file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$counting)) !== false)
+					{
+						if($orig !== $counting)
+						{
+							$result['synced'][$hosts[$i]] = [ $counting, $orig ];
+						}
+						
+						$result['count'][$hosts[$i]] = $counting;
+					}
 				}
 				
-				if($orig !== null && $real !== null)
+				if($type & TYPE_VALUE)
 				{
-					if($orig !== $real)
+					$value = file_get_contents(join_path(PATH, '~' . $hosts[$i]));
+					
+					if($value !== false)
+					{
+						$result['values'][$hosts[$i]] = (int)$value;
+					}
+
+					$orig = null;
+					$real = null;
+					
+					if($type & TYPE_FILE)
+					{
+						$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
+						
+						if($orig === false)
+						{
+							$orig = null;
+						}
+						else
+						{
+							$orig = (int)$orig;
+						}
+					}
+					
+					if($type & TYPE_DIR)
+					{
+						$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
+						
+						if($handle === false)
+						{
+							$real = null;
+						}
+						else
+						{
+							$real = 0;
+							
+							while($sub = readdir($handle))
+							{
+								if($sub[0] === '.' || $sub === '..')
+								{
+									continue;
+								}
+								
+								$p = join_path(PATH, '+' . $hosts[$i], $sub);
+								
+								if(is_file($p))
+								{
+									++$real;
+								}
+								else if($_purge && remove($p, true))
+								{
+									$rem |= 2;
+								}
+							}
+							
+							if($real === 0 && $_purge)
+							{
+								if(remove(join_path(PATH, '+' . $hosts[$i]), true))
+								{
+									$rem |= 4;
+								}
+								
+								if(remove(join_path(PATH, '-' . $hosts[$i]), false))
+								{
+									$rem |= 8;
+								}
+							}
+						}
+					}
+					
+					if($orig !== null && $real !== null)
+					{
+						if($orig !== $real)
+						{
+							$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
+							
+							if($r !== false)
+							{
+								$result['synced'][$hosts[$i]] = [ $real, $orig ];
+								$result['count'][$hosts[$i]] = $real;
+							}
+						}
+						else
+						{
+							$result['count'][$hosts[$i]] = $real;
+						}
+					}
+					else if($real !== null)
 					{
 						$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
 						
@@ -2263,274 +2237,257 @@ die('TODO');//and don't forget 'prompt()'!!
 							$result['synced'][$hosts[$i]] = [ $real, $orig ];
 							$result['count'][$hosts[$i]] = $real;
 						}
+						else
+						{
+							$result['count'][$hosts[$i]] = null;
+						}
 					}
-					else
+					else if($orig !== null)
 					{
-						$result['count'][$hosts[$i]] = $real;
-					}
-				}
-				else if($real !== null)
-				{
-					$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
-					
-					if($r !== false)
-					{
-						$result['synced'][$hosts[$i]] = [ $real, $orig ];
-						$result['count'][$hosts[$i]] = $real;
+						$result['count'][$hosts[$i]] = -$orig;
 					}
 					else
 					{
 						$result['count'][$hosts[$i]] = null;
 					}
 				}
-				else if($orig !== null)
-				{
-					$result['count'][$hosts[$i]] = -$orig;
-				}
 				else
 				{
-					$result['count'][$hosts[$i]] = null;
+					$result['values'][$hosts[$i]] = null;
+					
+					if($_purge && (($type & TYPE_DIR) || ($type & TYPE_FILE)))
+					{
+						if($type & TYPE_DIR)
+						{
+							if(remove(join_path(PATH, '+' . $hosts[$i]), true))
+							{
+								$rem |= 4;
+							}
+						}
+						
+						if($type & TYPE_FILE)
+						{
+							if(remove(join_path(PATH, '-' . $hosts[$i]), false))
+							{
+								$rem |= 8;
+							}
+						}
+					}
+
+					if($_clean)
+					{
+						$r = file_put_contents(join_path(DIR, '~' . $hosts[$i]), '0');
+					}
 				}
+				
+				if($result['count'][$hosts[$i]] === 0 && ($_clean || $_purge))
+				{
+					$p = join_path(PATH, '+' . $hosts[$i]);
+					
+					if(remove($p, true))
+					{
+						$rem |= 4;
+					}
+					
+					$p = join_path(PATH, '-' . $hosts[$i]);
+					
+					if(remove($p, false))
+					{
+						$rem |= 8;
+					}
+				}
+
+				$result['removed'][$hosts[$i]] = $rem;
+			}
+			
+			if($_purge)
+			{
+				$len = count($list['rest']);
+
+				if($len > 0)
+				{
+					for($i = 0, $j = 0; $i < $len; ++$i)
+					{
+						$r = remove(join_path(PATH, $list['rest'][$i]), true);
+						
+						if($r)
+						{
+							$result['rest'][$j++] = $list['rest'][$i];
+						}
+					}
+				}
+			}
+
+			// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
+
+	//
+	var_dump($result);
+	die('	//TODO: values(' . $_index . ')');
+		}
+
+		function unlog($_index = -1)
+		{
+			error_reporting(0);
+
+			if(! file_exists(PATH_LOG))
+			{
+				fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, basename(PATH_LOG));
+				exit(1);
+			}
+			else if(!is_file(PATH_LOG))
+			{
+				fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, PATH_LOG);
+			}
+
+			$input = prompt('Do you really want to delete the file \'' . basename(PATH_LOG) . '\' [yes/no]? ');
+
+			if(!$input)
+			{
+				fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
+				exit(2);
+			}
+			else if(remove(PATH_LOG, false) === false)
+			{
+				fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, basename(PATH_LOG));
+
+				if(! is_file(PATH_LOG))
+				{
+					fprintf(STDERR, ' >> I think it\'s not a regular file, could this be the reason why?' . PHP_EOL);
+				}
+
+				exit(2);
 			}
 			else
 			{
-				$result['values'][$hosts[$i]] = null;
-				
-				if($_purge && (($type & TYPE_DIR) || ($type & TYPE_FILE)))
-				{
-					if($type & TYPE_DIR)
-					{
-						if(remove(join_path(PATH, '+' . $hosts[$i]), true, false))
-						{
-							$rem |= 4;
-						}
-					}
-					
-					if($type & TYPE_FILE)
-					{
-						if(remove(join_path(PATH, '-' . $hosts[$i]), false, false))
-						{
-							$rem |= 8;
-						}
-					}
-				}
-
-				if($_clean)
-				{
-					$r = file_put_contents(join_path(DIR, '~' . $hosts[$i]), '0');
-				}
-			}
-			
-			if($result['count'][$hosts[$i]] === 0 && ($_clean || $_purge))
-			{
-				$p = join_path(PATH, '+' . $hosts[$i]);
-				
-				if(remove($p, true, false))
-				{
-					$rem |= 4;
-				}
-				
-				$p = join_path(PATH, '-' . $hosts[$i]);
-				
-				if(remove($p, false, false))
-				{
-					$rem |= 8;
-				}
+				printf(' >> The \'%s\' is no longer.. :-)' . PHP_EOL, basename(PATH_LOG));
 			}
 
-			$result['removed'][$hosts[$i]] = $rem;
-		}
-		
-		if($_purge)
-		{
-			$len = count($list['rest']);
-
-			if($len > 0)
-			{
-				for($i = 0, $j = 0; $i < $len; ++$i)
-				{
-					$r = remove(join_path(PATH, $list['rest'][$i]), true, false, false);
-					
-					if($r)
-					{
-						$result['rest'][$j++] = $list['rest'][$i];
-					}
-				}
-			}
-		}
-
-		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
-
-//
-var_dump($result);
-die('	//TODO: values(' . $_index . ')');
-	}
-
-	function unlog($_index = -1)
-	{
-		error_reporting(0);
-
-		if(! file_exists(PATH_LOG))
-		{
-			fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, basename(PATH_LOG));
-			exit(1);
-		}
-		else if(!is_file(PATH_LOG))
-		{
-			fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, PATH_LOG);
-		}
-
-		$input = prompt('Do you really want to delete the file \'' . basename(PATH_LOG) . '\' [yes/no]? ');
-
-		if(!$input)
-		{
-			fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
-			exit(2);
-		}
-		else if(remove(PATH_LOG, false, true) === false)
-		{
-			fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, basename(PATH_LOG));
-
-			if(! is_file(PATH_LOG))
-			{
-				fprintf(STDERR, ' >> I think it\'s not a regular file, could this be the reason why?' . PHP_EOL);
-			}
-
-			exit(2);
-		}
-		else
-		{
-			printf(' >> The \'%s\' is no longer.. :-)' . PHP_EOL, basename(PATH_LOG));
-		}
-
-		exit(0);
-	}
-
-	function errors($_index = -1)
-	{
-		if(! file_exists(PATH_LOG))
-		{
-			printf(' >> No errors logged! :-D' . PHP_EOL);
 			exit(0);
 		}
-		else if(!is_file(PATH_LOG))
-		{
-			fprintf(STDERR, ' >> \'%s\' is not a file! Please delete asap!!' . PHP_EOL, basename(PATH_LOG));
-			exit(1);
-		}
-		else if(!is_readable(PATH_LOG))
-		{
-			fprintf(STDERR, ' >> Log file \'%s\' is not readable! Please correct this asap!!' . PHP_EOL, basename(PATH_LOG));
-			exit(2);
-		}
 
-		function count_lines($_file, $_chunks = 4096)
+		function errors($_index = -1)
 		{
-			$res = 0;
-			$handle = fopen($_file, 'r');
-
-			while(!feof($handle))
+			if(! file_exists(PATH_LOG))
 			{
-				$line = fgets($handle, $_chunks);
-				$res += substr_count($line, PHP_EOL);
+				printf(' >> No errors logged! :-D' . PHP_EOL);
+				exit(0);
+			}
+			else if(!is_file(PATH_LOG))
+			{
+				fprintf(STDERR, ' >> \'%s\' is not a file! Please delete asap!!' . PHP_EOL, basename(PATH_LOG));
+				exit(1);
+			}
+			else if(!is_readable(PATH_LOG))
+			{
+				fprintf(STDERR, ' >> Log file \'%s\' is not readable! Please correct this asap!!' . PHP_EOL, basename(PATH_LOG));
+				exit(2);
 			}
 
-			fclose($handle);
-			return $res;
+			function count_lines($_file, $_chunks = 4096)
+			{
+				$res = 0;
+				$handle = fopen($_file, 'r');
+
+				while(!feof($handle))
+				{
+					$line = fgets($handle, $_chunks);
+					$res += substr_count($line, PHP_EOL);
+				}
+
+				fclose($handle);
+				return $res;
+			}
+
+			$result = count_lines(PATH_LOG);
+
+			if($result < 0)
+			{
+				$result = 0;
+			}
+
+			printf(' >> There are %d error log lines in \'%s\'..' . PHP_EOL, $result, basename(PATH_LOG));
+			exit(0);
 		}
 
-		$result = count_lines(PATH_LOG);
-
-		if($result < 0)
+		//
+		function help($_index = -1)
 		{
-			$result = 0;
+			printf(HELP . PHP_EOL);
+			exit(0);
 		}
 
-		printf(' >> There are %d error log lines in \'%s\'..' . PHP_EOL, $result, basename(PATH_LOG));
-		exit(0);
+		//
+		for($i = 1; $i < ARGC; ++$i)
+		{
+			if(strlen(ARGV[$i]) < 2 || ARGV[$i][0] !== '-')
+			{
+				continue;
+			}
+			else if(ARGV[$i] === '-?' || ARGV[$i] === '--help')
+			{
+				help($i);
+			}
+			else if(ARGV[$i] === '-V' || ARGV[$i] === '--version')
+			{
+				info($i, true, false);
+			}
+			else if(ARGV[$i] === '-C' || ARGV[$i] === '--copyright')
+			{
+				info($i, false, true);
+			}
+			else if(ARGV[$i] === '-s' || ARGV[$i] === '--set')
+			{
+				set($i);
+			}
+			else if(ARGV[$i] === '-v' || ARGV[$i] === '--values')
+			{
+				values($i);
+			}
+			else if(ARGV[$i] === '-n' || ARGV[$i] === '--sync')
+			{
+				sync($i);
+			}
+			else if(ARGV[$i] === '-l' || ARGV[$i] === '--clean')
+			{
+				clean($i);
+			}
+			else if(ARGV[$i] === '-p' || ARGV[$i] === '--purge')
+			{
+				purge($i);
+			}
+			else if(ARGV[$i] === '-c' || ARGV[$i] === '--check')
+			{
+				config($i);
+			}
+			else if(ARGV[$i] === '-h' || ARGV[$i] === '--hashes')
+			{
+				hashes($i);
+			}
+			else if(ARGV[$i] === '-f' || ARGV[$i] === '--fonts')
+			{
+				fonts($i);
+			}
+			else if(ARGV[$i] === '-t' || ARGV[$i] === '--types')
+			{
+				types($i);
+			}
+			else if(ARGV[$i] === '-e' || ARGV[$i] === '--errors')
+			{
+				errors($i);
+			}
+			else if(ARGV[$i] === '-u' || ARGV[$i] === '--unlog')
+			{
+				unlog($i);
+			}
+		}
+		
+		//
+		printf(' >> Running in CLI mode now (so outside any HTTPD).' . PHP_EOL);
+		syntax(ARGC);
+		exit();
 	}
 
 	//
-	function help($_index = -1)
-	{
-		printf(HELP . PHP_EOL);
-		exit(0);
-	}
-
-	//
-	if(isset($argv)) for($i = 1; $i < $argc; ++$i)
-	{
-		if(strlen($argv[$i]) < 2 || $argv[$i][0] !== '-')
-		{
-			continue;
-		}
-		else if($argv[$i] === '-?' || $argv[$i] === '--help')
-		{
-			help($i);
-		}
-		else if($argv[$i] === '-V' || $argv[$i] === '--version')
-		{
-			info($i, true, false);
-		}
-		else if($argv[$i] === '-C' || $argv[$i] === '--copyright')
-		{
-			info($i, false, true);
-		}
-		else if($argv[$i] === '-s' || $argv[$i] === '--set')
-		{
-			set($i);
-		}
-		else if($argv[$i] === '-v' || $argv[$i] === '--values')
-		{
-			values($i);
-		}
-		else if($argv[$i] === '-n' || $argv[$i] === '--sync')
-		{
-			sync($i);
-		}
-		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
-		{
-			clean($i);
-		}
-		else if($argv[$i] === '-p' || $argv[$i] === '--purge')
-		{
-			purge($i);
-		}
-		else if($argv[$i] === '-c' || $argv[$i] === '--check')
-		{
-			config($i);
-		}
-		else if($argv[$i] === '-h' || $argv[$i] === '--hashes')
-		{
-			hashes($i);
-		}
-		else if($argv[$i] === '-f' || $argv[$i] === '--fonts')
-		{
-			fonts($i);
-		}
-		else if($argv[$i] === '-t' || $argv[$i] === '--types')
-		{
-			types($i);
-		}
-		else if($argv[$i] === '-e' || $argv[$i] === '--errors')
-		{
-			errors($i);
-		}
-		else if($argv[$i] === '-u' || $argv[$i] === '--unlog')
-		{
-			unlog($i);
-		}
-	}
-	
-	//
-	printf(' >> Running in CLI mode now (so outside any HTTPD).' . PHP_EOL);
-	syntax($argc);
-	exit();
-}
-
-//
-function counter($_host = null, $_read_only = RAW, $_die = !RAW)
-{
 	if(RAW && CLI && (gettype($_host) !== 'string' || empty($_host)))
 	{
 		if($_die)
@@ -2585,7 +2542,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		//
 		if($result !== null)
 		{
-			$result = secure_host(remove_port($result, $_die), true, $_die);
+			$result = secure_host(remove_port($result, $_die));
 
 			if($result === null && $_die)
 			{
@@ -2632,9 +2589,9 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		unset($host);
 
 		//
-		define('PATH_FILE', join_path(PATH, '~' . secure_path(HOST, false)));
-		define('PATH_DIR', join_path(PATH, '+' . secure_path(HOST, false)));
-		define('PATH_COUNT', join_path(PATH, '-' . secure_path(HOST, false)));
+		define('PATH_FILE', join_path(PATH, '~' . secure_path(HOST)));
+		define('PATH_DIR', join_path(PATH, '+' . secure_path(HOST)));
+		define('PATH_COUNT', join_path(PATH, '-' . secure_path(HOST)));
 		
 		if(empty($_SERVER['REMOTE_ADDR']))
 		{
@@ -2642,7 +2599,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		}
 		else
 		{
-			define('PATH_IP', join_path(PATH_DIR, secure_path((HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR'], false)), false)));
+			define('PATH_IP', join_path(PATH_DIR, secure_path(HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR']))));
 		}
 
 		//
@@ -2813,7 +2770,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				{
 					++$result;
 				}
-				else if(! remove($sub, false, false))
+				else if(! remove($sub, false))
 				{
 					log_error('Unable to remove() outdated file', 'clean_files', $sub, false);
 					++$result;
