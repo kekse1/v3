@@ -1,11 +1,11 @@
 <?php
 //
-namespace kekse\counter;
+namespace kekse;
 
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.19.3');
+define('VERSION', '2.19.4');
 
 //
 define('RAW', false);
@@ -847,7 +847,7 @@ function remove($_path, $_recursive = true, $_die = !RAW, $_safety = true, $_dep
 }
 
 //
-if(CLI)
+if(CLI && !RAW)
 {
 	//
 	if(! (defined('STDIN') && defined('STDOUT')))
@@ -3652,7 +3652,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	$value = (TEST ? rand() : $real);
 	
 	//
-	if(! (RO || TEST || $_read_only))
+	if(! (RO || TEST || $_read_only) && !(defined('DONE') && DONE))
 	{
 		if(test())
 		{
@@ -3704,7 +3704,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	}
 
 	//
-	if(SERVER && !(RO || TEST) && !(defined('DONE') && DONE) && !$_read_only)
+	if(SERVER && !(RO || TEST || $_read_only) && !(defined('DONE') && DONE))
 	{
 		//
 		write_timestamp();
