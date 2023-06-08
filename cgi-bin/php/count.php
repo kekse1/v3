@@ -3276,7 +3276,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	{
 		if($_die)
 		{
-			die('Invalid $_host (needs to be defined in RAW mode)' . (CLI ? PHP_EOL : ''));
+			die('Invalid $_host (needs to be defined in RAW+CLI mode)' . (CLI ? PHP_EOL : ''));
 		}
 
 		return null;
