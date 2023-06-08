@@ -5,7 +5,7 @@ namespace counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.18.7');
+define('VERSION', '2.19.0');
 
 //
 define('RAW', false);
@@ -122,6 +122,16 @@ function normalize($_string, $_die = !RAW)
 	
 	//
 	return implode('/', $result);
+}
+
+function timestamp($_diff = null)
+{
+	if(gettype($_diff) !== 'integer')
+	{
+		return time();
+	}
+	
+	return (time() - $_diff);
 }
 
 function join_path(... $_args)
@@ -753,10 +763,10 @@ function log_error($_reason, $_source = '', $_path = '', $_die = !RAW)
 }
 
 //
-function remove($_path, $_recursive = true, $_die = !RAW, $_depth_current = 0)
+function remove($_path, $_recursive = true, $_die = !RAW, $_safety = true, $_depth_current = 0)
 {
 	//
-	if($_path[0] === '~' || basename($_path)[0] === '~')
+	if($_safety && ($_path[0] === '~' || basename($_path)[0] === '~'))
 	{
 		log_error('Removing a value file is not permitted', 'remove', $_path, $_die);
 
@@ -1032,7 +1042,8 @@ if(CLI && !RAW)
 		$result['file'] = array();
 		$result['value'] = array();
 		$result['type'] = array();
-
+		$result['rest'] = array();
+		
 		if($list === null)
 		{
 			$handle = opendir(PATH);
@@ -1075,6 +1086,7 @@ if(CLI && !RAW)
 
 					if($next)
 					{
+						$result['rest'][] = $sub;
 						continue;
 					}
 				}
@@ -1191,15 +1203,15 @@ if(CLI && !RAW)
 		printf('    -? / --help' . PHP_EOL);
 		printf('    -V / --version' . PHP_EOL);
 		printf('    -C / --copyright' . PHP_EOL);
-		printf('    -c / --config' . PHP_EOL);
-		printf('    -h / --hashes' . PHP_EOL);
-		printf('    -f / --fonts' . PHP_EOL);
-		printf('    -t / --types' . PHP_EOL);
 		printf('    -s / --set (...TODO)' . PHP_EOL);
 		printf('    -v / --values (*)' . PHP_EOL);
 		printf('    -n / --sync (*)' . PHP_EOL);
 		printf('    -l / --clean (*)' . PHP_EOL);
 		printf('    -p / --purge (*)' . PHP_EOL);
+		printf('    -c / --check' . PHP_EOL);
+		printf('    -h / --hashes' . PHP_EOL);
+		printf('    -f / --fonts' . PHP_EOL);
+		printf('    -t / --types' . PHP_EOL);
 		printf('    -e / --errors' . PHP_EOL);
 		printf('    -u / --unlog' . PHP_EOL);
 		printf(PHP_EOL);
@@ -1414,7 +1426,7 @@ die('TODO: same as in fonts()!');
 	{
 		//
 		printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
-		fprintf(STDERR, ' >> Beware: the DRAWING options are not finished in this --config/-c function! JFYI..' . PHP_EOL);
+		fprintf(STDERR, ' >> Beware: the DRAWING options are not finished in this --check/-c function! JFYI..' . PHP_EOL);
 		printf(PHP_EOL);
 
 		//
@@ -2041,914 +2053,323 @@ die('TODO: same as in fonts()!');
 die('TODO: set()');
 	}
 
-	function values($_index = -1)
+	function sync($_index = -1)
+	{
+		return values($_index, true, true);
+	}
+	
+	function purge($_index = -1)
+	{
+		return values($_index, true, false);
+	}
+	
+	function clean($_index = -1)
+	{
+		return values($_index, false, true);
+	}
+	
+	// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
+	function values($_index = -1, $_purge = false, $_clean = false)
 	{
 		//
-		$hosts = get_list($_index, true);
+		$list = get_list($_index, true);
 
-		if($hosts === null)
+		if($list === null)
 		{
 			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
 			exit(1);
 		}
-var_dump($hosts);
-die('TODO: values(' . $_index . ')');
-		/*$files = array();
-		$item = null;
-		$origLen = count($hosts);
 
-		for($i = 0, $j = 0; $i < count($hosts); ++$i)
-		{
-			if($defined)
-			{
-				$item = join_path(PATH, '~' . $hosts[$i]);
-				$item = glob($item, GLOB_BRACE);
-				$len = count($item);
-
-				if($len === 0)
-				{
-					fprintf(STDERR, ' >> No hosts matching glob \'%s\'' . PHP_EOL, $hosts[$i]);
-				}
-				else
-				{
-					for($k = 0; $k < $len; ++$k)
-					{
-						if(!in_array($item[$k], $files))
-						{
-							$files[$j++] = $item[$k];
-						}
-					}
-				}
-			}
-			else if(is_file($item = join_path(PATH, '~' . $hosts[$i])) && is_readable($item))
-			{
-				if(!in_array($item, $files))
-				{
-					$files[$j++] = $item;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, ' >> File for host \'%s\' couldn\'t be read' . PHP_EOL, $hosts[$i]);
-			}
-		}
+		//
+		$result = array(
+			'values' => array(),
+			'removed' => array(),
+			'cleaned' => array(),
+			'synced' => array(),
+			'count' => array(),
+			'rest' => array()
+		);
 		
-		$len = count($files);
-
-		if($len === 0)
+		//
+		$hosts = $list['host'];
+		$h = count($hosts);
+		
+		//
+		for($i = 0; $i < $h; ++$i)
 		{
-			fprintf(STDERR, ' >> No hosts left' . ($origLen > 0 ? ' (from originally %d defined ones)' : '') . PHP_EOL, $origLen);
-			exit(2);
-		}
-		else
-		{
-			$hosts = array();
+			$type = $list['type'][$hosts[$i]];
+			$rem = 0;
 			
-			for($i = 0; $i < $len; ++$i)
+			if($_clean && ($type & TYPE_DIR))
 			{
-				$hosts[$i] = substr(basename($files[$i]), 1);
-			}
-		}
-
-		$value = -1;
-		$maxLen = 0;
-		$currLen = 0;
-
-		for($i = 0; $i < count($hosts); ++$i)
-		{
-			if(($currLen = strlen($hosts[$i])) > $maxLen)
-			{
-				$maxLen = $currLen;
-			}
-		}
-
-		$maxLen += 2;
-		$format = '%' . $maxLen . 's:  %-8d %1s' . PHP_EOL;
-		$cache = null;
-		$real = null;
-		$host = null;
-		$item = null;
-		$info = '';
-		$err = array();
-
-		for($i = 0, $e = 0; $i < $len; ++$i)
-		{
-			$host = substr(basename($files[$i]), 1);
-
-			if(($value = (int)file_get_contents($files[$i])) === false)
-			{
-				$err[$e++] = $host;
-			}
-			else
-			{
-				if(is_dir($item = join_path(PATH, '+' . $host)) && is_readable($item))
+				$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
+				$counting = 0;
+				
+				if($handle !== false)
 				{
-					if(($item = count_files($item, false, false, false, false, false)) === null)
+					while($sub = readdir($handle))
 					{
-						$real = -1;
-					}
-					else
-					{
-						$real = $item;
-					}
-				}
-				else
-				{
-					$real = -1;
-				}
-
-				if(is_file($item = join_path(PATH, '-' . $host)) && is_readable($item))
-				{
-					if(!($cache = (int)file_get_contents($item)))
-					{
-						$cache = -1;
-					}
-				}
-				else
-				{
-					$cache = -1;
-				}
-
-				if($real === -1 && $cache === -1)
-				{
-					$info = ' ';
-				}
-				else if($real > -1 && $cache !== $real)
-				{
-					if(!file_exists($item) || is_writable($item))
-					{
-						if(file_put_contents($item, (string)$real))
+						if($sub[0] === '.' || $sub === '..')
 						{
-							$info = '+';
+							continue;
+						}
+						
+						$p = join_path(PATH, '+' . $hosts[$i], $sub);
+						
+						if(!is_file($p))
+						{
+							continue;
 						}
 						else
 						{
-							$info = '-';
+							++$counting;
 						}
-					}
-					else
-					{
-						$info = '!';
-					}
-				}
-				else if($real === -1)
-				{
-					$info = '/';
-				}
-				else
-				{
-					$info = (string)$real;
-				}
-
-				printf($format, $host, $value, $info);
-			}
-		}
-
-		$errLen = count($err);
-		
-		if($errLen > 0)
-		{
-			fprintf(STDERR, PHP_EOL . ' >> Unable to read value files for the following hosts:' . PHP_EOL);
-			
-			for($i = 0; $i < $errLen; ++$i)
-			{
-				fprintf(STDERR, '    %s' . PHP_EOL, $err[$i]);
-			}
-			
-			printf(PHP_EOL);
-			exit(3);
-		}
-
-		//
-		exit(0);*/
-	}
-
-	function sync($_index = -1)
-	{
-		//
-		$hosts = get_list($_index, true);
-		
-		if($hosts === null)
-		{
-			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
-			exit(1);
-		}
-var_dump($hosts);
-die(' .. sync(' . $_index . ')');
-
-		/*
-		$hosts = get_arguments($_index + 1, true, true);
-		$defined = null;
-		
-		if($hosts === null)
-		{
-			$hosts = get_hosts(false);
-			$defined = false;
-		}
-		else
-		{
-			$defined = true;
-		}
-
-		if($hosts === null)
-		{
-			fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
-			exit(1);
-		}
-
-		$host = array();
-		$dirs = array();
-		$files = array();
-		$types = array();
-		$item = null;
-		$len = -1;
-		$good = 0;
-		$ignored = 0;
-		
-		if($defined)
-		{
-			$len = count($hosts);
-			
-			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
-			{
-				$item = join_path(PATH, '-' . $hosts[$i]);
-				$item = glob($item, GLOB_BRACE);
-				$len = count($item);
-				
-				for($j = 0; $j < $len; ++$j)
-				{
-					if(!(is_readable($item[$j]) && is_writable($item[$j])))
-					{
-						++$ignored;
-					}
-					else
-					{
-						$files[$f++] = $item[$j];
-						$item = substr(basename($item[$j]), 1);
 						
-						if(!in_array($item, $host))
+						if(! (is_readable($p) && is_writable($p)))
 						{
-							$host[$h++] = $item;
+							continue;
 						}
 						
-						if(! isset($types[$item]))
+						$time = file_get_contents($p);
+						
+						if($time === false)
 						{
-							$types[$item] = 0;
+							continue;
+						}
+						else
+						{
+							$time = timestamp((int)$time);
 						}
 						
-						$types[$item] |= 1;
-						++$good;
+						if($time <= THRESHOLD)
+						{
+							continue;
+						}
+						
+						if(remove($p, false, false))
+						{
+							if(!isset($result['cleaned'][$hosts[$i]]))
+							{
+								$result['cleaned'][$hosts[$i]] = 1;
+							}
+							else
+							{
+								++$result['cleaned'][$hosts[$i]];
+							}
+							
+							--$counting;
+							$rem |= 1;
+						}
 					}
 				}
 				
-				$item = join_path(PATH, '+' . $hosts[$i]);
-				$item = glob($item, GLOB_BRACE | GLOB_ONLYDIR);
-				$len = count($item);
-				
-				for($j = 0; $j < $len; ++$j)
-				{
-					if(!(is_readable($item[$j]) && is_writable($item[$j])))
-					{
-						++$ignored;
-					}
-					else
-					{
-						$dirs[$d++] = $item[$j];
-						$item = substr(basename($item[$j]), 1);
-						
-						if(!in_array($item, $host))
-						{
-							$host[$h++] = $item;
-						}
-
-						if(! isset($types[$item]))
-						{
-							$types[$item] = 0;
-						}
-						
-						$types[$item] |= 2;
-						++$good;
-					}
-				}
-			}
-		}
-		else
-		{
-			$len = count($hosts);
-
-			for($i = 0, $f = 0, $d = 0, $h = 0; $i < $len; ++$i)
-			{
-				if(! isset($types[$hosts[$i]]))
-				{
-					$types[$hosts[$i]] = 0;
-				}
-
-				$item = join_path(PATH, '-' . $hosts[$i]);
-				
-				if(is_file($item))
-				{
-					if(! (is_readable($item) && is_writable($item)))
-					{
-						++$ignored;
-					}
-					else
-					{
-						$files[$f++] = $item;
-						
-						if(!in_array($hosts[$i], $host))
-						{
-							$host[$h++] = $hosts[$i];
-						}
-						
-						$types[$hosts[$i]] |= 1;
-						++$good;
-					}
-				}
-				
-				$item = join_path(PATH, '+' . $hosts[$i]);
-				
-				if(is_dir($item))
-				{
-					if(! (is_readable($item) && is_writable($item)))
-					{
-						++$ignored;
-					}
-					else
-					{
-						$dirs[$d++] = $item;
-						
-						if(!in_array($hosts[$i], $host))
-						{
-							$host[$h++] = $hosts[$i];
-						}
-						
-						$types[$hosts[$i]] |= 2;
-						++$good;
-					}
-				}
-			}
-		}
-		
-		if($good === 0)
-		{
-			fprintf(STDERR, ' >> No items found' . PHP_EOL);
-			exit(2);
-		}
-		else
-		{
-			printf(' >> %d items can be synced' . PHP_EOL, $good);
-		}
-		
-		if($ignored > 0)
-		{
-			fprintf(STDERR, ' >> %d items must be ignored (insufficient permissions)' . PHP_EOL, $ignored);
-		}
-		
-		//
-		//
-		//purge() und clean() gibt's noch (unten).
-		//purge() wird brute rmdir sein.. w/ prompt()!!!!!
-		//clean() saeubert (a) outdated '+' files.. und dekrementiert den zaehl-caeche entsprechend der anzahl geloeschter elemente..
-		//etc..
-		//
-		//
-		//BEST waere, ich setzt MIN. obige routine in eine abstrakte funktion, die auf dem gemeinsamen nenner basiert,
-		//dass wir eben + und - dateien erhalten, die existieren.. sowie beteiligte hosts und noch die codes, ob nichts, -, +, oder beides..
-		//kann man sicher gut gebrauchen, sowohl in diesem sync() wie auch purge() und clean().
-		//
-		//ueberpruefe das.. purge? muss jedenfalls hosts aus glob() codieren. und muss wissen, ob '+' fuer die hosts existieren, um sie zu
-		//loeschen.. und wenn '-' existieren, muessen die ebenso geloescht werden.. das geht mit beiden files[] sowie dirs[] gut, auf basis
-		//entweder aller hosts oder der glob() ausgewaehlten.. also gut, das ist schonmal gemeinsam.
-		//
-		//clean? braucht jedenfalls ebenso hosts aus glob(), oder eben alle... braucht auch evtl. '-'-cache, um dort zu dekrementieren nach
-		//der loesch-anzahl der '+'-files (!! also + nehmen, um count_files(), ...). oder will ich direkt durch count_files() in sync gehen?
-		//
-		//hm. clean() ist evtl. einfacher.. aber wir brauchen ebenso die hosts [bei denen '+'-files existieren], auch @ glob()!
-		//aber es reichen die hosts, um nur noch is_dir() zu testen, um dann count_files() alle dortigen files einzulesen, die dann in ihrem
-		//timestamp-inhalt geprueft werden. bestenfalls verwende ich garnicht mal die '-'-caches, sondern, da ich sowieso alle dateien ein-
-		//lesen muss, kann ich gleich die result-anzahl(-diff) als "neues" '-'-cache setzen!!! ...
-		//
-		//purge() wiederum braucht auch hosts, etc., auch @ glob(). aber nichtmal die datei-liste, das waere zuviel overhead im prinzip.
-		//es genuegt, das verzeichnis $_recursive=true zu loeschen @ remote()!!! danach, FALLS GANZ GELOSCHT (ERFOLGREICH), auch noch die
-		//evtl. is_file('-'..) loeschen. falls NICHT ERFOLGREICH geloescht, muss wohl am besten count_files() w/ int-result, um die neue
-		//'-' aus den rest-files zu init()...
-		//
-		//also, purge() braucht nur beteiligte hosts[]. den rest macht es selbst mit is_dir und is_file, etc.
-		//sowie clean() braucht .. lediglich alle '+'-verz., evtl. selbst durch blosze hosts() gefunden. schreibt - ohne lesen zu muessen.
-		//
-		//ich denke mir fast.. am besten eine abstrakte funktion allein dazu, dass..
-		//(a) je nachdem alle hosts als result.. erfahrungsgemaesz 'get_hosts()' somit ersetzt, aber eher dafuer noch der $values-param,
-		//	um zu unterscheiden zw. den '~'-value-files, die manchmal noetig sind, sowie den '-+'-cache-/..-files, manchmal noetig.
-		//	.. aber immer mit glob() support aus get_arguments()!! hier einfach je nach '$values' im glob noch '~' dazu am anfang,
-		//	oder sonst '?' als glob-char, um am ende evtl. noch heraus zu sortieren..!?!
-		//(b) EVTL. will ich die $code[s]-sache dazu? oder eher nur hier im sync?! JA...
-
-var_dump($host);
-var_dump($dirs);
-var_dump($files);
-var_dump($types);
-die(' ....//');
-
-		//PS: '-'/'~'/'+'-filter einfach angeben durch entweder "?" fuer alle, "~" fuer values, oder GLOB_BRACE @ "{+,-}"!!!! :D~
-
-
-		//@sync() ONLY:
-		//
-		// wenn im array[a], so hash[key] |= 1; in[b] hash[key] |= 2; am ende nur "if(&1) => in[a]" und "if(&2) => in[b]",
-		// jeweils mit "$code &= 1|2". am ende if(($code & 1) && ($code & 2)) => IN BOTH ARRAYS! sonst nur (&1 in [a]) oder (&2) in [b], as "|=1/2"! ^_^
-		// 
-		//
-		// wenn ein '+', aber kein '-', muss '-' aus count_files() @ '+' erzeugt werden @ init... //zu protokoll @ init[]
-		// wenn ein '-', aber kein '+', wird einfach der '-'-file-cache unlink'ed.. //zu protokoll @ delete[]/..
-		// wenn beides, vergleich zw. count_files('+') sowie cache-'-'.
-		// if(in sync), bitte sync[]-protokoll-gebung; sonst update[]-protokoll, mit setzen der eben gezeahlten datei-menge unter '+' in die '-' hinein.
-		// FALLS ABER die '+'-zaehlung der ip-timestamp-files (0) ist.. so (a) entweder '-' und '+' ganz loeschen (JA!!!), sonst '-' mit (0)-init.. a: delete[];
-		//
-		//again:
-		//
-		//(a) wenn ein '+', aber kein '-', muss '-' aus count_files() der '+' neu entstehen @ init. w/ ++$inits;
-		//(b) wenn ein '-', aber kein '+', loeschen des '-'-wertes.. w/ ++$unlinks;
-		//(c) wenn beides, vergleich zw. den count's..
-		//	wenn in sync, ++$ok; wenn nicht, ++$sync;
-
-
-		$gotFile = null;
-		$gotDir = null;
-		
-		for($i = 0; $i < count($hosts); ++$i)
-		{
-			$hosts[$i] = secure_path($hosts[$i], false);
-
-			$gotFile = is_file($_path . '/-' . $hosts[$i]);
-			$gotDir = is_dir($_path . '/+' . $hosts[$i]);
-			
-			if($gotFile && !$gotDir)
-			{
-				if(is_writable($_path . '/-' . $hosts[$i]) && remove($_path . '/-' . $hosts[$i], false, true))
-				{
-					printf(' >> Count file for not existing cache directory of host \'%s\' deleted.' . PHP_EOL, $hosts[$i]);
-				}
-				else
-				{
-					fprintf(STDERR, ' >> Count file for non existing cache directory of host \'%s\' couldn\'t be deleted.' . PHP_EOL, $hosts[$i]);
-				}
-
-				array_splice($hosts, $i--, 1);
-			}
-			else if($gotFile && $gotDir)
-			{
-				if(!is_writable($_path . '/-' . $hosts[$i]))
-				{
-					fprintf(STDERR, ' >> Count file for host \'%s\' is not writable.' . PHP_EOL, $hosts[$i]);
-					array_splice($hosts, $i--, 1);
-				}
-			}
-			else if(!$gotDir)
-			{
-				if(is_file($_path . '/~' . $hosts[$i]))
-				{
-					fprintf(STDERR, ' >> No cache files for this host \'%s\' available (but the host itself exists)' . PHP_EOL, $hosts[$i]);
-				}
-				else
-				{
-					fprintf(STDERR, ' >> The whole host \'%s\' is not existing (neither cache nor value files)' . PHP_EOL, $hosts[$i]);
-				}
-
-				array_splice($hosts, $i--, 1);
-			}
-		}
-
-		$len = count($hosts);
-
-		if($len === 0)
-		{
-			fprintf(STDERR, ' >> No cache directories found.' . PHP_EOL);
-			exit(2);
-		}
-		
-		$new = null;
-		$orig = null;
-
-		$synced = 0;
-		$correct = 0;
-		$created = 0;
-		$errors = 0;
-		
-		for($i = 0; $i < $len; ++$i)
-		{
-			if(is_file($_path . '/-' . $hosts[$i]))
-			{
-				if(($orig = file_get_contents($_path . '/-' . $hosts[$i])) !== false)
-				{
-					$orig = (int)$orig;
-				}
-				else
-				{
-					$orig = null;
-				}
-			}
-			else
-			{
 				$orig = null;
+				
+				if($type & TYPE_FILE)
+				{
+					$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
+					
+					if($orig !== false)
+					{
+						$orig = (int)$orig;
+					}
+				}
+				
+				if((file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$counting)) !== false)
+				{
+					if($orig !== $counting)
+					{
+						$result['synced'][$hosts[$i]] = [ $counting, $orig ];
+					}
+					
+					$result['count'][$hosts[$i]] = $counting;
+				}
 			}
 			
-			$new = count_files($_path . '/+' . $hosts[$i], false, false, false);
-
-			if($new === null)
+			if($type & TYPE_VALUE)
 			{
-				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
-				++$errors;
-			}
-			else if($orig === $new)
-			{
-				printf(' >> Count for host \'%s\' *is* in sync. :-)' . PHP_EOL, $hosts[$i]);
-				++$correct;
-			}
-			else
-			{
-				if(file_put_contents($_path . '/-' . $hosts[$i], (string)$new) === false)
+				$value = file_get_contents(join_path(PATH, '~' . $hosts[$i]));
+				
+				if($value !== false)
 				{
-					fprintf(STDERR, ' >> Couldn\'t write count for host \'%s\': %d => %d' . PHP_EOL, $hosts[$i], (int)$orig, $new);
-					++$errors;
+					$result['values'][$hosts[$i]] = (int)$value;
+				}
+
+				$orig = null;
+				$real = null;
+				
+				if($type & TYPE_FILE)
+				{
+					$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
+					
+					if($orig === false)
+					{
+						$orig = null;
+					}
+					else
+					{
+						$orig = (int)$orig;
+					}
+				}
+				
+				if($type & TYPE_DIR)
+				{
+					$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
+					
+					if($handle === false)
+					{
+						$real = null;
+					}
+					else
+					{
+						$real = 0;
+						
+						while($sub = readdir($handle))
+						{
+							if($sub[0] === '.' || $sub === '..')
+							{
+								continue;
+							}
+							
+							$p = join_path(PATH, '+' . $hosts[$i], $sub);
+							
+							if(is_file($p))
+							{
+								++$real;
+							}
+							else if($_purge && remove($p, true, false))
+							{
+								$rem |= 2;
+							}
+						}
+						
+						if($real === 0 && $_purge)
+						{
+							if(remove(join_path(PATH, '+' . $hosts[$i]), true, false))
+							{
+								$rem |= 4;
+							}
+							
+							if(remove(join_path(PATH, '-' . $hosts[$i]), false, false))
+							{
+								$rem |= 8;
+							}
+						}
+					}
+				}
+				
+				if($orig !== null && $real !== null)
+				{
+					if($orig !== $real)
+					{
+						$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
+						
+						if($r !== false)
+						{
+							$result['synced'][$hosts[$i]] = [ $real, $orig ];
+							$result['count'][$hosts[$i]] = $real;
+						}
+					}
+					else
+					{
+						$result['count'][$hosts[$i]] = $real;
+					}
+				}
+				else if($real !== null)
+				{
+					$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
+					
+					if($r !== false)
+					{
+						$result['synced'][$hosts[$i]] = [ $real, $orig ];
+						$result['count'][$hosts[$i]] = $real;
+					}
+					else
+					{
+						$result['count'][$hosts[$i]] = null;
+					}
 				}
 				else if($orig !== null)
 				{
-					fprintf(STDERR, ' >> Count for host \'%s\' NOT in sync; corrected: %d => %d' . PHP_EOL, $hosts[$i], $orig, $new);
-					++$synced;
+					$result['count'][$hosts[$i]] = -$orig;
 				}
 				else
 				{
-					printf(' >> Count for host \'%s\' initialized: %d' . PHP_EOL, $hosts[$i], $new);
-					++$created;
+					$result['count'][$hosts[$i]] = null;
 				}
 			}
-		}
-		
-		//
-		printf(PHP_EOL . ' >> %d were correct!' . PHP_EOL, $correct);
-		fprintf(STDERR, ' >> %d synchronized now..' . PHP_EOL, $synced);
-		printf(' >> %d newly created.' . PHP_EOL, $created);
-		fprintf(STDERR, ' >> %d errors.. ' . ($errors === 0 ? ':-)' : ':-/') . PHP_EOL, $errors);
-		
-		//
-		exit();*/
-	}
-
-	function clean($_index = -1)
-	{
-		//
-		$hosts = get_list($_index, true);
-		
-		if($hosts === null)
-		{
-			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
-			exit(1);
-		}
-var_dump($hosts);
-die(' .. clean(' . $_index . ')');
-die('TODO (clean() w/ glob(); look above..)');
-		/*
-		$hosts = get_arguments($_index + 1, true, true);
-		
-		if($hosts === null)
-		{
-			$hosts = get_hosts(false);
-		}
-
-		if($hosts === null)
-		{
-			fprintf(STDERR, ' >> No hosts available' . PHP_EOL);
-			exit(1);
-		}
-		
-		$originalLen = count($hosts);
-		
-		for($i = 0; $i < count($hosts); ++$i)
-		{
-			$hosts[$i] = secure_path($hosts[$i], false);
-
-			if(! is_dir(join_path(PATH, '+' . $hosts[$i])))
+			else
 			{
-				fprintf(STDERR, ' >> No cache directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
-				array_splice($hosts, $i--, 1);
-			}
-		}
-
-		$len = count($hosts);
+				$result['values'][$hosts[$i]] = null;
 				
-		if($len === 0)
-		{
-			fprintf(STDERR, ' >> No host left (of %d found)' . PHP_EOL, $originalLen);
-			exit(2);
-		}
-		else
-		{
-			$originalLen = $len;
-		}
-
-		//
-		$adapted = array();
-		$delete = array();
-		$origLen = 0;
-		$files = null;
-		$item = null;
-		$len = null;
-		$err = 0;
-		$inTime = 0;
-		
-		for($i = 0, $j = 0, $origLen = 0, $l = 0; $i < count($hosts); ++$i, $origLen = $j)
-		{
-			if(($len = count($files = count_files(join_path(PATH, '+' . $hosts[$i]), false, false, true))) === 0)
-			{
-				printf(' >> No cache files for host \'%s\' collected' . PHP_EOL, $hosts[$i]);
-			}
-			else if($len === null)
-			{
-				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $hosts[$i]);
-				++$err;
-			}
-			else for($k = 0; $k < $len; ++$k)
-			{
-				$item = join_path(PATH, '+' . $hosts[$i], $files[$k]);
-
-				if(is_readable($item))
+				if($_purge && (($type & TYPE_DIR) || ($type & TYPE_FILE)))
 				{
-					if(timestamp((int)file_get_contents($item)) > THRESHOLD)
+					if($type & TYPE_DIR)
 					{
-						if(is_writable($item))
+						if(remove(join_path(PATH, '+' . $hosts[$i]), true, false))
 						{
-							$delete[$j++] = $item;
-						}
-						else
-						{
-							fprintf(STDERR, ' >> File \'%s\' is no longer within THRESHOLD, but it\'s not writable!' . PHP_EOL, $item);
-							++$err;
+							$rem |= 4;
 						}
 					}
-					else
+					
+					if($type & TYPE_FILE)
 					{
-						++$inTime;
+						if(remove(join_path(PATH, '-' . $hosts[$i]), false, false))
+						{
+							$rem |= 8;
+						}
 					}
 				}
-				else
+
+				if($_clean)
 				{
-					fprintf(STDERR, ' >> File \'%s\' is not readable, so we can\'t read the timestamp in it..' . PHP_EOL, $files[$k]);
-					++$err;
+					$r = file_put_contents(join_path(DIR, '~' . $hosts[$i]), '0');
 				}
 			}
 			
-			if($j > $origLen)
+			if($result['count'][$hosts[$i]] === 0 && ($_clean || $_purge))
 			{
-				$adapted[$l++] = [ $hosts[$i], ($j - $origLen) ];
-			}
-		}
-
-		$len = count($delete);
-
-		if($len === 0)
-		{
-			printf(' >> No outdated files to delete (counted %d of these).' . PHP_EOL, $inTime);
-			
-	
-			if($err > 0)
-			{
-				fprintf(STDERR, ' >> .. but there were %d errors. :-/' . PHP_EOL, $err);
-				exit(3);
-			}
-			
-			exit(0);
-		}
-		else
-		{
-			printf(' >> Found %d outdated cache files to delete; their hosts (w/ counts) are:' . PHP_EOL, $len, $inTime);
-			$adaptedLen = count($adapted);
-			
-			for($i = 0; $i < $adaptedLen; ++$i)
-			{
-				printf('    %s (%d)' . PHP_EOL, $adapted[$i][0], $adapted[$i][1]);
-			}
-			
-			printf(PHP_EOL);
-		}
-		
-		if(! prompt('Do you really want to remove %d cache files [yes/no]? '))
-		{
-			fprintf(STDERR, ' >> Aborted.' . PHP_EOL);
-			exit(4);
-		}
-		else
-		{
-			printf(PHP_EOL);
-		}
-		
-		$ok = 0;
-		$err = 0;
-		$len = count($delete);
-		
-		for($i = 0; $i < $len; ++$i)
-		{
-			if(remove($delete[$i], false, true))
-			{
-				++$ok;
-			}
-			else
-			{
-				++$err;
-			}
-		}
-
-		printf(' >> Successfully deleted %d files! :-)' . PHP_EOL, $ok);
-		$ok = 0;
-		
-		$len = count($adapted);
-		
-		for($i = 0; $i < $len; ++$i)
-		{
-			$item = count_files(join_path(PATH, '+' . ($adapted[$i] = $adapted[$i][0])), false, false, false, false);
-
-			if($item === null)
-			{
-				fprintf(STDERR, ' >> Failed to scan directory for host \'%s\'' . PHP_EOL, $adapted[$i]);
-			}
-			else if(is_writable(join_path(PATH, '-' . $adapted[$i])))
-			{
-				if(file_put_contents(join_path(PATH, '-' . $adapted[$i]), (string)$item) === false)
+				$p = join_path(PATH, '+' . $hosts[$i]);
+				
+				if(remove($p, true, false))
 				{
-					fprintf(STDERR, ' >> Synchronization for host \'%s\' failed (couldn\'t write to file)!' . PHP_EOL, $adapted[$i]);
+					$rem |= 4;
 				}
-				else
+				
+				$p = join_path(PATH, '-' . $hosts[$i]);
+				
+				if(remove($p, false, false))
 				{
-					++$ok;
+					$rem |= 8;
 				}
 			}
-			else
+
+			$result['removed'][$hosts[$i]] = $rem;
+		}
+		
+		if($_purge)
+		{
+			$len = count($list['rest']);
+
+			if($len > 0)
 			{
-				fprintf(STDERR, ' >> Count file for host \'%s\' not writable (so synchronization not possible here)' . PHP_EOL, $adapted[$i]);
-			}
-		}
-		
-		printf(' >> Synchronization for %d hosts also succeeded! :-D' . PHP_EOL, $ok);
-		
-		if($err > 0)
-		{
-			fprintf(STDERR, ' >> Deletion of %d files failed.. :-(' . PHP_EOL, $err);
-			exit(5);
-		}
-
-		exit(0);*/
-	}
-
-	function purge($_index = -1, $_host = null)
-	{
-		//
-		$hosts = get_list($_index, true);
-		
-		if($hosts === null)
-		{
-			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
-			exit(1);
-		}
-var_dump($hosts);
-die(' .. purge(' . $_index . ')');
-		/*
-		$hosts = get_arguments($_index + 1, true, true);
-
-		if($hosts === null)
-		{
-			$hosts = get_hosts(false);
-		}
-
-		if($hosts === null)
-		{
-			printf('No hosts available to purge their cache files.' . PHP_EOL);
-			exit(0);
-		}
-		else for($i = 0; $i < count($hosts); ++$i)
-		{
-			if(!is_dir(join_path(PATH, '+' . $hosts[$i])) && !is_file(join_path(PATH, '-' . $hosts[$i])))
-			{
-				fprintf(STDERR, ' >> Neither cache nor count file for host \'%s\' found.' . PHP_EOL, $hosts[$i]);
-				array_splice($hosts, $i--, 1);
-			}
-		}
-		
-		$len = count($hosts);
-
-		if($len === 0)
-		{
-			fprintf(STDERR, ' >> No hosts to purge the cache files' . PHP_EOL);
-			exit(1);
-		}
-		else
-		{
-			printf(PHP_EOL . ' >> Selected following hosts for purging all their cache/count files:' . PHP_EOL);
-
-			for($i = 0; $i < $len; ++$i)
-			{
-				printf('    %s' . PHP_EOL, $hosts[$i]);
-			}
-
-			printf(PHP_EOL);
-		}
-
-		if(! (prompt('Do you really want to purge the cache for ' . count($hosts) . ' hosts [yes/no]? ')))
-		{
-			fprintf(STDERR, ' >> Aborting, as wished by you!' . PHP_EOL);
-			exit(2);
-		}
-		
-		$result = array();
-		$errors = array();
-		$sub = null;
-		
-		for($i = 0, $r = 0, $e = 0; $i < count($hosts); ++$i)
-		{
-			$sub = join_path(PATH, '-' . $hosts[$i]);
-			
-			if(is_file($sub))
-			{
-				if(remove($sub, true, true))
+				for($i = 0, $j = 0; $i < $len; ++$i)
 				{
-					$result[$r++] = $sub;
-				}
-				else
-				{
-					$errors[$e++] = $sub;
+					$r = remove(join_path(PATH, $list['rest'][$i]), true, false, false);
+					
+					if($r)
+					{
+						$result['rest'][$j++] = $list['rest'][$i];
+					}
 				}
 			}
-			else if(file_exists($sub))
-			{
-				$errors[$e++] = $sub;
-			}
-			
-			$sub = join_path(PATH, '+' . $hosts[$i]);
-			
-			if(is_dir($sub))
-			{
-				if(remove($sub, true, false))
-				{
-					$result[$r++] = $sub;
-				}
-				else
-				{
-					$errors[$e++] = $sub;
-				}
-			}
-			else if(file_exists($sub))
-			{
-				$errors[$e++] = $sub;
-			}
 		}
 
-		$countResult = count($result);
-		$countErrors = count($errors);
-		
-		if($countResult === 0 && $countErrors === 0)
-		{
-			printf(' >> No cache files for deletion available. :-)' . PHP_EOL);
-			exit(0);
-		}
-		
-		if($countResult === 0)
-		{
-			fprintf(STDERR, ' >> NO elements purged' . PHP_EOL);
-		}
-		else
-		{
-			printf(' >> %d elements purged' . PHP_EOL, $countResult);
-		}
-		
-		if($countErrors === 0)
-		{
-			printf(' >> NO errors! :-D' . PHP_EOL);
-		}
-		else
-		{
-			fprintf(STDERR, ' >> %d errors occured' . PHP_EOL, $countErrors);
-		}
-		
-		if($countResult > 0)
-		{
-			printf(PHP_EOL . ' >> This elements have been removed:' . PHP_EOL);
-			
-			for($i = 0; $i < $countResult; ++$i)
-			{
-				printf('    >> \'' . $result[$i] . '\'' . PHP_EOL);
-			}
-		}
-		
-		if($countErrors > 0)
-		{
-			fprintf(STDERR, PHP_EOL . ' >> This elements couldn\'t be removed:' . PHP_EOL);
-			
-			for($i = 0; $i < $countErrors; ++$i)
-			{
-				fprintf(STDERR, '    >> \'' . $errors[$i] . '\'' . PHP_EOL);
-			}
-		}
+		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
 
-		//
-		exit(0);*/
+//
+var_dump($result);
+die('	//TODO: values(' . $_index . ')');
 	}
 
 	function unlog($_index = -1)
@@ -3073,7 +2494,15 @@ die(' .. purge(' . $_index . ')');
 		{
 			sync($i);
 		}
-		else if($argv[$i] === '-c' || $argv[$i] === '--config')
+		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
+		{
+			clean($i);
+		}
+		else if($argv[$i] === '-p' || $argv[$i] === '--purge')
+		{
+			purge($i);
+		}
+		else if($argv[$i] === '-c' || $argv[$i] === '--check')
 		{
 			config($i);
 		}
@@ -3088,14 +2517,6 @@ die(' .. purge(' . $_index . ')');
 		else if($argv[$i] === '-t' || $argv[$i] === '--types')
 		{
 			types($i);
-		}
-		else if($argv[$i] === '-l' || $argv[$i] === '--clean')
-		{
-			clean($i);
-		}
-		else if($argv[$i] === '-p' || $argv[$i] === '--purge')
-		{
-			purge($i);
 		}
 		else if($argv[$i] === '-e' || $argv[$i] === '--errors')
 		{
@@ -3287,16 +2708,6 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		}
 
 		//
-		function timestamp($_difference = null)
-		{
-			if(gettype($_difference) !== 'integer')
-			{
-				return time();
-			}
-			
-			return (time() - $_difference);
-		}
-
 		function test()
 		{
 			$result = true;
