@@ -1,4 +1,5 @@
 <?php
+
 //
 namespace kekse;
 
@@ -540,7 +541,7 @@ function starts_with($_haystack, $_needle, $_case_sensitive = true)
 }
 
 //
-if($argc !== null && $argv !== null)
+if(isset($argc) && isset($argv))
 {
 	define('ARGC', $argc);
 	define('ARGV', $argv);
