@@ -5,7 +5,7 @@ namespace counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.18.5');
+define('VERSION', '2.18.6');
 
 //
 define('RAW', false);
@@ -455,11 +455,7 @@ function secure($_string, $_null = true, $_die = !RAW)
 
 	$len = strlen($result);
 
-	if($_null && $len === 0)
-	{
-		$result = null;
-	}
-	else if($len > 0)
+	if($len > 0)
 	{
 		$rem = 0;
 
@@ -471,7 +467,26 @@ function secure($_string, $_null = true, $_die = !RAW)
 		if($rem > 0)
 		{
 			$result = substr($result, 0, -$rem);
+			$rem = 0;
+			$len = strlen($result);
 		}
+
+		while($rem < ($len - 1) && ($result[$rem] === '.' || $result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-'))
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, $rem);
+		}
+
+		$len = strlen($result);
+	}
+
+	if($_null && $len === 0)
+	{
+		$result = null;
 	}
 	
 	return $result;
@@ -491,32 +506,7 @@ function secure_host($_string, $_null = true, $_die = !RAW)
 
 function secure_path($_string, $_null = true, $_die = !RAW)
 {
-	$value = secure($_string, $_null, $_die);
-
-	if($value === null)
-	{
-		return null;
-	}
-
-	$result = '';
-	$len = strlen($value);
-
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(strlen($result) === 0 && ($value[$i] === '-' || $value[$i] === '+' || $value[$i] === '~'))
-		{
-			continue;
-		}
-
-		$result .= $value[$i];
-	}
-
-	if($_null && strlen($result) === 0)
-	{
-		return null;
-	}
-
-	return $result;
+	return secure($_string, $_null, $_die);
 }
 
 function get_param($_key, $_numeric = false, $_float = true, $_die = !RAW)
