@@ -1,7 +1,7 @@
 <?php
 
 //
-namespace kekse;
+namespace kekse\counter;
 
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
