@@ -5,7 +5,7 @@ namespace counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.18.6');
+define('VERSION', '2.18.7');
 
 //
 define('RAW', false);
@@ -253,9 +253,9 @@ function get_path($_path, $_check = false, $_file = false)
 define('PATH', get_path(DIR, true, false));
 define('PATH_LOG', get_path(LOG, false, true));
 
-if(DRAWING)
+if(DRAWING || CLI)
 {
-	define('PATH_FONTS', get_path(FONTS, true, false));
+	define('PATH_FONTS', get_path(FONTS, (CLI ? false : true), false));
 }
 else
 {
@@ -753,163 +753,6 @@ function log_error($_reason, $_source = '', $_path = '', $_die = !RAW)
 }
 
 //
-//FIXME/TODO/get_files und count_files evtl. im CLI-bereich allein..!?! wird doch nicht sonst eingesetzt, eh? :D~
-//
-function get_files($_path, $_count = false, $_null = true, $_die = !RAW)
-{
-	if(!is_dir($_path))
-	{
-		log_error('Path is not an existing directory', 'get_files', $_path, $_die);
-
-		if($_die)
-		{
-			error('Path is not an existing directory');
-		}
-		
-		return null;
-	}
-	
-	$handle = opendir($_path);
-	
-	if($handle === false)
-	{
-		log_error('Directory couldn\'t be opened', 'get_files', $_path, $_die);
-		
-		if($_die)
-		{
-			error('Directory couldn\'t be opened');
-		}
-		
-		return null;
-	}
-	
-	$result = ($_count ? 0 : array());
-	$index = 0;
-	
-	while($sub = readdir($handle))
-	{
-		if($sub[0] === '.' || $sub === '..')
-		{
-			continue;
-		}
-		else if($_count)
-		{
-			++$result;
-		}
-		else
-		{
-			$result[$index++] = $sub;
-		}
-	}
-	
-	closedir($handle);
-	
-	if($_null && !$_count && count($result) === 0)
-	{
-		return null;
-	}
-	
-	return $result;
-}
-
-function count_files($_path = PATH, $_dir = false, $_exclude = true, $_list = false, $_filter = false, $_die = !RAW)
-{
-	if(gettype($_path) !== 'string')
-	{
-		log_error('Path is not a string', 'count_files', '', true);
-		error('Path is not a string');
-	}
-	else if(! is_dir($_path))
-	{
-		log_error('This is not a directory', 'count_files', $_path, $_die);
-
-		if($_die)
-		{
-			error('This is not a directory' . (defined('STDERR') ? PHP_EOL : ''));
-		}
-
-		return null;
-	}
-
-	$handle = opendir($_path);
-
-	if($handle === false)
-	{
-		log_error('Couldn\'t opendir()', 'count_files', $_path, false);
-		return false;
-	}
-
-	$result = ($_list ? array() : 0);
-	$index = 0;
-
-	while($sub = readdir($handle))
-	{
-		if($sub[0] === '.' || $sub === '..')
-		{
-			continue;
-		}
-		else if($_exclude === true || $_exclude === null)
-		{
-			if($sub[0] === '-' || $sub[0] === '+')
-			{
-				continue;
-			}
-			else if($_exclude === null && $sub[0] === '~')
-			{
-				continue;
-			}
-		}
-
-		if($_dir === false)
-		{
-			if(!is_file(join_path($_path, $sub)))
-			{
-				continue;
-			}
-		}
-		else if($_dir === true)
-		{
-			if(!is_dir(join_path($_path, $sub)))
-			{
-				continue;
-			}
-		}
-		
-		if($_filter === true || $_filter === null)
-		{
-			if($sub[0] === '~' || $sub[0] === '+' || $sub[0] === '-')
-			{
-				$sub = substr($sub, 1);
-			}
-			else if($_filter === null)
-			{
-				continue;
-			}
-		}
-
-		if($_list)
-		{
-			if($_filter === true || $_filter === null)
-			{
-				if(in_array($sub, $result))
-				{
-					continue;
-				}
-			}
-
-			$result[$index++] = $sub;
-		}
-		else
-		{
-			++$result;
-		}
-	}
-
-	closedir($handle);
-	return $result;
-}
-
-//
 function remove($_path, $_recursive = true, $_die = !RAW, $_depth_current = 0)
 {
 	//
@@ -1063,21 +906,32 @@ if(CLI && !RAW)
 		
 		return $result;
 	}
-	
-	function get_arguments($_index, $_null = true, $_unique = true)
+
+	function get_arguments($_index, $_secure = false, $_null = true, $_unique = true)
 	{
 		if(gettype($_index) !== 'integer' || $_index < 0)
 		{
-			return null;
+			if($_null)
+			{
+				return null;
+			}
+			
+			return array();
 		}
-		else if(ARGC <= $_index)
+		
+		if(ARGC <= $_index)
 		{
-			return null;
+			if($_null)
+			{
+				return null;
+			}
+			
+			return array();
 		}
 		
 		$result = array();
 
-		for($i = $_index, $j = 0; $i < ARGC; ++$i)
+		for($i = $_index + 1, $j = 0; $i < ARGC; ++$i)
 		{
 			if(strlen(ARGV[$i]) === 0)
 			{
@@ -1087,12 +941,21 @@ if(CLI && !RAW)
 			{
 				break;
 			}
-			else if($_unique && in_array(ARGV[$i], $result))
+
+			if($_unique && in_array(ARGV[$i], $result))
 			{
 				continue;
 			}
-			
+
 			$result[$j++] = ARGV[$i];
+		}
+
+		if($_secure) for($i = 0; $i < count($result); ++$i)
+		{
+			if(($result[$i] = secure($result[$i], true, false)) === null)
+			{
+				array_splice($result, $i--, 1);
+			}
 		}
 
 		if(count($result) === 0)
@@ -1106,13 +969,61 @@ if(CLI && !RAW)
 		return $result;		
 	}
 
-	function get_list($_index, $_values)
+	function get_list($_index, $_null = true)
 	{
+		//
+		function get_item($_sub, &$_result)
+		{
+			$type = $_sub[0];
+			$host = substr($_sub, 1);
+			
+			if(!in_array($host, $_result['host']))
+			{
+				$_result['host'][] = $host;
+			}
+			
+			if(!isset($_result['type'][$host]))
+			{
+				$_result['type'][$host] = 0;
+			}
+			
+			switch($type)
+			{
+				case '~':
+					if(!in_array($host, $_result['value']))
+					{
+						$_result['value'][] = $host;
+					}
+					
+					$_result['type'][$host] |= TYPE_VALUE;
+					break;
+				case '+':
+					if(!in_array($host, $_result['dir']))
+					{
+						$_result['dir'][] = $host;
+					}
+					
+					$_result['type'][$host] |= TYPE_DIR;
+					break;
+				case '-':
+					if(!in_array($host, $_result['file']))
+					{
+						$_result['file'][] = $host;
+					}
+					
+					$_result['type'][$host] |= TYPE_FILE;
+					break;
+			}
+			
+			return $_result;
+		}
+
+		//
 		$list = null;
 
 		if(gettype($_index) === 'integer')
 		{
-			$list = get_arguments($_index, true, true);
+			$list = get_arguments($_index, false, true, true);
 		}
 
 		$result = array();
@@ -1124,134 +1035,87 @@ if(CLI && !RAW)
 
 		if($list === null)
 		{
-			$list = count_files(PATH, ($_values ? false : null),
-				($_values ? true : false), true, false, false);
-
-			if($list === null || count($list) === 0)
+			$handle = opendir(PATH);
+			
+			if($handle === false)
 			{
-				$result = null;
+				log_error('Can\'t opendir()', 'get_list', PATH, true);
+				error('Can\'t opendir()');
 			}
-			else
+			
+			$next = null;
+			$found = 0;
+			
+			while($sub = readdir($handle))
 			{
-				$len = count($list);
-
-				for($i = 0, $h = 0, $d = 0, $f = 0, $v = 0; $i < $len; ++$i)
+				if($sub[0] === '.' || $sub === '..')
 				{
-					if($list[$i][0] !== '~' && $list[$i][0] !== '+' && $list[$i][0] !== '-')
+					continue;
+				}
+				else
+				{
+					switch($sub[0])
+					{
+						case '~':
+						case '+':
+						case '-':
+							if(strlen($sub) > 1)
+							{
+								$next = false;
+							}
+							else
+							{
+								$next = true;
+							}
+							break;
+						default:
+							$next = true;
+							break;
+					}
+
+					if($next)
 					{
 						continue;
 					}
-
-					$type = $list[$i][0];
-					$host = substr($list[$i], 1);
-
-					if(!in_array($host, $result['host']))
-					{
-						$result['host'][$h++] = $host;
-					}
-
-					if(!isset($result['type'][$host]))
-					{
-						$result['type'][$host] = 0;
-					}
-
-					switch($type)
-					{
-						case '~':
-							if(!in_array($host, $result['value']))
-							{
-								$result['value'][$v++] = $host;
-							}
-							$result['type'][$host] |= TYPE_VALUE;
-							break;
-						case '+':
-							if(!in_array($host, $result['dir']))
-							{
-								$result['dir'][$d++] = $host;
-							}
-							$result['type'][$host] |= TYPE_DIR;
-							break;
-						case '-':
-							if(!in_array($host, $result['file']))
-							{
-								$result['file'][$f++] = $host;
-							}
-							$result['type'][$host] |= TYPE_FILE;
-							break;
-					}
 				}
+				
+				get_item($sub, $result);
+				++$found;
+			}
+			
+			closedir($handle);
+
+			if($found === 0 && $_null)
+			{
+				$result = null;
 			}
 		}
 		else
 		{
-			$item = '';
 			$len = count($list);
-
-			for($i = 0, $h = 0, $d = 0, $f = 0, $v = 0; $i < $len; ++$i)
+			$found = 0;
+			$sub;
+			
+			for($i = 0; $i < $len; ++$i)
 			{
-				$item = PATH . '/';
-
-				if($list[$i][0] !== '~' && $list[$i][0] !== '+' && $list[$i][0] !== '-')
-				{
-					if($_values === true)
-					{
-						$item .= '~';
-					}
-					else if($_values === false)
-					{
-						$item .= '{+,-}';
-					}
-					else if($_values === null)
-					{
-						$item .= '?';
-					}
-				}
-
-				$item .= $list[$i];
-				$item = glob($item, GLOB_BRACE);
-				$sub = count($item);
+				$sub = join_path(PATH, '{~,+,-}' . $list[$i]);
+				$sub = glob($sub, GLOB_BRACE);
+				$subLen = count($sub);
 				
-				for($j = 0; $j < $sub; ++$j)
+				if($subLen === 0)
 				{
-					$base = basename($item[$j]);
-					$host = substr($base, 1);
-					$type = $base[0];
-
-					if(!in_array($host, $result['host']))
-					{
-						$result['host'][$h++] = $host;
-					}
-
-					if(!isset($result['type'][$host]))
-					{
-						$result['type'][$host] = 0;
-					}
-
-					switch($type)
-					{
-						case '~':
-							if(!in_array($host, $result['value']))
-							{
-								$result['value'][$v++] = $host;
-							}
-							$result['type'][$host] |= TYPE_VALUE;
-							break;
-						case '+':
-							if(!in_array($host, $result['dir']))
-							{
-								$result['dir'][$d++] = $host;
-							}
-							$result['type'][$host] |= TYPE_DIR;
-							break;
-						case '-':
-							if(!in_array($host, $result['file']))
-							{
-								$result['file'][$f++] = $host;
-							}
-							$result['type'][$host] |= TYPE_FILE;
-							break;
-					}
+					continue;
 				}
+				else for($j = 0; $j < $subLen; ++$j)
+				{
+					get_item(basename($sub[$j]), $result);
+					++$found;
+				}
+			}
+
+			if($found === 0 && $_null)
+			{
+				$result = null;
 			}
 		}
 
@@ -1288,41 +1152,9 @@ if(CLI && !RAW)
 				$result = null;
 			}
 		}
-
-		return $result;
-	}
-
-//
-/*$a=get_list(1,true);
-$b=get_list(1,false);
-var_dump($a);
-printf(PHP_EOL.PHP_EOL);
-var_dump($b);
-die('   ..........');*/
-
-	//
-	function get_hosts($_values = true)
-	{
-		$list = count_files(PATH, ($_values ? false : null), ($_values ? true : false), true, null);
-
-		if($list === null)
+		else if($_null && count($result) === 0)
 		{
-			return null;
-		}
-
-		$result = array();
-
-		for($i = 0, $j = 0; $i < count($list); ++$i)
-		{
-			if(! in_array($list[$i], $result))
-			{
-				$result[$j++] = $list[$i];
-			}
-		}
-		
-		if(count($result) === 0)
-		{
-			return null;
+			$result = null;
 		}
 
 		return $result;
@@ -1377,14 +1209,12 @@ die('   ..........');*/
 
 	function hashes($_index = -1)
 	{
-		printf(' >> So, these are the available hash(ing) algorithms:' . PHP_EOL . PHP_EOL);
-		
 		$list = hash_algos();
 		$len = count($list);
 		
 		for($i = 0; $i < $len; ++$i)
 		{
-			printf(' >> \'%s\'' . PHP_EOL, $list[$i]);
+			printf($list[$i] . PHP_EOL);
 		}
 		
 		exit(0);
@@ -1403,72 +1233,65 @@ die('   ..........');*/
 			exit(2);
 		}
 
-		$fonts = get_arguments($_index + 1, true, true);
+		$fonts = get_arguments($_index, false, true, true);
+		$result = array();
+		$defined;
 
-		if($fonts !== null)
-		{
-			for($i = 0; $i < count($fonts); ++$i)
-			{
-				if(($fonts[$i] = secure_path($fonts[$i], true)) === null)
-				{
-					array_splice($fonts, $i--, 1);
-				}
-				else if(ends_with($fonts[$i], '.ttf'))
-				{
-					$fonts[$i] = substr($fonts[$i], 0, -4);
-				}
-			}
-			
-			if(count($fonts) === 0)
-			{
-				fprintf(STDERR, ' >> No fonts left after securing their strings' . PHP_EOL);
-				exit(3);
-			}
-		}
-
-		$available = glob(join_path(PATH_FONTS, '/*.ttf'));
-		$len = count($available);
-		
-		if($len === 0)
-		{
-			fprintf(STDERR, ' >> No fonts installed in your fonts directory \'%s\'!' . PHP_EOL, basename(PATH_FONTS));
-			exit(4);
-		}
-		else for($i = 0; $i < $len; ++$i)
-		{
-			$available[$i] = basename($available[$i], '.ttf');
-		}
-
-		printf(' >> You have %d fonts installed (in directory \'%s\')! :-)' . PHP_EOL . PHP_EOL, $len, basename(PATH_FONTS));
-		
 		if($fonts === null)
 		{
-			for($i = 0; $i < $len; ++$i)
+			$defined = -1;
+			$result = glob(join_path(PATH_FONTS, '*.ttf'), GLOB_BRACE);
+			$len = count($result);
+			
+			if($len === 0)
 			{
-				printf('    %s' . PHP_EOL, $available[$i]);
+				$result = null;
+			}
+			else for($i = 0; $i < $len; ++$i)
+			{
+				$result[$i] = basename($result[$i], '.ttf');
 			}
 		}
 		else
 		{
-			$item = 0;
-			$maxLen = 0;
+			$defined = count($fonts);
 			$len = count($fonts);
+			$idx = 0;
 			
 			for($i = 0; $i < $len; ++$i)
 			{
-				if(($item = strlen($fonts[$i])) > $maxLen)
+
+				$sub = glob(join_path(PATH_FONTS, basename($fonts[$i], '.ttf') . '.ttf'));
+				$subLen = count($sub);
+
+				if($subLen === 0)
 				{
-					$maxLen = $item;
+					continue;
+				}
+				else for($j = 0; $j < $subLen; ++$j)
+				{
+					$result[$idx++] = basename($sub[$j], '.ttf');
 				}
 			}
 			
-			++$maxLen;
-			$format = ' %' . $maxLen . 's: %s' . PHP_EOL;
-			
-			for($i = 0; $i < $len; ++$i)
+			if($idx === 0)
 			{
-				printf($format, $fonts[$i], (in_array($fonts[$i], $available) ? 'YES :-)' : 'NO!'));
+				$result = null;
 			}
+		}
+
+		if($result === null)
+		{
+			fprintf(STDERR, ' >> No fonts found.' . PHP_EOL);
+			exit(3);
+		}
+		
+		$len = count($result);
+		printf(' >> Found %d fonts' . ($defined === -1 ? '' : ' (by %d globs)') . PHP_EOL . PHP_EOL, $len, $defined);
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			printf('    %s' . PHP_EOL, $result[$i]);
 		}
 
 		printf(PHP_EOL);
@@ -1483,6 +1306,8 @@ die('   ..........');*/
 			exit(1);
 		}
 
+die('TODO: same as in fonts()!');
+		/*
 		$selection = get_arguments($_index + 1, true, true);
 		$types = imagetypes();
 
@@ -1582,7 +1407,7 @@ die('   ..........');*/
 			}
 		}
 
-		exit(0);
+		exit(0);*/
 	}
 	
 	function config($_index = -1)
@@ -2219,26 +2044,16 @@ die('TODO: set()');
 	function values($_index = -1)
 	{
 		//
-		$hosts = get_arguments($_index + 1, true, true);
-		$defined = null;
-
-		if($hosts === null)
-		{
-			$hosts = get_hosts(true);
-			$defined = false;
-		}
-		else
-		{
-			$defined = true;
-		}
+		$hosts = get_list($_index, true);
 
 		if($hosts === null)
 		{
 			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
 			exit(1);
 		}
-
-		$files = array();
+var_dump($hosts);
+die('TODO: values(' . $_index . ')');
+		/*$files = array();
 		$item = null;
 		$origLen = count($hosts);
 
@@ -2405,13 +2220,23 @@ die('TODO: set()');
 		}
 
 		//
-		exit(0);
+		exit(0);*/
 	}
 
 	function sync($_index = -1)
 	{
-die('TODO (sync() w/ glob(); look above)');
 		//
+		$hosts = get_list($_index, true);
+		
+		if($hosts === null)
+		{
+			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+			exit(1);
+		}
+var_dump($hosts);
+die(' .. sync(' . $_index . ')');
+
+		/*
 		$hosts = get_arguments($_index + 1, true, true);
 		$defined = null;
 		
@@ -2766,13 +2591,23 @@ die(' ....//');
 		fprintf(STDERR, ' >> %d errors.. ' . ($errors === 0 ? ':-)' : ':-/') . PHP_EOL, $errors);
 		
 		//
-		exit();
+		exit();*/
 	}
 
-	function clean($_index = -1, $_host = null)
+	function clean($_index = -1)
 	{
-die('TODO (clean() w/ glob(); look above..)');
 		//
+		$hosts = get_list($_index, true);
+		
+		if($hosts === null)
+		{
+			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+			exit(1);
+		}
+var_dump($hosts);
+die(' .. clean(' . $_index . ')');
+die('TODO (clean() w/ glob(); look above..)');
+		/*
 		$hosts = get_arguments($_index + 1, true, true);
 		
 		if($hosts === null)
@@ -2960,13 +2795,22 @@ die('TODO (clean() w/ glob(); look above..)');
 			exit(5);
 		}
 
-		exit(0);
+		exit(0);*/
 	}
 
 	function purge($_index = -1, $_host = null)
 	{
-die('TODO (purge() w/ glob(); look above..)');
 		//
+		$hosts = get_list($_index, true);
+		
+		if($hosts === null)
+		{
+			fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+			exit(1);
+		}
+var_dump($hosts);
+die(' .. purge(' . $_index . ')');
+		/*
 		$hosts = get_arguments($_index + 1, true, true);
 
 		if($hosts === null)
@@ -3104,7 +2948,7 @@ die('TODO (purge() w/ glob(); look above..)');
 		}
 
 		//
-		exit(0);
+		exit(0);*/
 	}
 
 	function unlog($_index = -1)
