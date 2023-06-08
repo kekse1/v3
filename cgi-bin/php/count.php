@@ -5,7 +5,7 @@ namespace counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.19.1');
+define('VERSION', '2.19.2');
 
 //
 define('RAW', false);
@@ -2064,6 +2064,7 @@ die('TODO: set()');
 	// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
 	function values($_index = -1, $_purge = false, $_clean = false)
 	{
+die('TODO');//and don't forget 'prompt()'!!
 		//
 		$list = get_list($_index);
 
@@ -2787,8 +2788,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			
 			if(!$handle)
 			{
-				log_error('Can\'t opendir()', 'clean_files', PATH_DIR);
-				error('Can\'t opendir()');
+				log_error('Can\'t opendir()', 'clean_files', PATH_DIR, false);
+				return -1;
 			}
 			
 			$result = 0;
@@ -2823,7 +2824,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			return write_count($result, false);
 		}
 
-		function init_count($_die = !RAW)
+		function init_count()
 		{
 			$result = 0;
 
@@ -2833,8 +2834,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 				if($handle === false)
 				{
-					log_error('Can\'t opendir()', 'init_count', PATH_DIR, $_die);
-					return result;
+					log_error('Can\'t opendir()', 'init_count', PATH_DIR, false);
+					return null;
 				}
 
 				while($sub = readdir($handle))
@@ -2860,14 +2861,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 			if($written === false)
 			{
-				log_error('Couldn\'t initialize count', 'init_count', PATH_COUNT, $_die);
-
-				if($_die)
-				{
-					error('Couldn\'t initialize count');
-				}
-				
-				return false;
+				log_error('Couldn\'t initialize count', 'init_count', PATH_COUNT, false);
+				return null;
 			}
 
 			return $result;
@@ -2881,16 +2876,16 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			}
 			else if(!is_file(PATH_COUNT) || !is_writable(PATH_COUNT))
 			{
-				log_error('Count file is not a file, or it\'s not writable', 'read_count', PATH_COUNT);
-				error('Count file is not a file, or it\'s not writable');
+				log_error('Count file is not a file, or it\'s not writable', 'read_count', PATH_COUNT, false);
+				return 0;
 			}
 
 			$result = file_get_contents(PATH_COUNT);
 
 			if($result === false)
 			{
-				log_error('Couldn\'t read count value', 'read_count', PATH_COUNT);
-				error('Couldn\'t read count value');
+				log_error('Couldn\'t read count value', 'read_count', PATH_COUNT, false);
+				return null;
 			}
 
 			return (int)$result;
@@ -2904,8 +2899,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			{
 				if(!is_file(PATH_COUNT))
 				{
-					log_error('Count file is not a regular file', 'write_count', PATH_COUNT);
-					error('Count file is not a regular file');
+					log_error('Count file is not a regular file', 'write_count', PATH_COUNT, false);
+					return null;
 				}
 				else if($_get)
 				{
@@ -2921,8 +2916,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 			if($written === false)
 			{
-				log_error('Unable to write count', 'write_count', PATH_COUNT);
-				error('Unable to write count');
+				log_error('Unable to write count', 'write_count', PATH_COUNT, false);
+				return null;
 			}
 
 			return $result;
@@ -2958,21 +2953,21 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			{
 				if(!is_file(PATH_IP))
 				{
-					log_error('Is not a file', 'read_timestamp', PATH_IP);
-					error('Is not a file');
+					log_error('Is not a file', 'read_timestamp', PATH_IP, false);
+					return 0;
 				}
 				else if(!is_readable(PATH_IP))
 				{
-					log_error('File not readable', 'read_timestamp', PATH_IP);
-					error('File not readable');
+					log_error('File not readable', 'read_timestamp', PATH_IP, false);
+					return 0;
 				}
 
 				$result = file_get_contents(PATH_IP);
 
 				if($result === false)
 				{
-					log_error('Unable to read timestamp', 'read_timestamp', PATH_IP);
-					error('Unable to read timestamp');
+					log_error('Unable to read timestamp', 'read_timestamp');
+					return 0;
 				}
 
 				return (int)$result;
@@ -2987,6 +2982,19 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			{
 				return 0;
 			}
+			else if(!file_exists(PATH_DIR))
+			{
+				if(!mkdir(PATH_DIR))
+				{
+					log_error('Can\'t mkdir()', 'write_timestamp', PATH_DIR, false);
+					return 0;
+				}
+			}
+			else if(!is_dir(PATH_DIR))
+			{
+				log_error('Path isn\'t a directory', 'write_timestamp', PATH_DIR, false);
+				return 0;
+			}
 			
 			$existed = file_exists(PATH_IP);
 
@@ -2994,13 +3002,13 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			{
 				if(!is_file(PATH_IP))
 				{
-					log_error('It\'s no regular file', 'write_timestamp', PATH_IP);
-					error('It\'s no regular file');
+					log_error('It\'s no regular file', 'write_timestamp', PATH_IP, false);
+					return 0;
 				}
 				else if(!is_writable(PATH_IP))
 				{
-					log_error('Not a writable file', 'write_timestamp', PATH_IP);
-					error('Not a writable file');
+					log_error('Not a writable file', 'write_timestamp', PATH_IP, false);
+					return 0;
 				}
 			}
 			else if(read_count() > LIMIT)
@@ -3009,16 +3017,14 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				{
 					if(clean_files() > LIMIT)
 					{
-						log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', PATH_IP);
-						error('LIMIT exceeded, even after clean_files()');
-						return null;
+						log_error('LIMIT exceeded, even after clean_files()', 'write_timestamp', PATH_IP, false);
+						return 0;
 					}
 				}
 				else
 				{
-					log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', PATH_IP);
-					error('LIMIT exceeded; w/o clean_files() call');
-					return null;
+					log_error('LIMIT exceeded (and no clean_files() called)', 'write_timestamp', PATH_IP, false);
+					return 0;
 				}
 			}
 
@@ -3026,8 +3032,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 			if($result === false)
 			{
-				log_error('Unable to write timestamp', 'write_timestamp', PATH_IP);
-				error('Unable to write timestamp');
+				log_error('Unable to write timestamp', 'write_timestamp', PATH_IP, false);
+				return 0;
 			}
 			else if(!$existed)
 			{
@@ -3070,39 +3076,25 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			return 0;
 		}
 
-		function write_value($_value, $_die = !RAW)
+		function write_value($_value)
 		{
 			if(gettype($_value) !== 'integer' || $_value < 0)
 			{
-				log_error('Value was no integer, or it was below zero', 'write_value', '', $_die);
-				
-				if($_die)
-				{
-					error('Value was no integer, or it was below zero');
-				}
-				
-				return 0;
+				log_error('Value was no integer, or it was below zero', 'write_value', '', true);
+				error('Value was no integer, or it was below zero');
 			}
 
 			if(file_exists(PATH_FILE))
 			{
 				if(!is_file(PATH_FILE))
 				{
-					log_error('Not a regular file', 'write_value', PATH_FILE, $_die);
-
-					if($_die)
-					{
-						error('Not a regular file');
-					}
+					log_error('Not a regular file', 'write_value', PATH_FILE, true);
+					error('Not a regular file');
 				}
 				else if(!is_writable(PATH_FILE))
 				{
-					log_error('File is not writable', 'write_value', PATH_FILE, $_die);
-
-					if($_die)
-					{
-						error('File is not writable');
-					}
+					log_error('File is not writable', 'write_value', PATH_FILE, true);
+					error('File is not writable');
 				}
 			}
 
@@ -3110,12 +3102,8 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 			if($result === false)
 			{
-				log_error('Unable to write value', 'write_value', PATH_FILE, $_die);
-
-				if($_die)
-				{
-					error('Unable to write value');
-				}
+				log_error('Unable to write value', 'write_value', PATH_FILE, true);
+				error('Unable to write value');
 			}
 
 			return $result;
