@@ -510,15 +510,14 @@ function get_param($_key, $_numeric = false, $_float = true)
 
 function ends_with($_haystack, $_needle, $_case_sensitive = true)
 {
-	if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-	
 	if(strlen($_needle) > strlen($_haystack))
 	{
 		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
 	}
 
 	return (substr($_haystack, -strlen($_needle)) === $_needle);
@@ -526,15 +525,14 @@ function ends_with($_haystack, $_needle, $_case_sensitive = true)
 
 function starts_with($_haystack, $_needle, $_case_sensitive = true)
 {
-	if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-
 	if(strlen($_needle) > strlen($_haystack))
 	{
 		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
 	}
 	
 	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
