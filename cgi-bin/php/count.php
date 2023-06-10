@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.3');
+define('VERSION', '2.20.4');
 
 //
 define('RAW', false);
@@ -1293,7 +1293,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			exit(0);
 		}
 		
-		function config($_index = -1)
+		function check($_index = -1)
 		{
 			//
 			printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
@@ -1410,7 +1410,12 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			//
 			if(gettype(OVERRIDE) === 'boolean')
 			{
-				printf(START.'Boolean type, great.' . PHP_EOL, 'OVERRIDE', 'OK');
+				printf(START.'Boolean type, great (could also be a non-empty String)' . PHP_EOL, 'OVERRIDE', 'OK');
+				++$ok;
+			}
+			else if(gettype(OVERRIDE) === 'string' && !empty(OVERRIDE))
+			{
+				printf(START.'A non-empty String (and could also be a Boolean)' . PHP_EOL, 'OVERRIDE', 'OK');
 				++$ok;
 			}
 			else
@@ -2376,7 +2381,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			}
 			else if(ARGV[$i] === '-c' || ARGV[$i] === '--check')
 			{
-				config($i);
+				check($i);
 			}
 			else if(ARGV[$i] === '-h' || ARGV[$i] === '--hashes')
 			{
@@ -2426,8 +2431,14 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		if(gettype($_host) === 'string' && !empty($_host))
 		{
 			$result = $_host;
+			define('OVERRIDDEN', true);
 		}
-		else if($result = get_param('override', false))
+		else if(gettype(OVERRIDE) === 'string' && !empty(OVERRIDE))
+		{
+			$result = OVERRIDE;
+			define('OVERRIDDEN', true);
+		}
+		else if(gettype($result = get_param('override', false)) === 'string' && !empty($result))
 		{
 			if(! OVERRIDE)
 			{
@@ -2437,6 +2448,10 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				{
 					error('You can\'t define \'?override\' without OVERRIDE enabled');
 				}
+			}
+			else
+			{
+				define('OVERRIDDEN', true);
 			}
 		}
 		else if(! empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'][0] !== ':')
