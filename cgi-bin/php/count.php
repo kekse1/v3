@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.4');
+define('VERSION', '2.20.5');
 
 //
 define('RAW', false);
@@ -2412,7 +2412,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	}
 
 	//
-	if(RAW && CLI && (gettype($_host) !== 'string' || empty($_host)))
+	if(CLI && (gettype($_host) !== 'string' || empty($_host)) && (gettype(OVERRIDE) !== 'string' || empty(OVERRIDE)))
 	{
 		if($_die)
 		{
