@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.2');
+define('VERSION', '2.20.3');
 
 //
 define('RAW', false);
@@ -3447,10 +3447,14 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				$height = px2pt($textHeight + ($_v * 2));
 
 				//
-				if($width < 1 || $height < 1)
+				if($width < 1)
 				{
-					draw_error('Resulting width/height below 1');
-					return null;
+					$width = 1;
+				}
+
+				if($height < 1)
+				{
+					$height = 1;
 				}
 
 				//
