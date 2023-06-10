@@ -8,7 +8,7 @@ The real/full version of all the JavaScript's is available in the [version.json]
 
 # Index
 * [Preview](#preview)
-* [count.php](#countphp)
+* [Other projects](#other-projects)
 * [Documentation](#documentation)
 * [Next steps](#next-steps)
 * [Features / Modules](#features--modules)
@@ -18,8 +18,11 @@ The real/full version of all the JavaScript's is available in the [version.json]
 ## Preview
 [https://kekse.biz/v3/test.html]
 
-## 'count.php'
-Got it's [own repository @ github.com](https://github.com/kekse1/count.php/) now! :)~
+## Other projects
+.. which are related to this one:
+
+* [**count**.php](https://github.com/kekse1/count.php/): embedded here via `XMLHttpRequest()` (so the `text/plain` version);
+* [**lib.js**](https://github.com/kekse1/lib.js/): the parent of this library; this one was a 'browser/' part there;
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
