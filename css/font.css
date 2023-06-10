@@ -1,6 +1,6 @@
 html
 {
-	font-family: 'Candara', 'Open Sans', 'Source Code Pro', 'sans-serif', 'monospace';
+	font-family: 'Candara', 'Open Sans', 'Intel One Mono', 'Source Code Pro', 'sans-serif', 'monospace';
 	font-size: 16px;
 	color: black;
 	text-shadow: 1px 1px 6px white;
@@ -13,7 +13,7 @@ html
 
 .code, textarea
 {
-	font-family: 'Source Code Pro', 'monospace';
+	font-family: 'Intel One Mono', 'Source Code Pro', 'monospace';
 }
 
 .text

@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.0');
+define('VERSION', '2.20.1');
 
 //
 define('RAW', false);
@@ -28,7 +28,8 @@ define('NONE', '/');
 define('DRAWING', false);
 define('SIZE', 24);
 define('SIZE_LIMIT', 512);
-define('FONT', 'SourceCodePro');
+//define('FONT', 'SourceCodePro');
+define('FONT', 'IntelOneMono');
 define('FONTS', 'fonts');
 define('H', 0);
 define('H_LIMIT', 256);
@@ -510,15 +511,14 @@ function get_param($_key, $_numeric = false, $_float = true)
 
 function ends_with($_haystack, $_needle, $_case_sensitive = true)
 {
-	if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-	
 	if(strlen($_needle) > strlen($_haystack))
 	{
 		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
 	}
 
 	return (substr($_haystack, -strlen($_needle)) === $_needle);
@@ -526,15 +526,14 @@ function ends_with($_haystack, $_needle, $_case_sensitive = true)
 
 function starts_with($_haystack, $_needle, $_case_sensitive = true)
 {
-	if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-
 	if(strlen($_needle) > strlen($_haystack))
 	{
 		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
 	}
 	
 	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
@@ -721,7 +720,11 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 	function error($_reason, $_exit_code = 255, $_relay = false)
 	{
-		if(defined('FIN') && FIN)
+		if(RAW)
+		{
+			throw new Exception($_reason);
+		}
+		else if(defined('FIN') && FIN)
 		{
 			return null;
 		}
@@ -792,7 +795,14 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			$data .= '(' . basename($_path) . ')';
 		}
 
-		$data .= ': ' . $_reason . PHP_EOL;
+		$data .= ': ' . $_reason;
+
+		if(RAW)
+		{
+			throw new Exception($data);
+		}
+
+		$data .= PHP_EOL;
 		
 		if($noLog)
 		{
@@ -1163,7 +1173,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			printf('    -p / --purge (*)' . PHP_EOL);
 			printf('    -c / --check' . PHP_EOL);
 			printf('    -h / --hashes' . PHP_EOL);
-			printf('    -f / --fonts' . PHP_EOL);
+			printf('    -f / --fonts (*)' . PHP_EOL);
 			printf('    -t / --types' . PHP_EOL);
 			printf('    -e / --errors' . PHP_EOL);
 			printf('    -u / --unlog' . PHP_EOL);
