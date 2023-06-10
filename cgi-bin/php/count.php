@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.1');
+define('VERSION', '2.20.2');
 
 //
 define('RAW', false);
@@ -1257,7 +1257,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 
 			if($result === null)
 			{
-				fprintf(STDERR, ' >> No fonts found.' . PHP_EOL);
+				fprintf(STDERR, ' >> No fonts found' . ($defined === -1 ? '' : ' (with your ' . $defined . ' globs)') . PHP_EOL);
 				exit(3);
 			}
 			
@@ -1266,7 +1266,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 			
 			for($i = 0; $i < $len; ++$i)
 			{
-				printf('    %s' . PHP_EOL, $result[$i]);
+				printf($result[$i] . PHP_EOL);
 			}
 
 			printf(PHP_EOL);
@@ -1280,109 +1280,18 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 				fprintf(STDERR, ' >> The GD library/extension is not loaded/available' . PHP_EOL);
 				exit(1);
 			}
-
-	die('TODO: same as in fonts()!');
-			/*
-			$selection = get_arguments($_index + 1, true, true);
-			$types = imagetypes();
-
-			if($selection === null)
-			{
-				$png = ($types & IMG_PNG);
-				$jpg = ($types & IMG_JPG);
-
-				$avail = 0;
-				$avail += ($png ? 1 : 0);
-				$avail += ($jpg ? 1 : 0);
-
-				printf(' >> These are the %d available image types:' . PHP_EOL . PHP_EOL, $avail);
-
-				if($png)
-				{
-					printf('    png' . PHP_EOL);
-				}
-
-				if($jpg)
-				{
-					printf('    jpg' . PHP_EOL);
-				}
-
-				printf(PHP_EOL);
-			}
 			else
 			{
-				$sel = array();
-				$len = count($selection);
-
-				for($i = 0, $j = 0; $i < $len; ++$i)
-				{
-					if(($selection[$i] = strtolower($selection[$i]))[0] === '.')
-					{
-						$selection[$i] = substr($selection[$i], 1);
-					}
-
-					if($selection[$i] === 'png')
-					{
-						if(!in_array($selection[$i], $sel))
-						{
-							$sel[$j++] = $selection[$i];
-						}
-					}
-					else if($selection[$i] === 'jpg')
-					{
-						if(!in_array($selection[$i], $sel))
-						{
-							$sel[$j++] = $selection[$i];
-						}
-					}
-					else
-					{
-						fprintf(STDERR, ' >> Image type \'%s\' is invalid..' . PHP_EOL, $selection[$i]);
-					}
-				}
-
-				$selection = $sel;
-				$len = count($selection);
-
-				if($len > 0)
-				{
-					printf(PHP_EOL);
-				}
-
-				for($i = 0; $i < $len; ++$i)
-				{
-					switch($selection[$i])
-					{
-						case 'png':
-							if($types & IMG_PNG)
-							{
-								printf('    png: YES :-D' . PHP_EOL);
-							}
-							else
-							{
-								fprintf(STDERR, '    png: NO. :-(' . PHP_EOL);
-							}
-							break;
-						case 'jpg':
-							if($types & IMG_JPG)
-							{
-								printf('    jpg: YES :-D' . PHP_EOL);
-							}
-							else
-							{
-								fprintf(STDERR, '    jpg: NO. :-(' . PHP_EOL);
-							}
-							break;
-					}
-				}
-
-				if($len > 0)
-				{
-					printf(PHP_EOL);
-				}
+				printf(' >> Supporting the following image types here:' . PHP_EOL . PHP_EOL);
 			}
 
-			exit(0);*/
+			$types = imagetypes();
+
+			printf('\'png\': %s' . PHP_EOL, ($types & IMG_PNG ? 'yes' : 'no'));
+			printf('\'jpg\': %s' . PHP_EOL, ($types & IMG_JPG ? 'yes' : 'no'));
+
+			printf(PHP_EOL);
+			exit(0);
 		}
 		
 		function config($_index = -1)
