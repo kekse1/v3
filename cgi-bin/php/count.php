@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.5');
+define('VERSION', '2.20.6');
 
 //
 define('RAW', false);
@@ -345,7 +345,7 @@ function remove($_path, $_recursive = false, $_depth_current = 0)
 	return true;
 }
 
-function get_param($_key, $_numeric = false, $_float = true)
+function get_param($_key, $_numeric = false, $_float = true, $_secure = true)
 {
 	//
 	//TODO/maybe relay from $_GET[] => $_SERVER[] then!?! ^_^
@@ -367,9 +367,14 @@ function get_param($_key, $_numeric = false, $_float = true)
 		return null;
 	}
 
-	$value = secure($_GET[$_key]);
+	$value = $_GET[$_key];
+	$len = strlen($value);
 
-	if($_numeric === null) switch(strtolower($value[0]))
+	if($len > 255 || $len === 0)
+	{
+		return null;
+	}
+	else if($_numeric === null) switch(strtolower($value[0]))
 	{
 		case '0':
 		case 'y':
@@ -386,7 +391,6 @@ function get_param($_key, $_numeric = false, $_float = true)
 	$set = '';
 	$negative = false;
 	$remove = 0;
-	$len = strlen($value);
 
 	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
 	{
@@ -503,6 +507,10 @@ function get_param($_key, $_numeric = false, $_float = true)
 				$result = -$result;
 			}
 		}
+	}
+	else if($result !== null && $_secure)
+	{
+		$result = secure($result);
 	}
 
 	return $result;
