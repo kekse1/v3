@@ -1,1 +1,1 @@
-Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+../COPYRIGHT.txt

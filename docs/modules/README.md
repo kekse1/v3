@@ -153,23 +153,13 @@ See the whole '**JSON modules**' section on the bottom, below the whole
 At the moment there are also the following scripts (which you could delete), but the most important should be the
 'update.sh' for 'status/update.now', which is used to show a 'Last Update' info in the status bar (on the bottom).
 
-### 'scripts/**update.sh**'
-Described above (in this 'scripts/' sub section).
-
-### 'scripts/**prompt.sh**'
-I've created a linux/bash `**$PS1**` prompt which seems nice for me. You can use it, if you want! :)~
-I really like this one!
-
 ### 'scripts/**hardware.sh**'
 More for myself, as I'm managing a '~/git/hardware/' archive of my possession (for drivers, manuals, or just a
 list and the prices, etc.). For this reason I've created my own './home/hardware/' page, with text/plain output
 of `tree (..)`.
 
-### 'scripts/**up2date.sh**'
-This is for Debian, Gentoo and Termux linux. All in one script for `emerge` and `apt` updates, etc.
-
 ### 'scripts/**update.sh**'
-**Important for *you*!** See below: 'status/update.now' (this script created this file).
+**Important for _you_!** See below: 'status/update.now' (this script created this file).
 
 ### 'scripts/**markdown.sh**'
 Just to synchronize the '**js**/' and '**json**/' modules with the 'docs/modules/' directory, which contains one

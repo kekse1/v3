@@ -8,18 +8,21 @@ The real/full version of all the JavaScript's is available in the [version.json]
 
 # Index
 * [Preview](#preview)
-* [count.php](#countphp)
+* [Other projects](#other-projects)
 * [Documentation](#documentation)
-* [scripts/](#scripts)
 * [Next steps](#next-steps)
 * [Features / Modules](#features--modules)
 * [Links](#links)
+* [Copyright and License](#copyright-and-license)
 
 ## Preview
 [https://kekse.biz/v3/test.html]
 
-## 'count.php'
-Got it's [own repository @ github.com](https://github.com/kekse1/count.php/) now! :)~
+## Other projects
+.. which are related to this one:
+
+* [**count**.php](https://github.com/kekse1/count.php/): embedded here via `XMLHttpRequest()` (so the `text/plain` version);
+* [**lib.js**](https://github.com/kekse1/lib.js/): the parent of this library; this one was a 'browser/' part there;
 
 ## Documentation...
 I will try to write down the API documentation for my .js modules in the 'docs/modules/' directory,
@@ -30,15 +33,7 @@ It covers these sections:
 * [Filesystem Structure](./docs/modules/README.md#Filesystem-structure)
 * [API Documentation](./docs/modules/README.md#API-documentation)
 
-The API documentation is still much TODO.
-
-## scripts/
-
-### prompt.sh
-![$PS1](docs/prompt.sh.png)
-* [prompt.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/prompt.sh)
-* [up2date.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/up2date.sh)
-* [**update.sh**](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/update.sh)
+The API documentation is still much **TODO**.
 
 ## Next steps
 
@@ -54,21 +49,8 @@ windows on your PC.. so that's not the final plan, as it's not so beautiful on m
 currently there are, btw, also '\*responsible\*.css', but they are going to be optimized as well.
 
 ### Radix Sort and Radix conversions
-
-### Sort
-As in JavaScript there's usually everything being sorted with the help of pure Integers (only real
-floating point numbers - but they'll work here as well, due to their encoding..), the plan is to
-use the 'best' sorting algorithm.
-
-* https://codercorner.com/RadixSortRevisited.htm
-
-### Conversions
-As already integrated in my [https://libjs.de/](lib[rary].js), the regular 36 radix maximum isn't
-enough for me. It's even really useful that I'm supporting the 256 byte-code-radix (using all
-the one-byte-characters)! :D~
-
-Here's my current implementation (which is going to be ported to here!):
-* https://libjs.de/lib/lib.js/ext/numeric.js
+Also see [lib.js/ext/numeric.js](https://github.com/kekse1/lib.js/blob/git/lib.js/ext/numeric.js)..
+and for the _sort_: https://codercorner.com/RadixSortRevisited.htm
 
 ### TODO
 And much more..
@@ -223,4 +205,8 @@ see it when you click on a menu item, where the 'lorem ipsum' text appears. :)~
 
 * https://www.heise.de/news/Bionic-Reading-Wie-eine-typografische-Methode-das-Web-lesbarer-machen-soll-7140358.html
 * https://bionic-reading.com/
+
+## Copyright and License
+The Copyright is [(c) Sebastian Kucharczyk](./COPYRIGHT.txt),
+and it's licensed under the [MIT](./LICENSE.txt) (also known as 'X' or 'X11' license).
 
