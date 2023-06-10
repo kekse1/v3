@@ -369,7 +369,7 @@ function get_param($_key, $_numeric = false, $_float = true)
 
 	$value = secure($_GET[$_key]);
 
-	if($_numeric === null) switch(strtolower($value)[0])
+	if($_numeric === null) switch(strtolower($value[0]))
 	{
 		case '0':
 		case 'y':
