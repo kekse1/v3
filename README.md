@@ -35,10 +35,9 @@ The API documentation is still much TODO.
 ## scripts/
 
 ### prompt.sh
-![$PS1](docs/prompt.sh.png)
-* [prompt.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/prompt.sh)
-* [up2date.sh](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/up2date.sh)
-* [**update.sh**](https://raw.githubusercontent.com/kekse1/kekse.biz/main/scripts/update.sh)
+* [**hardware**.sh](scripts/hardware.sh)
+* [**markdown**.sh](scripts/markdown.sh)
+* [**update**.sh](scripts/update.sh)
 
 ## Next steps
 
