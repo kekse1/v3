@@ -28,7 +28,6 @@ define('NONE', '/');
 define('DRAWING', false);
 define('SIZE', 24);
 define('SIZE_LIMIT', 512);
-//define('FONT', 'SourceCodePro');
 define('FONT', 'IntelOneMono');
 define('FONTS', 'fonts');
 define('H', 0);
