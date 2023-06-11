@@ -35,7 +35,13 @@ It covers these sections:
 
 The API documentation is still much **TODO**.
 
+Additionally, I've put a first 'dirty, little tutorial' here into the '[**docs/tutorials/**](docs/tutorials/)' directory,
+where I start with an explanation of how I created the (menu bar) icons. So I can extend them in the same style. ;)~
+
 ## Next steps
+
+### Contents!
+It's already time to start with the content itself! Mostly in the '[./**home**/](home/)' directory. :)~
 
 ### Documentation
 See above. Maybe an important thing!?

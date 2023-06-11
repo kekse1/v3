@@ -37,6 +37,7 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 * ./**[img](#img)**/
 * ./**[js](#js)**/
 * ./**[json](#json)**/
+* ./**[local](#local)**/
 * ./**[scripts](#scripts)**/
 * ./**[status](#status)**/
 * ./*favicon.ico*
@@ -148,6 +149,19 @@ See the whole '**[JavaScript modules](#javascript-modules)**' section below, in 
 ## '**json**/'
 See the whole '**JSON modules**' section on the bottom, below the whole
 '**[JSON modules](#json-modules)**' section, all in the '**[API Documentation](#api-documentation)**' section..
+
+## '**local**/'
+This is for non-git files, which could be too big, or also binary data which can't really be managed by revision control
+systems.
+
+I started with the 'workshop/' directory, something I dug out (commented it with photos when I assembled my old PC) - but
+the photos are too big to publish them here (in this github repository). Additionally I will probably put my 'documents/',
+'downloads/' and the 'gallery/' into here, so I just created a starting state.
+
+It's preferred to put here such files, which normally would reside under 'home/'. *There* you should just create a
+symbolic link to here! :)~
+
+And I'd recommend you to manage such files here, whereas you should put this directory in your `.gitignore`! ;)~
 
 ## '**scripts**/'
 At the moment there are also the following scripts (which you could delete), but the most important should be the

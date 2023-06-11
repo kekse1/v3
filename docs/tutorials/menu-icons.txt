@@ -1,0 +1,44 @@
+# so habe ich meine icons fuer die seiten hergestellt...
+
+	# erstmal ein leeres bild (512px);
+
+	# darauf ein unicode-symbol zeichnen ('Bitstream Charter'!? vs. 512px);
+
+	# rechts-klick auf diese neue text-ebene
+
+	# dort "auswahl aus alphakanal"
+
+	# auf menu "auswahl", dort "vergroeszern.."
+
+	# ca. 8px im dialog, das bestaetigen
+
+	# "farbverlaufswerkzeug"
+
+	# dort "VG nach HG (HSV-Farbton gegen den Uhrzeigersinn)"
+
+	# .. sowie beide farben waehlen (hier fg '224d6a', hg '545f23' ;)
+
+	# und letztlich von unten rechts nach oben links ziehen im bild.
+
+	# hintergrundebene sollte geloescht werden, nur text-ebene lassen
+
+	# danach: auf text-ebene right-click, und "Auswahl aus Alpha-Kanal"
+
+	# dann auswahl-menue und dort 'verkleinern...'
+
+	# im dialog mache '6px'.
+
+	# danach waehle den farbverlauf mit "VG nach HG (HSV-Farbton gegen den Uhrzeigersinn)"
+
+		# sowie vordergrund '224d6a' und hintergrund '000000'
+
+	# nun nur noch von oben links nach unten rechts ueber dem buchstaben.
+
+	# nun exportieren nach .png (mehrfach, erstmal 512px, dann 256px und zuletzt 128px):
+
+		# aktivieren: interlacing (adam7), hintergrundfarbe speichern, gamma-faktor speichern, farbwerte aus transparenten pixeln speichern
+
+		# deaktivieren: ebenenversatz, erstellungszeit, kommentar, ...
+
+		# alle unteren optionen (exif, ..) koennen/sollten auch deaktiviert werden.
+

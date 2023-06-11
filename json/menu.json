@@ -30,6 +30,12 @@
 		"href": "#~projects"
 	},
 	{
+		"image": "img/menu/workshop.128px.png",
+		"data": "Workshop",
+		"description": "Created a workshop when I assembled my (old) PC",
+		"href": "#~workshop"
+	},
+	{
 		"image": "img/menu/tools.128px.png",
 		"data": "Tools",
 		"description": "Some nifty tools (JavaScript, maybe PHP)",
