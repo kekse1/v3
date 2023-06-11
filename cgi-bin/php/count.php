@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.6');
+define('VERSION', '2.20.7');
 
 //
 define('RAW', false);
@@ -126,7 +126,7 @@ function join_path(... $_args)
 	{
 		if(gettype($_args[$i]) !== 'string')
 		{
-			die('Invalid argument[' . $i . ']' . (CLI ? PHP_EOL : ''));
+			throw new Error('Invalid argument[' . $i . ']');
 		}
 
 		$result .= $_args[$i] . '/';
@@ -554,152 +554,11 @@ if(isset($argc) && isset($argv))
 }
 
 //
-function counter($_host = null, $_read_only = RAW, $_die = !RAW)
+define('CLI', (php_sapi_name() === 'cli'));
+
+//
+function counter($_host = null, $_read_only = RAW)
 {
-	//
-	define('COOKIE_PATH', '/');
-	define('COOKIE_SAME_SITE', 'Strict');
-	define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
-	define('COOKIE_HTTP_ONLY', true);
-
-	//
-	define('CLI', (php_sapi_name() === 'cli'));
-
-	//
-	define('TEST', (CLI ? null : (isset($_GET['test']))));
-	define('RO', (CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
-	define('ZERO', (CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
-	define('DRAW', (CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
-
-	function check_path_char($_path, $_basename = true)
-	{
-		if($_basename)
-		{
-			$_path = basename($_path);
-		}
-		
-		switch($_path[0])
-		{
-			case '.':
-			case '~':
-			case '+':
-			case '-':
-				return false;
-		}
-		
-		return true;
-	}
-
-	function get_path($_path, $_check = false, $_file = false)
-	{
-		if(gettype($_path) !== 'string')
-		{
-			die('Path needs to be (non-empty) String' . (CLI ? PHP_EOL : ''));
-		}
-		else if(empty($_path))
-		{
-			die('Path may not be empty' . (CLI ? PHP_EOL : ''));
-		}
-		
-		$result = '';
-
-		if($_path[0] === '/')
-		{
-			$result = $_path;
-		}
-		else if($_path === '.')
-		{
-			if(($result = getcwd()) === false)
-			{
-				if(($result = realpath($_path)) === false)
-				{
-					$result = $_path;
-				}
-			}
-		}
-		else if(substr($_path, 0, 2) === './')
-		{
-			if(getcwd() !== false)
-			{
-				$result = getcwd() . substr($_path, 1);
-			}
-			else
-			{
-				die('The \'getcwd()\' function doesn\'t work');
-			}
-		}
-		else
-		{
-			$result = __DIR__ . ($_path[0] === '/' ? '' : '/') . $_path;
-		}
-		
-		if(gettype($result) === 'string')
-		{
-			$result = normalize($result);
-		}
-		else
-		{
-			return null;
-		}
-		
-		if($result === '/')
-		{
-			die('Root directory reached, which is not allowed here' . (CLI ? PHP_EOL : ''));
-		}
-		else if(!check_path_char($result, true))
-		{
-			die('Path may not start with one of [ \'.\', \'~\', \'+\', \'-\' ]');
-		}
-
-		if($_check)
-		{
-			if($_file)
-			{
-				if(!is_dir(dirname($result)))
-				{
-					die('Directory of path \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
-				}
-			}
-			else if(!is_dir($result))
-			{
-				die('Directory \'' . $_path . '\' doesn\'t exist' . (CLI ? PHP_EOL : ''));
-			}
-		}
-
-		return $result;
-	}
-
-	//
-	define('PATH', get_path(DIR, true, false));
-	define('PATH_LOG', get_path(LOG, false, true));
-
-	if(DRAWING || CLI)
-	{
-		define('PATH_FONTS', get_path(FONTS, (CLI ? false : true), false));
-	}
-	else
-	{
-		define('PATH_FONTS', null);
-	}
-
-	//
-	if(! (is_readable(PATH)))// && is_writable(PATH)))
-	{
-		die('Your \'DIR\' path is not readable' . (CLI ? PHP_EOL : ''));// and writable');
-	}
-	else if(DRAWING && !is_readable(PATH_FONTS))
-	{
-		die('Your \'FONTS\' path is not readable' . (CLI ? PHP_EOL : ''));
-	}
-	else if(!is_dir(dirname(PATH_LOG)))
-	{
-		die('Your \'LOG\' directory is not a directory' . (CLI ? PHP_EOL : ''));
-	}
-	else if(is_file(PATH_LOG) && !is_writable(PATH_LOG))
-	{
-		die('Your existing \'LOG\' file is not writable' . (CLI ? PHP_EOL : ''));
-	}
-
 	//
 	function sendHeader($_type_value = CONTENT, $_raw = false)
 	{
@@ -771,7 +630,7 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		die($_reason);
 	}
 
-	function log_error($_reason, $_source = '', $_path = '', $_die = !RAW)
+	function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	{
 		$noLog = false;
 		$data = null;
@@ -808,24 +667,135 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		{
 			throw new Exception($data);
 		}
-
-		$data .= PHP_EOL;
-		
-		if($noLog)
+		else if($noLog)
 		{
-			error($result = $data);
+			return error($result = $data);
 		}
 		else
 		{
-			$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
+			$data .= PHP_EOL;
+		}
 
-			if($result === false)
+		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
+
+		if($result === false)
+		{
+			error('Logging error: ' . substr($data, 0, -1));
+		}
+		else if($_die)
+		{
+			error('');
+		}
+
+		return $result;
+	}
+
+	//
+	//
+	define('COOKIE_PATH', '/');
+	define('COOKIE_SAME_SITE', 'Strict');
+	define('COOKIE_SECURE', false);//(!empty($_SERVER['HTTPS']));
+	define('COOKIE_HTTP_ONLY', true);
+
+	//
+	define('TEST', (CLI ? null : (isset($_GET['test']))));
+	define('RO', (CLI ? null : (TEST || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+	define('ZERO', (CLI ? null : (DRAWING && isset($_GET['zero']) && extension_loaded('gd'))));
+	define('DRAW', (CLI ? null : (ZERO || (DRAWING && isset($_GET['draw']) && extension_loaded('gd')))));
+
+	//
+	function check_path_char($_path, $_basename = true)
+	{
+		if($_basename)
+		{
+			$_path = basename($_path);
+		}
+		
+		switch($_path[0])
+		{
+			case '.':
+			case '~':
+			case '+':
+			case '-':
+				return false;
+		}
+		
+		return true;
+	}
+
+	function get_path($_path, $_check = false, $_file = false)
+	{
+		if(gettype($_path) !== 'string')
+		{
+			error('Path needs to be (non-empty) String');
+		}
+		else if(empty($_path))
+		{
+			error('Path may not be empty');
+		}
+		
+		$result = '';
+
+		if($_path[0] === '/')
+		{
+			$result = $_path;
+		}
+		else if($_path === '.')
+		{
+			if(($result = getcwd()) === false)
 			{
-				error('Logging error: ' . substr($data, 0, -1));
+				if(($result = realpath($_path)) === false)
+				{
+					$result = $_path;
+				}
 			}
-			else if($_die)
+		}
+		else if(substr($_path, 0, 2) === './')
+		{
+			if(getcwd() !== false)
 			{
-				error('');
+				$result = getcwd() . substr($_path, 1);
+			}
+			else
+			{
+				error('The \'getcwd()\' function doesn\'t work');
+			}
+		}
+		else
+		{
+			$result = __DIR__ . ($_path[0] === '/' ? '' : '/') . $_path;
+		}
+		
+		if(gettype($result) === 'string')
+		{
+			$result = normalize($result);
+		}
+		else
+		{
+			return null;
+		}
+		
+		if($result === '/')
+		{
+			error('Root directory reached, which is not allowed here');
+		}
+		else if(!check_path_char($result, true))
+		{
+			error('Path may not start with one of [ \'.\', \'~\', \'+\', \'-\' ]');
+		}
+
+		if($_check)
+		{
+			if($_file)
+			{
+				if(!is_dir(dirname($result)))
+				{
+					error('Directory of path \'' . $_path . '\' doesn\'t exist');
+				}
+			}
+			else if(!is_dir($result))
+			{
+				error('Directory \'' . $_path . '\' doesn\'t exist');
 			}
 		}
 
@@ -833,14 +803,39 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 	}
 
 	//
+	define('PATH', get_path(DIR, true, false));
+	define('PATH_LOG', get_path(LOG, false, true));
+
+	if(DRAWING || CLI)
+	{
+		define('PATH_FONTS', get_path(FONTS, (CLI ? false : true), false));
+	}
+	else
+	{
+		define('PATH_FONTS', null);
+	}
+
+	//
+	if(! (is_readable(PATH)))// && is_writable(PATH)))
+	{
+		error('Your \'DIR\' path is not readable');
+	}
+	else if(DRAWING && !is_readable(PATH_FONTS))
+	{
+		error('Your \'FONTS\' path is not readable');
+	}
+	else if(!is_dir(dirname(PATH_LOG)))
+	{
+		error('Your \'LOG\' directory is not a directory');
+	}
+	else if(is_file(PATH_LOG) && !is_writable(PATH_LOG))
+	{
+		error('Your existing \'LOG\' file is not writable');
+	}
+
+	//
 	if(CLI && !RAW)
 	{
-		//
-		if(! (defined('STDIN') && defined('STDOUT')))
-		{
-			die(' >> Running in CLI mode, but \'STDIN\' and/or \'STDOUT\' are not set!' . PHP_EOL);
-		}
-		
 		//
 		define('TYPE_VALUE', 1);
 		define('TYPE_DIR', 2);
@@ -2418,16 +2413,9 @@ function counter($_host = null, $_read_only = RAW, $_die = !RAW)
 		syntax(ARGC);
 		exit();
 	}
-
-	//
-	if(CLI && (gettype($_host) !== 'string' || empty($_host)) && (gettype(OVERRIDE) !== 'string' || empty(OVERRIDE)))
+	else if(CLI && (gettype($_host) !== 'string' || empty($_host)) && (gettype(OVERRIDE) !== 'string' || empty(OVERRIDE)))
 	{
-		if($_die)
-		{
-			die('Invalid $_host (needs to be defined in RAW+CLI mode)' . (CLI ? PHP_EOL : ''));
-		}
-
-		return null;
+		error('Invalid $_host (needs to be defined in CLI mode)');
 	}
 
 	//
