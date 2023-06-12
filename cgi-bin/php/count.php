@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.12');
+define('VERSION', '2.20.13');
 
 //
 define('RAW', false);
@@ -2056,16 +2056,97 @@ die('TODO: clean()');
 
 			$a = '%' . $maxLen . "s    ";
 			$b = "%-10s %6s / %-6s" . PHP_EOL;
+			$sync = array();
 			
 			foreach($result as $h => $v)
 			{
 				if($v === null)
 				{
 					fprintf(STDERR, $a . '%s' . PHP_EOL, $h, '/');
+					$sync[$h] = 0;
 				}
 				else
 				{
 					printf($a . $b, $h, ($v[0] === null ? '-' : (string)$v[0]), ($v[1] === null ? '-' : (string)$v[1]), ($v[2] === null ? '-' : (string)$v[2]));
+					
+					if($v[1] === 0 && (($list[$h] & TYPE_DIR) || ($list[$h] & TYPE_FILE)))
+					{
+						$sync[$h] = 0;
+					}
+					else if($v[1] !== null && $v[1] !== $v[2])
+					{
+						$sync[$h] = $v[1];
+					}
+					else if($v[1] === null && $v[2] !== null)
+					{
+						$sync[$h] = 0;
+					}
+				}
+			}
+			
+			$tot = 0;
+			$chg = 0;
+			$del = 0;
+			$err = 0;
+			$p;
+
+			foreach($sync as $host => $val)
+			{
+				if($val === 0)
+				{
+					if(is_dir($p = join_path(PATH, '+' . $host)))
+					{
+						if(remove($p, true))
+						{
+							++$del;
+						}
+						else
+						{
+							++$err;
+						}
+					}
+
+					if(is_file($p = join_path(PATH, '-' . $host)))
+					{
+						if(remove($p, false))
+						{
+							++$del;
+						}
+						else
+						{
+							++$err;
+						}
+					}
+				}
+				else if(file_put_contents(join_path(PATH, '-' . $host), (string)$val))
+				{
+					++$chg;
+				}
+				else
+				{
+					++$err;
+				}
+
+				++$tot;
+			}
+
+			if($tot > 0)
+			{
+				printf(PHP_EOL . ' >> Synchronization of %d hosts:' . PHP_EOL, $tot);
+
+				if($chg > 0)
+				{
+					printf('    Changed %d cache values' . PHP_EOL, $chg);
+				}
+
+				if($del > 0)
+				{
+					printf('    Deleted %d cache items' . PHP_EOL, $del);
+				}
+
+				if($err > 0)
+				{
+					fprintf(STDERR, '     ' . (($chg > 0 || $del > 0) ? 'But ' : '') . '%d errors occured. :-/' . PHP_EOL, $err);
 				}
 			}
 			
