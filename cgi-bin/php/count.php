@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.7');
+define('VERSION', '2.20.8');
 
 //
 define('RAW', false);
@@ -583,8 +583,7 @@ function counter($_host = null, $_read_only = RAW)
 		return true;
 	}
 
-
-	function error($_reason, $_exit_code = 255, $_relay = false)
+	function error($_reason, $_exit_code = 255)
 	{
 		if(RAW)
 		{
@@ -594,12 +593,7 @@ function counter($_host = null, $_read_only = RAW)
 		{
 			return null;
 		}
-		else if(gettype($_reason) !== 'string')
-		{
-			$_reason = (string)$_reason;
-		}
-		
-		if(CLI)
+		else if(CLI)
 		{
 			if(defined('STDERR'))
 			{
@@ -629,21 +623,10 @@ function counter($_host = null, $_read_only = RAW)
 
 		die($_reason);
 	}
-
+		
 	function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	{
-		$noLog = false;
-		$data = null;
-		
-		if(!defined('PATH_LOG') || empty(PATH_LOG))
-		{
-			$noLog = $_die = !RAW;
-			$data = '';
-		}
-		else
-		{
-			$data = '[' . (string)time() . ']';
-		}
+		$data = '[' . (string)time() . ']';
 
 		if(!empty($_source))
 		{
@@ -661,36 +644,31 @@ function counter($_host = null, $_read_only = RAW)
 			$data .= '(' . basename($_path) . ')';
 		}
 
-		$data .= ': ' . $_reason;
+		$data .= ': ' . $_reason . PHP_EOL;
 
-		if(RAW)
+		if(defined('CAN_LOG') && CAN_LOG)
 		{
-			throw new Exception($data);
-		}
-		else if($noLog)
-		{
-			return error($result = $data);
-		}
-		else
-		{
-			$data .= PHP_EOL;
-		}
+			$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
 
-		$result = file_put_contents(PATH_LOG, $data, FILE_APPEND);
+			if($result === false)
+			{
+				if($_die)
+				{
+					error('Logging error');
+				}
 
-		if($result === false)
-		{
-			error('Logging error: ' . substr($data, 0, -1));
+				return null;
+			}
 		}
-		else if($_die)
+		
+		if($_die)
 		{
-			error('');
+			return error($_reason);
 		}
 
-		return $result;
+		return $data;
 	}
 
-	//
 	//
 	define('COOKIE_PATH', '/');
 	define('COOKIE_SAME_SITE', 'Strict');
@@ -804,7 +782,8 @@ function counter($_host = null, $_read_only = RAW)
 
 	//
 	define('PATH', get_path(DIR, true, false));
-	define('PATH_LOG', get_path(LOG, false, true));
+	define('PATH_LOG', get_path(LOG, true, true));
+	define('CAN_LOG', true);
 
 	if(DRAWING || CLI)
 	{
@@ -3011,7 +2990,12 @@ function counter($_host = null, $_read_only = RAW)
 		function draw($_text, $_zero = ZERO)
 		{
 			//
-			function get_drawing_type($_die = !RAW)
+			function draw_error($_reason)
+			{
+				return error($_reason);
+			}
+
+			function get_drawing_type()
 			{
 				$result = get_param('type', false);
 
@@ -3027,19 +3011,19 @@ function counter($_host = null, $_read_only = RAW)
 					case 'png':
 						if(! ($types & IMG_PNG))
 						{
-							draw_error('\'?type\' is not supported', $_die);
+							draw_error('\'?type\' is not supported');
 							return null;
 						}
 						break;
 					case 'jpg':
 						if(! ($types & IMG_JPG))
 						{
-							draw_error('\'?type\' is not supported', $_die);
+							draw_error('\'?type\' is not supported');
 							return null;
 						}
 						break;
 					default:
-						draw_error('\'?type\' is not supported', $_die);
+						draw_error('\'?type\' is not supported');
 						return null;
 				}
 
@@ -3100,22 +3084,6 @@ function counter($_host = null, $_read_only = RAW)
 			}
 
 			//
-			function draw_error($_reason, $_die = !RAW)
-			{
-				//
-				$res = sendHeader(CONTENT);
-
-				//
-				if($_die)
-				{
-					error($_reason);
-					exit(255);
-				}
-
-				return $res;
-			}
-
-			//
 			function get_font($_name)
 			{
 				if(gettype($_name) !== 'string')
@@ -3137,13 +3105,13 @@ function counter($_host = null, $_read_only = RAW)
 				return null;
 			}
 			
-			function get_drawing_options($_die = !RAW)
+			function get_drawing_options()
 			{
 				//
 				$result = array();
 
 				//
-				if(($result['type'] = get_drawing_type($_die)) === null)
+				if(($result['type'] = get_drawing_type()) === null)
 				{
 					return null;
 				}
@@ -3167,7 +3135,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($result['size'] > SIZE_LIMIT || $result['size'] < 0)
 				{
-					draw_error('\'?size\' exceeds limit (0 / ' . SIZE_LIMIT . ')', $_die);
+					draw_error('\'?size\' exceeds limit (0 / ' . SIZE_LIMIT . ')');
 					return null;
 				}
 
@@ -3177,7 +3145,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($result['h'] > H_LIMIT || $result['h'] < -H_LIMIT)
 				{
-					draw_error('\'?h\' exceeds limit (' . H_LIMIT . ')', $_die);
+					draw_error('\'?h\' exceeds limit (' . H_LIMIT . ')');
 					return null;
 				}
 
@@ -3187,7 +3155,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($result['v'] > V_LIMIT || $result['v'] < -V_LIMIT)
 				{
-					draw_error('\'?v\' exceeds limit (' . V_LIMIT . ')', $_die);
+					draw_error('\'?v\' exceeds limit (' . V_LIMIT . ')');
 					return null;
 				}
 
@@ -3198,7 +3166,7 @@ function counter($_host = null, $_read_only = RAW)
 
 				if(($result['font'] = get_font($result['font'])) === null)
 				{
-					draw_error('\'?font\' is not available', $_die);
+					draw_error('\'?font\' is not available');
 					return null;
 				}
 
@@ -3216,7 +3184,7 @@ function counter($_host = null, $_read_only = RAW)
 
 				if($result['fg'] === null)
 				{
-					draw_error('\'?fg\' is no valid rgb/rgba color', $_die);
+					draw_error('\'?fg\' is no valid rgb/rgba color');
 					return null;
 				}
 
@@ -3224,7 +3192,7 @@ function counter($_host = null, $_read_only = RAW)
 
 				if($result['bg'] === null)
 				{
-					draw_error('\'?bg\' is no valid rgb/rgba color', $_die);
+					draw_error('\'?bg\' is no valid rgb/rgba color');
 					return null;
 				}
 
