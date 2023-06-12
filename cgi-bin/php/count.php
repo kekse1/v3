@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.10');
+define('VERSION', '2.20.11');
 
 //
 define('RAW', false);
@@ -930,7 +930,7 @@ function counter($_host = null, $_read_only = RAW)
 		//
 		// ['host', 'dir', 'file', 'value', 'type', 'rest', 'glob', 'null']
 		//
-		function get_list($_index, $_null = true)
+		function get_list($_index, $_sort = true)
 		{
 			//
 			function get_item($_sub, &$_result)
@@ -1012,48 +1012,41 @@ function counter($_host = null, $_read_only = RAW)
 				
 				while($sub = readdir($handle))
 				{
-					if($sub[0] === '.' || $sub === '..')
+					if($sub === '.' || $sub === '..')
 					{
 						continue;
 					}
+					else switch($sub[0])
+					{
+						case '~':
+						case '+':
+						case '-':
+							if(strlen($sub) > 1)
+							{
+								$next = false;
+							}
+							else
+							{
+								$next = true;
+							}
+							break;
+						default:
+							$next = true;
+							break;
+					}
+
+					if($next)
+					{
+						$result['rest'][] = $sub;
+					}
 					else
 					{
-						switch($sub[0])
-						{
-							case '~':
-							case '+':
-							case '-':
-								if(strlen($sub) > 1)
-								{
-									$next = false;
-								}
-								else
-								{
-									$next = true;
-								}
-								break;
-							default:
-								$next = true;
-								break;
-						}
-
-						if($next)
-						{
-							$result['rest'][] = $sub;
-							continue;
-						}
+						get_item($sub, $result);
+						++$found;
 					}
-					
-					get_item($sub, $result);
-					++$found;
 				}
 				
 				closedir($handle);
-
-				if($found === 0 && $_null)
-				{
-					$result = null;
-				}
 			}
 			else
 			{
@@ -1077,42 +1070,33 @@ function counter($_host = null, $_read_only = RAW)
 						++$found;
 					}
 				}
-
-				if($found === 0 && $_null)
-				{
-					$result = null;
-				}
 			}
 
-			if($result !== null)
+			if(count($result['rest']) === 0)
 			{
-				if(count($result['rest']) === 0)
-				{
-					$result['rest'] = null;
-				}
+				$result['rest'] = null;
+			}
+			else if($_sort)
+			{
+				sort($result['rest'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
+			}
 
-				if(count($result['host']) === 0)
-				{
-					$result['host'] = null;
-					$result['dir'] = null;
-					$result['file'] = null;
-					$result['value'] = null;
-					$result['type'] = null;
-					
-					if($_null)
-					{
-						$result = null;
-					}
-					else
-					{
-					
-						$result['null'] = true;
-					}
-				}
-				else
-				{
-					$result['null'] = false;
-				}
+			$result['null'] = (count($result['host']) === 0);
+
+			if($result['null'])
+			{
+				$result['host'] = null;
+				$result['dir'] = null;
+				$result['file'] = null;
+				$result['value'] = null;
+				$result['type'] = null;
+			}
+			else if($_sort)
+			{
+				sort($result['host'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
+				sort($result['dir'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
+				sort($result['file'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
+				sort($result['value'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
 			}
 
 			return $result;
@@ -1919,7 +1903,7 @@ function counter($_host = null, $_read_only = RAW)
 		function purge($_index = -1)
 		{
 			//
-			$list = get_list($_index, false);
+			$list = get_list($_index);
 
 			if($list['null'])
 			{
@@ -1975,7 +1959,7 @@ function counter($_host = null, $_read_only = RAW)
 			if($total === 0)
 			{
 				fprintf(STDERR, ' >> All of the %d found hosts are already free of special files.' . PHP_EOL, $len);
-				exit(2);
+				exit(0);
 			}
 
 			printf(PHP_EOL . ' >> Found %d directories and %d files - for %d hosts.' . PHP_EOL, count($dirs), count($files), $total);
@@ -1984,7 +1968,7 @@ function counter($_host = null, $_read_only = RAW)
 			if(!$confirm)
 			{
 				fprintf(STDERR, ' >> Good, we\'re aborting here, as requested.' . PHP_EOL);
-				exit(3);
+				exit(2);
 			}
 			else
 			{
@@ -2027,18 +2011,18 @@ function counter($_host = null, $_read_only = RAW)
 			{
 				printf(' >> %d files sucessfully deleted..' . PHP_EOL, $good);
 				fprintf(STDERR, ' >> BUT %d files could *not* be removed. :-/' . PHP_EOL, $errors);
-				exit(4);
+				exit(3);
 			}
 			
 			fprintf(STDERR, ' >> NONE of the selected %d files deleted! :-(' . PHP_EOL, $total);
-			exit(5);
+			exit(4);
 		}
 		
 		function clean($_index = -1)
 		{
 die('TODO: clean()');
 			//
-			$list = get_list($_index, false);
+			$list = get_list($_index);
 
 			if($list['null'])
 			{
@@ -2058,7 +2042,7 @@ die('TODO: clean()');
 		function values($_index = -1)
 		{
 			//
-			$list = get_list($_index, false);
+			$list = get_list($_index);
 
 			if($list['null'])
 			{
@@ -2148,7 +2132,7 @@ die('TODO: clean()');
 				}
 			}
 
-			$a = '  %' . $maxLen . "s\t";
+			$a = '%' . $maxLen . "s    ";
 			$b = "%-10s %6s / %-6s" . PHP_EOL;
 			
 			foreach($result as $h => $v)
@@ -2320,7 +2304,7 @@ die('TODO: clean()');
 		}
 		
 		//
-		printf(' >> Running in CLI mode now (so outside any HTTPD).' . PHP_EOL);
+		printf(' >> Running in CLI mode now (outside any HTTPD).' . PHP_EOL);
 		syntax(ARGC);
 		exit();
 	}
