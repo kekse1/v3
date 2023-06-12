@@ -33,7 +33,7 @@ define('H_LIMIT', 256);
 define('V_LIMIT', 256);
 define('AA', true);
 define('TYPE', 'png');
-define('HASH_IP', false);
+define('PRIVACY', false);
 define('HASH', 'sha3-256');
 define('ERROR', '/');
 define('NONE', '/');
@@ -1710,14 +1710,14 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			if(gettype(HASH_IP) === 'boolean')
+			if(gettype(PRIVACY) === 'boolean')
 			{
-				printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
+				printf(START.'Boolean type' . PHP_EOL, 'PRIVACY', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'PRIVACY', 'ERROR');
 				++$errors;
 			}
 
@@ -2601,7 +2601,7 @@ function counter($_host = null, $_read_only = RAW)
 		}
 		else
 		{
-			define('PATH_IP', join_path(PATH_DIR, secure_path(HASH_IP ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR']))));
+			define('PATH_IP', join_path(PATH_DIR, secure_path(PRIVACY ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR']))));
 		}
 
 		//
