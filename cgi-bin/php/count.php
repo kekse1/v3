@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.0.0');
+define('VERSION', '3.0.1');
 
 //
 define('DIR', 'count/');
@@ -38,6 +38,9 @@ define('HASH', 'sha3-256');
 define('ERROR', '/');
 define('NONE', '/');
 define('RAW', false);
+
+//
+define('MAX', 224);
 
 //
 function normalize($_string)
@@ -140,6 +143,11 @@ function join_path(... $_args)
 	return normalize($result);
 }
 
+function limit($_string, $_length = MAX)
+{
+	return substr($_string, 0, $_length);
+}
+
 function secure($_string)
 {
 	if(gettype($_string) !== 'string')
@@ -149,7 +157,7 @@ function secure($_string)
 	
 	$len = strlen($_string);
 	
-	if($len > 255)
+	if($len > MAX)
 	{
 		return null;
 	}
@@ -370,7 +378,7 @@ function get_param($_key, $_numeric = false, $_float = true, $_secure = true)
 	$value = $_GET[$_key];
 	$len = strlen($value);
 
-	if($len > 255 || $len === 0)
+	if($len > MAX || $len === 0)
 	{
 		return null;
 	}
@@ -583,7 +591,7 @@ function counter($_host = null, $_read_only = RAW)
 		return true;
 	}
 
-	function error($_reason, $_exit_code = 255)
+	function error($_reason, $_exit_code = 224)
 	{
 		if(RAW)
 		{
@@ -609,7 +617,7 @@ function counter($_host = null, $_read_only = RAW)
 				exit($_exit_code);
 			}
 
-			exit(255);
+			exit(224);
 		}
 		else if(! defined('SENT'))
 		{
@@ -2587,7 +2595,7 @@ function counter($_host = null, $_read_only = RAW)
 		//
 		$host = get_host($_host);
 		define('HOST', $host);
-		define('COOKIE', hash(HASH, $host));
+		define('COOKIE', limit(hash(HASH, $host)));
 		unset($host);
 
 		//
@@ -2601,7 +2609,7 @@ function counter($_host = null, $_read_only = RAW)
 		}
 		else
 		{
-			define('PATH_IP', join_path(PATH_DIR, secure_path(PRIVACY ? hash(HASH, $_SERVER['REMOTE_ADDR']) : secure_host($_SERVER['REMOTE_ADDR']))));
+			define('PATH_IP', join_path(PATH_DIR, secure_path(PRIVACY ? limit(hash(HASH, $_SERVER['REMOTE_ADDR'])) : secure_host($_SERVER['REMOTE_ADDR']))));
 		}
 
 		//
@@ -3477,7 +3485,7 @@ function counter($_host = null, $_read_only = RAW)
 					{
 						return null;
 					}
-					else if($result[$i] < 0 || $result[$i] > 255)
+					else if($result[$i] < 0 || $result[$i] > MAX)
 					{
 						return null;
 					}
