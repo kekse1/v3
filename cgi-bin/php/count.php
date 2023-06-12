@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.14');
+define('VERSION', '3.0.0');
 
 //
 define('RAW', false);
@@ -1071,8 +1071,9 @@ function counter($_host = null, $_read_only = RAW)
 			printf('    -? / --help' . PHP_EOL);
 			printf('    -V / --version' . PHP_EOL);
 			printf('    -C / --copyright' . PHP_EOL);
-			printf('    -s / --set (...TODO)' . PHP_EOL);
+			//printf('    -t / --set (...TODO)' . PHP_EOL);
 			printf('    -v / --values (*)' . PHP_EOL);
+			printf('    -s / --sync (*)' . PHP_EOL);
 			printf('    -l / --clean (*)' . PHP_EOL);
 			printf('    -p / --purge (*)' . PHP_EOL);
 			printf('    -c / --check' . PHP_EOL);
@@ -1889,9 +1890,8 @@ function counter($_host = null, $_read_only = RAW)
 			}
 
 			printf(PHP_EOL . ' >> Found %d directories and %d files - for %d hosts.' . PHP_EOL, count($dirs), count($files), $total);
-			$confirm = prompt('Do you really want to delete them [yes/no]? ');
 
-			if(!$confirm)
+			if(!prompt('Do you really want to delete them [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Good, we\'re aborting here, as requested.' . PHP_EOL);
 				exit(2);
@@ -1946,7 +1946,6 @@ function counter($_host = null, $_read_only = RAW)
 		
 		function clean($_index = null)
 		{
-die('TODO: clean()');
 			//
 			$list = get_list($_index);
 
@@ -1956,9 +1955,179 @@ die('TODO: clean()');
 				exit(1);
 			}
 
+			$orig = count($list);
+
+			foreach($list as $host => $type)
+			{
+				if(! ($type & TYPE_DIR))
+				{
+					unset($list[$host]);
+				}
+			}
+
+			$len = count($list);
+
+			if($len === 0)
+			{
+				printf(' >> No caches stored for %d host' . ($orig === 1 ? '' : 's') . '.' . PHP_EOL, $orig);
+				exit(0);
+			}
+			else
+			{
+				printf(' >> Found %d host' . ($len === 1 ? '' : 's') . ' (of %d) with caches:' . PHP_EOL . PHP_EOL, $len, $orig);
+			}
+
+			foreach($list as $host => $type)
+			{
+				printf('    ' . $host . PHP_EOL);
+			}
+
+			printf(PHP_EOL);
+
+			if(!prompt('Do you want to continue [yes/no]? '))
+			{
+				fprintf(STDERR, ' >> Abort by request.' . PHP_EOL);
+				exit(2);
+			}
+
+			$result = array();
+			$errors = array();
+			$delete = array();
+
+			foreach($list as $host => $type)
+			{
+				$result[$host] = 0;
+				$errors[$host] = 0;
+				$delete[$host] = 0;
+
+				$handle = opendir(join_path(PATH, '+' . $host));
+
+				if($handle === false)
+				{
+					$errors[$host] = 1;
+					continue;
+				}
+				else while($sub = readdir($handle))
+				{
+					if($sub[0] === '.' || $sub === '..')
+					{
+						continue;
+					}
+
+					$p = join_path(PATH, '+' . $host, $sub);
+
+					if(!is_file($p))
+					{
+						continue;
+					}
+					else
+					{
+						++$result[$host];
+					}
+
+					$val = file_get_contents($p);
+
+					if($val === false)
+					{
+						++$errors[$host];
+					}
+					else if(timestamp($val = (int)$val) >= THRESHOLD)
+					{
+						if(remove($p, false))
+						{
+							++$delete[$host];
+							--$result[$host];
+						}
+						else
+						{
+							++$errors[$host];
+						}
+					}
+				}
+
+				closedir($handle);
+
+				if($delete[$host] === 0)
+				{
+					unset($delete[$host]);
+				}
+			}
+
 			//
-			//TODO/..
+			foreach($result as $host => $count)
+			{
+				if($count === 0)
+				{
+					remove(join_path(PATH, '+' . $host), true);
+					remove(join_path(PATH, '-' . $host), false);
+				}
+				else if(! file_put_contents(join_path(PATH, '-' . $host), (string)$count))
+				{
+					++$errors[$host];
+				}
+				
+				if($errors[$host] === 0)
+				{
+					unset($errors[$host]);
+				}
+			}
+
 			//
+			$e = count($errors);
+			$d = count($delete);
+
+			printf(PHP_EOL);
+
+			if($e === 0)
+			{
+				printf(' >> Great, not a single error! :-)' . PHP_EOL);
+			}
+			else
+			{
+				$total = 0;
+
+				foreach($errors as $h => $c)
+				{
+					$total += $c;
+				}
+
+				fprintf(STDERR, ' >> Hm, %d host' . ($e === 0 ? '' : 's') . ' caused %d errors..' . PHP_EOL, $e, $total);
+			}
+
+			if($d === 0)
+			{
+				printf(' >> ' . ($e === 0 ? '' : 'But ') . ' no deletions, so nothing changed at all.' . PHP_EOL);
+				exit(0);
+			}
+			else
+			{
+				printf(' >> Amount of deleted files per host:' . PHP_EOL . PHP_EOL);
+			}
+
+			$sum = 0;
+			$len = 0;
+			$maxLen = 0;
+
+			foreach($delete as $host => $del)
+			{
+				$sum += $del;
+
+				if(($len = strlen($host)) > $maxLen)
+				{
+					$maxLen = $len;
+				}
+			}
+
+			$s = '%' . $maxLen . 's    %d' . PHP_EOL;
+
+			foreach($delete as $host => $del)
+			{
+				printf($s, $host, $del);
+			}
+
+			//
+			printf(PHP_EOL . ' >> Deleted %d files totally.' . PHP_EOL, $sum);
+			exit(0);
 		}
 
 		//
@@ -1967,7 +2136,7 @@ die('TODO: clean()');
 			return values($_index, true);
 		}
 
-		function values($_index = null, $_sync = true)
+		function values($_index = null, $_sync = false)
 		{
 			//
 			$list = get_list($_index);
@@ -2098,8 +2267,8 @@ die('TODO: clean()');
 
 			if(!prompt('Do you want to synchronize ' . count($sync) . ' hosts now [yes/no]? '))
 			{
-				print(' >> Good, aborting sync.' . PHP_EOL);
-				exit(0);
+				fprintf(STDERR, ' >> Good, aborting sync.' . PHP_EOL);
+				exit(2);
 			}
 
 			$tot = 0;
@@ -2186,9 +2355,7 @@ die('TODO: clean()');
 				fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, PATH_LOG);
 			}
 
-			$input = prompt('Do you really want to delete the file \'' . basename(PATH_LOG) . '\' [yes/no]? ');
-
-			if(!$input)
+			if(!prompt('Do you really want to delete the file \'' . basename(PATH_LOG) . '\' [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
 				exit(2);
@@ -2282,13 +2449,17 @@ die('TODO: clean()');
 			{
 				info($i, false, true);
 			}
-			else if(ARGV[$i] === '-s' || ARGV[$i] === '--set')
+			/*else if(ARGV[$i] === '-t' || ARGV[$i] === '--set')
 			{
 				set($i);
-			}
+			}*/
 			else if(ARGV[$i] === '-v' || ARGV[$i] === '--values')
 			{
 				values($i);
+			}
+			else if(ARGV[$i] === '-s' || ARGV[$i] === '--sync')
+			{
+				sync($i);
 			}
 			else if(ARGV[$i] === '-l' || ARGV[$i] === '--clean')
 			{
@@ -2612,7 +2783,7 @@ die('TODO: clean()');
 				{
 					continue;
 				}
-				else if(timestamp((int)file_get_contents($sub)) <= THRESHOLD)
+				else if(timestamp((int)file_get_contents($sub)) < THRESHOLD)
 				{
 					++$result;
 				}
