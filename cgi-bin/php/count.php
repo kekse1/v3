@@ -3485,7 +3485,7 @@ function counter($_host = null, $_read_only = RAW)
 					{
 						return null;
 					}
-					else if($result[$i] < 0 || $result[$i] > MAX)
+					else if($result[$i] < 0 || $result[$i] > 255)
 					{
 						return null;
 					}
