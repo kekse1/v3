@@ -9,35 +9,35 @@ define('HELP', 'https://github.com/kekse1/count.php/');
 define('VERSION', '3.0.0');
 
 //
-define('RAW', false);
-define('AUTO', 32);
+define('DIR', 'count/');
+define('LOG', 'count.log');
 define('THRESHOLD', 7200);
-define('DIR', 'count');
+define('AUTO', 32);
 define('HIDE', false);
 define('CLIENT', true);
 define('SERVER', true);
+define('DRAWING', false);
 define('OVERRIDE', false);
-define('HASH', 'sha3-256');
-define('HASH_IP', false);
 define('CONTENT', 'text/plain;charset=UTF-8');
 define('CLEAN', true);
 define('LIMIT', 32768);
-define('LOG', 'count.log');
-define('ERROR', '/');
-define('NONE', '/');
-define('DRAWING', false);
+define('FONTS', 'fonts/');
+define('FONT', 'IntelOneMono');
 define('SIZE', 24);
 define('SIZE_LIMIT', 512);
-define('FONT', 'IntelOneMono');
-define('FONTS', 'fonts');
-define('H', 0);
-define('H_LIMIT', 256);
-define('V', 0);
-define('V_LIMIT', 256);
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
+define('H', 0);
+define('V', 0);
+define('H_LIMIT', 256);
+define('V_LIMIT', 256);
 define('AA', true);
 define('TYPE', 'png');
+define('HASH_IP', false);
+define('HASH', 'sha3-256');
+define('ERROR', '/');
+define('NONE', '/');
+define('RAW', false);
 
 //
 function normalize($_string)
@@ -1215,18 +1215,63 @@ function counter($_host = null, $_read_only = RAW)
 			define('START', '%12s: %-7s');
 			
 			//
-			if(gettype(RAW) === 'boolean')
+			if(gettype(PATH) === 'string' && !empty(PATH))
 			{
-				printf(START.'A boolean value' . PHP_EOL, 'RAW', 'OK');
-				++$ok;
+				if(is_dir(PATH) && is_writable(PATH))
+				{
+					printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
+					++$errors;
+				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not a boolean value' . PHP_EOL, 'RAW', 'BAD');
+				fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
 				++$errors;
 			}
 
-			//
+			if(gettype(PATH_LOG) === 'string' && !empty(PATH_LOG))
+			{
+				if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
+				{
+					printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
+			{
+				if(THRESHOLD < 1)
+				{
+					fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
+					++$errors;
+				}
+				else
+				{
+					printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
+				++$errors;
+			}
+
 			if(gettype(AUTO) === 'boolean')
 			{
 				printf(START.'Boolean type (and could also be an Integer above 0)' . PHP_EOL, 'AUTO', 'OK');
@@ -1256,47 +1301,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
-			if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
-			{
-				if(THRESHOLD < 1)
-				{
-					fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
-					++$errors;
-				}
-				else
-				{
-					printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
-					++$ok;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
-				++$errors;
-			}
-
-			//
-			if(gettype(PATH) === 'string' && !empty(PATH))
-			{
-				if(is_dir(PATH) && is_writable(PATH))
-				{
-					printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
-					++$ok;
-				}
-				else
-				{
-					fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
-					++$errors;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
-				++$errors;
-			}
-			
-			//
 			if(gettype(HIDE) === 'boolean')
 			{
 				printf(START.'Is a Boolean, and may also be a String' . PHP_EOL, 'HIDE', 'OK');
@@ -1313,24 +1317,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
-			if(gettype(OVERRIDE) === 'boolean')
-			{
-				printf(START.'Boolean type, great (could also be a non-empty String)' . PHP_EOL, 'OVERRIDE', 'OK');
-				++$ok;
-			}
-			else if(gettype(OVERRIDE) === 'string' && !empty(OVERRIDE))
-			{
-				printf(START.'A non-empty String (and could also be a Boolean)' . PHP_EOL, 'OVERRIDE', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
-				++$errors;
-			}
-
-			//
 			if(gettype(CLIENT) === 'boolean')
 			{
 				printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
@@ -1354,39 +1340,49 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
-			if(gettype(HASH) === 'string' && !empty(HASH))
+			if(gettype(DRAWING) === 'boolean')
 			{
-				if(in_array(HASH, hash_algos()))
+				if(DRAWING)
 				{
-					printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
-					++$ok;
+					if(extension_loaded('gd'))
+					{
+						printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
+						++$ok;
+					}
+					else
+					{
+						fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
+						++$warnings;
+					}
 				}
 				else
 				{
-					fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
-					++$errors;
+					printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
+					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
 				++$errors;
 			}
 
-			//
-			if(gettype(HASH_IP) === 'boolean')
+			if(gettype(OVERRIDE) === 'boolean')
 			{
-				printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
+				printf(START.'Boolean type, great (could also be a non-empty String)' . PHP_EOL, 'OVERRIDE', 'OK');
+				++$ok;
+			}
+			else if(gettype(OVERRIDE) === 'string' && !empty(OVERRIDE))
+			{
+				printf(START.'A non-empty String (and could also be a Boolean)' . PHP_EOL, 'OVERRIDE', 'OK');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
+				fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
 				++$errors;
 			}
 
-			//
 			if(gettype(CONTENT) === 'string' && !empty(CONTENT))
 			{
 				printf(START.'Non-empty String' . PHP_EOL, 'CONTENT', 'OK');
@@ -1398,7 +1394,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
 			if(CLEAN === null)
 			{
 				printf(START.'Equals (null), and could also be a Boolean or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
@@ -1433,7 +1428,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
 			if(gettype(LIMIT) === 'integer' && LIMIT > -1)
 			{
 				printf(START.'Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'OK');
@@ -1445,74 +1439,69 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
-			if(gettype(PATH_LOG) === 'string' && !empty(PATH_LOG))
+			if(gettype(PATH_FONTS) === 'string' && !empty(PATH_FONTS))
 			{
-				if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
+				if(is_dir(PATH_FONTS))
 				{
-					printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
-					++$ok;
-				}
-				else
-				{
-					fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
-					++$errors;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
-				++$errors;
-			}
-
-			//
-			if(gettype(ERROR) === 'string')
-			{
-				printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
-				++$ok;
-			}
-
-			if(gettype(NONE) === 'string')
-			{
-				printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
-				++$errors;
-			}
-
-			//
-			if(gettype(DRAWING) === 'boolean')
-			{
-				if(DRAWING)
-				{
-					if(extension_loaded('gd'))
+					$test = glob(PATH_FONTS . '/*.ttf');
+					$len = count($test);
+					
+					if($len > 0)
 					{
-						printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
+						printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
+						fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
 						++$warnings;
 					}
 				}
 				else
 				{
-					printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
-					++$ok;
+					fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
+					++$warnings;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
+				fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(FONT) === 'string' && !empty(FONT))
+			{
+				$test = null;
+				
+				if(is_dir(PATH_FONTS))
+				{
+					$test = join_path(PATH_FONTS, FONT . '.ttf');
+					
+					if(is_file($test) && is_readable($test))
+					{
+						$test = true;
+					}
+				}
+
+				if($test === null)
+				{
+					fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
+					++$warnings;
+				}
+				else if($test)
+				{
+					printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
 				++$errors;
 			}
 
@@ -1561,7 +1550,29 @@ function counter($_host = null, $_read_only = RAW)
 				fprintf(STDERR, START.'No Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
 				++$errors;
 			}
-			
+
+			if(gettype(FG) === 'string' && !empty(FG))
+			{
+				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(BG) === 'string' && !empty(BG))
+			{
+				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
+				++$errors;
+			}
+
 			if(gettype(H) === 'integer')
 			{
 				$limit = H_LIMIT;
@@ -1590,17 +1601,6 @@ function counter($_host = null, $_read_only = RAW)
 			else
 			{
 				fprintf(STDERR, START.'No Integer (within H_LIMIT)' . PHP_EOL, 'H', 'BAD');
-				++$errors;
-			}
-			
-			if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
-			{
-				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
 				++$errors;
 			}
 			
@@ -1634,6 +1634,17 @@ function counter($_host = null, $_read_only = RAW)
 				fprintf(STDERR, START.'No Integer (within V_LIMIT)'. PHP_EOL, 'V', 'BAD');
 				++$errors;
 			}
+
+			if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
+			{
+				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
+				++$errors;
+			}
 			
 			if(gettype(V_LIMIT) === 'integer' && V_LIMIT >= 0 && V_LIMIT <= 512)
 			{
@@ -1646,95 +1657,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			if(gettype(FONT) === 'string' && !empty(FONT))
-			{
-				$test = null;
-				
-				if(is_dir(PATH_FONTS))
-				{
-					$test = join_path(PATH_FONTS, FONT . '.ttf');
-					
-					if(is_file($test) && is_readable($test))
-					{
-						$test = true;
-					}
-				}
-
-				if($test === null)
-				{
-					fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
-					++$warnings;
-				}
-				else if($test)
-				{
-					printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
-					++$ok;
-				}
-				else
-				{
-					fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
-					++$errors;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
-				++$errors;
-			}
-
-			if(gettype(PATH_FONTS) === 'string' && !empty(PATH_FONTS))
-			{
-				if(is_dir(PATH_FONTS))
-				{
-					$test = glob(PATH_FONTS . '/*.ttf');
-					$len = count($test);
-					
-					if($len > 0)
-					{
-						printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
-						++$ok;
-					}
-					else
-					{
-						fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
-						++$warnings;
-					}
-				}
-				else
-				{
-					fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
-					++$warnings;
-				}
-			}
-			else
-			{
-				fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
-				++$errors;
-			}
-
-			if(gettype(FG) === 'string' && !empty(FG))
-			{
-				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
-				++$errors;
-			}
-
-			if(gettype(BG) === 'string' && !empty(BG))
-			{
-				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
-				++$ok;
-			}
-			else
-			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
-				++$errors;
-			}
-
-			//
 			if(gettype(AA) === 'boolean')
 			{
 				printf(START.'Is a boolean' . PHP_EOL, 'AA', 'OK');
@@ -1746,7 +1668,6 @@ function counter($_host = null, $_read_only = RAW)
 				++$errors;
 			}
 
-			//
 			if(gettype(TYPE) === 'string' && !empty(TYPE))
 			{
 				if(!extension_loaded('gd'))
@@ -1786,6 +1707,70 @@ function counter($_host = null, $_read_only = RAW)
 			else
 			{
 				fprintf(STDERR, START.'No valid (non-empty) String' . PHP_EOL, 'TYPE', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(HASH_IP) === 'boolean')
+			{
+				printf(START.'Boolean type' . PHP_EOL, 'HASH_IP', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'HASH_IP', 'ERROR');
+				++$errors;
+			}
+
+			//
+			if(gettype(HASH) === 'string' && !empty(HASH))
+			{
+				if(in_array(HASH, hash_algos()))
+				{
+					printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(ERROR) === 'string')
+			{
+				printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
+				++$ok;
+			}
+
+			if(gettype(NONE) === 'string')
+			{
+				printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
+				++$errors;
+			}
+
+			if(gettype(RAW) === 'boolean')
+			{
+				printf(START.'A boolean value' . PHP_EOL, 'RAW', 'OK');
+				++$ok;
+			}
+			else
+			{
+				fprintf(STDERR, START.'Not a boolean value' . PHP_EOL, 'RAW', 'BAD');
 				++$errors;
 			}
 
