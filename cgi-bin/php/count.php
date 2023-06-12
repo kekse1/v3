@@ -937,7 +937,7 @@ function counter($_host = null, $_read_only = RAW)
 			return $result;		
 		}
 
-		function get_info($_index = -1, $_sort = true)
+		function get_list($_index = null, $_sort = true)
 		{
 			function item($_host, &$_result)
 			{
@@ -1838,7 +1838,7 @@ function counter($_host = null, $_read_only = RAW)
 		function purge($_index = -1)
 		{
 			//
-			$list = get_info($_index);
+			$list = get_list($_index);
 
 			if($list === null)
 			{
@@ -1948,7 +1948,7 @@ function counter($_host = null, $_read_only = RAW)
 		{
 die('TODO: clean()');
 			//
-			$list = get_info($_index);
+			$list = get_list($_index);
 
 			if($list === null)
 			{
@@ -1967,7 +1967,7 @@ die('TODO: clean()');
 		function values($_index = -1)
 		{
 			//
-			$list = get_info($_index);
+			$list = get_list($_index);
 
 			if($list === null)
 			{
