@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.9');
+define('VERSION', '2.20.10');
 
 //
 define('RAW', false);
@@ -1151,7 +1151,6 @@ function counter($_host = null, $_read_only = RAW)
 			printf('    -C / --copyright' . PHP_EOL);
 			printf('    -s / --set (...TODO)' . PHP_EOL);
 			printf('    -v / --values (*)' . PHP_EOL);
-			printf('    -n / --sync (*)' . PHP_EOL);
 			printf('    -l / --clean (*)' . PHP_EOL);
 			printf('    -p / --purge (*)' . PHP_EOL);
 			printf('    -c / --check' . PHP_EOL);
@@ -1913,25 +1912,148 @@ function counter($_host = null, $_read_only = RAW)
 	die('TODO: set()');
 		}
 
-		function sync($_index = -1)
-		{
-	die('TODO: sync()');
-		}
-		
 		//
 		//TODO/and don't forget 'prompt()'!!
 		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
 		//
 		function purge($_index = -1)
 		{
-	die('TODO: purge()');//w/ ['rest']!!
+			//
+			$list = get_list($_index, false);
+
+			if($list['null'])
+			{
+				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
+				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
+				exit(1);
+			}
+			else
+			{
+				printf(' >> This will *delete* the whole cache!' . PHP_EOL);
+				printf(' >> Maybe you\'d rather like to \'--clean/-c\' instead!?' . PHP_EOL . PHP_EOL);
+			}
+
+			$host = &$list['host'];
+			$len = count($host);
+			$dirs = array();
+			$files = array();
+			$total = 0;
+			$d = 0;
+			$f = 0;
+
+			//
+			//zu jedem (selected) host das '+'-verz. sowie '-'-file löschen
+			//prompt() mit anzeige der anzahl, ..
+			//.. sowie anzeige davor der hosts mit -/+ werten..
+			//wenn weder/noch vorhanden, den host garnicht einfließen lassen
+
+			for($i = 0; $i < $len; ++$i)
+			{
+				$h = $host[$i];
+				$t = $list['type'][$h];
+				$c = 0;
+
+				if($t & TYPE_DIR)
+				{
+					$dirs[$d++] = $h;
+					++$c;
+				}
+
+				if($t & TYPE_FILE)
+				{
+					$files[$f++] = $h;
+					++$c;
+				}
+
+				if($c > 0)
+				{
+					++$total;
+					printf($h . PHP_EOL);
+				}
+			}
+
+			if($total === 0)
+			{
+				fprintf(STDERR, ' >> All of the %d found hosts are already free of special files.' . PHP_EOL, $len);
+				exit(2);
+			}
+
+			printf(PHP_EOL . ' >> Found %d directories and %d files - for %d hosts.' . PHP_EOL, count($dirs), count($files), $total);
+			$confirm = prompt('Do you really want to delete them [yes/no]? ');
+
+			if(!$confirm)
+			{
+				fprintf(STDERR, ' >> Good, we\'re aborting here, as requested.' . PHP_EOL);
+				exit(3);
+			}
+			else
+			{
+				printf(PHP_EOL);
+			}
+
+			$errors = 0;
+			$good = 0;
+
+			for($i = 0; $i < $d; ++$i)
+			{
+				if(remove(join_path(PATH, '+' . $dirs[$i]), true))
+				{
+					++$good;
+				}
+				else
+				{
+					++$errors;
+				}
+			}
+
+			for($i = 0; $i < $f; ++$i)
+			{
+				if(remove(join_path(PATH, '-' . $files[$i]), false))
+				{
+					++$good;
+				}
+				else
+				{
+					++$errors;
+				}
+			}
+
+			if($errors === 0)
+			{
+				printf(' >> Great, all %d files deleted successfully!' . PHP_EOL, $good);
+				exit(0);
+			}
+			else if($good > 0)
+			{
+				printf(' >> %d files sucessfully deleted..' . PHP_EOL, $good);
+				fprintf(STDERR, ' >> BUT %d files could *not* be removed. :-/' . PHP_EOL, $errors);
+				exit(4);
+			}
+			
+			fprintf(STDERR, ' >> NONE of the selected %d files deleted! :-(' . PHP_EOL, $total);
+			exit(5);
 		}
 		
 		function clean($_index = -1)
 		{
-	die('TODO: clean()');//w/ ['rest']!!
+die('TODO: clean()');
+			//
+			$list = get_list($_index, false);
+
+			if($list['null'])
+			{
+				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
+				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
+				exit(1);
+			}
+
+			$host = &$list['host'];
+			$len = count($host);
+			//
 		}
-		
+
+		//
+		//TODO/REPLACE OLD --sync/-n here!!
 		//
 		function values($_index = -1)
 		{
@@ -2162,10 +2284,6 @@ function counter($_host = null, $_read_only = RAW)
 			else if(ARGV[$i] === '-v' || ARGV[$i] === '--values')
 			{
 				values($i);
-			}
-			else if(ARGV[$i] === '-n' || ARGV[$i] === '--sync')
-			{
-				sync($i);
 			}
 			else if(ARGV[$i] === '-l' || ARGV[$i] === '--clean')
 			{
