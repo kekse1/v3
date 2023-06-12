@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.11');
+define('VERSION', '2.20.12');
 
 //
 define('RAW', false);
@@ -626,6 +626,16 @@ function counter($_host = null, $_read_only = RAW)
 		
 	function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	{
+		if(CLI)
+		{
+			if($_die)
+			{
+				return error($_reason);
+			}
+			
+			return null;
+		}
+		
 		$data = '[' . (string)time() . ']';
 
 		if(!empty($_source))
@@ -927,121 +937,65 @@ function counter($_host = null, $_read_only = RAW)
 			return $result;		
 		}
 
-		//
-		// ['host', 'dir', 'file', 'value', 'type', 'rest', 'glob', 'null']
-		//
-		function get_list($_index, $_sort = true)
+		function get_info($_index = -1, $_sort = true)
 		{
-			//
-			function get_item($_sub, &$_result)
+			function item($_host, &$_result)
 			{
-				$type = $_sub[0];
-				$host = substr($_sub, 1);
-				
-				if(!in_array($host, $_result['host']))
+				if($_host[0] === '.' || $_host === '..' || strlen($_host) === 1)
 				{
-					$_result['host'][] = $host;
+					return 0;
 				}
 				
-				if(!isset($_result['type'][$host]))
-				{
-					$_result['type'][$host] = 0;
-				}
+				$type = $_host[0];
 				
 				switch($type)
 				{
 					case '~':
-						if(!in_array($host, $_result['value']))
-						{
-							$_result['value'][] = $host;
-						}
-						
-						$_result['type'][$host] |= TYPE_VALUE;
+						$type = TYPE_VALUE;
 						break;
 					case '+':
-						if(!in_array($host, $_result['dir']))
-						{
-							$_result['dir'][] = $host;
-						}
-						
-						$_result['type'][$host] |= TYPE_DIR;
+						$type = TYPE_DIR;
 						break;
 					case '-':
-						if(!in_array($host, $_result['file']))
-						{
-							$_result['file'][] = $host;
-						}
-						
-						$_result['type'][$host] |= TYPE_FILE;
+						$type = TYPE_FILE;
 						break;
+					default:
+						return 0;
+				}
+
+				if(!isset($_result[$_host = substr($_host, 1)]))
+				{
+					$_result[$_host] = 0;
 				}
 				
-				return $_result;
+				$_result[$_host] |= $type;
+				return $type;
 			}
-
-			//
+			
 			$list = null;
-
-			if(gettype($_index) === 'integer')
+			
+			if(gettype($_index) === 'integer' && $_index > -1)
 			{
 				$list = get_arguments($_index, false, true, true);
 			}
 
 			$result = array();
-			$result['host'] = array();
-			$result['dir'] = array();
-			$result['file'] = array();
-			$result['value'] = array();
-			$result['type'] = array();
-			$result['rest'] = array();
-			$result['glob'] = $list;
-			$result['null'] = null;
-			
+			$found = 0;
+
 			if($list === null)
 			{
 				$handle = opendir(PATH);
 				
 				if($handle === false)
 				{
-					log_error('Can\'t opendir()', 'get_list', PATH, true);
-					error('Can\'t opendir()');
+					fprintf(STDERR, ' >> Couldn\'t opendir()' . PHP_EOL);
+					exit(1);
 				}
 				
-				$next = null;
-				$found = 0;
-				
-				while($sub = readdir($handle))
+				while($host = readdir($handle))
 				{
-					if($sub === '.' || $sub === '..')
+					if(item($host, $result) > 0)
 					{
-						continue;
-					}
-					else switch($sub[0])
-					{
-						case '~':
-						case '+':
-						case '-':
-							if(strlen($sub) > 1)
-							{
-								$next = false;
-							}
-							else
-							{
-								$next = true;
-							}
-							break;
-						default:
-							$next = true;
-							break;
-					}
-
-					if($next)
-					{
-						$result['rest'][] = $sub;
-					}
-					else
-					{
-						get_item($sub, $result);
 						++$found;
 					}
 				}
@@ -1051,54 +1005,38 @@ function counter($_host = null, $_read_only = RAW)
 			else
 			{
 				$len = count($list);
-				$found = 0;
-				$sub;
-				
+
 				for($i = 0; $i < $len; ++$i)
 				{
 					$sub = join_path(PATH, '{~,+,-}' . $list[$i]);
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
-					
+
 					if($subLen === 0)
 					{
 						continue;
 					}
 					else for($j = 0; $j < $subLen; ++$j)
 					{
-						get_item(basename($sub[$j]), $result);
-						++$found;
+						if(item(basename($sub[$j]), $result) > 0)
+						{
+							++$found;
+						}
 					}
 				}
 			}
 
-			if(count($result['rest']) === 0)
+			//
+			if($found === 0)
 			{
-				$result['rest'] = null;
+				$result = null;
 			}
 			else if($_sort)
 			{
-				sort($result['rest'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
+				ksort($result, SORT_STRING | SORT_NATURAL | SORT_FLAG_CASE);
 			}
 
-			$result['null'] = (count($result['host']) === 0);
-
-			if($result['null'])
-			{
-				$result['host'] = null;
-				$result['dir'] = null;
-				$result['file'] = null;
-				$result['value'] = null;
-				$result['type'] = null;
-			}
-			else if($_sort)
-			{
-				sort($result['host'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
-				sort($result['dir'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
-				sort($result['file'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
-				sort($result['value'], SORT_NATURAL | SORT_FLAG_CASE | SORT_STRING);
-			}
-
+			//
 			return $result;
 		}
 
@@ -1897,18 +1835,14 @@ function counter($_host = null, $_read_only = RAW)
 		}
 
 		//
-		//TODO/and don't forget 'prompt()'!!
-		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
-		//
 		function purge($_index = -1)
 		{
 			//
-			$list = get_list($_index);
+			$list = get_info($_index);
 
-			if($list['null'])
+			if($list === null)
 			{
-				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
-				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
+				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
 				exit(1);
 			}
 			else
@@ -1917,42 +1851,34 @@ function counter($_host = null, $_read_only = RAW)
 				printf(' >> Maybe you\'d rather like to \'--clean/-c\' instead!?' . PHP_EOL . PHP_EOL);
 			}
 
-			$host = &$list['host'];
-			$len = count($host);
 			$dirs = array();
 			$files = array();
 			$total = 0;
+			$len = 0;
 			$d = 0;
 			$f = 0;
 
-			//
-			//zu jedem (selected) host das '+'-verz. sowie '-'-file löschen
-			//prompt() mit anzeige der anzahl, ..
-			//.. sowie anzeige davor der hosts mit -/+ werten..
-			//wenn weder/noch vorhanden, den host garnicht einfließen lassen
-
-			for($i = 0; $i < $len; ++$i)
+			foreach($list as $key => $value)
 			{
-				$h = $host[$i];
-				$t = $list['type'][$h];
+				++$len;
 				$c = 0;
-
-				if($t & TYPE_DIR)
+				
+				if($value & TYPE_DIR)
 				{
-					$dirs[$d++] = $h;
+					$dirs[$d++] = $key;
 					++$c;
 				}
-
-				if($t & TYPE_FILE)
+				
+				if($value & TYPE_FILE)
 				{
-					$files[$f++] = $h;
+					$files[$f++] = $key;
 					++$c;
 				}
-
+				
 				if($c > 0)
 				{
 					++$total;
-					printf($h . PHP_EOL);
+					printf($key . PHP_EOL);
 				}
 			}
 
@@ -2022,17 +1948,16 @@ function counter($_host = null, $_read_only = RAW)
 		{
 die('TODO: clean()');
 			//
-			$list = get_list($_index);
+			$list = get_info($_index);
 
-			if($list['null'])
+			if($list === null)
 			{
-				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
-				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
+				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
 				exit(1);
 			}
 
-			$host = &$list['host'];
-			$len = count($host);
+			//
+			//TODO/..
 			//
 		}
 
@@ -2042,40 +1967,37 @@ die('TODO: clean()');
 		function values($_index = -1)
 		{
 			//
-			$list = get_list($_index);
+			$list = get_info($_index);
 
-			if($list['null'])
+			if($list === null)
 			{
-				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
-				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
+				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
 				exit(1);
 			}
 
-			$host = &$list['host'];
-			$len = count($host);
 			$result = array();
 			$maxLen = 0;
-			
-			for($i = 0; $i < $len; ++$i)
+			$len = 0;
+
+			foreach($list as $key => $value)
 			{
-				$h = $host[$i];
-				$t = $list['type'][$h];
-				$c = strlen($h);
+				++$len;
+				$c = strlen($key);
 				
 				if($c > $maxLen)
 				{
 					$maxLen = $c;
 				}
 
-				if($t & TYPE_VALUE)
+				if($value & TYPE_VALUE)			
 				{
-					$value = null;
+					$val = null;
 					$real = null;
 					$cache = null;
 					
-					if($t & TYPE_FILE)
+					if($value & TYPE_FILE)
 					{
-						$cache = file_get_contents(join_path(PATH, '-' . $h));
+						$cache = file_get_contents(join_path(PATH, '-' . $key));
 						
 						if($cache === false)
 						{
@@ -2087,9 +2009,9 @@ die('TODO: clean()');
 						}
 					}
 					
-					if($t & TYPE_DIR)
+					if($value & TYPE_DIR)
 					{
-						$handle = opendir(join_path(PATH, '+' . $h));
+						$handle = opendir(join_path(PATH, '+' . $key));
 						
 						if($handle === false)
 						{
@@ -2105,7 +2027,7 @@ die('TODO: clean()');
 								{
 									continue;
 								}
-								else if(is_file(join_path(PATH, '+' . $h, $sub)))
+								else if(join_path(PATH, '+' . $key, $sub))
 								{
 									++$real;
 								}
@@ -2115,20 +2037,20 @@ die('TODO: clean()');
 						}
 					}
 
-					$value = file_get_contents(join_path(PATH, '~' . $h));
+					$val = file_get_contents(join_path(PATH, '~' . $key));
 					
-					if($value === false)
+					if($val === false)
 					{
-						$result[$h] = [ null, $real, $cache ];
+						$result[$key] = [ null, $real, $cache ];
 					}
 					else
 					{
-						$result[$h] = [ (int)$value, $real, $cache ];
+						$result[$key] = [ (int)$val, $real, $cache ];
 					}
 				}
 				else
 				{
-					$result[$h] = null;
+					$result[$key] = null;
 				}
 			}
 
