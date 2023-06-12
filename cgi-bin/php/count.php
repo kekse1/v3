@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.8');
+define('VERSION', '2.20.9');
 
 //
 define('RAW', false);
@@ -927,7 +927,10 @@ function counter($_host = null, $_read_only = RAW)
 			return $result;		
 		}
 
-		function get_list($_index)
+		//
+		// ['host', 'dir', 'file', 'value', 'type', 'rest', 'glob', 'null']
+		//
+		function get_list($_index, $_null = true)
 		{
 			//
 			function get_item($_sub, &$_result)
@@ -991,6 +994,8 @@ function counter($_host = null, $_read_only = RAW)
 			$result['value'] = array();
 			$result['type'] = array();
 			$result['rest'] = array();
+			$result['glob'] = $list;
+			$result['null'] = null;
 			
 			if($list === null)
 			{
@@ -1045,7 +1050,7 @@ function counter($_host = null, $_read_only = RAW)
 				
 				closedir($handle);
 
-				if($found === 0)
+				if($found === 0 && $_null)
 				{
 					$result = null;
 				}
@@ -1073,7 +1078,7 @@ function counter($_host = null, $_read_only = RAW)
 					}
 				}
 
-				if($found === 0)
+				if($found === 0 && $_null)
 				{
 					$result = null;
 				}
@@ -1081,35 +1086,32 @@ function counter($_host = null, $_read_only = RAW)
 
 			if($result !== null)
 			{
-				$c = 0;
+				if(count($result['rest']) === 0)
+				{
+					$result['rest'] = null;
+				}
 
 				if(count($result['host']) === 0)
 				{
 					$result['host'] = null;
-					++$c;
-				}
-
-				if(count($result['dir']) === 0)
-				{
 					$result['dir'] = null;
-					++$c;
-				}
-
-				if(count($result['file']) === 0)
-				{
 					$result['file'] = null;
-					++$c;
-				}
-
-				if(count($result['value']) === 0)
-				{
 					$result['value'] = null;
-					++$c;
+					$result['type'] = null;
+					
+					if($_null)
+					{
+						$result = null;
+					}
+					else
+					{
+					
+						$result['null'] = true;
+					}
 				}
-
-				if($c === 4)
+				else
 				{
-					$result = null;
+					$result['null'] = false;
 				}
 			}
 
@@ -1913,167 +1915,75 @@ function counter($_host = null, $_read_only = RAW)
 
 		function sync($_index = -1)
 		{
-			return values($_index, true, true);
+	die('TODO: sync()');
 		}
 		
+		//
+		//TODO/and don't forget 'prompt()'!!
+		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
+		//
 		function purge($_index = -1)
 		{
-			return values($_index, true, false);
+	die('TODO: purge()');//w/ ['rest']!!
 		}
 		
 		function clean($_index = -1)
 		{
-			return values($_index, false, true);
+	die('TODO: clean()');//w/ ['rest']!!
 		}
 		
-		// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
-		function values($_index = -1, $_purge = false, $_clean = false)
+		//
+		function values($_index = -1)
 		{
-	die('TODO');//and don't forget 'prompt()'!!
 			//
-			$list = get_list($_index);
+			$list = get_list($_index, false);
 
-			if($list === null)
+			if($list['null'])
 			{
-				fprintf(STDERR, ' >> No hosts found!' . PHP_EOL);
+				$globs = ($list['glob'] === null ? 0 : count($list['glob']));
+				fprintf(STDERR, ' >> No hosts found' . ($globs === 0 ? '!' : ' (by %d globs).') . PHP_EOL, $globs);
 				exit(1);
 			}
 
-			//
-			$result = array(
-				'values' => array(),
-				'removed' => array(),
-				'cleaned' => array(),
-				'synced' => array(),
-				'count' => array(),
-				'rest' => array()
-			);
+			$host = &$list['host'];
+			$len = count($host);
+			$result = array();
+			$maxLen = 0;
 			
-			//
-			$hosts = $list['host'];
-			$h = count($hosts);
-			
-			//
-			for($i = 0; $i < $h; ++$i)
+			for($i = 0; $i < $len; ++$i)
 			{
-				$type = $list['type'][$hosts[$i]];
-				$rem = 0;
+				$h = $host[$i];
+				$t = $list['type'][$h];
+				$c = strlen($h);
 				
-				if($_clean && ($type & TYPE_DIR))
+				if($c > $maxLen)
 				{
-					$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
-					$counting = 0;
-					
-					if($handle !== false)
-					{
-						while($sub = readdir($handle))
-						{
-							if($sub[0] === '.' || $sub === '..')
-							{
-								continue;
-							}
-							
-							$p = join_path(PATH, '+' . $hosts[$i], $sub);
-							
-							if(!is_file($p))
-							{
-								continue;
-							}
-							else
-							{
-								++$counting;
-							}
-							
-							if(! (is_readable($p) && is_writable($p)))
-							{
-								continue;
-							}
-							
-							$time = file_get_contents($p);
-							
-							if($time === false)
-							{
-								continue;
-							}
-							else
-							{
-								$time = timestamp((int)$time);
-							}
-							
-							if($time <= THRESHOLD)
-							{
-								continue;
-							}
-							
-							if(remove($p, false))
-							{
-								if(!isset($result['cleaned'][$hosts[$i]]))
-								{
-									$result['cleaned'][$hosts[$i]] = 1;
-								}
-								else
-								{
-									++$result['cleaned'][$hosts[$i]];
-								}
-								
-								--$counting;
-								$rem |= 1;
-							}
-						}
-					}
-					
-					$orig = null;
-					
-					if($type & TYPE_FILE)
-					{
-						$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
-						
-						if($orig !== false)
-						{
-							$orig = (int)$orig;
-						}
-					}
-					
-					if((file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$counting)) !== false)
-					{
-						if($orig !== $counting)
-						{
-							$result['synced'][$hosts[$i]] = [ $counting, $orig ];
-						}
-						
-						$result['count'][$hosts[$i]] = $counting;
-					}
+					$maxLen = $c;
 				}
-				
-				if($type & TYPE_VALUE)
-				{
-					$value = file_get_contents(join_path(PATH, '~' . $hosts[$i]));
-					
-					if($value !== false)
-					{
-						$result['values'][$hosts[$i]] = (int)$value;
-					}
 
-					$orig = null;
+				if($t & TYPE_VALUE)
+				{
+					$value = null;
 					$real = null;
+					$cache = null;
 					
-					if($type & TYPE_FILE)
+					if($t & TYPE_FILE)
 					{
-						$orig = file_get_contents(join_path(PATH, '-' . $hosts[$i]));
+						$cache = file_get_contents(join_path(PATH, '-' . $h));
 						
-						if($orig === false)
+						if($cache === false)
 						{
-							$orig = null;
+							$cache = null;
 						}
 						else
 						{
-							$orig = (int)$orig;
+							$cache = (int)$cache;
 						}
 					}
 					
-					if($type & TYPE_DIR)
+					if($t & TYPE_DIR)
 					{
-						$handle = opendir(join_path(PATH, '+' . $hosts[$i]));
+						$handle = opendir(join_path(PATH, '+' . $h));
 						
 						if($handle === false)
 						{
@@ -2089,146 +1999,50 @@ function counter($_host = null, $_read_only = RAW)
 								{
 									continue;
 								}
-								
-								$p = join_path(PATH, '+' . $hosts[$i], $sub);
-								
-								if(is_file($p))
+								else if(is_file(join_path(PATH, '+' . $h, $sub)))
 								{
 									++$real;
 								}
-								else if($_purge && remove($p, true))
-								{
-									$rem |= 2;
-								}
 							}
 							
-							if($real === 0 && $_purge)
-							{
-								if(remove(join_path(PATH, '+' . $hosts[$i]), true))
-								{
-									$rem |= 4;
-								}
-								
-								if(remove(join_path(PATH, '-' . $hosts[$i]), false))
-								{
-									$rem |= 8;
-								}
-							}
+							closedir($handle);
 						}
 					}
+
+					$value = file_get_contents(join_path(PATH, '~' . $h));
 					
-					if($orig !== null && $real !== null)
+					if($value === false)
 					{
-						if($orig !== $real)
-						{
-							$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
-							
-							if($r !== false)
-							{
-								$result['synced'][$hosts[$i]] = [ $real, $orig ];
-								$result['count'][$hosts[$i]] = $real;
-							}
-						}
-						else
-						{
-							$result['count'][$hosts[$i]] = $real;
-						}
-					}
-					else if($real !== null)
-					{
-						$r = file_put_contents(join_path(PATH, '-' . $hosts[$i]), (string)$real);
-						
-						if($r !== false)
-						{
-							$result['synced'][$hosts[$i]] = [ $real, $orig ];
-							$result['count'][$hosts[$i]] = $real;
-						}
-						else
-						{
-							$result['count'][$hosts[$i]] = null;
-						}
-					}
-					else if($orig !== null)
-					{
-						$result['count'][$hosts[$i]] = -$orig;
+						$result[$h] = [ null, $real, $cache ];
 					}
 					else
 					{
-						$result['count'][$hosts[$i]] = null;
+						$result[$h] = [ (int)$value, $real, $cache ];
 					}
 				}
 				else
 				{
-					$result['values'][$hosts[$i]] = null;
-					
-					if($_purge && (($type & TYPE_DIR) || ($type & TYPE_FILE)))
-					{
-						if($type & TYPE_DIR)
-						{
-							if(remove(join_path(PATH, '+' . $hosts[$i]), true))
-							{
-								$rem |= 4;
-							}
-						}
-						
-						if($type & TYPE_FILE)
-						{
-							if(remove(join_path(PATH, '-' . $hosts[$i]), false))
-							{
-								$rem |= 8;
-							}
-						}
-					}
-
-					if($_clean)
-					{
-						$r = file_put_contents(join_path(DIR, '~' . $hosts[$i]), '0');
-					}
+					$result[$h] = null;
 				}
-				
-				if($result['count'][$hosts[$i]] === 0 && ($_clean || $_purge))
+			}
+
+			$a = '  %' . $maxLen . "s\t";
+			$b = "%-10s %6s / %-6s" . PHP_EOL;
+			
+			foreach($result as $h => $v)
+			{
+				if($v === null)
 				{
-					$p = join_path(PATH, '+' . $hosts[$i]);
-					
-					if(remove($p, true))
-					{
-						$rem |= 4;
-					}
-					
-					$p = join_path(PATH, '-' . $hosts[$i]);
-					
-					if(remove($p, false))
-					{
-						$rem |= 8;
-					}
+					fprintf(STDERR, $a . '%s' . PHP_EOL, $h, '/');
 				}
-
-				$result['removed'][$hosts[$i]] = $rem;
+				else
+				{
+					printf($a . $b, $h, ($v[0] === null ? '-' : (string)$v[0]), ($v[1] === null ? '-' : (string)$v[1]), ($v[2] === null ? '-' : (string)$v[2]));
+				}
 			}
 			
-			if($_purge)
-			{
-				$len = count($list['rest']);
-
-				if($len > 0)
-				{
-					for($i = 0, $j = 0; $i < $len; ++$i)
-					{
-						$r = remove(join_path(PATH, $list['rest'][$i]), true);
-						
-						if($r)
-						{
-							$result['rest'][$j++] = $list['rest'][$i];
-						}
-					}
-				}
-			}
-
-			// @ $removed[]: [ 1 = +host/file, 2 = +host/dir, 4 = +host/, 8 = -host ];
-
-	//
-	var_dump($result);
-	die('	//TODO: values(' . $_index . ')');
+			//
+			exit(0);
 		}
 
 		function unlog($_index = -1)
