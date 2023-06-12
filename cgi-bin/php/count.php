@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '2.20.13');
+define('VERSION', '2.20.14');
 
 //
 define('RAW', false);
@@ -1041,7 +1041,7 @@ function counter($_host = null, $_read_only = RAW)
 		}
 
 		//
-		function info($_index = -1, $_version = true, $_copyright = true)
+		function info($_index = null, $_version = true, $_copyright = true)
 		{
 			if($_version)
 			{
@@ -1086,7 +1086,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(0);
 		}
 
-		function hashes($_index = -1)
+		function hashes($_index = null)
 		{
 			$list = hash_algos();
 			$len = count($list);
@@ -1099,7 +1099,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(0);
 		}
 
-		function fonts($_index = -1)
+		function fonts($_index = null)
 		{
 			if(gettype(PATH_FONTS) !== 'string' || empty(PATH_FONTS))
 			{
@@ -1177,7 +1177,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(0);
 		}
 
-		function types($_index = -1)
+		function types($_index = null)
 		{
 			if(!extension_loaded('gd'))
 			{
@@ -1198,7 +1198,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(0);
 		}
 		
-		function check($_index = -1)
+		function check($_index = null)
 		{
 			//
 			printf(' >> We\'re testing your configuration right now.' . PHP_EOL);
@@ -1825,7 +1825,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(1);
 		}
 		
-		function set($_index = -1)
+		function set($_index = null)
 		{
 			//by default set (0)
 			//either for a specified host, or to all which match a *glob*..
@@ -1835,7 +1835,7 @@ function counter($_host = null, $_read_only = RAW)
 		}
 
 		//
-		function purge($_index = -1)
+		function purge($_index = null)
 		{
 			//
 			$list = get_list($_index);
@@ -1944,7 +1944,7 @@ function counter($_host = null, $_read_only = RAW)
 			exit(4);
 		}
 		
-		function clean($_index = -1)
+		function clean($_index = null)
 		{
 die('TODO: clean()');
 			//
@@ -1962,9 +1962,12 @@ die('TODO: clean()');
 		}
 
 		//
-		//TODO/REPLACE OLD --sync/-n here!!
-		//
-		function values($_index = -1)
+		function sync($_index = null)
+		{
+			return values($_index, true);
+		}
+
+		function values($_index = null, $_sync = true)
 		{
 			//
 			$list = get_list($_index);
@@ -2054,6 +2057,7 @@ die('TODO: clean()');
 				}
 			}
 
+			printf(PHP_EOL);
 			$a = '%' . $maxLen . "s    ";
 			$b = "%-10s %6s / %-6s" . PHP_EOL;
 			$sync = array();
@@ -2084,6 +2088,20 @@ die('TODO: clean()');
 				}
 			}
 			
+			printf(PHP_EOL);
+			$s = count($sync);
+
+			if(!$_sync || $s === 0)
+			{
+				exit(0);
+			}
+
+			if(!prompt('Do you want to synchronize ' . count($sync) . ' hosts now [yes/no]? '))
+			{
+				print(' >> Good, aborting sync.' . PHP_EOL);
+				exit(0);
+			}
+
 			$tot = 0;
 			$chg = 0;
 			$del = 0;
@@ -2154,7 +2172,7 @@ die('TODO: clean()');
 			exit(0);
 		}
 
-		function unlog($_index = -1)
+		function unlog($_index = null)
 		{
 			error_reporting(0);
 
@@ -2194,7 +2212,7 @@ die('TODO: clean()');
 			exit(0);
 		}
 
-		function errors($_index = -1)
+		function errors($_index = null)
 		{
 			if(! file_exists(PATH_LOG))
 			{
@@ -2239,7 +2257,7 @@ die('TODO: clean()');
 		}
 
 		//
-		function help($_index = -1)
+		function help($_index = null)
 		{
 			printf(HELP . PHP_EOL);
 			exit(0);
