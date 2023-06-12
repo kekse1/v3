@@ -2103,7 +2103,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 			}
 
-			$s = '%' . $maxLen . 's    %d' . PHP_EOL;
+			$s = ' %' . $maxLen . 's    %d' . PHP_EOL;
 
 			foreach($delete as $host => $del)
 			{
@@ -2212,7 +2212,7 @@ function counter($_host = null, $_read_only = RAW)
 			}
 
 			printf(PHP_EOL);
-			$a = '%' . $maxLen . "s    ";
+			$a = ' %' . $maxLen . "s    ";
 			$b = "%-10s %6s / %-6s" . PHP_EOL;
 			$sync = array();
 			
