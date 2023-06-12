@@ -1008,7 +1008,7 @@ function counter($_host = null, $_read_only = RAW)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					$sub = join_path(PATH, '{~,+,-}' . $list[$i]);
+					$sub = join_path(PATH, '{~,+,-}' . strtolower($list[$i]));
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
 
