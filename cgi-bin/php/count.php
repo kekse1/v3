@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.0.1');
+define('VERSION', '3.0.2');
 
 //
 define('DIR', 'count/');
@@ -2206,11 +2206,11 @@ function counter($_host = null, $_read_only = RAW)
 					
 					if($val === false)
 					{
-						$result[$key] = [ null, $real, $cache ];
+						$result[$key] = [ null, $cache, $real ];
 					}
 					else
 					{
-						$result[$key] = [ (int)$val, $real, $cache ];
+						$result[$key] = [ (int)$val, $cache, $real ];
 					}
 				}
 				else
@@ -2235,15 +2235,15 @@ function counter($_host = null, $_read_only = RAW)
 				{
 					printf($a . $b, $h, ($v[0] === null ? '-' : (string)$v[0]), ($v[1] === null ? '-' : (string)$v[1]), ($v[2] === null ? '-' : (string)$v[2]));
 					
-					if($v[1] === 0 && (($list[$h] & TYPE_DIR) || ($list[$h] & TYPE_FILE)))
+					if($v[2] === 0 && (($list[$h] & TYPE_DIR) || ($list[$h] & TYPE_FILE)))
 					{
 						$sync[$h] = 0;
 					}
-					else if($v[1] !== null && $v[1] !== $v[2])
+					else if($v[2] !== null && $v[2] !== $v[1])
 					{
-						$sync[$h] = $v[1];
+						$sync[$h] = $v[2];
 					}
-					else if($v[1] === null && $v[2] !== null)
+					else if($v[2] === null && $v[1] !== null)
 					{
 						$sync[$h] = 0;
 					}
