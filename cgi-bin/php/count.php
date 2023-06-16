@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.1.1');
+define('VERSION', '3.1.2');
 
 //
 define('DIR', 'count/');
@@ -623,18 +623,19 @@ function counter($_host = null, $_read_only = RAW)
 	{
 		$ex = null;
 		
-		if($_reason instanceof Exception)
+		if($_reason instanceof \Exception)
 		{
 			$ex = $_reason;
 			$_reason = $_reason->getMessage();
 		}
-		else
-		{
-			$ex = new Exception($_reason);
-		}
 		
 		if(RAW)
 		{
+			if($ex === null)
+			{
+				throw new \Exception($_reason);
+			}
+
 			throw $ex;
 		}
 		else if(defined('FIN') && FIN)
@@ -676,12 +677,12 @@ function counter($_host = null, $_read_only = RAW)
 	{
 		if(RAW)
 		{
-			if($_reason instanceof Exception)
+			if($_reason instanceof \Exception)
 			{
 				throw $_reason;
 			}
 			
-			throw new Exception($_reason);
+			throw new \Exception($_reason);
 		}
 		else if(CLI)
 		{
@@ -692,7 +693,7 @@ function counter($_host = null, $_read_only = RAW)
 			
 			return null;
 		}
-		else if($_reason instanceof Exception)
+		else if($_reason instanceof \Exception)
 		{
 			$_reason = $_reason->getMessage();
 		}
@@ -1000,7 +1001,7 @@ function counter($_host = null, $_read_only = RAW)
 
 		function get_list($_index = null, $_sort = true)
 		{
-			function get_list_item($_host, &$_result)
+			function get_list_item($_host, &$_result, $_check = true)
 			{
 				if($_host[0] === '.' || strlen($_host) === 1)
 				{
@@ -1008,16 +1009,31 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				
 				$type = $_host[0];
-				
+
 				switch($type)
 				{
 					case '~':
+						if($_check && !is_file(join_path(PATH, $_host)))
+						{
+							return 0;
+						}
+
 						$type = TYPE_VALUE;
 						break;
 					case '+':
+						if($_check && !is_dir(join_path(PATH, $_host)))
+						{
+							return 0;
+						}
+
 						$type = TYPE_DIR;
 						break;
 					case '-':
+						if($_check && !is_file(join_path(PATH, $_host)))
+						{
+							return 0;
+						}
+
 						$type = TYPE_FILE;
 						break;
 					default:
@@ -1125,19 +1141,24 @@ function counter($_host = null, $_read_only = RAW)
 			printf('    -? / --help' . PHP_EOL);
 			printf('    -V / --version' . PHP_EOL);
 			printf('    -C / --copyright' . PHP_EOL);
-			//printf('    -t / --set (...TODO)' . PHP_EOL);
-			printf('    -v / --values (*)' . PHP_EOL);
-			printf('    -s / --sync (*)' . PHP_EOL);
-			printf('    -l / --clean (*)' . PHP_EOL);
-			printf('    -p / --purge (*)' . PHP_EOL);
+			printf(PHP_EOL);
 			printf('    -c / --check' . PHP_EOL);
-			printf('    -h / --hashes' . PHP_EOL);
-			printf('    -f / --fonts (*)' . PHP_EOL);
+			printf(PHP_EOL);
+			//printf('    -t / --set (...TODO)' . PHP_EOL);
+			printf('    -v / --values [*]' . PHP_EOL);
+			printf('    -s / --sync [*]' . PHP_EOL);
+			printf('    -l / --clean [*]' . PHP_EOL);
+			printf('    -p / --purge [*]' . PHP_EOL);
+			printf('    -z / --sanitize [--allow-without-values / -w]' . PHP_EOL);
+			printf(PHP_EOL);
+			printf('    -f / --fonts [*]' . PHP_EOL);
 			printf('    -t / --types' . PHP_EOL);
+			printf('    -h / --hashes' . PHP_EOL);
+			printf(PHP_EOL);
 			printf('    -e / --errors' . PHP_EOL);
 			printf('    -u / --unlog' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('The *optional* arguments support GLOB (which you need to escape or quote)' . PHP_EOL);
+			printf('The *optional* arguments support GLOB (which you should escape or quote)' . PHP_EOL);
 
 			exit(0);
 		}
@@ -2241,14 +2262,160 @@ function counter($_host = null, $_read_only = RAW)
 			printf(PHP_EOL . ' >> Deleted %d files totally.' . PHP_EOL, $sum);
 			exit(0);
 		}
-
+		
 		//
-		function sync($_index = null)
+		function sanitize($_index = null, $_allow_without_values = false)
 		{
-			return values($_index, true);
+			//
+			if(gettype($_index) === 'integer' && $_index > -1) for($i = $_index + 1; $i < ARGC; ++$i)
+			{
+				if(strlen(ARGV[$i]) === 0 || ARGV[$i][0] !== '-')
+				{
+					continue;
+				}
+				else if(ARGV[$i] === '-w' || ARGV[$i] === '--allow-without-values')
+				{
+					$_allow_without_values = true;
+				}
+			}
+
+			$delete = array();
+			$index = 0;
+			
+			//
+			$handle = opendir(PATH);
+			
+			if($handle === false)
+			{
+				fprintf(STDERR, ' >> Failed to open directory (\'' . PATH . '\')' . PHP_EOL);
+				exit(1);
+			}
+			else while($sub = readdir($handle))
+			{
+				if($sub[0] === '.')
+				{
+					continue;
+				}
+				
+				$p = join_path(PATH, $sub);
+				
+				if($sub[0] === '~')
+				{
+					if(strlen($sub) === 1 || !is_file($p))
+					{
+						$delete[$index++] = $p;
+					}
+				}
+				else if($sub[0] === '+')
+				{
+					if(strlen($sub) === 1 || !is_dir($p))
+					{
+						$delete[$index++] = $p;
+					}
+					else if(!$_allow_without_values && !is_file(join_path(PATH, '~' . substr($sub, 1))))
+					{
+						$delete[$index++] = $p;
+					}
+				}
+				else if($sub[0] === '-')
+				{
+					if(strlen($sub) === 1 || !is_file($p))
+					{
+						$delete[$index++] = $p;
+					}
+					else if(!$_allow_without_values && !is_file(join_path(PATH, '~' . substr($sub, 1))))
+					{
+						$delete[$index++] = $p;
+					}
+				}
+				else
+				{
+					$delete[$index++] = $p;
+				}
+			}
+				
+			closedir($handle);
+			
+			//
+			$len = count($delete);
+			
+			if($len === 0)
+			{
+				printf(' >> No files found to delete.' . PHP_EOL);
+				exit(0);
+			}
+			else
+			{
+				printf(' >> Please allow to delete %d files (non-existing value files %s)..' . PHP_EOL, $len, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
+				
+				if(!prompt('Do you really want to continue [yes/no]? '))
+				{
+					fprintf(STDERR, ' >> Aborted, as requested.' . PHP_EOL);
+					exit(2);
+				}
+				else
+				{
+					printf(PHP_EOL);
+				}
+			}
+			
+			$result = 0;
+			$errors = 0;
+			
+			for($i = 0; $i < count($delete); ++$i)
+			{
+				if(file_exists($delete[$i]))
+				{
+					if(remove($delete[$i], true))
+					{
+						++$result;
+					}
+					else
+					{
+						++$errors;
+					}
+				}
+				else
+				{
+					array_splice($delete, $i--, 1);
+				}
+			}
+			
+			if($result === 0)
+			{
+				fprintf(STDERR, ' >> NO files deleted (only %d errors occured)' . PHP_EOL, $errors);
+				exit(3);
+			}
+			else
+			{
+				printf(' >> Operation deleted %d files, with' . ($errors === 0 ? 'out' : ' %d') . ' errors:' . PHP_EOL . PHP_EOL, $result, $errors);
+			}
+			
+			$len = count($delete);
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				printf('    ' . $delete[$i] . PHP_EOL);
+			}
+			
+			printf(PHP_EOL);
+
+			//
+			if($errors === 0)
+			{
+				exit(0);
+			}
+			
+			exit(4);
+		}
+		
+		//
+		function sync($_index = null, $_purge = true)
+		{
+			return values($_index, true, $_purge);
 		}
 
-		function values($_index = null, $_sync = false)
+		function values($_index = null, $_sync = false, $_purge = true)
 		{
 			//
 			$list = get_list($_index);
@@ -2273,54 +2440,58 @@ function counter($_host = null, $_read_only = RAW)
 					$maxLen = $c;
 				}
 
-				if($value & TYPE_VALUE)			
-				{
-					$val = null;
-					$real = null;
-					$cache = null;
-					
-					if($value & TYPE_FILE)
-					{
-						$cache = file_get_contents(join_path(PATH, '-' . $key));
-						
-						if($cache === false)
-						{
-							$cache = null;
-						}
-						else
-						{
-							$cache = (int)$cache;
-						}
-					}
-					
-					if($value & TYPE_DIR)
-					{
-						$handle = opendir(join_path(PATH, '+' . $key));
-						
-						if($handle === false)
-						{
-							$real = null;
-						}
-						else
-						{
-							$real = 0;
-							
-							while($sub = readdir($handle))
-							{
-								if($sub[0] === '.')
-								{
-									continue;
-								}
-								else if(join_path(PATH, '+' . $key, $sub))
-								{
-									++$real;
-								}
-							}
-							
-							closedir($handle);
-						}
-					}
+				$val = null;
+				$real = null;
+				$cache = null;
 
+				if($value & TYPE_DIR)
+				{
+					$handle = opendir(join_path(PATH, '+' . $key));
+					
+					if($handle === false)
+					{
+						$real = null;
+					}
+					else
+					{
+						$real = 0;
+						
+						while($sub = readdir($handle))
+						{
+							if($sub[0] === '.')
+							{
+								continue;
+							}
+							else if(is_file(join_path(PATH, '+' . $key, $sub)))
+							{
+								++$real;
+							}
+							else if($_purge)
+							{
+								remove(join_path(PATH, '+' . $key, $sub), true);
+							}
+						}
+						
+						closedir($handle);
+					}
+				}
+				
+				if($value & TYPE_FILE)
+				{
+					$cache = file_get_contents(join_path(PATH, '-' . $key));
+					
+					if($cache === false)
+					{
+						$cache = null;
+					}
+					else
+					{
+						$cache = (int)$cache;
+					}
+				}
+
+				if($value & TYPE_VALUE)
+				{
 					$val = file_get_contents(join_path(PATH, '~' . $key));
 					
 					if($val === false)
@@ -2334,7 +2505,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else
 				{
-					$result[$key] = null;
+					$result[$key] = [ null, $cache, $real ];
 				}
 			}
 
@@ -2579,6 +2750,10 @@ function counter($_host = null, $_read_only = RAW)
 			{
 				purge($i);
 			}
+			else if(ARGV[$i] === '-z' || ARGV[$i] === '--sanitize')
+			{
+				sanitize($i);
+			}
 			else if(ARGV[$i] === '-c' || ARGV[$i] === '--check')
 			{
 				check($i);
@@ -2746,7 +2921,7 @@ function counter($_host = null, $_read_only = RAW)
 			}
 			else if(!is_file(PATH_FILE))
 			{
-				if(gettype(OVERRIDDEN) === 'string')
+				if(gettype(OVERRIDE) === 'string')
 				{
 					return;
 				}
