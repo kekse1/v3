@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.0.3');
+define('VERSION', '3.1.0');
 
 //
 define('DIR', 'count/');
@@ -27,6 +27,8 @@ define('SIZE', 24);
 define('SIZE_LIMIT', 512);
 define('FG', '0, 0, 0, 1');
 define('BG', '255, 255, 255, 0');
+define('X', 0);
+define('Y', 0);
 define('H', 0);
 define('V', 0);
 define('H_LIMIT', 256);
@@ -38,6 +40,7 @@ define('HASH', 'sha3-256');
 define('ERROR', '/');
 define('NONE', '/');
 define('RAW', false);
+define('RADIX', 10);
 
 //
 define('MAX', 224);
@@ -148,6 +151,22 @@ function limit($_string, $_length = MAX)
 	return substr($_string, 0, $_length);
 }
 
+function remove_white_spaces($_string)
+{
+	$result = '';
+	$len = strlen($_string);
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(ord($_string[$i]) > 32)
+		{
+			$result .= $_string[$i];
+		}
+	}
+	
+	return $result;
+}
+
 function secure($_string)
 {
 	if(gettype($_string) !== 'string')
@@ -226,6 +245,10 @@ function secure($_string)
 		else if($byte === 58)
 		{
 			$add = ':';
+		}
+		else if($byte === 35)
+		{
+			$add = '#';
 		}
 		else
 		{
@@ -353,7 +376,7 @@ function remove($_path, $_recursive = false, $_depth_current = 0)
 	return true;
 }
 
-function get_param($_key, $_numeric = false, $_float = true, $_secure = true)
+function get_param($_key, $_numeric = false, $_float = true)
 {
 	//
 	//TODO/maybe relay from $_GET[] => $_SERVER[] then!?! ^_^
@@ -460,6 +483,10 @@ function get_param($_key, $_numeric = false, $_float = true, $_secure = true)
 		{
 			$set = ':';
 		}
+		else if($byte === 35)
+		{
+			$set = '#';
+		}
 		else
 		{
 			continue;
@@ -516,10 +543,6 @@ function get_param($_key, $_numeric = false, $_float = true, $_secure = true)
 			}
 		}
 	}
-	else if($result !== null && $_secure)
-	{
-		$result = secure($result);
-	}
 
 	return $result;
 }
@@ -555,14 +578,19 @@ function starts_with($_haystack, $_needle, $_case_sensitive = true)
 }
 
 //
+define('CLI', (php_sapi_name() === 'cli'));
+
+//
 if(isset($argc) && isset($argv))
 {
 	define('ARGC', $argc);
 	define('ARGV', $argv);
 }
-
-//
-define('CLI', (php_sapi_name() === 'cli'));
+else if(CLI)
+{
+	fprintf(STDERR, ' >> WARNING: CLI mode active, but \'$argc\' and/or \'$argv\' is not available..! :-/' . PHP_EOL);
+	exit(127);
+}
 
 //
 function counter($_host = null, $_read_only = RAW)
@@ -801,7 +829,7 @@ function counter($_host = null, $_read_only = RAW)
 	//
 	define('PATH', get_path(DIR, true, false));
 	define('PATH_LOG', get_path(LOG, true, true));
-	define('CAN_LOG', true);
+	define('CAN_LOG', (!file_exists(PATH_LOG) || is_writable(PATH_LOG)));
 
 	if(DRAWING || CLI)
 	{
@@ -829,9 +857,9 @@ function counter($_host = null, $_read_only = RAW)
 	{
 		error('Your existing \'LOG\' file is not writable');
 	}
-
+	
 	//
-	if(CLI && !RAW)
+	function cli()
 	{
 		//
 		define('TYPE_VALUE', 1);
@@ -1064,18 +1092,11 @@ function counter($_host = null, $_read_only = RAW)
 			exit(0);
 		}
 
-		function syntax($_argc)
+		function help($_index = null)
 		{
-			if($_argc > 1)
-			{
-				fprintf(STDERR, ' >> Invalid syntax (parameter, if any, not available)' . PHP_EOL);
-			}
-			else
-			{
-				printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL);
-			}
+			printf(' >> Visit: <' . HELP . '>' . PHP_EOL);
+			printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL . PHP_EOL);
 
-			printf(PHP_EOL);
 			printf('    -? / --help' . PHP_EOL);
 			printf('    -V / --version' . PHP_EOL);
 			printf('    -C / --copyright' . PHP_EOL);
@@ -1091,6 +1112,7 @@ function counter($_host = null, $_read_only = RAW)
 			printf('    -e / --errors' . PHP_EOL);
 			printf('    -u / --unlog' . PHP_EOL);
 			printf(PHP_EOL);
+			printf('The *optional* arguments support GLOB (which you need to escape or quote)' . PHP_EOL);
 
 			exit(0);
 		}
@@ -1220,25 +1242,25 @@ function counter($_host = null, $_read_only = RAW)
 			$warnings = 0;
 
 			//
-			define('START', '%12s: %-7s');
+			$format = '%12s: %-7s %s' . PHP_EOL;
 			
 			//
 			if(gettype(PATH) === 'string' && !empty(PATH))
 			{
 				if(is_dir(PATH) && is_writable(PATH))
 				{
-					printf(START.'Non-empty path String (writable directory exists, but no further tests)' . PHP_EOL, 'DIR', 'OK');
+					printf($format, 'DIR', 'OK', 'Non-empty path String (writable directory exists, but no further tests)');
 					++$ok;
 				}
 				else
 				{
-					fprintf(STDERR, START.'Non-empty path String, BUT is not an existing directory' . PHP_EOL, 'DIR', 'BAD');
+					fprintf(STDERR, $format, 'DIR', 'BAD', 'Non-empty path String, BUT is not an existing directory');
 					++$errors;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty path String' . PHP_EOL, 'DIR', 'BAD');
+				fprintf(STDERR, $format, 'DIR', 'BAD', 'No non-empty path String');
 				++$errors;
 			}
 
@@ -1246,105 +1268,110 @@ function counter($_host = null, $_read_only = RAW)
 			{
 				if(!file_exists(PATH_LOG) || (is_file(PATH_LOG) && is_writable(PATH_LOG)))
 				{
-					printf(START.'Is a valid, usable path' . PHP_EOL, 'LOG', 'OK');
+					printf($format, 'LOG', 'OK', 'Is a valid, usable path');
 					++$ok;
 				}
 				else
 				{
-					fprintf(STDERR, START.'Valid path string, but seems not to be correct' . PHP_EOL, 'LOG', 'BAD');
+					fprintf(STDERR, $format, 'LOG', 'BAD', 'Valid path string, but seems not to be correct');
 					++$errors;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'LOG', 'BAD');
+				fprintf(STDERR, $format, 'LOG', 'BAD', 'No non-empty String');
 				++$errors;
 			}
 
 			if(gettype(THRESHOLD) === 'integer' && THRESHOLD >= 0)
 			{
-				if(THRESHOLD < 1)
+				if(THRESHOLD <= 0)
 				{
-					fprintf(STDERR, START.'Integer, but below 1' . PHP_EOL, 'THRESHOLD', 'BAD');
-					++$errors;
+					fprintf(STDERR, $format, 'THRESHOLD', 'WARN', 'Integer below 1 should be set as (null)');
+					++$warnings;
 				}
 				else
 				{
-					printf(START.'Integer above 0' . PHP_EOL, 'THRESHOLD', 'OK');
+					printf($format, 'THRESHOLD', 'OK', 'Integer above -1 (and could also be (null))');
 					++$ok;
 				}
 			}
+			else if(THRESHOLD === null)
+			{
+				printf($format, 'THRESHOLD', 'OK', 'Is (null) (overrides SERVER and CLIENT; and also Integer allowed)');
+				++$ok;
+			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer above 0' . PHP_EOL, 'THRESHOLD', 'BAD');
+				fprintf(STDERR, $format, 'THRESHOLD', 'BAD', 'No Integer above 0');
 				++$errors;
 			}
 
 			if(gettype(AUTO) === 'boolean')
 			{
-				printf(START.'Boolean type (and could also be an Integer above 0)' . PHP_EOL, 'AUTO', 'OK');
+				printf($format, 'AUTO', 'OK', 'Boolean type (and could also be an Integer above -1)');
 				++$ok;
 			}
 			else if(gettype(AUTO) === 'integer')
 			{
 				if(AUTO < 0)
 				{
-					fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'AUTO', 'BAD');
+					fprintf(STDERR, $format, 'AUTO', 'BAD', 'Integer, but below 0');
 					++$errors;
 				}
 				else if(AUTO === 0)
 				{
-					fprintf(STDERR, START.'Integer, but equals 0 - where (false) would be better' . PHP_EOL, 'AUTO', 'WARN');
+					fprintf(STDERR, $format, 'AUTO', 'WARN', 'Integer, but equals 0 - where (false) would be better');
 					++$warnings;
 				}
 				else
 				{
-					printf(START.'Integer above 0 (and could also be a Boolean)' . PHP_EOL, 'AUTO', 'OK');
+					printf($format, 'AUTO', 'OK', 'Integer above 0 (and could also be a Boolean)');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'Neither a Boolean nor an Integer above 0/1' . PHP_EOL, 'AUTO', 'BAD');
+				fprintf(STDERR, $format, 'AUTO', 'BAD', 'Neither a Boolean nor an Integer above -1');
 				++$errors;
 			}
 
 			if(gettype(HIDE) === 'boolean')
 			{
-				printf(START.'Is a Boolean, and may also be a String' . PHP_EOL, 'HIDE', 'OK');
+				printf($format, 'HIDE', 'OK', 'Is a Boolean, and may also be a String');
 				++$ok;
 			}
 			else if(gettype(HIDE) === 'string')
 			{
-				printf(START.'Is a String, and may also be a Boolean' . PHP_EOL, 'HIDE', 'OK');
+				printf($format, 'HIDE', 'OK', 'Is a String, and may also be a Boolean');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Needs to be a String or Boolean!' . PHP_EOL, 'HIDE', 'BAD');
+				fprintf(STDERR, $format, 'HIDE', 'BAD', 'Needs to be a String or Boolean!');
 				++$errors;
 			}
 
 			if(gettype(CLIENT) === 'boolean')
 			{
-				printf(START.'Boolean type' . PHP_EOL, 'CLIENT', 'OK');
+				printf($format, 'CLIENT', 'OK', 'Boolean type');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'CLIENT', 'BAD');
+				fprintf(STDERR, $format, 'CLIENT', 'BAD', 'No Boolean type');
 				++$errors;
 			}
 
 			//
 			if(gettype(SERVER) === 'boolean')
 			{
-				printf(START.'Boolean type' . PHP_EOL, 'SERVER', 'OK');
+				printf($format, 'SERVER', 'OK', 'Boolean type');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'SERVER', 'BAD');
+				fprintf(STDERR, $format, 'SERVER', 'BAD', 'No Boolean type');
 				++$errors;
 			}
 
@@ -1354,96 +1381,96 @@ function counter($_host = null, $_read_only = RAW)
 				{
 					if(extension_loaded('gd'))
 					{
-						printf(START.'Enabled drawing option, and the \'GD Library\' is installed.' . PHP_EOL, 'DRAWING', 'OK');
+						printf($format, 'DRAWING', 'OK', 'Enabled image drawing (and the \'GD Library\' is installed).');
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, START.'Enabled drawing option, but the \'GD Library\' is not installed (at least in CLI mode)' . PHP_EOL, 'DRAWING', 'WARN');
+						fprintf(STDERR, $format, 'DRAWING', 'WARN', 'Enabled drawing option (but the \'GD Library\' is not installed - at least in this CLI mode)');
 						++$warnings;
 					}
 				}
 				else
 				{
-					printf(START.'Disabled drawing. That\'s also OK.' . PHP_EOL, 'DRAWING', 'OK');
+					printf($format, 'DRAWING', 'OK', 'Disabled drawing (that\'s really OK).');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'DRAWING', 'BAD');
+				fprintf(STDERR, $format, 'DRAWING', 'BAD', 'No Boolean type');
 				++$errors;
 			}
 
 			if(gettype(OVERRIDE) === 'boolean')
 			{
-				printf(START.'Boolean type, great (could also be a non-empty String)' . PHP_EOL, 'OVERRIDE', 'OK');
+				printf($format, 'OVERRIDE', 'OK', 'Boolean type, great (could also be a non-empty String)');
 				++$ok;
 			}
 			else if(gettype(OVERRIDE) === 'string' && !empty(OVERRIDE))
 			{
-				printf(START.'A non-empty String (and could also be a Boolean)' . PHP_EOL, 'OVERRIDE', 'OK');
+				printf($format, 'OVERRIDE', 'OK', 'Non-empty String (and could also be a Boolean)');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not a boolean type' . PHP_EOL, 'OVERRIDE', 'BAD');
+				fprintf(STDERR, $format, 'OVERRIDE', 'BAD', 'Not a boolean type, nor a non-empty String');
 				++$errors;
 			}
 
 			if(gettype(CONTENT) === 'string' && !empty(CONTENT))
 			{
-				printf(START.'Non-empty String' . PHP_EOL, 'CONTENT', 'OK');
+				printf($format, 'CONTENT', 'OK', 'Non-empty String');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'CONTENT', 'BAD');
+				fprintf(STDERR, $format, 'CONTENT', 'BAD', 'No non-empty String');
 				++$errors;
 			}
 
 			if(CLEAN === null)
 			{
-				printf(START.'Equals (null), and could also be a Boolean or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
+				printf($format, 'CLEAN', 'OK', 'Equals (null) (and could also be a Boolean or an Integer above -1)');
 				++$ok;
 			}
 			else if(gettype(CLEAN) === 'boolean')
 			{
-				printf(START.'Boolean type, and could also be (null) or an Integer above 0' . PHP_EOL, 'CLEAN', 'OK');
+				printf($format, 'CLEAN', 'OK', 'Boolean type, and could also be (null) or an Integer above -1');
 				++$ok;
 			}
 			else if(gettype(CLEAN) === 'integer')
 			{
-				if(CLEAN <= 0)
+				if(CLEAN < 0)
 				{
-					fprintf(STDERR, START.'Integer, but below 0/1' . PHP_EOL, 'CLEAN', 'BAD');
+					fprintf(STDERR, $format, 'CLEAN', 'BAD', 'Integer, but below 0');
 					++$errors;
 				}
 				else if(CLEAN === 0)
 				{
-					fprintf(STDERR, START.'Integer, but equals 0 (that should be (true) instead)' . PHP_EOL, 'CLEAN', 'WARN');
+					fprintf(STDERR, $format, 'CLEAN', 'WARN', 'Integer, but equals 0 (which should be (true) instead)');
 					++$warnings;
 				}
 				else
 				{
-					printf(START.'Integer above 1 (and could also be (null) or a Boolean type)' . PHP_EOL, 'CLEAN', 'OK');
+					printf($format, 'CLEAN', 'OK', 'Integer above 0 (and could also be (null) or a Boolean type)');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'Neither (null), Boolean type nor Integer above 0/1' . PHP_EOL, 'CLEAN', 'BAD');
+				fprintf(STDERR, $format, 'CLEAN', 'BAD', 'Neither (null), Boolean type nor Integer above 0/-1');
 				++$errors;
 			}
 
 			if(gettype(LIMIT) === 'integer' && LIMIT > -1)
 			{
-				printf(START.'Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'OK');
+				printf($format, 'LIMIT', 'OK', 'Integer above -1');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer above or equal to 0' . PHP_EOL, 'LIMIT', 'BAD');
+				fprintf(STDERR, $format, 'LIMIT', 'BAD', 'No integer above -1');
 				++$errors;
 			}
 
@@ -1456,24 +1483,24 @@ function counter($_host = null, $_read_only = RAW)
 					
 					if($len > 0)
 					{
-						printf(START.'Valid directory, and contains %d \'.ttf\' font files' . PHP_EOL, 'FONTS', 'OK', $len);
+						printf($format, 'FONTS', 'OK', 'Valid directory, and contains ' . $len . ' \'.ttf\' font files', $len);
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, START.'Valid directory, but contains no \'.ttf\' font files' . PHP_EOL, 'FONTS', 'WARN');
+						fprintf(STDERR, $format, 'FONTS', 'WARN', 'Valid directory, but contains no \'.ttf\' font files');
 						++$warnings;
 					}
 				}
 				else
 				{
-					fprintf(STDERR, START.'Valid String, BUT is not an existing directory' . PHP_EOL, 'FONTS', 'WARN');
+					fprintf(STDERR, $format, 'FONTS', 'WARN', 'Valid String, BUT is not an existing directory');
 					++$warnings;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No valid path String (non-empty)' . PHP_EOL, 'FONTS', 'BAD');
+				fprintf(STDERR, $format, 'FONTS', 'BAD', 'No valid path String (non-empty)');
 				++$errors;
 			}
 
@@ -1493,27 +1520,27 @@ function counter($_host = null, $_read_only = RAW)
 
 				if($test === null)
 				{
-					fprintf(STDERR, START.'Valid string (but can\'t test against invalid \'FONTS\' path)' . PHP_EOL, 'FONT', 'WARN');
+					fprintf(STDERR, $format, 'FONT', 'WARN', 'Valid string (but can\'t test against invalid \'FONTS\' path)');
 					++$warnings;
 				}
 				else if($test)
 				{
-					printf(START.'Valid string (and also available in \'FONTS\' directory)' . PHP_EOL, 'FONT', 'OK');
+					printf($format, 'FONT', 'OK', 'Valid string (and also available in \'FONTS\' directory)');
 					++$ok;
 				}
 				else
 				{
-					fprintf(START.'Valid string, BUT is not available in \'FONTS\' directory' . PHP_EOL, 'FONT', 'BAD');
+					fprintf(STDERR, $format, 'FONT', 'BAD', 'Valid string (BUT is not available in \'FONTS\' directory)');
 					++$errors;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FONT', 'BAD');
+				fprintf(STDERR, $format, 'FONT', 'BAD', 'Not a non-empty String');
 				++$errors;
 			}
 
-			if(gettype(SIZE) === 'integer' && SIZE > 5)
+			if(gettype(SIZE) === 'integer' && SIZE >= 4)
 			{
 				$limit = SIZE_LIMIT;
 
@@ -1521,63 +1548,101 @@ function counter($_host = null, $_read_only = RAW)
 				{
 					$limit = null;
 				}
-				else if($limit < 6 || $limit > 512)
+				else if($limit < 4 || $limit > 512)
 				{
 					$limit = null;
 				}
 
 				if($limit === null)
 				{
-					fprintf(STDERR, START.'Integer above 5 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
+					fprintf(STDERR, $format, 'SIZE', 'WARN', 'Integer above 5 (WARNING: can\'t test against invalid SIZE_LIMIT)' . PHP_EOL, 'SIZE', 'WARN');
 					++$warnings;
 				}
 				else if(SIZE > $limit)
 				{
-					fprintf(STDERR, START.'Integer exceeds SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'BAD', $limit);
+					fprintf(STDERR, $format, 'SIZE', 'BAD', 'Integer exceeds SIZE_LIMIT (' . $limit . ')');
 					++$errors;
 				}
 				else
 				{
-					printf(START.'Integer above 5 and below or equal to SIZE_LIMIT (%d)' . PHP_EOL, 'SIZE', 'OK', $limit);
+					printf($format, 'SIZE', 'OK', 'Integer above 3 and below or equal to SIZE_LIMIT (' . $limit . ')');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer above 0 and below or equal to SIZE_LIMIT' . PHP_EOL, 'SIZE', 'BAD');
+				fprintf(STDERR, $format, 'SIZE', 'BAD', 'No Integer above 3 and below or equal to SIZE_LIMIT');
 				++$errors;
 			}
 
-			if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 6 && SIZE_LIMIT <= 512)
+			if(gettype(SIZE_LIMIT) === 'integer' && SIZE_LIMIT > 3 && SIZE_LIMIT <= 512)
 			{
-				printf(START.'Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'OK');
+				printf($format, 'SIZE_LIMIT', 'OK', 'Integer above 3 and below or equal to 512');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer above 5 and below or equal to 512' . PHP_EOL, 'SIZE_LIMIT', 'BAD');
+				fprintf(STDERR, $format, 'SIZE_LIMIT', 'BAD', 'No Integer above 3 and below or equal to 512');
 				++$errors;
 			}
 
 			if(gettype(FG) === 'string' && !empty(FG))
 			{
-				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'FG', 'OK');
+				printf($format, 'FG', 'OK', 'Non-empty String (without further tests)');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'FG', 'BAD');
+				fprintf(STDERR, $format, 'FG', 'BAD', 'Not a non-empty String');
 				++$errors;
 			}
 
 			if(gettype(BG) === 'string' && !empty(BG))
 			{
-				printf(START.'Non-empty String (without further tests)' . PHP_EOL, 'BG', 'OK');
+				printf($format, 'BG', 'OK', 'Non-empty String (without further tests)');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String' . PHP_EOL, 'BG', 'BAD');
+				fprintf(STDERR, $format, 'BG', 'BAD', 'Not a non-empty String');
+				++$errors;
+			}
+
+			if(gettype(X) === 'integer')
+			{
+				if(X < -512 || X > 512)
+				{
+					fprintf(STDERR, $format, 'X', 'WARN', 'Integer (but outside 512 limit)');
+					++$warnings;
+				}
+				else
+				{
+					printf($format, 'X', 'OK', 'Integer (within 512 limit)');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, $format, 'X', 'BAD', 'No Integer (within 512)');
+				++$errors;
+			}
+
+			if(gettype(Y) === 'integer')
+			{
+				if(Y < -512 || Y > 512)
+				{
+					fprintf(STDERR, $format, 'Y', 'WARN', 'Integer (but outside 512 limit)');
+					++$warnings;
+				}
+				else
+				{
+					printf($format, 'Y', 'OK', 'Integer (within 512 limit)');
+					++$ok;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, $format, 'Y', 'BAD', 'No Integer (within 512)');
 				++$errors;
 			}
 
@@ -1592,23 +1657,23 @@ function counter($_host = null, $_read_only = RAW)
 				
 				if($limit === null)
 				{
-					fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid H_LIMIT)' . PHP_EOL, 'H', 'WARN');
+					fprintf(STDERR, $format, 'H', 'WARN', 'Integer (BUT can\'t test against invalid H_LIMIT)');
 					++$warnings;
 				}
 				else if(H > $limit || H < -$limit)
 				{
-					fprintf(STDERR, START.'Integer exceeds H_LIMIT (%d)' . PHP_EOL, 'H', 'BAD', $limit);
+					fprintf(STDERR, $format, 'H', 'BAD', 'Integer exceeds H_LIMIT (' . $limit . ')');
 					++$errors;
 				}
 				else
 				{
-					printf(START.'Integer within H_LIMIT (%d)' . PHP_EOL, 'H', 'OK', $limit);
+					printf($format, 'H', 'OK', 'Integer within H_LIMIT (' . $limit . ')');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer (within H_LIMIT)' . PHP_EOL, 'H', 'BAD');
+				fprintf(STDERR, $format, 'H', 'BAD', 'No Integer (within H_LIMIT)');
 				++$errors;
 			}
 			
@@ -1623,56 +1688,56 @@ function counter($_host = null, $_read_only = RAW)
 				
 				if($limit === null)
 				{
-					fprintf(STDERR, START.'Integer (WARNING: can\'t test against invalid V_LIMIT)' . PHP_EOL, 'V', 'WARN');
+					fprintf(STDERR, $format, 'V', 'WARN', 'Integer (BUT can\'t test against invalid V_LIMIT)');
 					++$warnings;
 				}
 				else if(V > $limit || V < -$limit)
 				{
-					fprintf(STDERR, START.'Integer exceeds V_IMIT (%d)' . PHP_EOL, 'V', 'BAD', $limit);
+					fprintf(STDERR, $format, 'V', 'BAD', 'Integer exceeds V_LIMIT (' . $limit . ')');
 					++$errors;
 				}
 				else
 				{
-					printf(START.'Integer within V_LIMIT (%d)' . PHP_EOL, 'V', 'OK', V_LIMIT);
+					printf($format, 'V', 'OK', 'Integer within V_LIMIT (' . $limit . ')');
 					++$ok;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Integer (within V_LIMIT)'. PHP_EOL, 'V', 'BAD');
+				fprintf(STDERR, 'V', 'BAD', 'No Integer (within V_LIMIT)');
 				++$errors;
 			}
 
 			if(gettype(H_LIMIT) === 'integer' && H_LIMIT >= 0 && H_LIMIT <= 512)
 			{
-				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'OK');
+				printf($format, 'H_LIMIT', 'OK', 'Integer above -1 and below or equal to 512');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'H_LIMIT', 'BAD');
+				fprintf(STDERR, $format, 'H_LIMIT', 'BAD', 'Not an Integer above -1 and below or equal to 512');
 				++$errors;
 			}
 			
 			if(gettype(V_LIMIT) === 'integer' && V_LIMIT >= 0 && V_LIMIT <= 512)
 			{
-				printf(START.'Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'OK');
+				printf($format, 'V_LIMIT', 'OK', 'Integer above -1 and below or equal to 512');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not an Integer above -1 and below or equal to 512' . PHP_EOL, 'V_LIMIT', 'BAD');
+				fprintf(STDERR, $format, 'V_LIMIT', 'BAD', 'Not an Integer above -1 and below or equal to 512');
 				++$errors;
 			}
 
 			if(gettype(AA) === 'boolean')
 			{
-				printf(START.'Is a boolean' . PHP_EOL, 'AA', 'OK');
+				printf($format, 'AA', 'OK', 'Is a Boolean type');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not a Boolean' . PHP_EOL, 'AA', 'BAD');
+				fprintf(STDERR, $format, 'AA', 'BAD', 'Not a Boolean type');
 				++$errors;
 			}
 
@@ -1680,7 +1745,7 @@ function counter($_host = null, $_read_only = RAW)
 			{
 				if(!extension_loaded('gd'))
 				{
-					printf(START.'A non-empty String is valid, but I can\'t check for supported types atm.' . PHP_EOL, 'TYPE', 'WARN');
+					printf($format, 'TYPE', 'WARN', 'Non-empty String (BUT can\'t check for supported types due to not loaded \'gd\')');
 					++$warnings;
 				}
 				else
@@ -1702,30 +1767,30 @@ function counter($_host = null, $_read_only = RAW)
 
 					if($result)
 					{
-						printf(START.'Valid, supported image type.' . PHP_EOL, 'TYPE', 'OK');
+						printf($format, 'TYPE', 'OK', 'Valid, supported image type');
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, START.'Unsupported image type..' . PHP_EOL, 'TYPE', 'BAD');
+						fprintf(STDERR, $format, 'TYPE', 'BAD', 'Unsupported image type..');
 						++$errors;
 					}
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No valid (non-empty) String' . PHP_EOL, 'TYPE', 'BAD');
+				fprintf(STDERR, $format, 'TYPE', 'BAD', 'Not a non-empty String');
 				++$errors;
 			}
 
 			if(gettype(PRIVACY) === 'boolean')
 			{
-				printf(START.'Boolean type' . PHP_EOL, 'PRIVACY', 'OK');
+				printf($format, 'PRIVACY', 'OK', 'Boolean type');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No Boolean type' . PHP_EOL, 'PRIVACY', 'ERROR');
+				fprintf(STDERR, $format, 'PRIVACY', 'BAD', 'Not a Boolean type');
 				++$errors;
 			}
 
@@ -1734,51 +1799,74 @@ function counter($_host = null, $_read_only = RAW)
 			{
 				if(in_array(HASH, hash_algos()))
 				{
-					printf(START.'String which exists in `hash_algos()`' . PHP_EOL, 'HASH', 'OK');
+					printf($format, 'HASH', 'OK', 'String, and exists in `hash_algos()` (see --hashes)');
 					++$ok;
 				}
 				else
 				{
-					fprintf(STDERR, START.'String is not available in `hash_algos()`' . PHP_EOL, 'HASH', 'BAD');
+					fprintf(STDERR, $format, 'HASH', 'BAD', 'String is not available in `hash_algos()` (see --hashes)');
 					++$errors;
 				}
 			}
 			else
 			{
-				fprintf(STDERR, START.'No non-empty String (within `hash_algos()`)' . PHP_EOL, 'HASH', 'BAD');
+				fprintf(STDERR, $format, 'HASH', 'BAD', 'No non-empty String (which is available in `hash_algos()` (see --hashes)');
 				++$errors;
 			}
 
 			if(gettype(ERROR) === 'string')
 			{
-				printf(START.'String (can be zero-length; and can also be \'anything\')' . PHP_EOL, 'ERROR', 'OK');
+				printf($format, 'ERROR', 'OK', 'String (can be zero-length; and can also be (null))');
 				++$ok;
+			}
+			else if(ERROR === null)
+			{
+				printf($format, 'ERROR', 'OK', 'Is (null) (and can also be an arbitrary String)');
 			}
 			else
 			{
-				fprintf(STDERR, START.'No String, but even that is O.K. here!' . PHP_EOL, 'ERROR', 'OK');
-				++$ok;
+				fprintf(STDERR, $format, 'ERROR', 'BAD', 'Neither String nor (null)');
+				++$errors;
 			}
 
 			if(gettype(NONE) === 'string')
 			{
-				printf(START.'String (can be zero-length)' . PHP_EOL, 'NONE', 'OK');
+				printf($format, 'NONE', 'OK', 'String (can be zero-length)');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'No String' . PHP_EOL, 'NONE', 'BAD');
+				fprintf(STDERR, $format, 'NONE', 'BAD', 'No (arbitrary) String');
 				++$errors;
 			}
 
 			if(gettype(RAW) === 'boolean')
 			{
-				printf(START.'A boolean value' . PHP_EOL, 'RAW', 'OK');
+				printf($format, 'RAW', 'OK', 'A Boolean type');
 				++$ok;
 			}
 			else
 			{
-				fprintf(STDERR, START.'Not a boolean value' . PHP_EOL, 'RAW', 'BAD');
+				fprintf(STDERR, $format, 'RAW', 'BAD', 'Not a Boolean type');
+				++$errors;
+			}
+
+			if(gettype(RADIX) === 'integer')
+			{
+				if(RADIX >= 2 && RADIX <= 36)
+				{
+					printf($format, 'RADIX', 'OK', 'Integer between 2 and 36');
+					++$ok;
+				}
+				else
+				{
+					fprintf(STDERR, $format, 'RADIX', 'BAD', 'Integer, BUT not between 2 and 36');
+					++$errors;
+				}
+			}
+			else
+			{
+				fprintf(STDERR, $format, 'RADIX', 'BAD', 'No integer at all');
 				++$errors;
 			}
 
@@ -1816,6 +1904,12 @@ function counter($_host = null, $_read_only = RAW)
 			}
 
 			fprintf(STDERR, ' >> So you\'ve to fix %d errors (and %d warnings) now.' . PHP_EOL, $errors, $warnings);
+			
+			if(RAW)
+			{
+				fprintf(STDERR, PHP_EOL . ' >> WARNING: `RAW` mode enabled, which leads to a changed behavior..' . PHP_EOL);
+			}
+			
 			exit(1);
 		}
 		
@@ -2253,8 +2347,13 @@ function counter($_host = null, $_read_only = RAW)
 			printf(PHP_EOL);
 			$s = count($sync);
 
-			if(!$_sync || $s === 0)
+			if(!$_sync)
 			{
+				exit(0);
+			}
+			else if($s === 0)
+			{
+				fprintf(STDERR, ' >> No hosts to synchronize.' . PHP_EOL);
 				exit(0);
 			}
 
@@ -2417,14 +2516,7 @@ function counter($_host = null, $_read_only = RAW)
 		}
 
 		//
-		function help($_index = null)
-		{
-			printf(HELP . PHP_EOL);
-			exit(0);
-		}
-
-		//
-		for($i = 1; $i < ARGC; ++$i)
+		if(ARGC > 1) for($i = 1; $i < ARGC; ++$i)
 		{
 			if(strlen(ARGV[$i]) < 2 || ARGV[$i][0] !== '-')
 			{
@@ -2489,13 +2581,21 @@ function counter($_host = null, $_read_only = RAW)
 		}
 		
 		//
-		printf(' >> Running in CLI mode now (outside any HTTPD).' . PHP_EOL);
-		syntax(ARGC);
+		values();
 		exit();
 	}
-	else if(CLI && (gettype($_host) !== 'string' || empty($_host)) && (gettype(OVERRIDE) !== 'string' || empty(OVERRIDE)))
+
+	//
+	if(CLI)
 	{
-		error('Invalid $_host (needs to be defined in CLI mode)');
+		if(!RAW || ARGC > 1)
+		{
+			return cli();
+		}
+		else if((gettype($_host) !== 'string' || empty($_host)) && (gettype(OVERRIDE) !== 'string' || empty(OVERRIDE)))
+		{
+			error('Invalid $_host (needs to be defined in CLI mode)');
+		}
 	}
 
 	//
@@ -2621,7 +2721,11 @@ function counter($_host = null, $_read_only = RAW)
 			}
 			else if(!is_file(PATH_FILE))
 			{
-				if(OVERRIDDEN)
+				if(gettype(OVERRIDDEN) === 'string')
+				{
+					return;
+				}
+				else if(OVERRIDDEN)
 				{
 					error(NONE);
 				}
@@ -2669,16 +2773,37 @@ function counter($_host = null, $_read_only = RAW)
 		}
 
 		//
+		function withServer()
+		{
+			if(THRESHOLD === null || THRESHOLD <= 0)
+			{
+				return false;
+			}
+
+			return !!SERVER;
+		}
+
+		function withClient()
+		{
+			if(THRESHOLD === null || THRESHOLD <= 0)
+			{
+				return false;
+			}
+
+			return !!CLIENT;
+		}
+
+		//
 		function test()
 		{
 			$result = true;
 
-			if(CLIENT && !OVERRIDDEN)
+			if(withClient() && !OVERRIDDEN)
 			{
 				$result = test_cookie();
 			}
 
-			if($result && SERVER)
+			if($result && withServer())
 			{
 				$result = test_file();
 			}
@@ -3205,8 +3330,8 @@ function counter($_host = null, $_read_only = RAW)
 				
 				return null;
 			}
-			
-			function get_drawing_options()
+
+			function get_drawing_options($_die = false)
 			{
 				//
 				$result = array();
@@ -3234,10 +3359,15 @@ function counter($_host = null, $_read_only = RAW)
 				{
 					$result['size'] = SIZE;
 				}
-				else if($result['size'] > SIZE_LIMIT || $result['size'] < 0)
+				else if($result['size'] > SIZE_LIMIT || $result['size'] < 4)
 				{
-					draw_error('\'?size\' exceeds limit (0 / ' . SIZE_LIMIT . ')');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?size\' exceeds limit (4 / ' . SIZE_LIMIT . ')');
+						return null;
+					}
+					
+					$result['size'] = SIZE;
 				}
 
 				if(! is_numeric($result['h']))
@@ -3246,8 +3376,13 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($result['h'] > H_LIMIT || $result['h'] < -H_LIMIT)
 				{
-					draw_error('\'?h\' exceeds limit (' . H_LIMIT . ')');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?h\' exceeds limit (' . H_LIMIT . ')');
+						return null;
+					}
+					
+					$result['h'] = H;
 				}
 
 				if(! is_numeric($result['v']))
@@ -3256,8 +3391,13 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($result['v'] > V_LIMIT || $result['v'] < -V_LIMIT)
 				{
-					draw_error('\'?v\' exceeds limit (' . V_LIMIT . ')');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?v\' exceeds limit (' . V_LIMIT . ')');
+						return null;
+					}
+					
+					$result['v'] = V;
 				}
 
 				if($result['font'] === null)
@@ -3267,8 +3407,17 @@ function counter($_host = null, $_read_only = RAW)
 
 				if(($result['font'] = get_font($result['font'])) === null)
 				{
-					draw_error('\'?font\' is not available');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?font\' is not available');
+						return null;
+					}
+					
+					if(($result['font'] = get_font(FONT)) === null)
+					{
+						draw_error('Default font is not available (used as fallback)');
+						return null;
+					}
 				}
 
 				if($result['fg'] === null)
@@ -3281,38 +3430,68 @@ function counter($_host = null, $_read_only = RAW)
 					$result['bg'] = BG;
 				}
 
-				$result['fg'] = get_color($result['fg'], true);
+				$result['fg'] = get_color($result['fg']);
 
 				if($result['fg'] === null)
 				{
-					draw_error('\'?fg\' is no valid rgb/rgba color');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?fg\' is no valid color');
+						return null;
+					}
+					
+					if(($result['fg'] = get_color(FG)) === null)
+					{
+						draw_error('Default FG color is not valid (used as fallback)');
+						return null;
+					}
 				}
 
-				$result['bg'] = get_color($result['bg'], true);
+				$result['bg'] = get_color($result['bg']);
 
 				if($result['bg'] === null)
 				{
-					draw_error('\'?bg\' is no valid rgb/rgba color');
-					return null;
+					if($_die)
+					{
+						draw_error('\'?bg\' is no valid color');
+						return null;
+					}
+					
+					if(($result['bg'] = get_color(BG)) === null)
+					{
+						draw_error('Default BG color is not valid (used as fallback)');
+						return null;
+					}
 				}
 
 				if($result['x'] === null)
 				{
-					$result['x'] = 0;
+					$result['x'] = X;
 				}
 				else if($result['x'] > 512 || $result['x'] < -512)
 				{
-					$result['x'] = 0;
+					if($_die)
+					{
+						draw_error('\'?x\' exceeds limit');
+						return null;
+					}
+					
+					$result['x'] = X;
 				}
 
 				if($result['y'] === null)
 				{
-					$result['y'] = 0;
+					$result['y'] = Y;
 				}
 				else if($result['x'] > 512 || $result['y'] < -512)
 				{
-					$result['y'] = 0;
+					if($_die)
+					{
+						draw_error('\'?y\' exceeds limit');
+						return null;
+					}
+					
+					$result['y'] = Y;
 				}
 				
 				if(gettype($result['aa']) !== 'boolean')
@@ -3323,36 +3502,131 @@ function counter($_host = null, $_read_only = RAW)
 				return $result;
 			}
 
-			function get_color($_string, $_fix_gd = true)
+			//
+			function get_color_fix($_array, $_fix_gd = true)
+			{
+				if(gettype($_array) !== 'array')
+				{
+					return null;
+				}
+				
+				$result = $_array;
+				$len = count($result);
+				
+				if($len === 3)
+				{
+					$result[3] = 0;
+				}
+				else if($len === 4)
+				{
+					if(gettype($result[3]) === 'integer')
+					{
+						$result[3] = ($result[3] / 255);
+					}
+					
+					if($_fix_gd)
+					{
+						$result[3] = (int)(127 - ($result[3] * 127));
+					}
+				}
+				else
+				{
+					$result = null;
+				}
+				
+				return $result;
+			}
+
+			function get_color_hex_symbol($_char)
+			{
+				$res = '';
+				$ord = null;
+				
+				//
+				if(($ord = ord($_char)) >= 48 && $ord <= 57)
+				{
+					$res = $_char;
+				}
+				else if($ord >= 97 && $ord <= 102)
+				{
+					$res = $_char;
+				}
+				else if($ord >= 65 && $ord <= 70)
+				{
+					$res = chr($ord + 32);
+				}
+				else
+				{
+					$res = '';
+				}
+				
+				return $res;
+			}
+			
+			function get_color_hex($_string, $_was)
 			{
 				//
-				$was = null;
-
-				if(substr($_string, 0, 5) === 'rgba(')
+				$_string = remove_white_spaces($_string);
+				
+				//
+				if($_string[0] === '#')
 				{
-					$_string = substr($_string, 5);
-					$was = 'rgba';
+					$_string = substr($_string, 1);
 				}
-				else if(substr($_string, 0, 4) === 'rgb(')
+				
+				//
+				$result = array();
+				$len = strlen($_string);
+				$sub = '';
+				
+				//
+				if($len === 3 || $len === 4) for($i = 0; $i < $len; ++$i)
 				{
-					$_string = substr($_string, 4);
-					$was = 'rgb';
-				}
-					
-				if($_string[strlen($_string) - 1] === ')')
-				{
-					if($was === null)
+					if(strlen($sub .= get_color_hex_symbol($_string[$i])) > 0)
 					{
-						return null;
+						$result[$i] = hexdec($sub . $sub);
+						
+						if($result[$i] < 0 || $result[$i] > 255)
+						{
+							return null;
+						}
+						else
+						{
+							$sub = '';
+						}
 					}
-
-					$_string = substr($_string, 0, -1);
 				}
-				else if($was !== null)
+				else if($len === 6 || $len === 8) for($i = 0, $j = 0; $i < $len; ++$i)
+				{
+					if(strlen($sub .= get_color_hex_symbol($_string[$i])) > 1)
+					{
+						$result[$j] = hexdec($sub);
+						
+						if($result[$j] < 0 || $result[$j] > 255)
+						{
+							return null;
+						}
+						else
+						{
+							$sub = '';
+							++$j;
+						}
+					}
+				}
+				else
 				{
 					return null;
 				}
 
+				//
+				return $result;
+			}
+			
+			function get_color_array($_string, $_was)
+			{
+				//
+				$_string = remove_white_spaces($_string);
+				
 				//
 				$result = array();
 				$item = '';
@@ -3449,7 +3723,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else if($len < 4)
 				{
-					if($was === null || $was === 'rgb')
+					if($_was === null || $_was === 'rgb')
 					{
 						$result[3] = 1.0;
 					}
@@ -3460,7 +3734,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else
 				{
-					if($was === 'rgb')
+					if($_was === 'rgb')
 					{
 						return null;
 					}
@@ -3473,10 +3747,6 @@ function counter($_host = null, $_read_only = RAW)
 				if($result[3] < 0 || $result[3] > 1)
 				{
 					return null;
-				}
-				else if($_fix_gd)
-				{
-					$result[3] = (int)(127 - ($result[3] * 127));
 				}
 
 				for($i = 0; $i < 3; ++$i)
@@ -3494,6 +3764,94 @@ function counter($_host = null, $_read_only = RAW)
 				return $result;
 			}
 
+			//
+			function is_hex_format($_string)
+			{
+				$_string = remove_white_spaces($_string);
+				
+				if($_string[0] === '#')
+				{
+					$_string = substr($_string, 1);
+				}
+				
+				$len = strlen($_string);
+				
+				switch($len)
+				{
+					case 3:
+					case 4:
+					case 6:
+					case 8:
+						break;
+					default:
+						return false;
+				}
+				
+				for($i = 0; $i < $len; ++$i)
+				{
+					if(strlen(get_color_hex_symbol($_string[$i])) === 0)
+					{
+						return false;
+					}
+				}
+
+				return true;
+			}
+			
+			function get_color($_string, $_fix_gd = true)
+			{
+				if(gettype($_string) !== 'string' || strlen($_string) === 0)
+				{
+					return null;
+				}
+				else
+				{
+					$_string = remove_white_spaces($_string);
+				}
+
+				//
+				$was = null;
+
+				if(substr($_string, 0, 5) === 'rgba(')
+				{
+					$_string = substr($_string, 5);
+					$was = 'rgba';
+				}
+				else if(substr($_string, 0, 4) === 'rgb(')
+				{
+					$_string = substr($_string, 4);
+					$was = 'rgb';
+				}
+					
+				if($_string[strlen($_string) - 1] === ')')
+				{
+					if($was === null)
+					{
+						return null;
+					}
+
+					$_string = substr($_string, 0, -1);
+				}
+				else if($was !== null)
+				{
+					return null;
+				}
+
+				$result = null;
+
+				if(is_hex_format($_string))
+				{
+					$result = get_color_hex($_string, $was);
+				}
+				else
+				{
+					$result = get_color_array($_string, $was);
+				}
+				
+				$result = get_color_fix($result, $_fix_gd);
+				return $result;
+			}
+			
 			function pt2px($_pt)
 			{
 				return ($_pt * 0.75);
@@ -3601,6 +3959,22 @@ function counter($_host = null, $_read_only = RAW)
 		}
 	}
 	
+	function get_radix()
+	{
+		$result = get_param('radix', true, false);
+		
+		if(gettype($result) === 'integer' && $result >= 2 && $result <= 36)
+		{
+			return $result;
+		}
+		else if(gettype($result = RADIX) === 'integer' && $result >= 2 && $result <= 36)
+		{
+			return $result;
+		}
+		
+		return 10;
+	}
+	
 	//
 	$real = read_value();
 
@@ -3619,7 +3993,7 @@ function counter($_host = null, $_read_only = RAW)
 			write_value(++$value);
 		}
 
-		if(CLIENT && !OVERRIDDEN && !CLI)
+		if(withClient() && !OVERRIDDEN && !CLI)
 		{
 			make_cookie();
 		}
@@ -3632,13 +4006,23 @@ function counter($_host = null, $_read_only = RAW)
 		{
 			$value = HIDE;
 		}
-		else if(HIDE === true && !TEST)
-		{
-			$value = (string)rand();
-		}
 		else
 		{
-			$value = (string)$value;
+			if(HIDE === true && !TEST)
+			{
+				$value = (string)rand();
+			}
+			else
+			{
+				$value = (string)$value;
+			}
+			
+			$radix = get_radix();
+			
+			if($radix !== 10)
+			{
+				$value = base_convert($value, 10, $radix);
+			}
 		}
 
 		if(strlen($value) > 64)
@@ -3664,7 +4048,7 @@ function counter($_host = null, $_read_only = RAW)
 	}
 
 	//
-	if(SERVER && !(RO || TEST || $_read_only) && !(defined('DONE') && DONE))
+	if(withServer() && !(RO || TEST || $_read_only) && !(defined('DONE') && DONE))
 	{
 		//
 		write_timestamp();
@@ -3693,7 +4077,7 @@ function counter($_host = null, $_read_only = RAW)
 }
 
 //
-if(!RAW)
+if(!RAW || (CLI && ARGC > 1))
 {
 	counter();
 }
