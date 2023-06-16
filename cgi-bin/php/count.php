@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.0.2');
+define('VERSION', '3.0.3');
 
 //
 define('DIR', 'count/');
@@ -947,9 +947,9 @@ function counter($_host = null, $_read_only = RAW)
 
 		function get_list($_index = null, $_sort = true)
 		{
-			function item($_host, &$_result)
+			function get_list_item($_host, &$_result)
 			{
-				if($_host[0] === '.' || $_host === '..' || strlen($_host) === 1)
+				if($_host[0] === '.' || strlen($_host) === 1)
 				{
 					return 0;
 				}
@@ -1002,7 +1002,7 @@ function counter($_host = null, $_read_only = RAW)
 				
 				while($host = readdir($handle))
 				{
-					if(item($host, $result) > 0)
+					if(get_list_item($host, $result) > 0)
 					{
 						++$found;
 					}
@@ -1026,7 +1026,7 @@ function counter($_host = null, $_read_only = RAW)
 					}
 					else for($j = 0; $j < $subLen; ++$j)
 					{
-						if(item(basename($sub[$j]), $result) > 0)
+						if(get_list_item(basename($sub[$j]), $result) > 0)
 						{
 							++$found;
 						}
@@ -2002,7 +2002,7 @@ function counter($_host = null, $_read_only = RAW)
 				}
 				else while($sub = readdir($handle))
 				{
-					if($sub[0] === '.' || $sub === '..')
+					if($sub[0] === '.')
 					{
 						continue;
 					}
@@ -2188,7 +2188,7 @@ function counter($_host = null, $_read_only = RAW)
 							
 							while($sub = readdir($handle))
 							{
-								if($sub[0] === '.' || $sub === '..')
+								if($sub[0] === '.')
 								{
 									continue;
 								}
@@ -2763,7 +2763,7 @@ function counter($_host = null, $_read_only = RAW)
 			
 			while($sub = readdir($handle))
 			{
-				if($sub[0] === '.' || $sub === '..')
+				if($sub[0] === '.')
 				{
 					continue;
 				}
@@ -2807,7 +2807,7 @@ function counter($_host = null, $_read_only = RAW)
 
 				while($sub = readdir($handle))
 				{
-					if($sub[0] === '.' || $sub === '..')
+					if($sub[0] === '.')
 					{
 						continue;
 					}
