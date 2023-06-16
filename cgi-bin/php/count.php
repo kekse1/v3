@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('HELP', 'https://github.com/kekse1/count.php/');
-define('VERSION', '3.1.0');
+define('VERSION', '3.1.1');
 
 //
 define('DIR', 'count/');
@@ -621,9 +621,21 @@ function counter($_host = null, $_read_only = RAW)
 
 	function error($_reason, $_exit_code = 224)
 	{
+		$ex = null;
+		
+		if($_reason instanceof Exception)
+		{
+			$ex = $_reason;
+			$_reason = $_reason->getMessage();
+		}
+		else
+		{
+			$ex = new Exception($_reason);
+		}
+		
 		if(RAW)
 		{
-			throw new Exception($_reason);
+			throw $ex;
 		}
 		else if(defined('FIN') && FIN)
 		{
@@ -662,7 +674,16 @@ function counter($_host = null, $_read_only = RAW)
 		
 	function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	{
-		if(CLI)
+		if(RAW)
+		{
+			if($_reason instanceof Exception)
+			{
+				throw $_reason;
+			}
+			
+			throw new Exception($_reason);
+		}
+		else if(CLI)
 		{
 			if($_die)
 			{
@@ -670,6 +691,10 @@ function counter($_host = null, $_read_only = RAW)
 			}
 			
 			return null;
+		}
+		else if($_reason instanceof Exception)
+		{
+			$_reason = $_reason->getMessage();
 		}
 		
 		$data = '[' . (string)time() . ']';
@@ -3974,7 +3999,7 @@ function counter($_host = null, $_read_only = RAW)
 		
 		return 10;
 	}
-	
+
 	//
 	$real = read_value();
 
