@@ -519,18 +519,9 @@ function check_config_item($_key, $_value = null, $_bool = false)
 	$item = CONFIG_VECTOR[$_key];
 	$valueType = gettype($_value);
 	$typesLen = count($item['types']);
-	$validType = false;
 	$validTypes = '[ ' . implode(', ', $item['types']) . ' ]';
+	$validType = in_array($valueType, $item['types']);
 
-	for($i = 0; $i < $typesLen; ++$i)
-	{
-		if($item['types'][$i] === $valueType)
-		{
-			$validType = true;
-			break;
-		}
-	}
-	
 	if(!$validType)
 	{
 		if($_bool)
