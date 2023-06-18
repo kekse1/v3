@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.2');
+define('COUNTER_VERSION', '3.2.4');
 
 //
 const DEFAULTS = array(
@@ -200,6 +200,18 @@ else if(KEKSE_CLI)
 }
 
 //
+namespace kekse;
+
+//
+define('KEKSE_STRING_LIMIT', 224);
+
+//
+function limit($_string, $_length = KEKSE_STRING_LIMIT)
+{
+	return substr($_string, 0, $_length);
+}
+
+//
 function ends_with($_haystack, $_needle, $_case_sensitive = true)
 {
 	if(strlen($_needle) > strlen($_haystack))
@@ -230,6 +242,642 @@ function starts_with($_haystack, $_needle, $_case_sensitive = true)
 	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
 }
 
+function normalize($_path)
+{
+	if(!is_string($_path))
+	{
+		return null;
+	}
+	
+	$len = strlen($_path);
+	
+	if($len === 0 || $len > KEKSE_STRING_LIMIT)
+	{
+		return '.';
+	}
+	
+	$abs = ($_path[0] === '/');
+	$dir = ($_path[$len - 1] === '/');
+	$split = explode('/', $_path);
+	$result = array();
+	$minus = 0;
+	$item = '';
+	
+	while(count($split) > 0)
+	{
+		switch($item = array_shift($split))
+		{
+			case '':
+			case '.':
+				break;
+			case '..':
+				if(count($result) === 0)
+				{
+					++$minus;
+				}
+				else
+				{
+					array_pop($result);
+				}
+				break;
+			default:
+				array_push($result, $item);
+				break;
+		}
+	}
+	
+	if($abs)
+	{
+		array_unshift($result, '');
+	}
+	else while(--$minus >= 0)
+	{
+		array_unshift($result, '..');
+	}
+	
+	if($dir)
+	{
+		array_push($result, '');
+	}
+	
+	//
+	return implode('/', $result);
+}
+
+function join_path(... $_args)
+{
+	if(count($_args) === 0)
+	{
+		return null;
+	}
+
+	$len = count($_args);
+	$result = '';
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(!is_string($_args[$i]))
+		{
+			throw new Error('Invalid argument[' . $i . '] (no non-empty String)');
+		}
+		else if(!empty($_args[$i]))
+		{
+			$result .= $_args[$i] . '/';
+		}
+	}
+	
+	if(strlen($result) > 0)
+	{
+		$result = substr($result, 0, -1);
+	}
+	
+	return normalize($result);
+}
+
+function timestamp($_diff = null)
+{
+	if(!is_int($_diff))
+	{
+		return time();
+	}
+	
+	return (time() - $_diff);
+}
+
+function remove_white_spaces($_string)
+{
+	$result = '';
+	$len = strlen($_string);
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(ord($_string[$i]) > 32)
+		{
+			$result .= $_string[$i];
+		}
+	}
+	
+	return $result;
+}
+
+function secure($_string)
+{
+	if(!is_string($_string))
+	{
+		return null;
+	}
+	
+	$len = strlen($_string);
+	
+	if($len > KEKSE_STRING_LIMIT || $len === 0)
+	{
+		return null;
+	}
+	
+	$result = '';
+	$byte = 0;
+	$add = '';
+	$l = 0;
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(($byte = ord($_string[$i])) >= 97 && $byte <= 122)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 46)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
+			{
+				$add = '';
+			}
+			else if($result[$l - 1] === '.')
+			{
+				$add = '';
+			}
+			else
+			{
+				$add = '.';
+			}
+		}
+		else if($byte === 40 || $byte === 41)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 43 && $byte <= 45)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 47)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
+			{
+				$add = '';
+			}
+			else if($result[$l - 1] === chr($byte))
+			{
+				$add = '';
+			}
+			else
+			{
+				$add = chr($byte);
+			}
+		}
+		else if($byte === 58)
+		{
+			$add = ':';
+		}
+		else if($byte === 35)
+		{
+			$add = '#';
+		}
+		else
+		{
+			continue;
+		}
+		
+		$result .= $add;
+	}
+
+	$len = strlen($result);
+
+	if($len > 0)
+	{
+		$rem = 0;
+
+		while(($len - 1 - $rem) >= 0 && ($result[$len - 1 - $rem] === '.' || $result[$len - 1 - $rem] === '+'))
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, 0, -$rem);
+			$rem = 0;
+			$len = strlen($result);
+		}
+
+		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '%')
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, $rem);
+		}
+
+		$len = strlen($result);
+	}
+
+	if($len === 0)
+	{
+		return null;
+	}
+	
+	return $result;
+}
+
+function secure_host($_string)
+{
+	$result = secure($_string);
+	
+	if($result !== null)
+	{
+		$result = strtolower($result);
+	}
+	
+	return $result;
+}
+
+function secure_path($_string)
+{
+	return secure($_string);
+}
+
+//
+function delete($_path, $_depth = 0, $_depth_current = 0)
+{
+	if($_depth === true)
+	{
+		$_depth = null;
+	}
+	else if($_depth === false)
+	{
+		$_depth = 0;
+	}
+	else if($_depth !== null && !(is_int($_depth) && $_depth >= 0))
+	{
+		$_depth = 0;
+	}
+
+	if(is_dir($_path))
+	{
+		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
+		{
+			$handle = opendir($_path);
+
+			if($handle === false)
+			{
+				return false;
+			}
+
+			$count = 0;
+
+			while($sub = readdir($handle))
+			{
+				if($sub !== '.' && $sub !== '..')
+				{
+					++$count;
+				}
+			}
+
+			closedir($handle);
+
+			if($count < 0)
+			{
+				return false;
+			}
+			else if($count > 0)
+			{
+				return false;
+			}
+			else if(rmdir($_path) === false)
+			{
+				return false;
+			}
+			
+			return true;
+		}
+		
+		$handle = opendir($_path);
+
+		if($handle === false)
+		{
+			return false;
+		}
+		
+		$count = 0;
+
+		while($sub = readdir($handle))
+		{
+			if($sub === '.' || $sub === '..')
+			{
+				continue;
+			}
+			else
+			{
+				++$count;
+			}
+
+			if(! is_writable(\kekse\join_path($_path, $sub)))
+			{
+				return false;
+			}
+			
+			if(is_dir(\kekse\join_path($_path, $sub)))
+			{
+				if($_depth !== null && $_depth <= $_depth_current)
+				{
+					return false;
+				}
+				else if(!\kekse\delete(\kekse\join_path($_path, $sub), $_depth, $_depth_current + 1))
+				{
+					return false;
+				}
+				else
+				{
+					--$count;
+				}
+			}
+			else if(unlink(\kekse\join_path($_path, $sub)) === false)
+			{
+				return false;
+			}
+			else
+			{
+				--$count;
+			}
+		}
+		
+		closedir($handle);
+
+		if($count === -1)
+		{
+			return false;
+		}
+		else if($count > 0)
+		{
+			return false;
+		}
+		else if(!is_writable($_path))
+		{
+			return false;
+		}
+
+		return rmdir($_path);
+	}
+	else if(file_exists($_path) && is_writable($_path))
+	{
+		if(unlink($_path) === false)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+function get_param($_key, $_numeric = false, $_float = true, $_fallback = true)
+{
+	if(!is_string($_key) || empty($_key))
+	{
+		return null;
+	}
+	else
+	{
+		$len = strlen($_key);
+		
+		if($len === 0 || $len > KEKSE_STRING_LIMIT)
+		{
+			return null;
+		}
+	}
+	
+	$store = null;
+	
+	if(KEKSE_CLI || empty($_GET))
+	{
+		if($_fallback && isset($_SERVER))
+		{
+			$store = $_SERVER;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	else if(!empty($_GET))
+	{
+		$store = $_GET;
+	}
+	else
+	{
+		return null;
+	}
+	
+	if(! array_key_exists($_key, $store))
+	{
+		return null;
+	}
+
+	$value = $store[$_key];
+	$len = strlen($value);
+
+	if($len > KEKSE_STRING_LIMIT || $len === 0)
+	{
+		return null;
+	}
+	else if($_numeric === null) switch(strtolower($value[0]))
+	{
+		case '0':
+		case 'y':
+			return false;
+		case '1':
+		case 'n':
+			return false;
+	}
+	
+	$result = '';
+	$byte = null;
+	$hadPoint = false;
+	$numeric = null;
+	$set = '';
+	$negative = false;
+	$remove = 0;
+
+	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
+	{
+		++$remove;
+
+		if($value[0] === '-')
+		{
+			$negative = !$negative;
+		}
+	}
+
+	if($remove > 0)
+	{
+		$value = substr($value, $remove);
+	}
+
+	$len = strlen($value);
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$set = chr($byte);
+
+			if($numeric === null)
+			{
+				$numeric = true;
+			}
+		}
+		else if($byte === 46)
+		{
+			$set = '.';
+
+			if($hadPoint)
+			{
+				$numeric = false;
+			}
+			else if(!$_float)
+			{
+				$numeric = false;
+			}
+		}
+		else if($byte === 44)
+		{
+			$set = ',';
+			$numeric = false;
+		}
+		else if($byte === 58)
+		{
+			$set = ':';
+		}
+		else if($byte === 35)
+		{
+			$set = '#';
+		}
+		else
+		{
+			continue;
+		}
+
+		$result .= $set;
+	}
+
+	if(strlen($result) === 0)
+	{
+		$result = null;
+		$numeric = false;
+	}
+	else if(! $_numeric)
+	{
+		$numeric = false;
+	}
+	else if(! $_float && $hadPoint && $numeric)
+	{
+		$numeric = false;
+	}
+
+	if($numeric)
+	{
+		if($result === '.')
+		{
+			$result = null;
+			$numeric = false;
+		}
+		else
+		{
+			if($result[0] === '.')
+			{
+				$result = '0' . $result;
+			}
+			else if($result[strlen($result) - 1] === '.')
+			{
+				$result = substr($result, 0, -1);
+				$hadPoint = false;
+			}
+
+			if($hadPoint)
+			{
+				$result = (double)$result;
+			}
+			else
+			{
+				$result = (int)$result;
+			}
+
+			if($negative)
+			{
+				$result = -$result;
+			}
+		}
+	}
+
+	return $result;
+}
+
+if(KEKSE_CLI)
+{
+	function prompt($_string, $_return = false, $_repeat = true)
+	{
+		$confirm = function() use (&$_string, &$_return) {
+			$res = readline($_string);
+			
+			if($_return)
+			{
+				return $res;
+			}
+			else if(empty($res))
+			{
+				return null;
+			}
+			else switch(strtolower($res[0]))
+			{
+				case 'y': case '1': return true;
+				case 'n': case '0': return false;
+			}
+			
+			return null;
+		};
+		
+		$result = $confirm();
+		
+		if(is_string($result))
+		{
+			return $result;
+		}
+		else while($result === null)
+		{
+			$result = $confirm();
+		}
+		
+		return $result;
+	}
+}
+
+//
+namespace kekse\counter;
+
 //
 function send_header($_type = null)
 {
@@ -242,7 +890,7 @@ function send_header($_type = null)
 	{
 		return false;
 	}
-	else if(starts_with($_type, 'content-type', false))
+	else if(\kekse\starts_with($_type, 'content-type', false))
 	{
 		header($_type);
 	}
@@ -329,36 +977,6 @@ function check_path_char($_path, $_basename = true)
 	return true;
 }
 
-function join_path(... $_args)
-{
-	if(count($_args) === 0)
-	{
-		return null;
-	}
-
-	$len = count($_args);
-	$result = '';
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(!is_string($_args[$i]))
-		{
-			throw new Error('Invalid argument[' . $i . '] (no non-empty String)');
-		}
-		else if(!empty($_args[$i]))
-		{
-			$result .= $_args[$i] . '/';
-		}
-	}
-	
-	if(strlen($result) > 0)
-	{
-		$result = substr($result, 0, -1);
-	}
-	
-	return normalize($result);
-}
-
 function get_path($_path, $_check = false, $_file = false, $_die = true)
 {
 	if(!is_string($_path))
@@ -418,7 +1036,7 @@ function get_path($_path, $_check = false, $_file = false, $_die = true)
 	
 	if(is_string($result))
 	{
-		$result = normalize($result);
+		$result = \kekse\normalize($result);
 	}
 	else
 	{
@@ -812,7 +1430,7 @@ function check_host_config($_host, $_load = true, $_bool = false, $_die = true)
 
 	if($_load)
 	{
-		if(($config = load_config(join_path(get_state('path'), '%' . $_host))) === null)
+		if(($config = load_config(\kekse\join_path(get_state('path'), '%' . $_host))) === null)
 		{
 			if($_die)
 			{
@@ -933,7 +1551,7 @@ function make_config($_host, $_reload = null, $_unset = true)
 
 	//
 	$data = null;
-	$path = join_path(get_state('path'), '%' . $_host);
+	$path = \kekse\join_path(get_state('path'), '%' . $_host);
 
 	if(!(is_file($path) && is_readable($path)))
 	{
@@ -1030,7 +1648,7 @@ function count_config($_path)
 
 function count_host_config($_host)
 {
-	return count_config(join_path(get_state('path'), '%' . $_host));
+	return count_config(\kekse\join_path(get_state('path'), '%' . $_host));
 }
 
 function load_config($_path, $_data = null, $_depth = 8)
@@ -1068,579 +1686,6 @@ function load_config($_path, $_data = null, $_depth = 8)
 
 	$hash = hash(get_config('hash'), $data);
 	return [ $result, $hash, $data ];
-}
-
-//
-define('COUNTER_STRING_LIMIT', 224);
-
-//
-function normalize($_string)
-{
-	if(!is_string($_string))
-	{
-		return null;
-	}
-	
-	$len = strlen($_string);
-	
-	if($len === 0)
-	{
-		return '.';
-	}
-	
-	$abs = ($_string[0] === '/');
-	$dir = ($_string[$len - 1] === '/');
-	$split = explode('/', $_string);
-	$result = array();
-	$minus = 0;
-	$item = '';
-	
-	while(count($split) > 0)
-	{
-		switch($item = array_shift($split))
-		{
-			case '':
-			case '.':
-				break;
-			case '..':
-				if(count($result) === 0)
-				{
-					++$minus;
-				}
-				else
-				{
-					array_pop($result);
-				}
-				break;
-			default:
-				array_push($result, $item);
-				break;
-		}
-	}
-	
-	if($abs)
-	{
-		array_unshift($result, '');
-	}
-	else while(--$minus >= 0)
-	{
-		array_unshift($result, '..');
-	}
-	
-	if($dir)
-	{
-		array_push($result, '');
-	}
-	
-	//
-	return implode('/', $result);
-}
-
-function timestamp($_diff = null)
-{
-	if(!is_int($_diff))
-	{
-		return time();
-	}
-	
-	return (time() - $_diff);
-}
-
-function limit($_string, $_length = COUNTER_STRING_LIMIT)
-{
-	return substr($_string, 0, $_length);
-}
-
-function remove_white_spaces($_string)
-{
-	$result = '';
-	$len = strlen($_string);
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(ord($_string[$i]) > 32)
-		{
-			$result .= $_string[$i];
-		}
-	}
-	
-	return $result;
-}
-
-function secure($_string)
-{
-	if(!is_string($_string))
-	{
-		return null;
-	}
-	
-	$len = strlen($_string);
-	
-	if($len > COUNTER_STRING_LIMIT || $len === 0)
-	{
-		return null;
-	}
-	
-	$result = '';
-	$byte = 0;
-	$add = '';
-	$l = 0;
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(($byte = ord($_string[$i])) >= 97 && $byte <= 122)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 48 && $byte <= 57)
-		{
-			$add = chr($byte);
-		}
-		else if($byte === 46)
-		{
-			$l = strlen($result);
-			
-			if($l === 0)
-			{
-				$add = '';
-			}
-			else if($result[$l - 1] === '.')
-			{
-				$add = '';
-			}
-			else
-			{
-				$add = '.';
-			}
-		}
-		else if($byte === 40 || $byte === 41)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 43 && $byte <= 45)
-		{
-			$add = chr($byte);
-		}
-		else if($byte === 47)
-		{
-			$l = strlen($result);
-			
-			if($l === 0)
-			{
-				$add = '';
-			}
-			else if($result[$l - 1] === chr($byte))
-			{
-				$add = '';
-			}
-			else
-			{
-				$add = chr($byte);
-			}
-		}
-		else if($byte === 58)
-		{
-			$add = ':';
-		}
-		else if($byte === 35)
-		{
-			$add = '#';
-		}
-		else
-		{
-			continue;
-		}
-		
-		$result .= $add;
-	}
-
-	$len = strlen($result);
-
-	if($len > 0)
-	{
-		$rem = 0;
-
-		while(($len - 1 - $rem) >= 0 && ($result[$len - 1 - $rem] === '.' || $result[$len - 1 - $rem] === '+'))
-		{
-			++$rem;
-		}
-
-		if($rem > 0)
-		{
-			$result = substr($result, 0, -$rem);
-			$rem = 0;
-			$len = strlen($result);
-		}
-
-		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '%')
-		{
-			++$rem;
-		}
-
-		if($rem > 0)
-		{
-			$result = substr($result, $rem);
-		}
-
-		$len = strlen($result);
-	}
-
-	if($len === 0)
-	{
-		return null;
-	}
-	
-	return $result;
-}
-
-function secure_host($_string)
-{
-	$result = secure($_string);
-	
-	if($result !== null)
-	{
-		$result = strtolower($result);
-	}
-	
-	return $result;
-}
-
-function secure_path($_string)
-{
-	return secure($_string);
-}
-
-//
-function remove($_path, $_depth = 1, $_depth_current = 1)
-{
-	if($_depth === true)
-	{
-		$_depth = null;
-	}
-	else if($_depth === false)
-	{
-		$_depth = 0;
-	}
-	else if($_depth !== null && !(is_int($_depth) && $_depth >= 0))
-	{
-		$_depth = 1;
-	}
-
-	if(is_dir($_path))
-	{
-		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
-		{
-			$handle = opendir($_path);
-
-			if($handle === false)
-			{
-				return false;
-			}
-
-			$count = 0;
-
-			while($sub = readdir($handle))
-			{
-				if($sub !== '.' && $sub !== '..')
-				{
-					++$count;
-				}
-			}
-
-			closedir($handle);
-
-			if($count < 0)
-			{
-				return false;
-			}
-			else if($count > 0)
-			{
-				return false;
-			}
-			else if(rmdir($_path) === false)
-			{
-				return false;
-			}
-			
-			return true;
-		}
-		
-		$handle = opendir($_path);
-
-		if($handle === false)
-		{
-			return false;
-		}
-		
-		$count = 0;
-
-		while($sub = readdir($handle))
-		{
-			if($sub === '.' || $sub === '..')
-			{
-				continue;
-			}
-			else
-			{
-				++$count;
-			}
-
-			if(! is_writable(join_path($_path, $sub)))
-			{
-				return false;
-			}
-			
-			if(is_dir(join_path($_path, $sub)))
-			{
-				if($_depth !== null && $_depth <= $_depth_current)
-				{
-					return false;
-				}
-				else if(!remove(join_path($_path, $sub), $_depth, $_depth_current + 1))
-				{
-					return false;
-				}
-				else
-				{
-					--$count;
-				}
-			}
-			else if(unlink(join_path($_path, $sub)) === false)
-			{
-				return false;
-			}
-			else
-			{
-				--$count;
-			}
-		}
-		
-		closedir($handle);
-
-		if($count === -1)
-		{
-			return false;
-		}
-		else if($count > 0)
-		{
-			return false;
-		}
-		else if(!is_writable($_path))
-		{
-			return false;
-		}
-
-		return rmdir($_path);
-	}
-	else if(file_exists($_path) && is_writable($_path))
-	{
-		if(unlink($_path) === false)
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
-	
-	return true;
-}
-
-function get_param($_key, $_numeric = false, $_float = true, $_fallback = true)
-{
-	if(!is_string($_key) || empty($_key))
-	{
-		return null;
-	}
-	else
-	{
-		$len = strlen($_key);
-		
-		if($len === 0 || $len > COUNTER_STRING_LIMIT)
-		{
-			return null;
-		}
-	}
-	
-	$store = null;
-	
-	if(KEKSE_CLI || empty($_GET))
-	{
-		if($_fallback && isset($_SERVER))
-		{
-			$store = $_SERVER;
-		}
-		else
-		{
-			return null;
-		}
-	}
-	else if(!empty($_GET))
-	{
-		$store = $_GET;
-	}
-	else
-	{
-		return null;
-	}
-	
-	if(! array_key_exists($_key, $store))
-	{
-		return null;
-	}
-
-	$value = $store[$_key];
-	$len = strlen($value);
-
-	if($len > COUNTER_STRING_LIMIT || $len === 0)
-	{
-		return null;
-	}
-	else if($_numeric === null) switch(strtolower($value[0]))
-	{
-		case '0':
-		case 'y':
-			return false;
-		case '1':
-		case 'n':
-			return false;
-	}
-	
-	$result = '';
-	$byte = null;
-	$hadPoint = false;
-	$numeric = null;
-	$set = '';
-	$negative = false;
-	$remove = 0;
-
-	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
-	{
-		++$remove;
-
-		if($value[0] === '-')
-		{
-			$negative = !$negative;
-		}
-	}
-
-	if($remove > 0)
-	{
-		$value = substr($value, $remove);
-	}
-
-	$len = strlen($value);
-
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
-		{
-			$numeric = false;
-			$set = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$numeric = false;
-			$set = chr($byte);
-		}
-		else if($byte >= 48 && $byte <= 57)
-		{
-			$set = chr($byte);
-
-			if($numeric === null)
-			{
-				$numeric = true;
-			}
-		}
-		else if($byte === 46)
-		{
-			$set = '.';
-
-			if($hadPoint)
-			{
-				$numeric = false;
-			}
-			else if(!$_float)
-			{
-				$numeric = false;
-			}
-		}
-		else if($byte === 44)
-		{
-			$set = ',';
-			$numeric = false;
-		}
-		else if($byte === 58)
-		{
-			$set = ':';
-		}
-		else if($byte === 35)
-		{
-			$set = '#';
-		}
-		else
-		{
-			continue;
-		}
-
-		$result .= $set;
-	}
-
-	if(strlen($result) === 0)
-	{
-		$result = null;
-		$numeric = false;
-	}
-	else if(! $_numeric)
-	{
-		$numeric = false;
-	}
-	else if(! $_float && $hadPoint && $numeric)
-	{
-		$numeric = false;
-	}
-
-	if($numeric)
-	{
-		if($result === '.')
-		{
-			$result = null;
-			$numeric = false;
-		}
-		else
-		{
-			if($result[0] === '.')
-			{
-				$result = '0' . $result;
-			}
-			else if($result[strlen($result) - 1] === '.')
-			{
-				$result = substr($result, 0, -1);
-				$hadPoint = false;
-			}
-
-			if($hadPoint)
-			{
-				$result = (double)$result;
-			}
-			else
-			{
-				$result = (int)$result;
-			}
-
-			if($negative)
-			{
-				$result = -$result;
-			}
-		}
-	}
-
-	return $result;
 }
 
 //
@@ -1770,50 +1815,6 @@ function counter($_host = null, $_read_only = null)
 		define('COUNTER_CONFIG', 8);
 
 		//
-		function get_prompt($_str, $_ret = false)
-		{
-			$res = readline($_str);
-			
-			if($_ret)
-			{
-				return $res;
-			}
-			else if(empty($res))
-			{
-				return null;
-			}
-			else
-			{
-				$res = strtolower($res);
-				
-				switch($res[0])
-				{
-					case 'y':
-						return true;
-					case 'n':
-						return false;
-				}
-			}
-			
-			return null;
-		}
-
-		function prompt($_string, $_return = false, $_repeat = true)
-		{
-			$result = get_prompt($_string, $_return);
-			
-			if(is_string($result))
-			{
-				return $result;
-			}
-			else while($result === null)
-			{
-				$result = get_prompt($_string);
-			}
-			
-			return $result;
-		}
-
 		function get_arguments($_index, $_secure = false, $_null = true, $_unique = true)
 		{
 			if(!is_int($_index) || $_index < 0)
@@ -1847,12 +1848,12 @@ function counter($_host = null, $_read_only = null)
 				{
 					break;
 				}
-				else if($len === 0 || $len > COUNTER_STRING_LIMIT)
+				else if($len === 0 || $len > KEKSE_STRING_LIMIT)
 				{
 					continue;
 				}
 
-				if($_secure && ($item = secure($item)) === null)
+				if($_secure && ($item = \kekse\secure($item)) === null)
 				{
 					continue;
 				}
@@ -1889,7 +1890,7 @@ function counter($_host = null, $_read_only = null)
 			switch($type)
 			{
 				case '~':
-					if($_check && !is_file(join_path(get_state('path'), $_host)))
+					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
 					{
 						return 0;
 					}
@@ -1897,7 +1898,7 @@ function counter($_host = null, $_read_only = null)
 					$type = COUNTER_VALUE;
 					break;
 				case '+':
-					if($_check && !is_dir(join_path(get_state('path'), $_host)))
+					if($_check && !is_dir(\kekse\join_path(get_state('path'), $_host)))
 					{
 						return 0;
 					}
@@ -1905,7 +1906,7 @@ function counter($_host = null, $_read_only = null)
 					$type = COUNTER_DIR;
 					break;
 				case '-':
-					if($_check && !is_file(join_path(get_state('path'), $_host)))
+					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
 					{
 						return 0;
 					}
@@ -1913,7 +1914,7 @@ function counter($_host = null, $_read_only = null)
 					$type = COUNTER_FILE;
 					break;
 				case '%':
-					if($_check && !is_file(join_path(get_state('path'), $_host)))
+					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
 					{
 						return 0;
 					}
@@ -1972,7 +1973,7 @@ function counter($_host = null, $_read_only = null)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					$sub = join_path(get_state('path'), '{~,+,-,%}' . strtolower($list[$i]));
+					$sub = \kekse\join_path(get_state('path'), '{~,+,-,%}' . strtolower($list[$i]));
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
 
@@ -2036,7 +2037,7 @@ function counter($_host = null, $_read_only = null)
 			printf('    -l / --clean [*]' . PHP_EOL);
 			printf('    -p / --purge [*]' . PHP_EOL);
 			printf('    -z / --sanitize [--allow-without-values / -w]' . PHP_EOL);
-			printf('    -d / --delete [*]' . PHP_EOL);
+			printf('    -r / --remove [*]' . PHP_EOL);
 			printf(PHP_EOL);
 			printf('    -t / --set (host) [value = 0]' . PHP_EOL);
 			printf(PHP_EOL);
@@ -2087,7 +2088,7 @@ function counter($_host = null, $_read_only = null)
 			if($fonts === null)
 			{
 				$defined = -1;
-				$result = glob(join_path(get_state('fonts'), '*.ttf'), GLOB_BRACE);
+				$result = glob(\kekse\join_path(get_state('fonts'), '*.ttf'), GLOB_BRACE);
 				$len = count($result);
 				
 				if($len === 0)
@@ -2108,7 +2109,7 @@ function counter($_host = null, $_read_only = null)
 				for($i = 0; $i < $len; ++$i)
 				{
 
-					$sub = glob(join_path(get_state('fonts'), basename($fonts[$i], '.ttf') . '.ttf'));
+					$sub = glob(\kekse\join_path(get_state('fonts'), basename($fonts[$i], '.ttf') . '.ttf'));
 					$subLen = count($sub);
 
 					if($subLen === 0)
@@ -2186,7 +2187,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						break;
 					}
-					else if($len === 0 || $len > COUNTER_STRING_LIMIT)
+					else if($len === 0 || $len > KEKSE_STRING_LIMIT)
 					{
 						continue;
 					}
@@ -2194,7 +2195,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						++$cnt;
 
-						$item = join_path(get_state('path'), '%' . $item);
+						$item = \kekse\join_path(get_state('path'), '%' . $item);
 						$item = glob($item, GLOB_BRACE);
 						$len = count($item);
 						
@@ -2435,7 +2436,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						break;
 					}
-					else if($len === 0 || $len > COUNTER_STRING_LIMIT)
+					else if($len === 0 || $len > KEKSE_STRING_LIMIT)
 					{
 						continue;
 					}
@@ -2448,7 +2449,7 @@ function counter($_host = null, $_read_only = null)
 
 						++$set;
 					}
-					else if(($item = secure_host($item)) === null)
+					else if(($item = \kekse\secure_host($item)) === null)
 					{
 						continue;
 					}
@@ -2471,7 +2472,7 @@ function counter($_host = null, $_read_only = null)
 				exit(2);
 			}
 
-			$p = join_path(get_state('path'), '~' . $host);
+			$p = \kekse\join_path(get_state('path'), '~' . $host);
 			$existed = file_exists($p);
 			$orig = null;
 
@@ -2502,13 +2503,13 @@ function counter($_host = null, $_read_only = null)
 
 			if($orig === null)
 			{
-				if(!prompt('Initialize file with value (' . $value . ') now [yes/no]? '))
+				if(!\kekse\prompt('Initialize file with value (' . $value . ') now [yes/no]? '))
 				{
 					fprintf(STDERR, ' >> Aborting..' . PHP_EOL);
 					exit(5);
 				}
 			}
-			else if(!prompt('Replace old value (' . $orig . ') by new one (' . $value . ') now [yes/no]? '))
+			else if(!\kekse\prompt('Replace old value (' . $orig . ') by new one (' . $value . ') now [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Aborting..' . PHP_EOL);
 				exit(6);
@@ -2588,7 +2589,7 @@ function counter($_host = null, $_read_only = null)
 
 			printf(PHP_EOL . ' >> Found %d directories and %d files - for %d hosts.' . PHP_EOL, count($dirs), count($files), $total);
 
-			if(!prompt('Do you really want to delete them [yes/no]? '))
+			if(!\kekse\prompt('Do you really want to delete them [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Good, we\'re aborting here, as requested.' . PHP_EOL);
 				exit(2);
@@ -2603,7 +2604,7 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(remove(join_path(get_state('path'), '+' . $dirs[$i]), true))
+				if(\kekse\delete(\kekse\join_path(get_state('path'), '+' . $dirs[$i]), true))
 				{
 					++$good;
 				}
@@ -2615,7 +2616,7 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $f; ++$i)
 			{
-				if(remove(join_path(get_state('path'), '-' . $files[$i]), false))
+				if(\kekse\delete(\kekse\join_path(get_state('path'), '-' . $files[$i]), false))
 				{
 					++$good;
 				}
@@ -2681,7 +2682,7 @@ function counter($_host = null, $_read_only = null)
 
 			printf(PHP_EOL);
 
-			if(!prompt('Do you want to continue [yes/no]? '))
+			if(!\kekse\prompt('Do you want to continue [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Abort by request.' . PHP_EOL);
 				exit(2);
@@ -2697,7 +2698,7 @@ function counter($_host = null, $_read_only = null)
 				$errors[$host] = 0;
 				$delete[$host] = 0;
 
-				$handle = opendir(join_path(get_state('path'), '+' . $host));
+				$handle = opendir(\kekse\join_path(get_state('path'), '+' . $host));
 
 				if($handle === false)
 				{
@@ -2711,7 +2712,7 @@ function counter($_host = null, $_read_only = null)
 						continue;
 					}
 
-					$p = join_path(get_state('path'), '+' . $host, $sub);
+					$p = \kekse\join_path(get_state('path'), '+' . $host, $sub);
 
 					if(!is_file($p))
 					{
@@ -2728,9 +2729,9 @@ function counter($_host = null, $_read_only = null)
 					{
 						++$errors[$host];
 					}
-					else if(get_config('threshold') === null || timestamp($val = (int)$val) >= get_config('threshold'))
+					else if(get_config('threshold') === null || \kekse\timestamp($val = (int)$val) >= get_config('threshold'))
 					{
-						if(remove($p, false))
+						if(\kekse\delete($p, false))
 						{
 							++$delete[$host];
 							--$result[$host];
@@ -2755,12 +2756,12 @@ function counter($_host = null, $_read_only = null)
 			{
 				if($count === 0)
 				{
-					if(is_writable(join_path(get_state('path'), '+' . $host))) remove(join_path(get_state('path'), '+' . $host), true);
-					if(is_writable(join_path(get_state('path'), '-' . $host))) remove(join_path(get_state('path'), '-' . $host), false);
+					if(is_writable(\kekse\join_path(get_state('path'), '+' . $host))) \kekse\delete(\kekse\join_path(get_state('path'), '+' . $host), true);
+					if(is_writable(\kekse\join_path(get_state('path'), '-' . $host))) \kekse\delete(\kekse\join_path(get_state('path'), '-' . $host), false);
 				}
-				else if(is_writable(join_path(get_state('path'), '-' . $host)))
+				else if(is_writable(\kekse\join_path(get_state('path'), '-' . $host)))
 				{
-					if(! file_put_contents(join_path(get_state('path'), '-' . $host), (string)$count))
+					if(! file_put_contents(\kekse\join_path(get_state('path'), '-' . $host), (string)$count))
 					{
 						++$errors[$host];
 					}
@@ -2778,30 +2779,33 @@ function counter($_host = null, $_read_only = null)
 
 			printf(PHP_EOL);
 
-			if($e === 0)
+			if($d > 0)
 			{
-				printf(' >> Great, not a single error! :-)' . PHP_EOL);
-			}
-			else
-			{
-				$total = 0;
-
-				foreach($errors as $h => $c)
+				if($e === 0)
 				{
-					$total += $c;
+					printf(' >> Great, not a single error!');
 				}
+				else
+				{
+					$total = 0;
 
-				fprintf(STDERR, ' >> Hm, %d host' . ($e === 0 ? '' : 's') . ' caused %d errors..' . PHP_EOL, $e, $total);
+					foreach($errors as $h => $c)
+					{
+						$total += $c;
+					}
+
+					fprintf(STDERR, ' >> Hm, %d host' . ($e === 0 ? '' : 's') . ' caused %d errors.', $e, $total);
+				}
 			}
 
 			if($d === 0)
 			{
-				printf(' >> ' . ($e === 0 ? '' : 'But ') . ' no deletions, so nothing changed at all.' . PHP_EOL);
+				printf(' >> ' . ($e === 0 ? 'N' : 'But n') . 'o deletions, so nothing changed at all.' . PHP_EOL);
 				exit(0);
 			}
 			else
 			{
-				printf(' >> Amount of deleted files per host:' . PHP_EOL . PHP_EOL);
+				printf(' Deleted files per host:' . PHP_EOL . PHP_EOL);
 			}
 
 			$sum = 0;
@@ -2818,7 +2822,7 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$s = ' %' . $maxLen . 's    %d' . PHP_EOL;
+			$s = ' %' . $maxLen . 's: %d' . PHP_EOL;
 
 			foreach($delete as $host => $del)
 			{
@@ -2826,7 +2830,7 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			//
-			printf(PHP_EOL . ' >> Deleted %d files totally.' . PHP_EOL, $sum);
+			printf(PHP_EOL . ' >> Totally deleted %d files.' . PHP_EOL, $sum);
 			exit(0);
 		}
 		
@@ -2843,7 +2847,7 @@ function counter($_host = null, $_read_only = null)
 				{
 					break;
 				}
-				else if($len < 2 || $len > COUNTER_STRING_LIMIT)
+				else if($len < 2 || $len > KEKSE_STRING_LIMIT)
 				{
 					continue;
 				}
@@ -2879,7 +2883,7 @@ function counter($_host = null, $_read_only = null)
 					continue;
 				}
 				
-				$p = join_path(get_state('path'), $sub);
+				$p = \kekse\join_path(get_state('path'), $sub);
 				
 				if($sub[0] === '~')
 				{
@@ -2894,7 +2898,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$index++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
 						$delete[$index++] = $p;
 					}
@@ -2905,7 +2909,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$index++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
 						$delete[$index++] = $p;
 					}
@@ -2916,7 +2920,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$index++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
 						$delete[$index++] = $p;
 					}
@@ -2941,7 +2945,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				printf(' >> Please allow to delete %d files (non-existing value files %s)..' . PHP_EOL, $len, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
 				
-				if(!prompt('Do you really want to continue [yes/no]? '))
+				if(!\kekse\prompt('Do you really want to continue [yes/no]? '))
 				{
 					fprintf(STDERR, ' >> Aborted, as requested.' . PHP_EOL);
 					exit(2);
@@ -2959,7 +2963,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				if(file_exists($delete[$i]))
 				{
-					if(remove($delete[$i], true))
+					if(\kekse\delete($delete[$i], true))
 					{
 						++$result;
 					}
@@ -3002,7 +3006,7 @@ function counter($_host = null, $_read_only = null)
 			exit(4);
 		}
 		
-		function delete($_index = null)
+		function remove($_index = null)
 		{
 			//
 			$list = get_hosts($_index);
@@ -3024,25 +3028,25 @@ function counter($_host = null, $_read_only = null)
 				$i = 0;
 				$p = $orig = get_state('path');
 
-				if(($type & COUNTER_VALUE) && is_writable($p = join_path($orig, '~' . $host)))
+				if(($type & COUNTER_VALUE) && is_writable($p = \kekse\join_path($orig, '~' . $host)))
 				{
 					$delete[$index++] = $p;
 					++$i;
 				}
 
-				if(($type & COUNTER_DIR) && is_writable($p = join_path($orig, '+' . $host)))
+				if(($type & COUNTER_DIR) && is_writable($p = \kekse\join_path($orig, '+' . $host)))
 				{
 					$delete[$index++] = $p;
 					++$i;
 				}
 
-				if(($type & COUNTER_FILE) && is_writable($p = join_path($orig, '-' . $host)))
+				if(($type & COUNTER_FILE) && is_writable($p = \kekse\join_path($orig, '-' . $host)))
 				{
 					$delete[$index++] = $p;
 					++$i;
 				}
 
-				if(($type & COUNTER_CONFIG) && is_writable($p = join_path($orig, '%' . $host)))
+				if(($type & COUNTER_CONFIG) && is_writable($p = \kekse\join_path($orig, '%' . $host)))
 				{
 					$delete[$index++] = $p;
 					++$i;
@@ -3125,7 +3129,7 @@ function counter($_host = null, $_read_only = null)
 				printf(PHP_EOL);
 			}
 
-			if(!prompt('Do you really want to delete ' . $index . ' files [yes/no]? '))
+			if(!\kekse\prompt('Do you really want to delete ' . $index . ' files [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Abort requested.' . PHP_EOL);
 				exit(2);
@@ -3136,7 +3140,7 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $index; ++$i)
 			{
-				if(remove($delete[$i], true))
+				if(\kekse\delete($delete[$i], true))
 				{
 					++$ok;
 				}
@@ -3202,7 +3206,7 @@ function counter($_host = null, $_read_only = null)
 
 				if($value & COUNTER_DIR)
 				{
-					$handle = opendir(join_path(get_state('path'), '+' . $key));
+					$handle = opendir(\kekse\join_path(get_state('path'), '+' . $key));
 					
 					if($handle === false)
 					{
@@ -3218,13 +3222,13 @@ function counter($_host = null, $_read_only = null)
 							{
 								continue;
 							}
-							else if(is_file(join_path(get_state('path'), '+' . $key, $sub)))
+							else if(is_file(\kekse\join_path(get_state('path'), '+' . $key, $sub)))
 							{
 								++$real;
 							}
 							else if($_purge)
 							{
-								remove(join_path(get_state('path'), '+' . $key, $sub), true);
+								\kekse\delete(\kekse\join_path(get_state('path'), '+' . $key, $sub), true);
 							}
 						}
 						
@@ -3234,7 +3238,7 @@ function counter($_host = null, $_read_only = null)
 				
 				if($value & COUNTER_FILE)
 				{
-					$cache = file_get_contents(join_path(get_state('path'), '-' . $key));
+					$cache = file_get_contents(\kekse\join_path(get_state('path'), '-' . $key));
 					
 					if($cache === false)
 					{
@@ -3257,7 +3261,7 @@ function counter($_host = null, $_read_only = null)
 
 				if($value & COUNTER_VALUE)
 				{
-					$val = file_get_contents(join_path(get_state('path'), '~' . $key));
+					$val = file_get_contents(\kekse\join_path(get_state('path'), '~' . $key));
 					
 					if($val === false)
 					{
@@ -3313,7 +3317,7 @@ function counter($_host = null, $_read_only = null)
 				exit(0);
 			}
 
-			if(!prompt('Do you want to synchronize ' . count($sync) . ' hosts now [yes/no]? '))
+			if(!\kekse\prompt('Do you want to synchronize ' . count($sync) . ' hosts now [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Good, aborting sync.' . PHP_EOL);
 				exit(2);
@@ -3329,9 +3333,9 @@ function counter($_host = null, $_read_only = null)
 			{
 				if($val === 0)
 				{
-					if(is_dir($p = join_path(get_state('path'), '+' . $host)))
+					if(is_dir($p = \kekse\join_path(get_state('path'), '+' . $host)))
 					{
-						if(remove($p, true))
+						if(\kekse\delete($p, true))
 						{
 							++$del;
 						}
@@ -3341,9 +3345,9 @@ function counter($_host = null, $_read_only = null)
 						}
 					}
 
-					if(is_file($p = join_path(get_state('path'), '-' . $host)))
+					if(is_file($p = \kekse\join_path(get_state('path'), '-' . $host)))
 					{
-						if(remove($p, false))
+						if(\kekse\delete($p, false))
 						{
 							++$del;
 						}
@@ -3353,7 +3357,7 @@ function counter($_host = null, $_read_only = null)
 						}
 					}
 				}
-				else if(file_put_contents(join_path(get_state('path'), '-' . $host), (string)$val))
+				else if(file_put_contents(\kekse\join_path(get_state('path'), '-' . $host), (string)$val))
 				{
 					++$chg;
 				}
@@ -3403,12 +3407,12 @@ function counter($_host = null, $_read_only = null)
 				fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, get_state('log'));
 			}
 
-			if(!prompt('Do you really want to delete the file \'' . basename(get_state('log')) . '\' [yes/no]? '))
+			if(!\kekse\prompt('Do you really want to delete the file \'' . basename(get_state('log')) . '\' [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
 				exit(2);
 			}
-			else if(remove(get_state('log'), false) === false)
+			else if(\kekse\delete(get_state('log'), false) === false)
 			{
 				fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, basename(get_state('log')));
 
@@ -3477,7 +3481,7 @@ function counter($_host = null, $_read_only = null)
 			$item = KEKSE_ARGV[$i];
 			$len = strlen($item);
 			
-			if($item[0] !== '-' || $len < 2 || $len > COUNTER_STRING_LIMIT)
+			if($item[0] !== '-' || $len < 2 || $len > KEKSE_STRING_LIMIT)
 			{
 				continue;
 			}
@@ -3510,8 +3514,8 @@ function counter($_host = null, $_read_only = null)
 				case '-z':
 					sanitize($i);
 					break;
-				case '-d':
-					delete($i);
+				case '-r':
+					remove($i);
 					break;
 				case '-t':
 					set($i);
@@ -3561,8 +3565,8 @@ function counter($_host = null, $_read_only = null)
 				case '--sanitize':
 					sanitize($i);
 					break;
-				case '--delete':
-					delete($i);
+				case '--remove':
+					remove($i);
 					break;
 				case '--set':
 					set($i);
@@ -3609,7 +3613,7 @@ function counter($_host = null, $_read_only = null)
 	}
 	else
 	{
-		set_state('address', secure_host($_SERVER['REMOTE_ADDR']));
+		set_state('address', \kekse\secure_host($_SERVER['REMOTE_ADDR']));
 	}
 
 	//
@@ -3630,7 +3634,7 @@ function counter($_host = null, $_read_only = null)
 			$result = get_config('override');
 			$overridden = true;
 		}
-		else if(is_string($result = get_param('override', false)) && !empty($result))
+		else if(is_string($result = \kekse\get_param('override', false)) && !empty($result))
 		{
 			if(! get_config('override'))
 			{
@@ -3672,7 +3676,7 @@ function counter($_host = null, $_read_only = null)
 		//
 		if($result !== null)
 		{
-			$result = secure_host(remove_port($result, $_die));
+			$result = \kekse\secure_host(remove_port($result, $_die));
 
 			if($result === null && $_die)
 			{
@@ -3697,7 +3701,7 @@ function counter($_host = null, $_read_only = null)
 			$port = (string)$_SERVER['SERVER_PORT'];
 		}
 		
-		if($port !== null && ends_with($_host, (':' . $port)))
+		if($port !== null && \kekse\ends_with($_host, (':' . $port)))
 		{
 			$result = substr($_host, 0, -(strlen($port) + 1));
 		}
@@ -3717,12 +3721,12 @@ function counter($_host = null, $_read_only = null)
 	if(!get_state('test'))
 	{
 		//
-		set_state('cookie', limit(hash(get_config('hash'), get_state('host'))));
+		set_state('cookie', \kekse\limit(hash(get_config('hash'), get_state('host'))));
 
 		//
-		set_state('value', join_path(get_state('path'), '~' . get_state('host')));
-		set_state('dir', join_path(get_state('path'), '+' . get_state('host')));
-		set_state('file', join_path(get_state('path'), '-' . get_state('host')));
+		set_state('value', \kekse\join_path(get_state('path'), '~' . get_state('host')));
+		set_state('dir', \kekse\join_path(get_state('path'), '+' . get_state('host')));
+		set_state('file', \kekse\join_path(get_state('path'), '-' . get_state('host')));
 
 		//
 		if(get_state('address') === null)
@@ -3734,14 +3738,14 @@ function counter($_host = null, $_read_only = null)
 		{
 			if(get_config('privacy'))
 			{
-				set_state('remote', limit(hash(get_config('hash'), get_state('address'))));
+				set_state('remote', \kekse\limit(hash(get_config('hash'), get_state('address'))));
 			}
 			else
 			{
-				set_state('remote', secure_host(get_state('address')));
+				set_state('remote', \kekse\secure_host(get_state('address')));
 			}
 
-			set_state('ip', join_path(get_state('dir'), secure_path(get_state('remote'))));
+			set_state('ip', \kekse\join_path(get_state('dir'), \kekse\secure_path(get_state('remote'))));
 		}
 
 		//
@@ -3878,7 +3882,7 @@ function counter($_host = null, $_read_only = null)
 					log_error('File can\'t be read', 'test_file', get_state('ip'));
 					error('File can\'t be read');
 				}
-				else if(timestamp(read_timestamp()) < get_config('threshold'))
+				else if(\kekse\timestamp(read_timestamp()) < get_config('threshold'))
 				{
 					return false;
 				}
@@ -3897,7 +3901,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				make_cookie();
 			}
-			else if(timestamp((int)$_COOKIE[get_state('cookie')]) < get_config('threshold'))
+			else if(\kekse\timestamp((int)$_COOKIE[get_state('cookie')]) < get_config('threshold'))
 			{
 				return false;
 			}
@@ -3918,7 +3922,7 @@ function counter($_host = null, $_read_only = null)
 				$threshold = 0;
 			}
 			
-			return setcookie(get_state('cookie'), (string)timestamp(), array(
+			return setcookie(get_state('cookie'), (string)\kekse\timestamp(), array(
 				'expires' => (time() + $threshold),
 				'path' => '/',
 				'samesite' => 'Strict',
@@ -3958,20 +3962,20 @@ function counter($_host = null, $_read_only = null)
 				}
 				else
 				{
-					$sub = join_path(get_state('dir'), $sub);
+					$sub = \kekse\join_path(get_state('dir'), $sub);
 				}
 				
 				if(!is_file($sub))
 				{
 					continue;
 				}
-				else if(get_config('threshold') !== null && timestamp((int)file_get_contents($sub)) < get_config('threshold'))
+				else if(get_config('threshold') !== null && \kekse\timestamp((int)file_get_contents($sub)) < get_config('threshold'))
 				{
 					++$result;
 				}
-				else if(! remove($sub, false))
+				else if(! \kekse\delete($sub, false))
 				{
-					log_error('Unable to remove() outdated file', 'clean_files', $sub, false);
+					log_error('Unable to delete() outdated file', 'clean_files', $sub, false);
 					++$result;
 				}
 			}
@@ -4001,7 +4005,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						continue;
 					}
-					else if(is_file(join_path(get_state('dir'), $sub)))
+					else if(is_file(\kekse\join_path(get_state('dir'), $sub)))
 					{
 						++$result;
 					}
@@ -4195,7 +4199,7 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$result = file_put_contents(get_state('ip'), (string)timestamp());
+			$result = file_put_contents(get_state('ip'), (string)\kekse\timestamp());
 
 			if($result === false)
 			{
@@ -4310,7 +4314,7 @@ function counter($_host = null, $_read_only = null)
 			function get_drawing_type()
 			{
 				//
-				$result = get_param('type', false);
+				$result = \kekse\get_param('type', false);
 
 				if(!is_string($result))
 				{
@@ -4412,7 +4416,7 @@ function counter($_host = null, $_read_only = null)
 					return null;
 				}
 				
-				$result = join_path(get_state('fonts'), $_name);
+				$result = \kekse\join_path(get_state('fonts'), $_name);
 
 				if(is_file($result) && is_readable($result))
 				{
@@ -4434,15 +4438,15 @@ function counter($_host = null, $_read_only = null)
 				}
 				else
 				{
-					$result['size'] = get_param('size', true, false);
-					$result['font'] = get_param('font', false);
-					$result['fg'] = get_param('fg', false);
-					$result['bg'] = get_param('bg', false);
-					$result['h'] = get_param('h', true, false);
-					$result['v'] = get_param('v', true, false);
-					$result['x'] = get_param('x', true, false);
-					$result['y'] = get_param('y', true, false);
-					$result['aa'] = get_param('aa', null);
+					$result['size'] = \kekse\get_param('size', true, false);
+					$result['font'] = \kekse\get_param('font', false);
+					$result['fg'] = \kekse\get_param('fg', false);
+					$result['bg'] = \kekse\get_param('bg', false);
+					$result['h'] = \kekse\get_param('h', true, false);
+					$result['v'] = \kekse\get_param('v', true, false);
+					$result['x'] = \kekse\get_param('x', true, false);
+					$result['y'] = \kekse\get_param('y', true, false);
+					$result['aa'] = \kekse\get_param('aa', null);
 				}
 
 				//
@@ -4682,7 +4686,7 @@ function counter($_host = null, $_read_only = null)
 			function get_color_hex($_string)
 			{
 				//
-				$_string = remove_white_spaces($_string);
+				$_string = \kekse\remove_white_spaces($_string);
 				
 				//
 				if($_string[0] === '#')
@@ -4753,7 +4757,7 @@ function counter($_host = null, $_read_only = null)
 			function get_color_array($_string)
 			{
 				//
-				$_string = remove_white_spaces($_string) . ',';
+				$_string = \kekse\remove_white_spaces($_string) . ',';
 				$len = strlen($_string);
 				$result = array();
 				$comma = false;
@@ -4771,7 +4775,7 @@ function counter($_host = null, $_read_only = null)
 						}
 						else if($comma)
 						{
-							if(ends_with($item, '.'))
+							if(\kekse\ends_with($item, '.'))
 							{
 								$item .= '0';
 							}
@@ -4842,7 +4846,7 @@ function counter($_host = null, $_read_only = null)
 			//
 			function is_hex_format($_string)
 			{
-				$_string = remove_white_spaces($_string);
+				$_string = \kekse\remove_white_spaces($_string);
 				
 				if($_string[0] === '#')
 				{
@@ -4883,7 +4887,7 @@ function counter($_host = null, $_read_only = null)
 				{
 					$len = strlen($_string);
 
-					if($len === 0 || $len > COUNTER_STRING_LIMIT)
+					if($len === 0 || $len > KEKSE_STRING_LIMIT)
 					{
 						return null;
 					}
@@ -5037,7 +5041,7 @@ function counter($_host = null, $_read_only = null)
 			return $_value;
 		}
 		
-		$result = get_param('radix', true, false);
+		$result = \kekse\get_param('radix', true, false);
 		
 		if(is_int($result) && $result >= 2 && $result <= 36)
 		{
