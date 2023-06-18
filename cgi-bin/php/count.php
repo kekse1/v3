@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.0');
+define('COUNTER_VERSION', '3.2.1');
 
 //
 const DEFAULTS = array(
@@ -33,8 +33,6 @@ const DEFAULTS = array(
 	'y' => 0,
 	'h' => 0,
 	'v' => 0,
-	'h_limit' => 256,
-	'v_limit' => 256,
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
@@ -87,8 +85,8 @@ const CONFIG_STATIC = array(
 const CONFIG_VECTOR = array(
 	'path' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'log' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
-	'threshold' => array('types' => [ 'integer' ], 'min' => 0),
-	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'min' => 1),
+	'threshold' => array('types' => [ 'integer', 'NULL' ], 'min' => 0),
+	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'min' => 0),
 	'hide' => array('types' => [ 'boolean', 'string' ]),
 	'client' => array('types' => [ 'boolean' ]),
 	'server' => array('types' => [ 'boolean' ]),
@@ -96,7 +94,7 @@ const CONFIG_VECTOR = array(
 	'override' => array('types' => [ 'boolean', 'string' ], 'min' => 1),
 	'content' => array('types' => [ 'string' ], 'min' => 1),
 	'radix' => array('types' => [ 'integer' ], 'min' => 2, 'max' => 36),
-	'clean' => array('types' => [ 'boolean', 'NULL' ]),
+	'clean' => array('types' => [ 'boolean', 'NULL', 'integer' ], 'min' => 0),
 	'limit' => array('types' => [ 'integer' ], 'min' => 0),
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'font' => array('types' => [ 'string' ], 'min' => 1),
@@ -108,8 +106,6 @@ const CONFIG_VECTOR = array(
 	'y' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'h' => array('types' => [ 'integer' ], 'without' => true),
 	'v' => array('types' => [ 'integer' ], 'without' => true),
-	'h_limit' => array('types' => [ 'integer' ], 'min' => 0, 'max' => 512),
-	'v_limit' => array('types' => [ 'integer' ], 'min' => 0, 'max' => 512),
 	'aa' => array('types' => [ 'boolean' ]),
 	'type' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
 	'privacy' => array('types' => [ 'boolean' ]),
@@ -3752,8 +3748,11 @@ function counter($_host = null, $_read_only = null)
 		//
 		function check_auto()
 		{
-			//
-			if(get_config('auto') === true && !get_state('overridden'))
+			if(get_config('auto') === null)
+			{
+				error(get_config('none'));
+			}
+			else if(get_config('auto') === true && !get_state('overridden'))
 			{
 				return;
 			}
@@ -4467,11 +4466,11 @@ function counter($_host = null, $_read_only = null)
 				{
 					$result['h'] = get_config('h');
 				}
-				else if($result['h'] > get_config('h_limit') || $result['h'] < -get_config('h_limit'))
+				else if($result['h'] > 512 || $result['h'] < -512)
 				{
 					if($_die)
 					{
-						draw_error('\'?h\' exceeds limit (' . get_config('h_limit') . ')');
+						draw_error('\'?h\' exceeds limit');
 						return null;
 					}
 					
@@ -4482,11 +4481,11 @@ function counter($_host = null, $_read_only = null)
 				{
 					$result['v'] = get_config('v');
 				}
-				else if($result['v'] > get_config('v_limit') || $result['v'] < -get_config('v_limit'))
+				else if($result['v'] > 512 || $result['v'] < -512)
 				{
 					if($_die)
 					{
-						draw_error('\'?v\' exceeds limit (' . get_config('v_limit') . ')');
+						draw_error('\'?v\' exceeds limit');
 						return null;
 					}
 					
