@@ -2874,7 +2874,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else while($sub = readdir($handle))
 			{
-				if($sub[0] === '.')
+				if($sub === '.' || $sub === '..')
 				{
 					continue;
 				}
