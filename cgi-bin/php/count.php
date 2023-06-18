@@ -3310,7 +3310,7 @@ function counter($_host = null, $_read_only = null)
 			
 			foreach($result as $h => $v)
 			{
-				$c = ($v[3] === null ? '' : ($v[3] === -1 ? '  @' : '% ' . $v[3]));
+				$c = ($v[3] === null ? '' : ($v[3] === -1 ? 'x' : '   +' . $v[3]));
 				printf($f, $h, ($v[0] === null ? '-' : (string)$v[0]), ($v[1] === null ? '-' : (string)$v[1]), ($v[2] === null ? '-' : (string)$v[2]), $c);
 
 				if($v[2] === 0 && (($list[$h] & COUNTER_DIR) || ($list[$h] & COUNTER_FILE)))
