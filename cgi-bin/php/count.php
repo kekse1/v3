@@ -165,7 +165,7 @@ function set_state($_key, $_value, $_die = true)
 	{
 		if($_die)
 		{
-			error('Umknown state \'' . $_key . '\'');
+			error('Unknown state \'' . $_key . '\'');
 		}
 
 		return null;
