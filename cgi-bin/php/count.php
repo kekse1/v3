@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.6');
+define('COUNTER_VERSION', '3.2.7');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -705,11 +705,11 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 	else if($_numeric === null) switch(strtolower($value[0]))
 	{
 		case '0':
-		case 'y':
-			return false;
-		case '1':
 		case 'n':
 			return false;
+		case '1':
+		case 'y':
+			return true;
 		default:
 			if($_strict)
 			{
@@ -776,10 +776,6 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 			{
 				$numeric = false;
 			}
-			else if(!$_float)
-			{
-				$numeric = false;
-			}
 			else
 			{
 				$hadPoint = true;
@@ -808,16 +804,15 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 
 	if(strlen($result) === 0)
 	{
-		$result = null;
-		$numeric = false;
+		return null;
 	}
 	else if(! $_numeric)
 	{
 		$numeric = false;
 	}
-	else if(! $_float && $hadPoint && $numeric)
+	else if(!$_float && $numeric)
 	{
-		$numeric = false;
+		$hadPoint = false;
 	}
 
 	if($numeric)
