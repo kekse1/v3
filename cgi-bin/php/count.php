@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.1');
+define('COUNTER_VERSION', '3.2.2');
 
 //
 const DEFAULTS = array(
@@ -26,7 +26,6 @@ const DEFAULTS = array(
 	'fonts' => 'fonts/',
 	'font' => 'IntelOneMono',
 	'size' => 24,
-	'size_limit' => 768,
 	'fg' => '0,0,0,1',
 	'bg' => '255,255,255,0',
 	'x' => 0,
@@ -98,8 +97,7 @@ const CONFIG_VECTOR = array(
 	'limit' => array('types' => [ 'integer' ], 'min' => 0),
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'font' => array('types' => [ 'string' ], 'min' => 1),
-	'size' => array('types' => [ 'integer'], 'min' => 4),
-	'size_limit' => array('types' => [ 'integer' ], 'min' => 4, 'max' => 512),
+	'size' => array('types' => [ 'integer'], 'min' => 4, 'max' => 512),
 	'fg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
 	'bg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
 	'x' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
@@ -4451,11 +4449,11 @@ function counter($_host = null, $_read_only = null)
 				{
 					$result['size'] = get_config('size');
 				}
-				else if($result['size'] > get_config('size_limit') || $result['size'] < 4)
+				else if($result['size'] > 512 || $result['size'] < 4)
 				{
 					if($_die)
 					{
-						draw_error('\'?size\' exceeds limit (4 / ' . get_config('size_limit') . ')');
+						draw_error('\'?size\' exceeds limit (4..512)');
 						return null;
 					}
 					
