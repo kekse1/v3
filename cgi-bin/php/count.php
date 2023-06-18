@@ -2240,7 +2240,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				printf(' >> Found %d per-host configurations (of %d checked host' . ($cnt === 1 ? '' : 's') . ' in total).' . PHP_EOL . PHP_EOL, $idx, $cnt);
+				printf(' >> Found %d per-host configurations (by %d glob' . ($cnt === 1 ? '' : 's') . ' in total).' . PHP_EOL . PHP_EOL, $idx, $cnt);
 				$len = count($hosts);
 				$result = array();
 
