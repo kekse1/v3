@@ -5138,7 +5138,7 @@ function counter($_host = null, $_read_only = null)
 		}
 		
 		$result = \kekse\get_param('radix', true, false);
-		
+
 		if(is_int($result) && $result >= 2 && $result <= 36)
 		{
 			return $result;
