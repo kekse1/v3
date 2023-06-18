@@ -5056,15 +5056,15 @@ function counter($_host = null, $_read_only = null)
 				//
 				$MOVE = 2;
 				$y;
-				$x = (int)(-$MOVE + $_x);
+				$x = (int)(-$MOVE + $_x + $_h);
 				
 				if($_prefer)
 				{
-					$y = (int)($MOVE+((($imageHeight + $textHeight) / 2) * $factor + $_y));
+					$y = (int)($MOVE+((($imageHeight + $textHeight) / 2) * $factor) + $_y + $_v);
 				}
 				else
 				{
-					$y = (int)($MOVE+((($imageHeight + $textHeight * $factor) / 2) + $_y));
+					$y = (int)($MOVE+((($imageHeight + $textHeight * $factor) / 2) + $_y + $_v));
 				}
 				
 				//
