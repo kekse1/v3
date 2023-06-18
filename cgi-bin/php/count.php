@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.5');
+define('COUNTER_VERSION', '3.2.6');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -17,26 +17,26 @@ const DEFAULTS = array(
 	'path' => 'count/',
 	'log' => 'count.log',
 	'threshold' => 7200,
-	'auto' => 32,
-	'hide' => false,
-	'client' => true,
-	'server' => true,
+	'auto' => 32,//false
+	'hide' => false,//true
+	'client' => true,//false
+	'server' => true,//false
 	'drawing' => true,
-	'override' => false,
+	'override' => false,//true
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,
+	'radix' => 10,//16
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
 	'font' => 'IntelOneMono',
-	'prefer' => true,
-	'px' => 24,
-	'fg' => '0,0,0,1',
+	'prefer' => true,//false
+	'px' => 24,//48
+	'fg' => '0,0,0,1',//'120,130,40'
 	'bg' => '255,255,255,0',
 	'x' => 0,
 	'y' => 0,
-	'h' => 0,
-	'v' => 0,
+	'h' => 0,//32
+	'v' => 0,//24
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
@@ -931,7 +931,7 @@ function send_header($_type = null)
 	return true;
 }
 
-function error($_reason, $_exit_code = 224)
+function error($_reason, $_own = false, $_exit_code = 224)
 {
 	$ex = null;
 	
@@ -977,7 +977,7 @@ function error($_reason, $_exit_code = 224)
 		send_header();
 	}
 
-	if(is_string(get_config('error')))
+	if(!$_own && is_string(get_config('error')))
 	{
 		die(get_config('error'));
 	}
@@ -3777,11 +3777,11 @@ function counter($_host = null, $_read_only = null)
 		}
 
 		//
-		function check_auto()
+		function check_auto($_host)
 		{
 			if(get_config('auto') === null)
 			{
-				error(get_config('none'));
+				error(get_config('none'), true);
 			}
 			else if(get_config('auto') === true && !get_state('overridden'))
 			{
@@ -3799,11 +3799,11 @@ function counter($_host = null, $_read_only = null)
 				}
 				else if(get_state('overridden'))
 				{
-					error(get_config('none'));
+					error(get_config('none'), true);
 				}
 				else if(get_config('auto') === false)
 				{
-					error(get_config('none'));
+					error(get_config('none'), true);
 				}
 				else if(is_int(get_config('auto')))
 				{
@@ -3813,7 +3813,7 @@ function counter($_host = null, $_read_only = null)
 					if($handle === false)
 					{
 						log_error('Can\'t opendir()', 'check_path', get_state('path'), false);
-						error(get_config('none'));
+						error(get_config('none'), true);
 					}
 
 					while($sub = readdir($handle))
@@ -3828,7 +3828,7 @@ function counter($_host = null, $_read_only = null)
 
 					if($count >= get_config('auto'))
 					{
-						error(get_config('none'));
+						error(get_config('none'), true);
 					}
 				}
 				else
@@ -4311,14 +4311,7 @@ function counter($_host = null, $_read_only = null)
 		}
 		
 		//
-		if(get_config('auto') === null)
-		{
-			error(get_config('none'));
-		}
-		else
-		{
-			check_auto();
-		}
+		check_auto($_host);
 	}
 
 	//
