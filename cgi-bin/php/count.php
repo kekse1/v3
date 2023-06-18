@@ -3917,7 +3917,7 @@ function counter($_host = null, $_read_only = null)
 				$threshold = 0;
 			}
 			
-			return setcookie(get_state('cookie'), timestamp(), array(
+			return setcookie(get_state('cookie'), (string)timestamp(), array(
 				'expires' => (time() + $threshold),
 				'path' => '/',
 				'samesite' => 'Strict',
