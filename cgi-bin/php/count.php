@@ -3586,6 +3586,7 @@ function counter($_host = null, $_read_only = null)
 		}
 		
 		//
+		printf(' >> Call with `--help/-?` to see a list of available parameters.' . PHP_EOL);
 		values(0);
 		exit();
 	}
