@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.3.0');
+define('COUNTER_VERSION', '3.3.1');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -101,19 +101,19 @@ const CONFIG_VECTOR = array(
 	'content' => array('types' => [ 'string' ], 'min' => 1),
 	'radix' => array('types' => [ 'integer' ], 'min' => 2, 'max' => 36),
 	'clean' => array('types' => [ 'boolean', 'NULL', 'integer' ], 'min' => 0),
-	'limit' => array('types' => [ 'integer' ], 'min' => 0),
+	'limit' => array('types' => [ 'integer' ], 'min' => 0, 'max' => 16777216),
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
-	'font' => array('types' => [ 'string' ], 'min' => 1),
+	'font' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'size' => array('types' => [ 'integer', 'string' ], 'min' => 3, 'max' => 512, 'test' => true),
 	'unit' => array('types' => [ 'string' ], 'min' => 2, 'max' => 2, 'test' => true),
-	'fg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
-	'bg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
+	'fg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
+	'bg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'x' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'y' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
-	'h' => array('types' => [ 'integer' ], 'without' => true),
-	'v' => array('types' => [ 'integer' ], 'without' => true),
+	'h' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
+	'v' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'aa' => array('types' => [ 'boolean' ]),
-	'type' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
+	'type' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'privacy' => array('types' => [ 'boolean' ]),
 	'hash' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'error' => array('types' => [ 'string', 'NULL' ]),
@@ -1202,7 +1202,7 @@ function check_path_char($_path, $_basename = true)
 	return true;
 }
 
-function get_path($_path, $_check = false, $_file = false, $_die = true)
+function get_path($_path, $_check = true, $_file = false, $_create = true, $_die = true)
 {
 	if(!is_string($_path))
 	{
@@ -1211,7 +1211,7 @@ function get_path($_path, $_check = false, $_file = false, $_die = true)
 			error('Path needs to be (non-empty) String');
 		}
 		
-		return false;
+		return null;
 	}
 	else if(empty($_path))
 	{
@@ -1220,7 +1220,7 @@ function get_path($_path, $_check = false, $_file = false, $_die = true)
 			error('Path may not be empty');
 		}
 		
-		return false;
+		return null;
 	}
 	
 	$result = '';
@@ -1293,43 +1293,81 @@ function get_path($_path, $_check = false, $_file = false, $_die = true)
 		{
 			$dir = dirname($result);
 
-			if(!is_dir($dir) && !mkdir($dir, 01777, true))
+			if(!is_dir($dir))
 			{
-				if($_die)
+				if($_create)
+				{
+					if(!mkdir($dir, 01777, true))
+					{
+						if($_die)
+						{
+							error('Directory of path \'' . $_path . '\' doesn\'t exist (and couldn\'t be created)');
+						}
+
+						return null;
+					}
+				}
+				else if($_die)
 				{
 					error('Directory of path \'' . $_path . '\' doesn\'t exist');
 				}
-				
-				return null;
+				else
+				{
+					return null;
+				}
+			}
+			
+			if(!file_exists($result))
+			{
+				touch($result);
+				chmod($result, 01777);
 			}
 		}
-		else if(!is_dir($result) && !mkdir($result, 01777, true))
+		else if(!is_dir($result))
 		{
-			if($_die)
+			if($_create)
+			{
+				if(!mkdir($result, 01777, true))
+				{
+					if($_die)
+					{
+						error('Directory \'' . $_path . '\' doesn\'t exist (and couldn\'t be created)');
+					}
+					
+					return null;
+				}
+			}
+			else if($_die)
 			{
 				error('Directory \'' . $_path . '\' doesn\'t exist');
 			}
-			
-			return null;
+			else
+			{
+				return null;
+			}
 		}
 	}
 	else if($_file)
 	{
-		$dir = dirname($result);
-
-		if(!is_dir($dir))
+		if($_create)
 		{
-			mkdir($dir, 01777, true);
+			$dir = dirname($result);
+			
+			if(!file_exists($dir))
+			{
+				mkdir($dir, 01777, true);
+			}
+			
+			if(!file_exists($result))
+			{
+				touch($result);
+				chmod($result, 01777);
+			}
 		}
 	}
-	else
+	else if($_create && !file_exists($result))
 	{
-		$dir = $result;
-
-		if(!is_dir($dir))
-		{
-			mkdir($dir, 01777, true);
-		}
+		mkdir($result, 01777, true);
 	}
 
 	return $result;
@@ -1512,19 +1550,73 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				}
 				break;
 			case 'path':
-				$validTest = (get_path($_value, true, false, false) !== false);
+				$validTest = (get_path($_value, true, false, false, false) !== null);
 				break;
 			case 'log':
-				$validTest = (get_path($_value, true, true, false) !== false);
+				$validTest = (get_path($_value, true, true, false, false) !== null);
 				break;
 			case 'fonts':
-				$validTest = (get_path($_value, true, false, false) !== false);
+				$validTest = (get_path($_value, true, false, false, false) !== null);
+				break;
+			case 'font':
+				//check like 'fonts' above.. if not, false here, too.
+				//if ok, check if this font is installed in fonts directory (and readable)!
+				break;
+			case 'drawing':
+				//test like above 'fonts' dir.. else false; sonst:
+				//(1) 'font' is (correctly!) set (and readable - see above!!), else false here
+				//(2) if ok, look if 'font' exists as .ttf in the 'fonts'! and readable.. etc.!!
+				//if not all were true, result = 'Drawing is not possible this way.
+				//AND: maybe the other neccessary config items for drawing to also test!?!
+				break;
+			case 'fg':
+			case 'bg':
+				//check if parsing is possible.. check what 'color()' (TODO) returns (!== null?!!?)!//
+				$validTest = true;//FIXME/!!!
+				break;
+			case 'type':
+				if(! extension_loaded('gd')) switch($_value)
+				{
+					case 'png':
+					case 'jpg':
+						$validTest = 'GD not loaded, but could be supported..';
+						break;
+					default:
+						$validTest = 'Unsupported type';
+						break;
+				}
+				else switch($_value)
+				{
+					case 'png':
+						if(imagetypes() & IMG_PNG)
+						{
+							$validTest = true;
+						}
+						else
+						{
+							$validTest = 'Not supported (by GD library!)';
+						}
+						break;
+					case 'jpg':
+						if(imagetypes() & IMG_JPG)
+						{
+							$validTest = true;
+						}
+						else
+						{
+							$validTest = 'Not supported (by GD library!)';
+						}
+						break;
+					default:
+						$validTest = 'Unsupported type';
+						break;
+				}
 				break;
 			case 'hash':
 				$validTest = in_array($_value, hash_algos());
 				break;
 			default:
-				$validTest = null;
+				$validTest = true;
 				break;
 		}
 	}
@@ -2027,8 +2119,8 @@ function counter($_host = null, $_read_only = null)
 	set_state('draw', (KEKSE_CLI ? null : (get_state('zero') || (get_config('drawing') && isset($_GET['draw']) && extension_loaded('gd')))));
 
 	//
-	set_state('path', get_path(get_config('path'), true, false, true));
-	set_state('log', get_path(get_config('log'), true, true, true));
+	set_state('path', get_path(get_config('path'), true, false, true, true));
+	set_state('log', get_path(get_config('log'), true, true, true, true));
 
 	if(file_exists(get_state('log')) && !(is_file(get_state('log')) || is_writable(get_state('log'))))
 	{
@@ -2037,7 +2129,7 @@ function counter($_host = null, $_read_only = null)
 
 	if(get_config('drawing') || KEKSE_CLI)
 	{
-		set_state('fonts', get_path(get_config('fonts'), (KEKSE_CLI ? false : true), false, true));
+		set_state('fonts', get_path(get_config('fonts'), false, false, false));
 	}
 	else
 	{
@@ -2051,7 +2143,10 @@ function counter($_host = null, $_read_only = null)
 	}
 	else if(get_config('drawing') && (!is_string(get_state('fonts')) || !is_readable(get_state('fonts'))))
 	{
-		error('Your \'FONTS\' path is not readable');
+		log_error('DRAWING is enabled, but FONTS directory doesn\'t exist', '', get_config('fonts'), false);
+		set_state('fonts', null);
+		set_state('zero', false);
+		set_state('draw', false);
 	}
 	else if(!is_dir(dirname(get_state('log'))))
 	{
@@ -5324,9 +5419,10 @@ function counter($_host = null, $_read_only = null)
 					};
 
 					//
+					$add = 4;
 					$x = (-$horizontal * 0.75);
-					$y = ($textHeight - $vertical) + 2;
-					$textHeight += 4;
+					$y = ($textHeight - $vertical) + $add / 2;
+					$textHeight += $add;
 
 					//
 					$scale = ($px / $textHeight);
