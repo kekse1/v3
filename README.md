@@ -17,6 +17,7 @@ The real/full version of all the JavaScript's is available in the [version.json]
 
 ## Preview
 [https://kekse.biz/v3/test.html]
+![Screenshot](docs/screenshot.png)
 
 ## Other projects
 .. which are related to this one:
