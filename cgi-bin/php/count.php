@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.3.1');
+define('COUNTER_VERSION', '3.3.2');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -118,7 +118,7 @@ const CONFIG_VECTOR = array(
 	'hash' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'error' => array('types' => [ 'string', 'NULL' ]),
 	'none' => array('types' => [ 'string' ]),
-	'raw' => array('types' => [ 'boolean' ])
+	'raw' => array('types' => [ 'boolean' ], 'test' => null)
 );
 
 //
@@ -1656,10 +1656,10 @@ function check_config_item($_key, $_value = null, $_bool = false)
 	else
 	{
 		$result = 'Passed';
-
-		if(isset($item['without']) && $item['without'])
+		
+		if(array_key_exists('test', $item) && $item['test'] === null)
 		{
-			$result .= ' (without further tests)';
+			$result .= ' (without extended tests)';
 		}
 	}
 	
@@ -3214,8 +3214,10 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
+			$forbidden = array();
 			$delete = array();
-			$index = 0;
+			$d = 0;
+			$f = 0;
 			
 			//
 			$handle = opendir(get_state('path'));
@@ -3233,67 +3235,131 @@ function counter($_host = null, $_read_only = null)
 				}
 				
 				$p = \kekse\join_path(get_state('path'), $sub);
+				$w = is_writable($p);
 				
 				if($sub[0] === '~')
 				{
 					if(strlen($sub) === 1 || !is_file($p))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 				}
 				else if($sub[0] === '+')
 				{
 					if(strlen($sub) === 1 || !is_dir($p))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 				}
 				else if($sub[0] === '-')
 				{
 					if(strlen($sub) === 1 || !is_file($p))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 				}
 				else if($sub[0] === '%')
 				{
 					if(strlen($sub) === 1 || !is_file($p))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						$delete[$index++] = $p;
+						if($w)
+						{
+							$delete[$d++] = $p;
+						}
+						else
+						{
+							$forbidden[$f++] = $p;
+						}
 					}
+				}
+				else if($w)
+				{
+					$delete[$d++] = $p;
 				}
 				else
 				{
-					$delete[$index++] = $p;
+					$forbidden[$f++] = $p;
 				}
 			}
-				
+
 			closedir($handle);
 			
 			//
-			$len = count($delete);
-			
-			if($len === 0)
+			if($d === 0)
 			{
 				printf(' >> No files found to delete.' . PHP_EOL);
+
+				if($f > 0)
+				{
+					fprintf(STDERR, ' >> Whereas %d are not writable..' . PHP_EOL, $f);
+					exit(1);
+				}
+
 				exit(0);
 			}
 			else
 			{
-				printf(' >> Please allow to delete %d files (non-existing value files %s)..' . PHP_EOL, $len, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
-				
+				if($f > 0)
+				{
+					fprintf(STDERR, ' >> With %d non-writable files..' . PHP_EOL, $f);
+				}
+
+				printf(' >> Allow deletion of %d files (non-existing value files %s)..' . PHP_EOL, $d, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
+
 				if(!\kekse\prompt('Do you really want to continue [yes/no]? '))
 				{
 					fprintf(STDERR, ' >> Aborted, as requested.' . PHP_EOL);
@@ -3308,25 +3374,24 @@ function counter($_host = null, $_read_only = null)
 			$result = 0;
 			$errors = 0;
 			
-			for($i = 0; $i < count($delete); ++$i)
+			for($i = 0; $i < $d; ++$i)
 			{
-				if(file_exists($delete[$i]))
+				if(\kekse\delete($delete[$i], true))
 				{
-					if(\kekse\delete($delete[$i], true))
-					{
-						++$result;
-					}
-					else
-					{
-						++$errors;
-					}
+					++$result;
 				}
 				else
 				{
+					++$errors;
 					array_splice($delete, $i--, 1);
 				}
 			}
 			
+			if($f > 0)
+			{
+				fprintf(STDERR, ' >> With %d files ignored (no permissions).' . PHP_EOL, $f);
+			}
+
 			if($result === 0)
 			{
 				fprintf(STDERR, ' >> NO files deleted (only %d errors occured)' . PHP_EOL, $errors);
@@ -3336,7 +3401,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				printf(' >> Operation deleted %d files, with' . ($errors === 0 ? 'out' : ' %d') . ' errors:' . PHP_EOL . PHP_EOL, $result, $errors);
 			}
-			
+
 			$len = count($delete);
 			
 			for($i = 0; $i < $len; ++$i)
@@ -3366,56 +3431,75 @@ function counter($_host = null, $_read_only = null)
 				exit(1);
 			}
 
+			$forbidden = array();
+			$f = 0;
 			$delete = array();
-			$index = 0;
+			$d = 0;
 			$h = 0;
 			$c = count($list);
 
 			foreach($list as $host => $type)
 			{
-				++$h;
-				$i = 0;
 				$p = $orig = get_state('path');
+				++$h;
 
-				if(($type & COUNTER_VALUE) && is_writable($p = \kekse\join_path($orig, '~' . $host)))
+				if($type & COUNTER_VALUE)
 				{
-					$delete[$index++] = $p;
-					++$i;
+					if(is_writable($p = \kekse\join_path($orig, '~' . $host)))
+					{
+						$delete[$d++] = $p;
+					}
+					else
+					{
+						$forbidden[$f++] = $p;
+					}
 				}
 
-				if(($type & COUNTER_DIR) && is_writable($p = \kekse\join_path($orig, '+' . $host)))
+				if($type & COUNTER_DIR)
 				{
-					$delete[$index++] = $p;
-					++$i;
+					if(is_writable($p = \kekse\join_path($orig, '+' . $host)))
+					{
+						$delete[$d++] = $p;
+					}
+					else
+					{
+						$forbidden[$f++] = $p;
+					}
 				}
 
-				if(($type & COUNTER_FILE) && is_writable($p = \kekse\join_path($orig, '-' . $host)))
+				if($type & COUNTER_FILE)
 				{
-					$delete[$index++] = $p;
-					++$i;
+					if(is_writable($p = \kekse\join_path($orig, '-' . $host)))
+					{
+						$delete[$d++] = $p;
+					}
+					else
+					{
+						$forbidden[$f++] = $p;
+					}
 				}
 
-				if(($type & COUNTER_CONFIG) && is_writable($p = \kekse\join_path($orig, '%' . $host)))
+				if($type & COUNTER_CONFIG)
 				{
-					$delete[$index++] = $p;
-					++$i;
-				}
-
-				if($i === 0)
-				{
-					--$h;
-					unset($list[$host]);
+					if(is_writable($p = \kekse\join_path($orig, '%' . $host)))
+					{
+						$delete[$d++] = $p;
+					}
+					else
+					{
+						$forbidden[$f++] = $p;
+					}
 				}
 			}
 
-			if($index === 0)
+			if($d === 0 && $f === 0)
 			{
-				printf(' >> No files (of %d hosts) found.' . PHP_EOL, $c);
+				printf(' >> No files found (of %d hosts).' . PHP_EOL, $c);
 				exit(0);
 			}
 			else
 			{
-				printf(' >> Found %d files of %d hosts requested, for these %d hosts left:' . PHP_EOL . PHP_EOL, $index, $c, $h);
+				printf(' >> Found %d files (%d writable, %d not) at those %d hosts:' . PHP_EOL . PHP_EOL, ($d + $f), $d, $f, $h);
 
 				$len = $maxLen = 0;
 				$keys = array_keys($list);
@@ -3478,7 +3562,17 @@ function counter($_host = null, $_read_only = null)
 				printf(PHP_EOL);
 			}
 
-			if(!\kekse\prompt('Do you really want to delete ' . $index . ' files [yes/no]? '))
+			if($f > 0)
+			{
+				fprintf(STDERR, ' >> With %d non-writable items..' . PHP_EOL, $f);
+			}
+
+			if($d === 0)
+			{
+				printf(' >> NO files can be deleted here!' . PHP_EOL);
+				exit($f === 0 ? 0 : 1);
+			}
+			else if(!\kekse\prompt('Do you really want to delete ' . $d . ' files [yes/no]? '))
 			{
 				fprintf(STDERR, ' >> Abort requested.' . PHP_EOL);
 				exit(2);
@@ -3487,7 +3581,7 @@ function counter($_host = null, $_read_only = null)
 			$ok = 0;
 			$err = 0;
 
-			for($i = 0; $i < $index; ++$i)
+			for($i = 0; $i < $d; ++$i)
 			{
 				if(\kekse\delete($delete[$i], true))
 				{
@@ -3512,6 +3606,11 @@ function counter($_host = null, $_read_only = null)
 
 			printf(' >> Successfully deleted %d files.' . PHP_EOL, $ol);
 			fprintf(STDERR, ' >> BUT also %d errors occured.' . PHP_EOL, $err);
+
+			if($f > 0)
+			{
+				fprintf(STDERR, ' >> AND %d files ignored due to missing write permissions.' . PHP_EOL, $f);
+			}
 
 			//
 			exit(0);
