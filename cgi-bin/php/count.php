@@ -1399,7 +1399,7 @@ function files($_dir, $_list = false, $_suffix = null, $_prefix = null, $_case_s
 
 	if(!is_bool($_remove))
 	{
-		$_remove = (($suffix === 1) && ($prefix === 1));
+		$_remove = (($suffix <= 1) && ($prefix <= 1));
 	}
 
 	while($sub = readdir($handle))
