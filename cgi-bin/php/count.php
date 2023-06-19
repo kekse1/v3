@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.4.1');
+define('COUNTER_VERSION', '3.4.2');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -46,7 +46,7 @@ const DEFAULTS = array(
 	'error' => '-',
 	'none' => '/',
 	'raw' => false,
-	'modules' => null//'modules/'
+	'modules' => 'modules/'
 );
 
 //
@@ -698,6 +698,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 	}
 
 	$validTest = null;
+	$success = null;
 
 	if(isset($item['test']) && $item['test'])
 	{
@@ -737,13 +738,61 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				}
 				break;
 			case 'path':
-				$validTest = (get_path($_value, true, false, false, false) !== null);
+				$validTest = (get_path($_value, true, false, false, false));// !== null);
+
+				if($validTest !== null)
+				{
+					$count = \kekse\files($validTest, false, null, [ '~', '+', '-', '%' ], false, true, false, true);
+					
+					if($count === -1)
+					{
+						$validTest = 'Warning: not readable?';
+					}
+					else if($count === 0)
+					{
+						$validTest = true;
+						$success = 'Just initialized (yet empty)';
+					}
+					else
+					{
+						$validTest = true;
+						$success = 'Already exists with ' . $count . ' counters';
+					}
+				}
+				else
+				{
+					$validTest = 'No such directory.';
+				}
 				break;
 			case 'log':
 				$validTest = (get_path($_value, true, true, false, false) !== null);
 				break;
 			case 'fonts':
-				$validTest = (get_path($_value, true, false, false, false) !== null);
+				$validTest = (get_path($_value, true, false, false, false));// !== null);
+
+				if($validTest)
+				{
+					$count = \kekse\files($validTest, false, '.ttf', null, false, true, false);
+					
+					if($count === -1)
+					{
+						$validTest = 'Warning: not readable?';
+					}
+					else if($count === 0)
+					{
+						$validTest = true;
+						$success = 'Available, but without installed font(s) (.ttf)';
+					}
+					else
+					{
+						$validTest = true;
+						$success = 'Great, even with ' . $count . ' installed fonts (.ttf)';
+					}
+				}
+				else
+				{
+					$validTest = 'No such directory.';
+				}
 				break;
 			case 'modules':
 				if($_value === null)
@@ -752,7 +801,31 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				}
 				else
 				{
-					$validTest = (get_path($_value, true, false, false, false) !== null);
+					$validTest = (get_path($_value, true, false, false, false));// !== null);
+	
+					if($validTest)
+					{
+						$count = \kekse\files($validTest, false, '.php', null, false, true, false);
+						
+						if($count === -1)
+						{
+							$validTest = 'Warning: not readable?';
+						}
+						else if($count === 0)
+						{
+							$validTest = true;
+							$success = 'Available, but no module installed (.php)';
+						}
+						else
+						{
+							$validTest = true;
+							$success = 'Yes, even with ' . $count . ' installed modules (.php)';
+						}
+					}
+					else
+					{
+						$validTest = 'No such directory.';
+					}
 				}
 				break;
 			case 'font':
@@ -849,6 +922,10 @@ function check_config_item($_key, $_value = null, $_bool = false)
 	if($_bool)
 	{
 		return true;
+	}
+	else if(is_string($success))
+	{
+		$result = $success;
 	}
 	else
 	{
@@ -1238,6 +1315,186 @@ namespace kekse;
 function is_number()
 {
 	return (is_int($_item) || is_float($_item));
+}
+
+//
+function files($_dir, $_list = false, $_suffix = null, $_prefix = null, $_case_sensitive = false, $_remove = null, $_hidden = false, $_unique = false, $_equals = false)
+{
+	$handle = opendir($_dir);
+
+	if(!$handle)
+	{
+		return false;
+	}
+
+	//
+	$index = 0;
+	$result = (($_list || $_unique) ? array() : 0);
+
+	if(is_string($_suffix))
+	{
+		$_suffix = array($_suffix);
+	}
+
+	if(is_string($_prefix))
+	{
+		$_prefix = array($_prefix);
+	}
+
+	$suffix = $prefix = 0;
+
+	if(is_array($_suffix))
+	{
+		if(($suffix = count($_suffix)) === 0)
+		{
+			$_suffix = null;
+		}
+		else for($i = 0; $i < $suffix; ++$i)
+		{
+			if(!is_string($_suffix[$i]))
+			{
+				array_splice($_suffix, $i--, 1);
+				--$suffix;
+			}
+			else if(empty($_suffix[$i]))
+			{
+				array_splice($_suffix, $i--, 1);
+				--$suffix;
+			}
+		}
+	}
+	else
+	{
+		$_suffix = null;
+	}
+
+	if(is_array($_prefix))
+	{
+		if(($prefix = count($_prefix)) === 0)
+		{
+			$_prefix = null;
+		}
+		else for($i = 0; $i < $prefix; ++$i)
+		{
+			if(!is_string($_prefix[$i]))
+			{
+				array_splice($_prefix, $i--, 1);
+				--$prefix;
+			}
+			else if(empty($_prefix[$i]))
+			{
+				array_splice($_prefix, $i--, 1);
+				--$prefix;
+			}
+			else if(!$_hidden && $_prefix[$i][0] === '.')
+			{
+				$_hidden = true;
+			}
+		}
+	}
+	else
+	{
+		$_prefix = null;
+	}
+
+	if(!is_bool($_remove))
+	{
+		$_remove = (($suffix === 1) && ($prefix === 1));
+	}
+
+	while($sub = readdir($handle))
+	{
+		if($sub === '.' || $sub === '..')
+		{
+			continue;
+		}
+		else if(!$_hidden && $sub[0] === '.')
+		{
+			continue;
+		}
+
+		if($prefix)
+		{
+			$found = false;
+
+			for($i = 0; $i < $prefix; ++$i)
+			{
+				if(\kekse\starts_with($sub, $_prefix[$i], $_case_sensitive))
+				{
+					if(!$_equals && $_prefix[$i] === $sub)
+					{
+						continue;
+					}
+					else if($_remove)
+					{
+						$sub = substr($sub, strlen($_prefix[$i]));
+					}
+
+					$found = true;
+					break;
+				}
+			}
+
+			if(!$found)
+			{
+				continue;
+			}
+		}
+
+		if($suffix)
+		{
+			$found = false;
+
+			for($i = 0; $i < $suffix; ++$i)
+			{
+				if(\kekse\ends_with($sub, $_suffix[$i], $_case_sensitive))
+				{
+					if(!$_equals && $_suffix[$i] === $sub)
+					{
+						continue;
+					}
+					else if($_remove)
+					{
+						$sub = substr($sub, 0, -strlen($_suffix[$i]));
+					}
+
+					$found = true;
+					break;
+				}
+			}
+
+			if(!$found)
+			{
+				continue;
+			}
+		}
+
+		if($_unique)
+		{
+			if(! in_array($sub, $result))
+			{
+				$result[$index++] = $sub;
+			}
+		}
+		else if($_list)
+		{
+			$result[$index++] = $sub;
+		}
+		else
+		{
+			++$result;
+			++$index;
+		}
+	}
+
+	closedir($handle);
+
+	if($_list)
+	{
+		return $result;
+	}
+
+	return $index;
 }
 
 //
