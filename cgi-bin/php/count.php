@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.9');
+define('COUNTER_VERSION', '3.3.0');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -5329,27 +5329,28 @@ function counter($_host = null, $_read_only = null)
 					$textHeight += 4;
 
 					//
-					$x = ceil($x + $_x + $_h);
-					$y = ceil($y + $_y + $_v);
+					$scale = ($px / $textHeight);
 
-					//
+					$textHeight *= $scale;
+					$textWidth *= $scale;
+					$px *= $scale;
+					$pt *= $scale;
+					//$pt = \kekse\px2pt($px);
+					$y *= $scale;
+					$x *= $scale;
+					
 					if(($textWidth += ($_h * 2)) < 1)
 					{
 						$textWidth = 1;
-					}
-					else
-					{
-						$textWidth = ceil($textWidth);
 					}
 					
 					if(($textHeight += ($_v * 2)) < 1)
 					{
 						$textHeight = 1;
 					}
-					else
-					{
-						$textHeight = ceil($textHeight);
-					}
+					
+					$x += ($_x + $_h);
+					$y += ($_y + $_v);
 
 					//
 					$image = imagecreatetruecolor($textWidth, $textHeight);
