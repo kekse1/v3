@@ -5371,7 +5371,7 @@ function counter($_host = null, $_read_only = null)
 				{
 					case 'pt':
 					case 'px':
-						$result = $createImage($_unit, $imageWidth, $imageHeight, $textWidth, $textHeight, $move);
+						$result = $createImage($_unit, $imageWidth, $imageHeight, $textWidth, $textHeight);
 						break;
 					default:
 						draw_error('Invalid unit [ px, pt ]');
