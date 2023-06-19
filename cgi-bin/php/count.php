@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.3.2');
+define('COUNTER_VERSION', '3.4.0');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -122,6 +122,29 @@ const CONFIG_VECTOR = array(
 );
 
 //
+if(!defined('KEKSE_CLI'))
+{
+	define('KEKSE_CLI', (php_sapi_name() === 'cli'));
+}
+
+//
+if(! (empty($argc) || empty($argv)))
+{
+	define('KEKSE_ARGC', $argc);
+	define('KEKSE_ARGV', $argv);
+}
+else if(! (empty($_SERVER['argc']) || empty($_SERVER['argv'])))
+{
+	define('KEKSE_ARGC', $_SERVER['argc']);
+	define('KEKSE_ARGV', $_SERVER['argv']);
+}
+else if(KEKSE_CLI)
+{
+	fprintf(STDERR, ' >> WARNING: CLI mode active, but missing \'$argc\' and/or \'$argv\'..! :-/' . PHP_EOL);
+	exit(127);
+}
+
+//
 function get_state($_key, $_die = true)
 {
 	//
@@ -183,922 +206,6 @@ function set_state($_key, $_value, $_die = true)
 	$STATE[$_key] = $_value;
 	return $result;
 }
-
-//
-if(!defined('KEKSE_CLI'))
-{
-	define('KEKSE_CLI', (php_sapi_name() === 'cli'));
-}
-
-//
-if(! (empty($argc) || empty($argv)))
-{
-	define('KEKSE_ARGC', $argc);
-	define('KEKSE_ARGV', $argv);
-}
-else if(! (empty($_SERVER['argc']) || empty($_SERVER['argv'])))
-{
-	define('KEKSE_ARGC', $_SERVER['argc']);
-	define('KEKSE_ARGV', $_SERVER['argv']);
-}
-else if(KEKSE_CLI)
-{
-	fprintf(STDERR, ' >> WARNING: CLI mode active, but missing \'$argc\' and/or \'$argv\'..! :-/' . PHP_EOL);
-	exit(127);
-}
-
-//
-namespace kekse;
-
-//
-function is_number()
-{
-	return (is_int($_item) || is_float($_item));
-}
-
-//
-function limit($_string, $_length = KEKSE_LIMIT)
-{
-	return substr($_string, 0, $_length);
-}
-
-//
-function ends_with($_haystack, $_needle, $_case_sensitive = true)
-{
-	if(strlen($_needle) > strlen($_haystack))
-	{
-		return false;
-	}
-	else if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-
-	return (substr($_haystack, -strlen($_needle)) === $_needle);
-}
-
-function starts_with($_haystack, $_needle, $_case_sensitive = true)
-{
-	if(strlen($_needle) > strlen($_haystack))
-	{
-		return false;
-	}
-	else if(!$_case_sensitive)
-	{
-		$_haystack = strtolower($_haystack);
-		$_needle = strtolower($_needle);
-	}
-	
-	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
-}
-
-function normalize($_path)
-{
-	if(!is_string($_path))
-	{
-		return null;
-	}
-	
-	$len = strlen($_path);
-	
-	if($len === 0 || $len > KEKSE_LIMIT)
-	{
-		return '.';
-	}
-	
-	$abs = ($_path[0] === '/');
-	$dir = ($_path[$len - 1] === '/');
-	$split = explode('/', $_path);
-	$result = array();
-	$minus = 0;
-	$item = '';
-	
-	while(count($split) > 0)
-	{
-		switch($item = array_shift($split))
-		{
-			case '':
-			case '.':
-				break;
-			case '..':
-				if(count($result) === 0)
-				{
-					++$minus;
-				}
-				else
-				{
-					array_pop($result);
-				}
-				break;
-			default:
-				array_push($result, $item);
-				break;
-		}
-	}
-	
-	if($abs)
-	{
-		array_unshift($result, '');
-	}
-	else while(--$minus >= 0)
-	{
-		array_unshift($result, '..');
-	}
-	
-	if($dir)
-	{
-		array_push($result, '');
-	}
-	
-	//
-	return implode('/', $result);
-}
-
-function join_path(... $_args)
-{
-	if(count($_args) === 0)
-	{
-		return null;
-	}
-
-	$len = count($_args);
-	$result = '';
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(!is_string($_args[$i]))
-		{
-			throw new Error('Invalid argument[' . $i . '] (no non-empty String)');
-		}
-		else if(!empty($_args[$i]))
-		{
-			$result .= $_args[$i] . '/';
-		}
-	}
-	
-	if(strlen($result) > 0)
-	{
-		$result = substr($result, 0, -1);
-	}
-	
-	return normalize($result);
-}
-
-function timestamp($_diff = null)
-{
-	if(!is_int($_diff))
-	{
-		return time();
-	}
-	
-	return (time() - $_diff);
-}
-
-function remove_white_spaces($_string)
-{
-	$result = '';
-	$len = strlen($_string);
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(ord($_string[$i]) > 32)
-		{
-			$result .= $_string[$i];
-		}
-	}
-	
-	return $result;
-}
-
-function secure($_string)
-{
-	if(!is_string($_string))
-	{
-		return null;
-	}
-	
-	$len = strlen($_string);
-	
-	if($len > KEKSE_LIMIT || $len === 0)
-	{
-		return null;
-	}
-	
-	$result = '';
-	$byte = 0;
-	$add = '';
-	$l = 0;
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(($byte = ord($_string[$i])) >= 97 && $byte <= 122)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 48 && $byte <= 57)
-		{
-			$add = chr($byte);
-		}
-		else if($byte === 46)
-		{
-			$l = strlen($result);
-			
-			if($l === 0)
-			{
-				$add = '';
-			}
-			else if($result[$l - 1] === '.')
-			{
-				$add = '';
-			}
-			else
-			{
-				$add = '.';
-			}
-		}
-		else if($byte === 40 || $byte === 41)
-		{
-			$add = chr($byte);
-		}
-		else if($byte >= 43 && $byte <= 45)
-		{
-			$add = chr($byte);
-		}
-		else if($byte === 47)
-		{
-			$l = strlen($result);
-			
-			if($l === 0)
-			{
-				$add = '';
-			}
-			else if($result[$l - 1] === chr($byte))
-			{
-				$add = '';
-			}
-			else
-			{
-				$add = chr($byte);
-			}
-		}
-		else if($byte === 58)
-		{
-			$add = ':';
-		}
-		else if($byte === 35)
-		{
-			$add = '#';
-		}
-		else
-		{
-			continue;
-		}
-		
-		$result .= $add;
-	}
-
-	$len = strlen($result);
-
-	if($len > 0)
-	{
-		$rem = 0;
-
-		while(($len - 1 - $rem) >= 0 && ($result[$len - 1 - $rem] === '.' || $result[$len - 1 - $rem] === '+'))
-		{
-			++$rem;
-		}
-
-		if($rem > 0)
-		{
-			$result = substr($result, 0, -$rem);
-			$rem = 0;
-			$len = strlen($result);
-		}
-
-		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '%')
-		{
-			++$rem;
-		}
-
-		if($rem > 0)
-		{
-			$result = substr($result, $rem);
-		}
-
-		$len = strlen($result);
-	}
-
-	if($len === 0)
-	{
-		return null;
-	}
-	
-	return $result;
-}
-
-function secure_host($_string)
-{
-	$result = secure($_string);
-	
-	if($result !== null)
-	{
-		$result = strtolower($result);
-	}
-	
-	return $result;
-}
-
-function secure_path($_string)
-{
-	return secure($_string);
-}
-
-//
-function delete($_path, $_depth = 0, $_depth_current = 0)
-{
-	if($_depth === true)
-	{
-		$_depth = null;
-	}
-	else if($_depth === false)
-	{
-		$_depth = 0;
-	}
-	else if($_depth !== null && !(is_int($_depth) && $_depth >= 0))
-	{
-		$_depth = 0;
-	}
-
-	if(is_dir($_path))
-	{
-		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
-		{
-			$handle = opendir($_path);
-
-			if($handle === false)
-			{
-				return false;
-			}
-
-			$count = 0;
-
-			while($sub = readdir($handle))
-			{
-				if($sub !== '.' && $sub !== '..')
-				{
-					++$count;
-				}
-			}
-
-			closedir($handle);
-
-			if($count < 0)
-			{
-				return false;
-			}
-			else if($count > 0)
-			{
-				return false;
-			}
-			else if(rmdir($_path) === false)
-			{
-				return false;
-			}
-			
-			return true;
-		}
-		
-		$handle = opendir($_path);
-
-		if($handle === false)
-		{
-			return false;
-		}
-		
-		$count = 0;
-
-		while($sub = readdir($handle))
-		{
-			if($sub === '.' || $sub === '..')
-			{
-				continue;
-			}
-			else
-			{
-				++$count;
-			}
-
-			if(! is_writable(\kekse\join_path($_path, $sub)))
-			{
-				return false;
-			}
-			
-			if(is_dir(\kekse\join_path($_path, $sub)))
-			{
-				if($_depth !== null && $_depth <= $_depth_current)
-				{
-					return false;
-				}
-				else if(!\kekse\delete(\kekse\join_path($_path, $sub), $_depth, $_depth_current + 1))
-				{
-					return false;
-				}
-				else
-				{
-					--$count;
-				}
-			}
-			else if(unlink(\kekse\join_path($_path, $sub)) === false)
-			{
-				return false;
-			}
-			else
-			{
-				--$count;
-			}
-		}
-		
-		closedir($handle);
-
-		if($count === -1)
-		{
-			return false;
-		}
-		else if($count > 0)
-		{
-			return false;
-		}
-		else if(!is_writable($_path))
-		{
-			return false;
-		}
-
-		return rmdir($_path);
-	}
-	else if(file_exists($_path) && is_writable($_path))
-	{
-		if(unlink($_path) === false)
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
-	
-	return true;
-}
-
-function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_STRICT, $_fallback = true)
-{
-	if(!is_bool($_strict))
-	{
-		$_strict = KEKSE_STRICT;
-	}
-	
-	if(!is_string($_key) || empty($_key))
-	{
-		return null;
-	}
-	else
-	{
-		$len = strlen($_key);
-		
-		if($len === 0 || $len > KEKSE_LIMIT)
-		{
-			return null;
-		}
-	}
-	
-	$store = null;
-	
-	if(KEKSE_CLI || empty($_GET))
-	{
-		if($_fallback && isset($_SERVER))
-		{
-			$store = $_SERVER;
-		}
-		else
-		{
-			return null;
-		}
-	}
-	else if(!empty($_GET))
-	{
-		$store = $_GET;
-	}
-	else
-	{
-		return null;
-	}
-	
-	if(! array_key_exists($_key, $store))
-	{
-		return null;
-	}
-
-	$value = $store[$_key];
-	$len = strlen($value);
-
-	if($len > KEKSE_LIMIT || $len === 0)
-	{
-		return null;
-	}
-	else if($_numeric === null) switch(strtolower($value[0]))
-	{
-		case '0':
-		case 'n':
-			return false;
-		case '1':
-		case 'y':
-			return true;
-		default:
-			if($_strict)
-			{
-				return null;
-			}
-			break;
-	}
-	
-	$result = '';
-	$byte = null;
-	$hadPoint = false;
-	$numeric = null;
-	$set = '';
-	$negative = false;
-	$remove = 0;
-
-	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
-	{
-		++$remove;
-
-		if($value[0] === '-')
-		{
-			$negative = !$negative;
-		}
-	}
-
-	if($remove > 0)
-	{
-		$value = substr($value, $remove);
-	}
-
-	$len = strlen($value);
-
-	for($i = 0; $i < $len; ++$i)
-	{
-		if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
-		{
-			$numeric = false;
-			$set = chr($byte);
-		}
-		else if($byte >= 65 && $byte <= 90)
-		{
-			$numeric = false;
-			$set = chr($byte);
-		}
-		else if($byte >= 48 && $byte <= 57)
-		{
-			$set = chr($byte);
-
-			if($numeric === null)
-			{
-				$numeric = true;
-			}
-		}
-		else if($byte === 46)
-		{
-			$set = '.';
-			
-			if($result[strlen($result) - 1] === '.')
-			{
-				$set = '';
-			}
-			else if($hadPoint)
-			{
-				$numeric = false;
-			}
-			else
-			{
-				$hadPoint = true;
-			}
-		}
-		else if($byte === 44)
-		{
-			$set = ',';
-			$numeric = false;
-		}
-		else if($byte === 58)
-		{
-			$set = ':';
-		}
-		else if($byte === 35)
-		{
-			$set = '#';
-		}
-		else
-		{
-			continue;
-		}
-
-		$result .= $set;
-	}
-
-	if(strlen($result) === 0)
-	{
-		return null;
-	}
-	else if(! $_numeric)
-	{
-		$numeric = false;
-	}
-	else if(!$_float && $numeric)
-	{
-		$hadPoint = false;
-	}
-
-	if($numeric)
-	{
-		if($result === '.')
-		{
-			if($_strict)
-			{
-				return null;
-			}
-		}
-		else
-		{
-			if($result[0] === '.')
-			{
-				$result = '0' . $result;
-			}
-			else if($result[strlen($result) - 1] === '.')
-			{
-				$result = substr($result, 0, -1);
-				$hadPoint = false;
-			}
-
-			if($hadPoint)
-			{
-				$result = (double)$result;
-			}
-			else
-			{
-				$result = (int)$result;
-			}
-
-			if($negative)
-			{
-				$result = -$result;
-			}
-		}
-	}
-	else if($_numeric && $_strict)
-	{
-		return null;
-	}
-
-	return $result;
-}
-
-function px2pt($_px)
-{
-	return ($_px * 0.75);
-}
-
-function pt2px($_pt)
-{
-	return ($_pt / 0.75);
-}
-
-//
-function unit($_string, $_float = false, $_null = true)
-{
-	$len = strlen($_string);
-	
-	if($len > KEKSE_LIMIT)
-	{
-		return null;
-	}
-	else
-	{
-		$_string = strtolower($_string);
-	}
-	
-	$size = '';
-	$unit = '';
-	$state = false;
-	$float = false;
-	$wait = false;
-	$byte = 0;
-	
-	for($i = 0; $i < $len; ++$i)
-	{
-		$byte = ord($_string[$i]);
-		
-		if($byte <= 32)
-		{
-			continue;
-		}
-		else if($byte >= 97 && $byte <= 122)
-		{
-			$unit .= chr($byte);
-			$state = true;
-		}
-		else if($state)
-		{
-			break;
-		}
-		else if($wait)
-		{
-			continue;
-		}
-		else if($byte >= 48 && $byte <= 57)
-		{
-			$size .= chr($byte);
-		}
-		else if($byte === 46)
-		{
-			if(!$_float || $float)
-			{
-				$wait = true;
-			}
-			else if($i < ($len - 1))
-			{
-				$float = true;
-				$size .= '.';
-			}
-		}
-	}
-	
-	$s = strlen($size);
-	$u = strlen($unit);
-	
-	if($s === 0)
-	{
-		$size = 0;
-	}
-	else
-	{
-		if($float)
-		{
-			if($size[0] === '.')
-			{
-				$size = '0' . $size;
-			}
-			else if($size[$s - 1] === '.')
-			{
-				$size = substr($size, 0, -1);
-				$float = false;
-			}
-		}
-		
-		if($float)
-		{
-			$size = (float)$size;
-		}
-		else
-		{
-			$size = (int)$size;
-		}
-	}
-	
-	if($u === 0 && $_null)
-	{
-		$unit = null;
-	}
-	
-	return array($size, $unit);
-}
-
-function color($_value, $_gd =  false)
-{
-	die('TODO');
-}
-
-if(KEKSE_CLI)
-{
-	//
-	//TODO: WITH "KEKSE_PREFIX"!
-	//
-	function prompt($_string, $_return = false, $_repeat = true)
-	{
-		$confirm = function() use (&$_string, &$_return) {
-			$res = readline($_string);
-			
-			if($_return)
-			{
-				return $res;
-			}
-			else if(empty($res))
-			{
-				return null;
-			}
-			else switch(strtolower($res[0]))
-			{
-				case 'y': case '1': return true;
-				case 'n': case '0': return false;
-			}
-			
-			return null;
-		};
-		
-		$result = $confirm();
-		
-		if(is_string($result))
-		{
-			return $result;
-		}
-		else while($result === null)
-		{
-			$result = $confirm();
-		}
-		
-		return $result;
-	}
-
-	//
-	function log($format, ... $_args)
-	{
-	}
-
-	function info($format, ... $_args)
-	{
-	}
-
-	function warn($format, ... $_args)
-	{
-	}
-
-	function error($format, ... $_args)
-	{
-	}
-
-	function debug($format, ... $_args)
-	{
-	}
-}
-
-//
-namespace kekse\ansi;
-
-function ansi($_sequence, $_text = null)
-{
-	if(! KEKSE_ANSI)
-	{
-		return $_text;
-	}
-	else
-	{
-	}
-}
-
-function rgb($_text, $r, $g, $b, $a = 1.0)
-{
-	if(func_num_args() === 2)
-	{
-		if(is_string($_r))
-		{
-		}
-		else if(is_array($_r))
-		{
-		}
-	}
-	else
-	{
-	}
-}
-
-function reset()
-{
-	//'[0m'
-}
-
-function green($_text)
-{
-}
-
-function red($_text)
-{
-}
-
-function blue($_text)
-{
-}
-
-function bold($_text)
-{
-}
-
-//
-//TODO/see lib.js! ^_^
-//
 
 //
 namespace kekse\counter;
@@ -1180,6 +287,75 @@ function error($_reason, $_own = false, $_exit_code = 224)
 	}
 
 	die($_reason);
+}
+	
+function log_error($_reason, $_source = '', $_path = '', $_die = true)
+{
+	//
+	if(get_config('raw'))
+	{
+		if($_reason instanceof \Exception)
+		{
+			throw $_reason;
+		}
+		
+		throw new \Exception($_reason);
+	}
+	else if(KEKSE_CLI)
+	{
+		if($_die)
+		{
+			return error($_reason);
+		}
+		
+		return null;
+	}
+	else if($_reason instanceof \Exception)
+	{
+		$_reason = $_reason->getMessage();
+	}
+	
+	$data = '[' . (string)time() . ']';
+
+	if(!empty($_source))
+	{
+		$data .= $_source . '(';
+
+		if(!empty($_path))
+		{
+			$data .= basename($_path);
+		}
+
+		$data .= ')';
+	}
+	else if(!empty($_path))
+	{
+		$data .= '(' . basename($_path) . ')';
+	}
+
+	$data .= ': ' . $_reason . PHP_EOL;
+
+	if(get_state('log') !== null)
+	{
+		$result = file_put_contents(get_state('log'), $data, FILE_APPEND);
+
+		if($result === false)
+		{
+			if($_die)
+			{
+				error('Logging error');
+			}
+
+			return null;
+		}
+	}
+	
+	if($_die)
+	{
+		return error($_reason);
+	}
+
+	return $data;
 }
 		
 //
@@ -2035,81 +1211,1298 @@ function load_config($_path, $_data = null, $_depth = 8)
 }
 
 //
+namespace kekse;
+
+//
+function is_number()
+{
+	return (is_int($_item) || is_float($_item));
+}
+
+//
+function limit($_string, $_length = KEKSE_LIMIT)
+{
+	return substr($_string, 0, $_length);
+}
+
+//
+function ends_with($_haystack, $_needle, $_case_sensitive = true)
+{
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
+	}
+
+	return (substr($_haystack, -strlen($_needle)) === $_needle);
+}
+
+function starts_with($_haystack, $_needle, $_case_sensitive = true)
+{
+	if(strlen($_needle) > strlen($_haystack))
+	{
+		return false;
+	}
+	else if(!$_case_sensitive)
+	{
+		$_haystack = strtolower($_haystack);
+		$_needle = strtolower($_needle);
+	}
+	
+	return (substr($_haystack, 0, strlen($_needle)) === $_needle);
+}
+
+function normalize($_path)
+{
+	if(!is_string($_path))
+	{
+		return null;
+	}
+	
+	$len = strlen($_path);
+	
+	if($len === 0 || $len > KEKSE_LIMIT)
+	{
+		return '.';
+	}
+	
+	$abs = ($_path[0] === '/');
+	$dir = ($_path[$len - 1] === '/');
+	$split = explode('/', $_path);
+	$result = array();
+	$minus = 0;
+	$item = '';
+	
+	while(count($split) > 0)
+	{
+		switch($item = array_shift($split))
+		{
+			case '':
+			case '.':
+				break;
+			case '..':
+				if(count($result) === 0)
+				{
+					++$minus;
+				}
+				else
+				{
+					array_pop($result);
+				}
+				break;
+			default:
+				array_push($result, $item);
+				break;
+		}
+	}
+	
+	if($abs)
+	{
+		array_unshift($result, '');
+	}
+	else while(--$minus >= 0)
+	{
+		array_unshift($result, '..');
+	}
+	
+	if($dir)
+	{
+		array_push($result, '');
+	}
+	
+	//
+	return implode('/', $result);
+}
+
+function join_path(... $_args)
+{
+	if(count($_args) === 0)
+	{
+		return null;
+	}
+
+	$len = count($_args);
+	$result = '';
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(!is_string($_args[$i]))
+		{
+			throw new Error('Invalid argument[' . $i . '] (no non-empty String)');
+		}
+		else if(!empty($_args[$i]))
+		{
+			$result .= $_args[$i] . '/';
+		}
+	}
+	
+	if(strlen($result) > 0)
+	{
+		$result = substr($result, 0, -1);
+	}
+	
+	return normalize($result);
+}
+
+function timestamp($_diff = null)
+{
+	if(!is_int($_diff))
+	{
+		return time();
+	}
+	
+	return (time() - $_diff);
+}
+
+function remove_white_spaces($_string)
+{
+	$result = '';
+	$len = strlen($_string);
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(ord($_string[$i]) > 32)
+		{
+			$result .= $_string[$i];
+		}
+	}
+	
+	return $result;
+}
+
+function secure($_string)
+{
+	if(!is_string($_string))
+	{
+		return null;
+	}
+	
+	$len = strlen($_string);
+	
+	if($len > KEKSE_LIMIT || $len === 0)
+	{
+		return null;
+	}
+	
+	$result = '';
+	$byte = 0;
+	$add = '';
+	$l = 0;
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(($byte = ord($_string[$i])) >= 97 && $byte <= 122)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 46)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
+			{
+				$add = '';
+			}
+			else if($result[$l - 1] === '.')
+			{
+				$add = '';
+			}
+			else
+			{
+				$add = '.';
+			}
+		}
+		else if($byte === 40 || $byte === 41)
+		{
+			$add = chr($byte);
+		}
+		else if($byte >= 43 && $byte <= 45)
+		{
+			$add = chr($byte);
+		}
+		else if($byte === 47)
+		{
+			$l = strlen($result);
+			
+			if($l === 0)
+			{
+				$add = '';
+			}
+			else if($result[$l - 1] === chr($byte))
+			{
+				$add = '';
+			}
+			else
+			{
+				$add = chr($byte);
+			}
+		}
+		else if($byte === 58)
+		{
+			$add = ':';
+		}
+		else if($byte === 35)
+		{
+			$add = '#';
+		}
+		else
+		{
+			continue;
+		}
+		
+		$result .= $add;
+	}
+
+	$len = strlen($result);
+
+	if($len > 0)
+	{
+		$rem = 0;
+
+		while(($len - 1 - $rem) >= 0 && ($result[$len - 1 - $rem] === '.' || $result[$len - 1 - $rem] === '+'))
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, 0, -$rem);
+			$rem = 0;
+			$len = strlen($result);
+		}
+
+		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '%')
+		{
+			++$rem;
+		}
+
+		if($rem > 0)
+		{
+			$result = substr($result, $rem);
+		}
+
+		$len = strlen($result);
+	}
+
+	if($len === 0)
+	{
+		return null;
+	}
+	
+	return $result;
+}
+
+function secure_host($_string)
+{
+	$result = secure($_string);
+	
+	if($result !== null)
+	{
+		$result = strtolower($result);
+	}
+	
+	return $result;
+}
+
+function secure_path($_string)
+{
+	return secure($_string);
+}
+
+//
+function delete($_path, $_depth = 0, $_depth_current = 0)
+{
+	if($_depth === true)
+	{
+		$_depth = null;
+	}
+	else if($_depth === false)
+	{
+		$_depth = 0;
+	}
+	else if($_depth !== null && !(is_int($_depth) && $_depth >= 0))
+	{
+		$_depth = 0;
+	}
+
+	if(is_dir($_path))
+	{
+		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
+		{
+			$handle = opendir($_path);
+
+			if($handle === false)
+			{
+				return false;
+			}
+
+			$count = 0;
+
+			while($sub = readdir($handle))
+			{
+				if($sub !== '.' && $sub !== '..')
+				{
+					++$count;
+				}
+			}
+
+			closedir($handle);
+
+			if($count < 0)
+			{
+				return false;
+			}
+			else if($count > 0)
+			{
+				return false;
+			}
+			else if(rmdir($_path) === false)
+			{
+				return false;
+			}
+			
+			return true;
+		}
+		
+		$handle = opendir($_path);
+
+		if($handle === false)
+		{
+			return false;
+		}
+		
+		$count = 0;
+
+		while($sub = readdir($handle))
+		{
+			if($sub === '.' || $sub === '..')
+			{
+				continue;
+			}
+			else
+			{
+				++$count;
+			}
+
+			if(! is_writable(\kekse\join_path($_path, $sub)))
+			{
+				return false;
+			}
+			
+			if(is_dir(\kekse\join_path($_path, $sub)))
+			{
+				if($_depth !== null && $_depth <= $_depth_current)
+				{
+					return false;
+				}
+				else if(!\kekse\delete(\kekse\join_path($_path, $sub), $_depth, $_depth_current + 1))
+				{
+					return false;
+				}
+				else
+				{
+					--$count;
+				}
+			}
+			else if(unlink(\kekse\join_path($_path, $sub)) === false)
+			{
+				return false;
+			}
+			else
+			{
+				--$count;
+			}
+		}
+		
+		closedir($handle);
+
+		if($count === -1)
+		{
+			return false;
+		}
+		else if($count > 0)
+		{
+			return false;
+		}
+		else if(!is_writable($_path))
+		{
+			return false;
+		}
+
+		return rmdir($_path);
+	}
+	else if(file_exists($_path) && is_writable($_path))
+	{
+		if(unlink($_path) === false)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_STRICT, $_fallback = true)
+{
+	if(!is_bool($_strict))
+	{
+		$_strict = KEKSE_STRICT;
+	}
+	
+	if(!is_string($_key) || empty($_key))
+	{
+		return null;
+	}
+	else
+	{
+		$len = strlen($_key);
+		
+		if($len === 0 || $len > KEKSE_LIMIT)
+		{
+			return null;
+		}
+	}
+	
+	$store = null;
+	
+	if(KEKSE_CLI || empty($_GET))
+	{
+		if($_fallback && isset($_SERVER))
+		{
+			$store = $_SERVER;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	else if(!empty($_GET))
+	{
+		$store = $_GET;
+	}
+	else
+	{
+		return null;
+	}
+	
+	if(! array_key_exists($_key, $store))
+	{
+		return null;
+	}
+
+	$value = $store[$_key];
+	$len = strlen($value);
+
+	if($len > KEKSE_LIMIT || $len === 0)
+	{
+		return null;
+	}
+	else if($_numeric === null) switch(strtolower($value[0]))
+	{
+		case '0':
+		case 'n':
+			return false;
+		case '1':
+		case 'y':
+			return true;
+		default:
+			if($_strict)
+			{
+				return null;
+			}
+			break;
+	}
+	
+	$result = '';
+	$byte = null;
+	$hadPoint = false;
+	$numeric = null;
+	$set = '';
+	$negative = false;
+	$remove = 0;
+
+	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
+	{
+		++$remove;
+
+		if($value[0] === '-')
+		{
+			$negative = !$negative;
+		}
+	}
+
+	if($remove > 0)
+	{
+		$value = substr($value, $remove);
+	}
+
+	$len = strlen($value);
+
+	for($i = 0; $i < $len; ++$i)
+	{
+		if(($byte = ord($value[$i])) >= 97 && $byte <= 122)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 65 && $byte <= 90)
+		{
+			$numeric = false;
+			$set = chr($byte);
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$set = chr($byte);
+
+			if($numeric === null)
+			{
+				$numeric = true;
+			}
+		}
+		else if($byte === 46)
+		{
+			$set = '.';
+			
+			if($result[strlen($result) - 1] === '.')
+			{
+				$set = '';
+			}
+			else if($hadPoint)
+			{
+				$numeric = false;
+			}
+			else
+			{
+				$hadPoint = true;
+			}
+		}
+		else if($byte === 44)
+		{
+			$set = ',';
+			$numeric = false;
+		}
+		else if($byte === 58)
+		{
+			$set = ':';
+		}
+		else if($byte === 35)
+		{
+			$set = '#';
+		}
+		else
+		{
+			continue;
+		}
+
+		$result .= $set;
+	}
+
+	if(strlen($result) === 0)
+	{
+		return null;
+	}
+	else if(! $_numeric)
+	{
+		$numeric = false;
+	}
+	else if(!$_float && $numeric)
+	{
+		$hadPoint = false;
+	}
+
+	if($numeric)
+	{
+		if($result === '.')
+		{
+			if($_strict)
+			{
+				return null;
+			}
+		}
+		else
+		{
+			if($result[0] === '.')
+			{
+				$result = '0' . $result;
+			}
+			else if($result[strlen($result) - 1] === '.')
+			{
+				$result = substr($result, 0, -1);
+				$hadPoint = false;
+			}
+
+			if($hadPoint)
+			{
+				$result = (double)$result;
+			}
+			else
+			{
+				$result = (int)$result;
+			}
+
+			if($negative)
+			{
+				$result = -$result;
+			}
+		}
+	}
+	else if($_numeric && $_strict)
+	{
+		return null;
+	}
+
+	return $result;
+}
+
+function px2pt($_px)
+{
+	return ($_px * 0.75);
+}
+
+function pt2px($_pt)
+{
+	return ($_pt / 0.75);
+}
+
+//
+function unit($_string, $_float = false, $_null = true)
+{
+	$len = strlen($_string);
+	
+	if($len > KEKSE_LIMIT)
+	{
+		return null;
+	}
+	else
+	{
+		$_string = strtolower($_string);
+	}
+	
+	$size = '';
+	$unit = '';
+	$state = false;
+	$float = false;
+	$wait = false;
+	$byte = 0;
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		$byte = ord($_string[$i]);
+		
+		if($byte <= 32)
+		{
+			continue;
+		}
+		else if($byte >= 97 && $byte <= 122)
+		{
+			$unit .= chr($byte);
+			$state = true;
+		}
+		else if($state)
+		{
+			break;
+		}
+		else if($wait)
+		{
+			continue;
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$size .= chr($byte);
+		}
+		else if($byte === 46)
+		{
+			if(!$_float || $float)
+			{
+				$wait = true;
+			}
+			else if($i < ($len - 1))
+			{
+				$float = true;
+				$size .= '.';
+			}
+		}
+	}
+	
+	$s = strlen($size);
+	$u = strlen($unit);
+	
+	if($s === 0)
+	{
+		$size = 0;
+	}
+	else
+	{
+		if($float)
+		{
+			if($size[0] === '.')
+			{
+				$size = '0' . $size;
+			}
+			else if($size[$s - 1] === '.')
+			{
+				$size = substr($size, 0, -1);
+				$float = false;
+			}
+		}
+		
+		if($float)
+		{
+			$size = (float)$size;
+		}
+		else
+		{
+			$size = (int)$size;
+		}
+	}
+	
+	if($u === 0 && $_null)
+	{
+		$unit = null;
+	}
+	
+	return array($size, $unit);
+}
+
+//
+$colorDetermination = (\kekse\counter\get_config('raw') || (!KEKSE_CLI && \kekse\counter\get_config('drawing')));
+
+function color(... $_args)
+{
+	global $colorDetermination;
+	
+	if($colorDetermination)
+	{
+		return \kekse\color\color(... $_args);
+	}
+	
+	return false;
+}
+
+//
+namespace kekse\color;
+
+if($colorDetermination)
+{
+	//
+	function color($_string, $_gd = true)
+	{
+		if(!is_string($_string))
+		{
+			if(is_array($_string) && color_check_array($_string))
+			{
+				return color_fix($_string, $_gd);
+			}
+			
+			return null;
+		}
+		else
+		{
+			$len = strlen($_string);
+
+			if($len === 0 || $len > KEKSE_LIMIT)
+			{
+				return null;
+			}
+		}
+
+		//
+		if(substr($_string, 0, 5) === 'rgba(')
+		{
+			$_string = substr($_string, 5);
+		}
+		else if(substr($_string, 0, 4) === 'rgb(')
+		{
+			$_string = substr($_string, 4);
+		}
+
+		if($_string[strlen($_string) - 1] === ')')
+		{
+			$_string = substr($_string, 0, -1);
+		}
+
+		$result = null;
+
+		if(color_is_hexadecimal($_string))
+		{
+			$result = color_hexadecimal($_string);
+		}
+		else
+		{
+			$result = color_rgb_a($_string);
+		}
+
+		if($result !== null)
+		{
+			$result = color_fix($result, $_gd);
+		}
+		
+		return $result;
+	}
+
+	//
+	function color_fix($_array, $_gd = false)
+	{
+		$len = count($_array);
+		
+		if($len < 3 || $len > 4)
+		{
+			return null;
+		}
+		
+		for($i = 0; $i < 4; ++$i)
+		{
+			if(is_float($_array[$i]))
+			{
+				if($_array[$i] < 0.0)
+				{
+					$_array[$i] = 0;
+				}
+				else if($_array[$i] > 1.0)
+				{
+					$_array[$i] = 255;
+				}
+				else
+				{
+					$_array[$i] = (int)($_array[$i] * 255);
+				}
+			}
+			else if(is_int($_array[$i]))
+			{
+				if($_array[$i] < 0)
+				{
+					$_array[$i] = 0;
+				}
+				else if($_array[$i] > 255)
+				{
+					$_array[$i] = 255;
+				}
+			}
+		}
+
+		if($len === 3)
+		{
+			$_array[3] = 1.0;
+		}
+		else if(is_int($_array[3]))
+		{
+			$_array[3] = (float)($_array[3] / 255);
+		}
+
+		if($_gd)
+		{
+			$_array = color_fix_gd($_array);
+		}
+		
+		return $_array;
+	}
+
+	function color_fix_gd($_array, $_int = false)
+	{
+		if(count($_array) === 3)
+		{
+			$_array[3] = 1.0;
+		}
+		else if($_int && is_int($_array[3]))
+		{
+			$_array[3] = (float)($_array[3] / 255);
+		}
+
+		$_array[3] = (int)(127 - ($_array[3] * 127));
+		return $_array;
+	}
+
+	//
+	function color_check_array($_array)
+	{
+		if(!is_array($_array))
+		{
+			return false;
+		}
+		
+		$len = count($_array);
+		
+		if($len < 3 || $len > 4)
+		{
+			return false;
+		}
+		else for($i = 0; $i < 3; ++$i)
+		{
+			if(!is_int($_array[$i]))
+			{
+				return false;
+			}
+			else if($_array[$i] < 0 || $_array[$i] > 255)
+			{
+				return false;
+			}
+		}
+		
+		if($len === 3)
+		{
+			return true;
+		}
+		else if(is_int($_array[3]))
+		{
+			if($_array[3] < 0 || $_array[3] > 255)
+			{
+				return false;
+			}
+		}
+		else if(is_float($_array[3]))
+		{
+			if($_array[3] < 0.0 || $_array[3] > 1.0)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	function color_rgb_a($_string)
+	{
+		//
+		$_string = \kekse\remove_white_spaces($_string) . ',';
+		$len = strlen($_string);
+		$result = array();
+		$comma = false;
+		$byte = -1;
+		$item = '';
+
+		//
+		for($i = 0, $j = 0; $i < $len; ++$i)
+		{
+			if($_string[$i] === ',')
+			{
+				if(strlen($item) === 0)
+				{
+					continue;
+				}
+				else if($comma)
+				{
+					if(\kekse\ends_with($item, '.'))
+					{
+						$item .= '0';
+					}
+					
+					if($item[0] === '.')
+					{
+						$item = '0' . $item;
+					}
+				}
+
+				if($comma)
+				{
+					$item = (double)$item;
+					
+					if($item < 0 || $item > 1)
+					{
+						return null;
+					}
+				}
+				else
+				{
+					$item = (int)$item;
+					
+					if($j === 3)
+					{
+						if($item < 0)
+						{
+							return null;
+						}
+						else if($item <= 1)
+						{
+							$item = (double)$item;
+						}
+						else if($item <= 255)
+						{
+							$item = (double)($item / 255);
+						}
+						else
+						{
+							return null;
+						}
+					}
+				}
+				
+				if($j === 2)
+				{
+				}
+			
+				$result[$j++] = $item;
+				$item = '';
+				$comma = false;
+			}
+			else if($_string[$i] === '.')
+			{
+				$comma = true;
+				$item .= '.';
+			}
+			else if(($byte = ord($_string[$i])) >= 48 && $byte <= 57)
+			{
+				$item .= $_string[$i];
+			}
+		}
+
+		//
+		return $result;
+	}
+
+	function color_hexadecimal($_string)
+	{
+		//
+		$_string = \kekse\remove_white_spaces($_string);
+		
+		//
+		if($_string[0] === '#')
+		{
+			$_string = substr($_string, 1);
+		}
+		
+		//
+		$result = array();
+		$len = strlen($_string);
+		$sub = '';
+		
+		//
+		if($len === 3 || $len === 4) for($i = 0; $i < $len; ++$i)
+		{
+			if(strlen($sub .= color_symbol_hexadecimal($_string[$i])) > 0)
+			{
+				$result[$i] = hexdec($sub . $sub);
+				
+				if($result[$i] < 0 || $result[$i] > 255)
+				{
+					return null;
+				}
+				else
+				{
+					$sub = '';
+				}
+			}
+		}
+		else if($len === 6 || $len === 8) for($i = 0, $j = 0; $i < $len; ++$i)
+		{
+			if(strlen($sub .= color_symbol_hexadecimal($_string[$i])) > 1)
+			{
+				$result[$j] = hexdec($sub);
+				
+				if($result[$j] < 0 || $result[$j] > 255)
+				{
+					return null;
+				}
+				else
+				{
+					$sub = '';
+					++$j;
+				}
+			}
+		}
+		else
+		{
+			return null;
+		}
+
+		//
+		return $result;
+	}
+
+	function color_symbol_hexadecimal($_char)
+	{
+		$b;
+		
+		if(($b = ord($_char)) >= 48 && $b <= 57)
+		{
+			return $_char;
+		}
+		else if($b >= 97 && $b <= 102)
+		{
+			return $_char;
+		}
+		else if($b >= 65 && $b <= 70)
+		{
+			return chr($b + 32);
+		}
+		
+		return '';
+	}
+	
+	function color_is_hexadecimal($_string)
+	{
+		$_string = \kekse\remove_white_spaces($_string);
+		
+		if($_string[0] === '#')
+		{
+			$_string = substr($_string, 1);
+		}
+		
+		$len = strlen($_string);
+		
+		switch($len)
+		{
+			case 3:
+			case 4:
+			case 6:
+			case 8:
+				break;
+			default:
+				return false;
+		}
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			if(color_symbol_hexadecimal($_string[$i]) === '')
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
+//
+if(KEKSE_CLI)
+{
+	//
+	//TODO: WITH "KEKSE_PREFIX"!
+	//
+	function prompt($_string, $_return = false, $_repeat = true)
+	{
+		$confirm = function() use (&$_string, &$_return) {
+			$res = readline($_string);
+			
+			if($_return)
+			{
+				return $res;
+			}
+			else if(empty($res))
+			{
+				return null;
+			}
+			else switch(strtolower($res[0]))
+			{
+				case 'y': case '1': return true;
+				case 'n': case '0': return false;
+			}
+			
+			return null;
+		};
+		
+		$result = $confirm();
+		
+		if(is_string($result))
+		{
+			return $result;
+		}
+		else while($result === null)
+		{
+			$result = $confirm();
+		}
+		
+		return $result;
+	}
+
+	//
+	function log($format, ... $_args)
+	{
+	}
+
+	function info($format, ... $_args)
+	{
+	}
+
+	function warn($format, ... $_args)
+	{
+	}
+
+	function error($format, ... $_args)
+	{
+	}
+
+	function debug($format, ... $_args)
+	{
+	}
+}
+
+//
+namespace kekse\ansi;
+
+function ansi($_sequence, $_text = null)
+{
+	if(! KEKSE_ANSI)
+	{
+		return $_text;
+	}
+	else
+	{
+	}
+}
+
+function rgb($_text, $r, $g, $b, $a = 1.0)
+{
+	if(func_num_args() === 2)
+	{
+		if(is_string($_r))
+		{
+		}
+		else if(is_array($_r))
+		{
+		}
+	}
+	else
+	{
+	}
+}
+
+function reset()
+{
+	//'[0m'
+}
+
+function green($_text)
+{
+}
+
+function red($_text)
+{
+}
+
+function blue($_text)
+{
+}
+
+function bold($_text)
+{
+}
+
+//
+namespace kekse\counter;
+
+//
 function counter($_host = null, $_read_only = null)
 {
 	//
 	if(!is_bool($_read_only))
 	{
 		$_read_only = !!get_config('raw');
-	}
-	
-	function log_error($_reason, $_source = '', $_path = '', $_die = true)
-	{
-		//
-		if(get_config('raw'))
-		{
-			if($_reason instanceof \Exception)
-			{
-				throw $_reason;
-			}
-			
-			throw new \Exception($_reason);
-		}
-		else if(KEKSE_CLI)
-		{
-			if($_die)
-			{
-				return error($_reason);
-			}
-			
-			return null;
-		}
-		else if($_reason instanceof \Exception)
-		{
-			$_reason = $_reason->getMessage();
-		}
-		
-		$data = '[' . (string)time() . ']';
-
-		if(!empty($_source))
-		{
-			$data .= $_source . '(';
-
-			if(!empty($_path))
-			{
-				$data .= basename($_path);
-			}
-
-			$data .= ')';
-		}
-		else if(!empty($_path))
-		{
-			$data .= '(' . basename($_path) . ')';
-		}
-
-		$data .= ': ' . $_reason . PHP_EOL;
-
-		if(get_state('log') !== null)
-		{
-			$result = file_put_contents(get_state('log'), $data, FILE_APPEND);
-
-			if($result === false)
-			{
-				if($_die)
-				{
-					error('Logging error');
-				}
-
-				return null;
-			}
-		}
-		
-		if($_die)
-		{
-			return error($_reason);
-		}
-
-		return $data;
 	}
 
 	//
@@ -5009,7 +5402,7 @@ function counter($_host = null, $_read_only = null)
 					$result['bg'] = get_config('bg');
 				}
 
-				$result['fg'] = get_color($result['fg']);
+				$result['fg'] = \kekse\color($result['fg'], true);
 
 				if($result['fg'] === null)
 				{
@@ -5019,14 +5412,14 @@ function counter($_host = null, $_read_only = null)
 						return null;
 					}
 					
-					if(($result['fg'] = get_color(get_config('fg'))) === null)
+					if(($result['fg'] = \kekse\color(get_config('fg'), true)) === null)
 					{
 						draw_error('Default FG color is not valid (used as fallback)');
 						return null;
 					}
 				}
 
-				$result['bg'] = get_color($result['bg']);
+				$result['bg'] = \kekse\color($result['bg'], true);
 
 				if($result['bg'] === null)
 				{
@@ -5036,7 +5429,7 @@ function counter($_host = null, $_read_only = null)
 						return null;
 					}
 					
-					if(($result['bg'] = get_color(get_config('bg'))) === null)
+					if(($result['bg'] = \kekse\color(get_config('bg'), true)) === null)
 					{
 						draw_error('Default BG color is not valid (used as fallback)');
 						return null;
@@ -5082,335 +5475,6 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			//
-			function get_color_fix(&$_array, $_fix_gd = true)
-			{
-				$result = &$_array;
-				$len = count($result);
-
-				if($len === 3)
-				{
-					$result[3] = 1.0;
-				}
-				else if($len === 4)
-				{
-					if(is_int($result[3]))
-					{
-						if($result[3] < 0)
-						{
-							return null;
-						}
-						else if($result[3] <= 1)
-						{
-							$result[3] = (float)$result[3];
-						}
-						else if($result[3] <= 255)
-						{
-							$result[3] = (float)($result[3] / 255);
-						}
-					}
-				}
-
-				for($i = 0; $i < 4; ++$i)
-				{
-					if(is_int($result[$i]))
-					{
-						if($result[$i] < 0)
-						{
-							$result = null;
-						}
-						else if($result[$i] > 255)
-						{
-							$result = null;
-						}
-					}
-					else if($result[$i] < 0.0)
-					{
-						$result = null;
-					}
-					else if($result[$i] > 1.0)
-					{
-						$result = null;
-					}
-				}
-
-				if($_fix_gd)
-				{
-					$result[3] = (int)(127 - ($result[3] * 127));
-				}
-
-				return $result;
-			}
-
-			function get_color_hex_symbol($_char)
-			{
-				$res = '';
-				$ord = null;
-				
-				//
-				if(($ord = ord($_char)) >= 48 && $ord <= 57)
-				{
-					$res = $_char;
-				}
-				else if($ord >= 97 && $ord <= 102)
-				{
-					$res = $_char;
-				}
-				else if($ord >= 65 && $ord <= 70)
-				{
-					$res = chr($ord + 32);
-				}
-				else
-				{
-					$res = '';
-				}
-				
-				return $res;
-			}
-			
-			function get_color_hex($_string)
-			{
-				//
-				$_string = \kekse\remove_white_spaces($_string);
-				
-				//
-				if($_string[0] === '#')
-				{
-					$_string = substr($_string, 1);
-				}
-				
-				//
-				$result = array();
-				$len = strlen($_string);
-				$sub = '';
-				
-				//
-				if($len === 3 || $len === 4) for($i = 0; $i < $len; ++$i)
-				{
-					if(strlen($sub .= get_color_hex_symbol($_string[$i])) > 0)
-					{
-						$result[$i] = hexdec($sub . $sub);
-						
-						if($result[$i] < 0 || $result[$i] > 255)
-						{
-							return null;
-						}
-						else
-						{
-							$sub = '';
-						}
-					}
-				}
-				else if($len === 6 || $len === 8) for($i = 0, $j = 0; $i < $len; ++$i)
-				{
-					if(strlen($sub .= get_color_hex_symbol($_string[$i])) > 1)
-					{
-						$result[$j] = hexdec($sub);
-						
-						if($result[$j] < 0 || $result[$j] > 255)
-						{
-							return null;
-						}
-						else
-						{
-							$sub = '';
-							++$j;
-						}
-					}
-				}
-				else
-				{
-					return null;
-				}
-				
-				//
-				$len = count($result);
-				
-				if($len === 3)
-				{
-					$result[3] = 1.0;
-				}
-				else if($len === 4)
-				{
-					$result[3] = (float)($result[3] / 255);
-				}
-
-				//
-				return $result;
-			}
-			
-			function get_color_array($_string)
-			{
-				//
-				$_string = \kekse\remove_white_spaces($_string) . ',';
-				$len = strlen($_string);
-				$result = array();
-				$comma = false;
-				$byte = -1;
-				$item = '';
-
-				//
-				for($i = 0, $j = 0; $i < $len; ++$i)
-				{
-					if($_string[$i] === ',')
-					{
-						if(strlen($item) === 0)
-						{
-							continue;
-						}
-						else if($comma)
-						{
-							if(\kekse\ends_with($item, '.'))
-							{
-								$item .= '0';
-							}
-							
-							if($item[0] === '.')
-							{
-								$item = '0' . $item;
-							}
-						}
-
-						if($comma)
-						{
-							$item = (double)$item;
-							
-							if($item < 0 || $item > 1)
-							{
-								return null;
-							}
-						}
-						else
-						{
-							$item = (int)$item;
-							
-							if($j === 3)
-							{
-								if($item < 0)
-								{
-									return null;
-								}
-								else if($item <= 1)
-								{
-									$item = (double)$item;
-								}
-								else if($item <= 255)
-								{
-									$item = (double)($item / 255);
-								}
-								else
-								{
-									return null;
-								}
-							}
-						}
-						
-						if($j === 2)
-						{
-						}
-					
-						$result[$j++] = $item;
-						$item = '';
-						$comma = false;
-					}
-					else if($_string[$i] === '.')
-					{
-						$comma = true;
-						$item .= '.';
-					}
-					else if(($byte = ord($_string[$i])) >= 48 && $byte <= 57)
-					{
-						$item .= $_string[$i];
-					}
-				}
-
-				//
-				return $result;
-			}
-
-			//
-			function is_hex_format($_string)
-			{
-				$_string = \kekse\remove_white_spaces($_string);
-				
-				if($_string[0] === '#')
-				{
-					$_string = substr($_string, 1);
-				}
-				
-				$len = strlen($_string);
-				
-				switch($len)
-				{
-					case 3:
-					case 4:
-					case 6:
-					case 8:
-						break;
-					default:
-						return false;
-				}
-				
-				for($i = 0; $i < $len; ++$i)
-				{
-					if(strlen(get_color_hex_symbol($_string[$i])) === 0)
-					{
-						return false;
-					}
-				}
-
-				return true;
-			}
-			
-			function get_color($_string, $_fix_gd = true)
-			{
-				if(!is_string($_string))
-				{
-					return null;
-				}
-				else
-				{
-					$len = strlen($_string);
-
-					if($len === 0 || $len > KEKSE_LIMIT)
-					{
-						return null;
-					}
-				}
-
-				//
-				if(substr($_string, 0, 5) === 'rgba(')
-				{
-					$_string = substr($_string, 5);
-				}
-				else if(substr($_string, 0, 4) === 'rgb(')
-				{
-					$_string = substr($_string, 4);
-				}
-
-				if($_string[strlen($_string) - 1] === ')')
-				{
-					$_string = substr($_string, 0, -1);
-				}
-
-				$result = null;
-
-				if(is_hex_format($_string))
-				{
-					$result = get_color_hex($_string);
-				}
-				else
-				{
-					$result = get_color_array($_string);
-				}
-
-				if($result !== null)
-				{
-					$result = get_color_fix($result, $_fix_gd);
-				}
-				
-				return $result;
-			}
-			
 			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null)
 			{
 				//
