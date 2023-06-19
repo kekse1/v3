@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.4.0');
+define('COUNTER_VERSION', '3.4.1');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -45,9 +45,19 @@ const DEFAULTS = array(
 	'hash' => 'sha3-256',
 	'error' => '-',
 	'none' => '/',
-	'raw' => false
+	'raw' => false,
+	'modules' => null//'modules/'
 );
 
+//
+//maybe rather dynamic, in reading out the `modules` directory!?? //(much) TODO!/
+const MODULES = array(
+	'statistics',
+	'notifications',
+	'events'
+);
+
+//
 $CONFIG = array();
 $HASHES = array();
 
@@ -118,7 +128,8 @@ const CONFIG_VECTOR = array(
 	'hash' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'error' => array('types' => [ 'string', 'NULL' ]),
 	'none' => array('types' => [ 'string' ]),
-	'raw' => array('types' => [ 'boolean' ], 'test' => null)
+	'raw' => array('types' => [ 'boolean' ], 'test' => null),
+	'modules' => array('types' => [ 'string', 'NULL' ], 'test' => true)
 );
 
 //
@@ -733,6 +744,16 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				break;
 			case 'fonts':
 				$validTest = (get_path($_value, true, false, false, false) !== null);
+				break;
+			case 'modules':
+				if($_value === null)
+				{
+					$validTest = true;
+				}
+				else
+				{
+					$validTest = (get_path($_value, true, false, false, false) !== null);
+				}
 				break;
 			case 'font':
 				//check like 'fonts' above.. if not, false here, too.
