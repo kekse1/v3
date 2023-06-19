@@ -30,15 +30,15 @@ const DEFAULTS = array(
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
-	'font' => 'IntelOneMono',
-	'size' => 64,//48,
+	'font' => 'IntelOneMono',//Candara,
+	'size' => 64,
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120,130,40',
 	'bg' => '255,255,255,0',
 	'x' => 0,
 	'y' => 0,
 	'h' => 0,//64,
-	'v' => 0,//16,
+	'v' => 0,//8,
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
@@ -1328,9 +1328,6 @@ function files($_dir, $_list = false, $_suffix = null, $_prefix = null, $_case_s
 	}
 
 	//
-	$index = 0;
-	$result = (($_list || $_unique) ? array() : 0);
-
 	if(is_string($_suffix))
 	{
 		$_suffix = array($_suffix);
@@ -1401,6 +1398,14 @@ function files($_dir, $_list = false, $_suffix = null, $_prefix = null, $_case_s
 	{
 		$_remove = (($suffix <= 1) && ($prefix <= 1));
 	}
+
+	if(!$_remove)
+	{
+		$_unique = false;
+	}
+
+	$result = (($_list || $_unique) ? array() : 0);
+	$index = 0;
 
 	while($sub = readdir($handle))
 	{
