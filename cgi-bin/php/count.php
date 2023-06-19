@@ -30,7 +30,7 @@ const DEFAULTS = array(
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
-	'font' => 'IntelOneMono',//Candara,
+	'font' => 'IntelOneMono',//'Candara',
 	'size' => 64,
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120,130,40',
@@ -2349,7 +2349,7 @@ if($colorDetermination)
 			return null;
 		}
 		
-		for($i = 0; $i < 4; ++$i)
+		for($i = 0; $i < 3; ++$i)
 		{
 			if(is_float($_array[$i]))
 			{
