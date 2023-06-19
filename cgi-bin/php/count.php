@@ -6,42 +6,43 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.2.7');
+define('COUNTER_VERSION', '3.2.8');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
 define('KEKSE_STRICT', true); //should stay (true)! don't change unless you know what you're doing..
+define('KEKSE_ANSI', true); //colors, styles, etc.. @ CLI! ^_^
+define('KEKSE_PREFIX', ' >> '); //console thing..
 
 //
 const DEFAULTS = array(
 	'path' => 'count/',
 	'log' => 'count.log',
 	'threshold' => 7200,
-	'auto' => 32,//false
-	'hide' => false,//true
-	'client' => true,//false
-	'server' => true,//false
+	'auto' => 32,//false,
+	'hide' => false,//true,
+	'client' => true,//false,
+	'server' => true,//false,
 	'drawing' => true,
-	'override' => false,//true
+	'override' => false,//true,
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,//16
+	'radix' => 10,//16,
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
 	'font' => 'IntelOneMono',
-	'prefer' => true,//false
-	'px' => 24,//48
-	'fg' => '0,0,0,1',//'120,130,40'
+	'size' => '64pt',//'24px','48pt',
+	'fg' => '0,0,0,1',//'120,130,40',
 	'bg' => '255,255,255,0',
 	'x' => 0,
 	'y' => 0,
-	'h' => 0,//32
-	'v' => 0,//24
+	'h' => 0,//32,
+	'v' => 0,//24,
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
 	'hash' => 'sha3-256',
-	'error' => '-',
+	'error' => null,//'-',
 	'none' => '/',
 	'raw' => false
 );
@@ -102,8 +103,7 @@ const CONFIG_VECTOR = array(
 	'limit' => array('types' => [ 'integer' ], 'min' => 0),
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'font' => array('types' => [ 'string' ], 'min' => 1),
-	'prefer' => array('types' => [ 'boolean' ]),
-	'px' => array('types' => [ 'integer'], 'min' => 4, 'max' => 512),
+	'size' => array('types' => [ 'string'], 'min' => 3, 'test' => true),
 	'fg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
 	'bg' => array('types' => [ 'string' ], 'min' => 1, 'without' => true),
 	'x' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
@@ -859,8 +859,126 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 	return $result;
 }
 
+function px2pt($_px)
+{
+	return ($_px * 0.75);
+}
+
+function pt2px($_pt)
+{
+	return ($_pt / 0.75);
+}
+
+//
+function unit($_string, $_float = false, $_null = true)
+{
+	$len = strlen($_string);
+	
+	if($len < 3 || $len > KEKSE_LIMIT)
+	{
+		return null;
+	}
+	else
+	{
+		$_string = strtolower($_string);
+	}
+	
+	$size = '';
+	$unit = '';
+	$state = false;
+	$float = false;
+	$wait = false;
+	$byte = 0;
+	
+	for($i = 0; $i < $len; ++$i)
+	{
+		$byte = ord($_string[$i]);
+		
+		if($byte <= 32)
+		{
+			continue;
+		}
+		else if($byte >= 97 && $byte <= 122)
+		{
+			$unit .= chr($byte);
+			$state = true;
+		}
+		else if($state)
+		{
+			break;
+		}
+		else if($wait)
+		{
+			continue;
+		}
+		else if($byte >= 48 && $byte <= 57)
+		{
+			$size .= chr($byte);
+		}
+		else if($byte === 46)
+		{
+			if(!$_float || $float)
+			{
+				$wait = true;
+			}
+			else if($i < ($len - 1))
+			{
+				$float = true;
+				$size .= '.';
+			}
+		}
+	}
+	
+	$s = strlen($size);
+	$u = strlen($unit);
+	
+	if($s === 0)
+	{
+		$size = 0;
+	}
+	else
+	{
+		if($float)
+		{
+			if($size[0] === '.')
+			{
+				$size = '0' . $size;
+			}
+			else if($size[$s - 1] === '.')
+			{
+				$size = substr($size, 0, -1);
+				$float = false;
+			}
+		}
+		
+		if($float)
+		{
+			$size = (float)$size;
+		}
+		else
+		{
+			$size = (int)$size;
+		}
+	}
+	
+	if($u === 0 && $_null)
+	{
+		$unit = null;
+	}
+	
+	return array($size, $unit);
+}
+
+function color($_value, $_gd =  false)
+{
+	die('TODO');
+}
+
 if(KEKSE_CLI)
 {
+	//
+	//TODO: WITH "KEKSE_PREFIX"!
+	//
 	function prompt($_string, $_return = false, $_repeat = true)
 	{
 		$confirm = function() use (&$_string, &$_return) {
@@ -896,7 +1014,83 @@ if(KEKSE_CLI)
 		
 		return $result;
 	}
+
+	//
+	function log($format, ... $_args)
+	{
+	}
+
+	function info($format, ... $_args)
+	{
+	}
+
+	function warn($format, ... $_args)
+	{
+	}
+
+	function error($format, ... $_args)
+	{
+	}
+
+	function debug($format, ... $_args)
+	{
+	}
 }
+
+//
+namespace kekse\ansi;
+
+function ansi($_sequence, $_text = null)
+{
+	if(! KEKSE_ANSI)
+	{
+		return $_text;
+	}
+	else
+	{
+	}
+}
+
+function rgb($_text, $r, $g, $b, $a = 1.0)
+{
+	if(func_num_args() === 2)
+	{
+		if(is_string($_r))
+		{
+		}
+		else if(is_array($_r))
+		{
+		}
+	}
+	else
+	{
+	}
+}
+
+function reset()
+{
+	//'[0m'
+}
+
+function green($_text)
+{
+}
+
+function red($_text)
+{
+}
+
+function blue($_text)
+{
+}
+
+function bold($_text)
+{
+}
+
+//
+//TODO/see lib.js! ^_^
+//
 
 //
 namespace kekse\counter;
@@ -1276,6 +1470,27 @@ function check_config_item($_key, $_value = null, $_bool = false)
 	{
 		switch($_key)
 		{
+			case 'size':
+				$tmp = \kekse\unit($_value, true);
+				
+				switch($tmp[1])
+				{
+					case 'px':
+					case 'pt':
+						if($tmp[0] >= 4 && $tmp[0] <= 512)
+						{
+							$validTest = true;
+						}
+						else
+						{
+							$validTest = 'Exceeds limit (4..512)';
+						}
+						break;
+					default:
+						$validTest = 'Not a valid unit [ px, pt ]';
+						break;
+				}
+				break;
 			case 'path':
 				$validTest = (get_path($_value, true, false, false) !== false);
 				break;
@@ -1298,20 +1513,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 		$validTest = true;
 	}
 	
-	if($validTest === null)
-	{
-		if($_bool)
-		{
-			return null;
-		}
-		else
-		{
-			$result = 'Warning (test incomplete)';
-		}
-		
-		return [ $_key, false, $result, $valueType, $validTypes, $min, $max ];
-	}
-	else if($validTest === false)
+	if($validTest === false)
 	{
 		if($_bool)
 		{
@@ -1319,10 +1521,19 @@ function check_config_item($_key, $_value = null, $_bool = false)
 		}
 		else
 		{
-			$result = 'Failed any extended test';
+			$result = 'Failed at extended test routine(s)';
 		}
 		
 		return [ $_key, false, $result, $valueType, $validTypes, $min, $max ];
+	}
+	else if(is_string($validTest))
+	{
+		if($_bool)
+		{
+			return false;
+		}
+		
+		return [ $_key, false, $validTest, $valueType, $validTypes, $min, $max ];
 	}
 
 	//
@@ -3842,6 +4053,11 @@ function counter($_host = null, $_read_only = null)
 		//
 		function with_server()
 		{
+			if(KEKSE_CLI)
+			{
+				return false;
+			}
+
 			$conf = get_config('threshold');
 			
 			if($conf === null || $conf <= 0)
@@ -3854,6 +4070,11 @@ function counter($_host = null, $_read_only = null)
 
 		function with_client()
 		{
+			if(KEKSE_CLI)
+			{
+				return false;
+			}
+
 			$conf = get_config('threshold');
 			
 			if($conf === null || $conf <= 0)
@@ -4454,8 +4675,7 @@ function counter($_host = null, $_read_only = null)
 				}
 				else
 				{
-					$result['px'] = \kekse\get_param('px', true, false);
-					$result['prefer'] = \kekse\get_param('prefer', null);
+					$result['size'] = \kekse\get_param('size', false);
 					$result['font'] = \kekse\get_param('font', false);
 					$result['fg'] = \kekse\get_param('fg', false);
 					$result['bg'] = \kekse\get_param('bg', false);
@@ -4467,24 +4687,33 @@ function counter($_host = null, $_read_only = null)
 				}
 
 				//
-				if($result['px'] === null)
+				if($result['size'] === null)
 				{
-					$result['px'] = get_config('px');
+					$result['size'] = get_config('size');
 				}
-				else if($result['px'] > 512 || $result['px'] < 4)
-				{
-					if($_die)
-					{
-						draw_error('\'?px\' exceeds limit (4..512)');
-						return null;
-					}
-					
-					$result['px'] = get_config('px');
-				}
+
+				$size = \kekse\unit($result['size'], true, true);
 				
-				if($result['prefer'] === null)
+				if($size[0] < 4 || $size[0] > 512)
 				{
-					$result['prefer'] = get_config('prefer');
+					draw_error('\'?size\' exceeds limit (4..512)');
+					return null;
+				}
+				else if($size[1] === null)
+				{
+					draw_error('\'?size\' contains no unit [ px, pt ]');
+					return null;
+				}
+				else switch($size[1])
+				{
+					case 'px':
+					case 'pt':
+						$result['size'] = $size[0];
+						$result['unit'] = $size[1];
+						break;
+					default:
+						draw_error('\'?size\' contains invalid unit \'' . $size[1] . '\'');
+						return null;
 				}
 
 				if($result['h'] === null)
@@ -4949,14 +5178,18 @@ function counter($_host = null, $_read_only = null)
 				return $result;
 			}
 			
-			function draw_text($_text, $_font, $_px = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null, $_prefer = null)
+			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null)
 			{
 				//
-				if(func_num_args() === 2)
+				if(get_state('sent'))
+				{
+					draw_error('Header already sent (unexpected here)');
+					return null;
+				}
+				else if(func_num_args() === 2)
 				{
 					if(is_array($_font))
 					{
-						$_prefer = $_font['prefer'];
 						$_type = $_font['type'];
 						$_aa = $_font['aa'];
 						$_y = $_font['y'];
@@ -4965,7 +5198,8 @@ function counter($_host = null, $_read_only = null)
 						$_h = $_font['h'];
 						$_bg = $_font['bg'];
 						$_fg = $_font['fg'];
-						$_px = $_font['px'];
+						$_unit = $_font['unit'];
+						$_size = $_font['size'];
 						$_font = $_font['font'];
 					}
 					else
@@ -4973,144 +5207,185 @@ function counter($_host = null, $_read_only = null)
 						draw_error('Invalid arguments to draw_text()');
 						return null;
 					}
-					
 				}
 
 				//
-				if(get_state('sent'))
+				$px = 0;
+				$pt = 0;
+				
+				switch($_unit)
 				{
-					draw_error('Header already sent (unexpected here)');
-					return null;
+					case 'px':
+						$px = $_size;
+						$pt = \kekse\px2pt($px);
+						break;
+					case 'pt':
+						$pt = $_size;
+						$px = \kekse\pt2px($pt);
+						break;
 				}
-				
+
 				//
-				$imageSize = $_px * 0.75;
-				$fontSize = $_px;
-				
-				//
-				$measure = imagettfbbox($fontSize, 0, $_font, $_text);
-				
-				// just to be sure.. isn't necessary for real, i think..
-				$textWidth = [ $measure[4] - $measure[6], $measure[2] - $measure[0] ];
-				$textHeight = [ $measure[1] - $measure[7], $measure[3] - $measure[5] ];
-				
-				if($textWidth[0] === $textWidth[1])
+				$measure = imagettfbbox($pt, 0, $_font, $_text);
+				$textWidth = $textHeight = null;
+
+				if(($measure[4] - $measure[6]) === ($measure[2] - $measure[0]))
 				{
-					$textWidth = $textWidth[0];
+					$textWidth = ($measure[4] - $measure[6]);
 				}
 				else
 				{
-					die('debug: w');
+					throw new \Exception('debug width');
 				}
 				
-				if($textHeight[0] === $textHeight[1])
+				if(($measure[1] - $measure[7]) === ($measure[3] - $measure[5]))
 				{
-					$textHeight = $textHeight[0];
+					$textHeight = ($measure[1] - $measure[7]);
 				}
 				else
 				{
-					die('debug: h');
+					throw new \Exception('debug height');
 				}
+
+				$vertical = ($textHeight + $measure[7]);
+				$horizontal = $measure[0];
+
+				//
+				$image = null;
+
+				//
+				$imageWidth = $textWidth;
+				$imageHeight = $textHeight;
 				
 				//
-				$factor = min($imageSize / $textHeight, 1);
-				
-				//
-				if($_prefer)
+				$createImage = function($_unit, $_width, $_height, $_width_text, $_height_text) use (&$image, &$_text, &$_aa, &$_fg, &$_bg, &$_font, &$_type, &$_h, &$_v, &$_x, &$_y, &$pt, &$px, &$vertical, &$horizontal)
 				{
-					$fontSize *= $factor;
-					$textWidth *= $factor;
-				}
-				else
-				{
-					$imageSize /= $factor;
-				}
-
-				//
-				$imageWidth = ($textWidth + $_h * 2);
-				$imageHeight = $imageSize / 0.75;
-
-				//
-				if($imageWidth < 1)
-				{
-					$imageWidth = 1;
-				}
-
-				if($imageHeight < 1)
-				{
-					$imageHeight = 1;
-				}
-				
-				//
-				$MOVE = 2;
-				$y;
-				$x = (int)(-$MOVE + $_x + $_h);
-				
-				if($_prefer)
-				{
-					$y = (int)($MOVE+((($imageHeight + $textHeight) / 2) * $factor) + $_y + $_v);
-				}
-				else
-				{
-					$y = (int)($MOVE+((($imageHeight + $textHeight * $factor) / 2) + $_y + $_v));
-				}
-				
-				//
-				$imageWidth = (int)($textWidth + 2 * $_h);
-				$imageHeight = (int)($imageHeight + 2 * $_v);
-
-				//
-				$image = imagecreatetruecolor($imageWidth, $imageHeight);
-				imagesavealpha($image, true);
-				imageantialias($image, $_aa);
-				imagealphablending($image, true);
-
-				//
-				$_fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
-
-				if(!$_aa)
-				{
-					if(($_fg = -$_fg) === 0)
+					//
+					$drawImage = function() use(&$image, &$_type)
 					{
-						$_fg = -1;
+						$result = null;
+						
+						switch(strtolower($_type))
+						{
+							case 'png':
+								if($result = send_header('image/png'))
+								{
+									imagepng($image);
+								}
+								break;
+							case 'jpg':
+								if($result = send_header('image/jpeg'))
+								{
+									imagejpeg($image);
+								}
+								break;
+						}
+						
+						imagedestroy($image);
+						return $result;
+					};
+					
+					$PT = function() use(&$_width, &$_height, &$_width_text, &$_height_text)
+					{
+						$_width = $_width_text;
+						$_height = $_height_text;
+					};
+					
+					$PX = function() use(&$_width, &$_height)
+					{
+						die('TODO: $PX()');
+					};
+					
+					//
+					switch($_unit)
+					{
+						case 'pt':
+							$PT(); break;
+						case 'px':
+							$PX(); break;
+						default:
+							draw_error('Invalid unit [ px, pt ]');
+							return null;
 					}
-				}
-				
-				$_bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
-				imagefill($image, 0, 0, $_bg);
+					
+					//
+					$x = (-$horizontal * 0.75);
+					$y = ($_height - $vertical + 2);
+					$_height += 4;
 
-				//
-				imagettftext($image, $fontSize, 0, $x, $y, $_fg, $_font, $_text);
+					//
+					$x = ceil($x + $_x + $_h);
+					$y = ceil($y + $_y + $_v);
 
-				//
-				$sent = null;
+					//
+					if(($_width += ($_h * 2)) < 1)
+					{
+						$_width = 1;
+					}
+					else
+					{
+						$_width = ceil($_width);
+					}
+					
+					if(($_height += ($_v * 2)) < 1)
+					{
+						$_height = 1;
+					}
+					else
+					{
+						$_height = ceil($_height);
+					}
+
+					//
+					$image = imagecreatetruecolor($_width, $_height);
+					imagesavealpha($image, true);
+					imageantialias($image, $_aa);
+					imagealphablending($image, true);
+
+					//
+					$bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
+					imagefill($image, 0, 0, $bg);
+					
+					//
+					$fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
+
+					if(!$_aa)
+					{
+						if(($fg = -$fg) === 0)
+						{
+							$fg = -1;
+						}
+					}
+
+					//
+					imagettftext($image, $pt, 0, $x, $y, $fg, $_font, $_text);
+
+					//
+					return $drawImage();
+				};
 				
-				switch(strtolower($_type))
+				//
+				$result = null;
+				
+				switch($_unit)
 				{
-					case 'png':
-						if($sent = send_header('image/png'))
-						{
-							imagepng($image);
-						}
+					case 'pt':
+					case 'px':
+						$result = $createImage($_unit, $imageWidth, $imageHeight, $textWidth, $textHeight, $move);
 						break;
-					case 'jpg':
-						if($sent = send_header('image/jpeg'))
-						{
-							imagejpeg($image);
-						}
-						break;
+					default:
+						draw_error('Invalid unit [ px, pt ]');
+						return null;
 				}
 				
 				//
-				imagedestroy($image);
-				
-				if(!$sent)
+				if(!$result)
 				{
 					draw_error('Header couldn\'t be sent');
 					return false;
 				}
-
-				return true;
+				
+				return $result;
 			}
 
 			//
@@ -5246,6 +5521,14 @@ function counter($_host = null, $_read_only = null)
 if(!get_config('raw') || (KEKSE_CLI && KEKSE_ARGC > 1))
 {
 	counter();
+}
+
+//
+namespace kekse;
+
+function counter(... $_args)
+{
+	return \kekse\counter\counter(... $_args);
 }
 
 ?>
