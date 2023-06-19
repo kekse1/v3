@@ -2259,7 +2259,7 @@ function unit($_string, $_float = false, $_null = true)
 }
 
 //
-$colorDetermination = (\kekse\counter\get_config('raw') || (!KEKSE_CLI && \kekse\counter\get_config('drawing')));
+$colorDetermination = (\kekse\counter\get_config('raw') || KEKSE_CLI || \kekse\counter\get_config('drawing'));
 
 function color(... $_args)
 {
@@ -2657,7 +2657,7 @@ if($colorDetermination)
 }
 
 //
-if(KEKSE_CLI)
+if(KEKSE_CLI || \kekse\counter\get_config('raw'))
 {
 	//
 	//TODO: WITH "KEKSE_PREFIX"!
