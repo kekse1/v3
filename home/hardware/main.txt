@@ -28,9 +28,7 @@ hardware/
 ├── Mainboard
 │   ├── ASUS ROG RAMPAGE VI EXTREME
 │   └── Gigabyte GA-X79-UP4
-├── Maus
-│   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
-│   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
+├── Maus -> Pointer/Maus/
 ├── Mauspad -> Pointer/Mauspad/
 ├── Monitor
 │   ├── LG 55NANO779PA -> ../TV/LG 55NANO779PA/
@@ -40,12 +38,15 @@ hardware/
 │   ├── ODROID SHOW2
 │   └── Samsung U28E590D (28 Zoll Monitor, UHD 3840x2160, 2x HDMI, 1x DisplayPort, 1ms)
 ├── Monitor-Halterung -> Monitor/Monitor-Halterung/
+├── Motherboard -> Mainboard
 ├── Netzteil
 │   └── be quiet! Straight Power E7 (600 Watt)
 ├── Notebook -> Laptop
 ├── Pointer
 │   ├── Maus
-│   │   └── Cherry [MC 3000] XERO (White)
+│   │   ├── Cherry [MC 3000] XERO (White)
+│   │   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
+│   │   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
 │   ├── Mauspad
 │   │   ├── Titanwolf 1200x600mm
 │   │   └── Titanwolf XXL Speed Gaming Mauspad (90x40cm)
@@ -86,6 +87,7 @@ hardware/
 │   ├── EMPIRE Gaming K300
 │   ├── Razer BlackWidow
 │   └── Roccat Vulcan TKL Pro
+├── Trackball -> Pointer/Trackball/
 ├── TV
 │   ├── LG 55NANO779PA
 │   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
