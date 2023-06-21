@@ -4192,7 +4192,7 @@ function counter($_host = null, $_read_only = null)
 				}
 				else if($sub[0] === '+')
 				{
-					if(!is_file($p) && !is_link($p))
+					if(!is_dir($p) && !is_link($p))
 					{
 						$delete[$d++] = $p;
 					}
