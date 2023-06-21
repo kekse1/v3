@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.5.0');
+define('COUNTER_VERSION', '3.5.1');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -693,7 +693,7 @@ function check_path_char($_path, $_basename = true)
 		case '~':
 		case '+':
 		case '-':
-		case '$':
+		case '@':
 			return false;
 	}
 	
@@ -779,7 +779,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 	{
 		if($_die)
 		{
-			error('Path may not start with one of [ \'~\', \'+\', \'-\', \'$\' ]');
+			error('Path may not start with one of [ \'~\', \'+\', \'-\', \'@\' ]');
 		}
 		
 		return null;
@@ -1097,7 +1097,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 
 				if($validTest !== null)
 				{
-					$count = \kekse\files($validTest, false, null, [ '~', '+', '-', '$' ], false, true, false, true);
+					$count = \kekse\files($validTest, false, null, [ '~', '+', '-', '@' ], false, true, false, true);
 					
 					if($count === -1)
 					{
@@ -1408,7 +1408,7 @@ function check_host_config($_host, $_load = true, $_bool = false, $_die = true)
 
 	if($_load)
 	{
-		if(($config = load_config(\kekse\join_path(get_state('path'), '$' . $_host))) === null)
+		if(($config = load_config(\kekse\join_path(get_state('path'), '@' . $_host))) === null)
 		{
 			if($_die)
 			{
@@ -1529,7 +1529,7 @@ function make_config($_host, $_reload = null, $_unset = true, $_restore = false)
 
 	//
 	$data = null;
-	$path = \kekse\join_path(get_state('path'), '$' . $_host);
+	$path = \kekse\join_path(get_state('path'), '@' . $_host);
 
 	//	
 	if(!((is_file($path) && is_readable($path))))
@@ -1627,7 +1627,7 @@ function count_config($_path)
 
 function count_host_config($_host)
 {
-	return count_config(\kekse\join_path(get_state('path'), '$' . $_host));
+	return count_config(\kekse\join_path(get_state('path'), '@' . $_host));
 }
 
 function load_config($_path, $_data = null, $_depth = 8)
@@ -2125,7 +2125,7 @@ function secure($_string)
 			$len = strlen($result);
 		}
 
-		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '$')
+		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '@')
 		{
 			++$rem;
 		}
@@ -2179,43 +2179,15 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		$_depth = 0;
 	}
 	
-	if(is_dir($_path))
+	if(is_link($_path))
+	{
+		return !!unlink($_path);
+	}
+	else if(is_dir($_path))
 	{
 		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
 		{
-			$handle = opendir($_path);
-
-			if($handle === false)
-			{
-				return false;
-			}
-
-			$count = 0;
-
-			while($sub = readdir($handle))
-			{
-				if($sub !== '.' && $sub !== '..')
-				{
-					++$count;
-				}
-			}
-
-			closedir($handle);
-
-			if($count < 0)
-			{
-				return false;
-			}
-			else if($count > 0)
-			{
-				return false;
-			}
-			else if(rmdir($_path) === false)
-			{
-				return false;
-			}
-			
-			return true;
+			return rmdir($_path);
 		}
 		
 		$handle = opendir($_path);
@@ -2238,18 +2210,26 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 				++$count;
 			}
 
-			if(! is_writable(\kekse\join_path($_path, $sub)))
+			$p = \kekse\join_path($_path, $sub);
+
+			if(is_link($p))
+			{
+				if(!unlink($p))
+				{
+					return false;
+				}
+			}
+			else if(! is_writable($p))
 			{
 				return false;
 			}
-			
-			if(is_dir(\kekse\join_path($_path, $sub)))
+			else if(is_dir($p))
 			{
 				if($_depth !== null && $_depth <= $_depth_current)
 				{
 					return false;
 				}
-				else if(!\kekse\delete(\kekse\join_path($_path, $sub), $_depth, $_depth_current + 1))
+				else if(!\kekse\delete($p, $_depth, $_depth_current + 1))
 				{
 					return false;
 				}
@@ -2258,7 +2238,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 					--$count;
 				}
 			}
-			else if(unlink(\kekse\join_path($_path, $sub)) === false)
+			else if(unlink($p) === false)
 			{
 				return false;
 			}
@@ -2285,14 +2265,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 
 		return rmdir($_path);
 	}
-	else if(file_exists($_path))
-	{
-		if(unlink($_path) === false)
-		{
-			return false;
-		}
-	}
-	else
+	else if(!unlink($_path))
 	{
 		return false;
 	}
@@ -3227,7 +3200,7 @@ function counter($_host = null, $_read_only = null)
 
 					$type = COUNTER_FILE;
 					break;
-				case '$':
+				case '@':
 					if($_check && !is_file($p))
 					{
 						return 0;
@@ -3287,7 +3260,7 @@ function counter($_host = null, $_read_only = null)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					$sub = \kekse\join_path(get_state('path'), '{~,+,-,$}' . strtolower($list[$i]));
+					$sub = \kekse\join_path(get_state('path'), '{~,+,-,@}' . strtolower($list[$i]));
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
 
@@ -3535,7 +3508,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						++$cnt;
 
-						$item = \kekse\join_path(get_state('path'), '$' . $item);
+						$item = \kekse\join_path(get_state('path'), '@' . $item);
 						$item = glob($item, GLOB_BRACE);
 						$len = count($item);
 						
@@ -4181,10 +4154,9 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$forbidden = array();
+			//
 			$delete = array();
 			$d = 0;
-			$f = 0;
 			
 			//
 			$handle = opendir(get_state('path'));
@@ -4206,104 +4178,54 @@ function counter($_host = null, $_read_only = null)
 				}
 				
 				$p = \kekse\join_path(get_state('path'), $sub);
-				$w = is_writable($p);
-				
-				if($sub[0] === '~')
+
+				if(strlen($sub) === 1)
 				{
-					if(strlen($sub) === 1 || !is_file($p))
+					$delete[$d++] = $p;
+				}
+				else if($sub[0] === '~')
+				{
+					if(!is_file($p) && !is_link($p))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
 				}
 				else if($sub[0] === '+')
 				{
-					if(strlen($sub) === 1 || !is_dir($p))
+					if(!is_file($p) && !is_link($p))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = p;
 					}
 				}
 				else if($sub[0] === '-')
 				{
-					if(strlen($sub) === 1 || !is_file($p))
+					if(!is_file($p) && !is_link($p))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
 				}
-				else if($sub[0] === '$')
+				else if($sub[0] === '@')
 				{
-					if(strlen($sub) === 1 || !is_file($p))
+					if(!is_file($p) && !is_link($p))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
 					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
 					{
-						if($w)
-						{
-							$delete[$d++] = $p;
-						}
-						else
-						{
-							$forbidden[$f++] = $p;
-						}
+						$delete[$d++] = $p;
 					}
-				}
-				else if($w)
-				{
-					$delete[$d++] = $p;
 				}
 				else
 				{
-					$forbidden[$f++] = $p;
+					$delete[$d++] = $p;
 				}
 			}
 
@@ -4313,28 +4235,16 @@ function counter($_host = null, $_read_only = null)
 			if($d === 0)
 			{
 				\kekse\info('No files found to delete.');
-
-				if($f > 0)
-				{
-					\kekse\warn('Whereas %d are not writable..', $f);
-					exit(1);
-				}
-
 				exit(0);
 			}
 			else
 			{
-				if($f > 0)
-				{
-					\kekse\warn('With %d non-writable files..', $f);
-				}
-
 				\kekse\info('Allow deletion of %d files (non-existing value files %s)..', $d, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
 
 				if(!\kekse\prompt('Do you really want to continue [yes/no]? '))
 				{
 					\kekse\warn('Aborted, as requested.');
-					exit(2);
+					exit(1);
 				}
 				else
 				{
@@ -4349,7 +4259,7 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(file_exists($delete[$i]) && \kekse\delete($delete[$i], true))
+				if(\kekse\delete($delete[$i], true))
 				{
 					$result[$r++] = $delete[$i];
 				}
@@ -4357,11 +4267,6 @@ function counter($_host = null, $_read_only = null)
 				{
 					$errors[$e++] = $delete[$i];
 				}
-			}
-
-			if($f > 0)
-			{
-				\kekse\warn('With %d files ignored (no permissions).', $f);
 			}
 
 			if($r === 0)
@@ -4380,7 +4285,7 @@ function counter($_host = null, $_read_only = null)
 					printf(PHP_EOL);
 				}
 
-				exit(3);
+				exit(2);
 			}
 			else
 			{
@@ -4389,7 +4294,7 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $r; ++$i)
 			{
-				printf('    ' . str_replace('%', '%%', $result[$i]) . PHP_EOL);
+				printf('    %s' . PHP_EOL, $result[$i]);
 			}
 			
 			printf(PHP_EOL);
@@ -4400,13 +4305,13 @@ function counter($_host = null, $_read_only = null)
 				
 				for($i = 0; $i < $e; ++$i)
 				{
-					fprintf(STDERR, '    ' . str_replace('%', '%%', $errors[$i]) . PHP_EOL);
+					fprintf(STDERR, '    %s' . PHP_EOL, $errors[$i]);
 				}
 				
 				printf(PHP_EOL);
 			}
 			
-			return ($e === 0 ? 0 : 4);
+			return ($e === 0 ? 0 : 3);
 		}
 		
 		function remove($_index = null)
@@ -4420,8 +4325,6 @@ function counter($_host = null, $_read_only = null)
 				exit(1);
 			}
 
-			$forbidden = array();
-			$f = 0;
 			$delete = array();
 			$d = 0;
 			$h = 0;
@@ -4434,142 +4337,97 @@ function counter($_host = null, $_read_only = null)
 
 				if($type & COUNTER_VALUE)
 				{
-					if(is_writable($p = \kekse\join_path($orig, '~' . $host)))
-					{
-						$delete[$d++] = $p;
-					}
-					else
-					{
-						$forbidden[$f++] = $p;
-					}
+					$delete[$d++] = \kekse\join_path($orig, '~' . $host);
 				}
 
 				if($type & COUNTER_DIR)
 				{
-					if(is_writable($p = \kekse\join_path($orig, '+' . $host)))
-					{
-						$delete[$d++] = $p;
-					}
-					else
-					{
-						$forbidden[$f++] = $p;
-					}
+					$delete[$d++] = \kekse\join_path($orig, '+' . $host);
 				}
 
 				if($type & COUNTER_FILE)
 				{
-					if(is_writable($p = \kekse\join_path($orig, '-' . $host)))
-					{
-						$delete[$d++] = $p;
-					}
-					else
-					{
-						$forbidden[$f++] = $p;
-					}
+					$delete[$d++] = \kekse\join_path($orig, '-' . $host);
 				}
 
 				if($type & COUNTER_CONFIG)
 				{
-					if(is_writable($p = \kekse\join_path($orig, '$' . $host)))
-					{
-						$delete[$d++] = $p;
-					}
-					else
-					{
-						$forbidden[$f++] = $p;
-					}
+					$delete[$d++] = \kekse\join_path($orig, '@' . $host);
 				}
 			}
 
-			if($d === 0 && $f === 0)
+			if($d === 0)
 			{
 				\kekse\info('No files found (of %d hosts).', $c);
 				exit(0);
 			}
 			else
 			{
-				\kekse\info(2, 'Found %d files (%d writable, %d not) at those %d hosts:', ($d + $f), $d, $f, $h);
-
-				$len = $maxLen = 0;
-				$keys = array_keys($list);
-				$keysLen = count($keys);
-
-				for($i = 0; $i < $keysLen; ++$i)
-				{
-					if(($len = strlen($keys[$i])) > $maxLen)
-					{
-						$maxLen = $len;
-					}
-				}
-
-				$format = '    %' . $maxLen . 's    %s' . PHP_EOL;
-
-				foreach($list as $host => $type)
-				{
-					$types = '';
-
-					if($type & COUNTER_VALUE)
-					{
-						$types .= '~ ';
-					}
-					else
-					{
-						$types .= '  ';
-					}
-
-					if($type & COUNTER_DIR)
-					{
-						$types .= '+ ';
-					}
-					else
-					{
-						$types .= '  ';
-					}
-
-					if($type & COUNTER_FILE)
-					{
-						$types .= '- ';
-					}
-					else
-					{
-						$types .= '  ';
-					}
-
-					if($type & COUNTER_CONFIG)
-					{
-						$types .= '$ ';
-					}
-					else
-					{
-						$types .= '  ';
-					}
-
-					$types = substr($types, 0, -1);
-					printf($format, $host, $types);
-				}
-
-				printf(PHP_EOL);
+				\kekse\info(2, 'Found %d files, for those %d hosts:', $d, $h);
 			}
 
-			if($f > 0)
+			$len = $maxLen = 0;
+			$keys = array_keys($list);
+			$keysLen = count($keys);
+
+			for($i = 0; $i < $keysLen; ++$i)
 			{
-				\kekse\warn('With %d non-writable items..', $f);
+				if(($len = strlen($keys[$i])) > $maxLen)
+				{
+					$maxLen = $len;
+				}
 			}
 
-			if($d === 0)
+			$format = '    %' . $maxLen . 's    %s' . PHP_EOL;
+
+			foreach($list as $host => $type)
 			{
-				$str = 'NO files can be deleted here!';
-				
-				if($f === 0)
+				$types = '';
+
+				if($type & COUNTER_VALUE)
 				{
-					\kekse\info($str);
-					exit(0);
+					$types .= '~ ';
+				}
+				else
+				{
+					$types .= '  ';
 				}
 
-				\kekse\warn($str);
-				exit(1);
+				if($type & COUNTER_DIR)
+				{
+					$types .= '+ ';
+				}
+				else
+				{
+					$types .= '  ';
+				}
+
+				if($type & COUNTER_FILE)
+				{
+					$types .= '- ';
+				}
+				else
+				{
+					$types .= '  ';
+				}
+
+				if($type & COUNTER_CONFIG)
+				{
+					$types .= '@ ';
+				}
+				else
+				{
+					$types .= '  ';
+				}
+
+				$types = substr($types, 0, -1);
+				printf($format, $host, $types);
 			}
-			else if(!\kekse\prompt('Do you really want to delete ' . $d . ' files [yes/no]? '))
+
+			printf(PHP_EOL);
+
+			//
+			if(!\kekse\prompt('Do you really want to delete ' . $d . ' files [yes/no]? '))
 			{
 				\kekse\warn('Abort requested.');
 				exit(2);
@@ -4602,12 +4460,7 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			\kekse\info('Successfully deleted %d files.', $ol);
-			\kekse\error('BUT also %d errors occured.', $err);
-
-			if($f > 0)
-			{
-				\kekse\warn('AND %d files ignored due to missing write permissions.', $f);
-			}
+			\kekse\error('BuT also %d errors occured.', $err);
 
 			//
 			exit(0);
