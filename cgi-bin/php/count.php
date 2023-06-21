@@ -3324,12 +3324,12 @@ function counter($_host = null, $_read_only = null)
 		{
 			if($_version)
 			{
-				\kekse\log('v' . COUNTER_VERSION);
+				\kekse\info('v' . COUNTER_VERSION);
 			}
 
 			if($_copyright)
 			{
-				\kekse\log('Copyright (c) %s', KEKSE_COPYRIGHT);
+				\kekse\info('Copyright (c) %s', KEKSE_COPYRIGHT);
 			}
 
 			exit(0);
