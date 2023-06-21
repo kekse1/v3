@@ -583,10 +583,6 @@ function error($_reason, $_own = false, $_exit_code = 224)
 
 		throw $ex;
 	}
-	else if(get_state('fin'))
-	{
-		return null;
-	}
 	else if(KEKSE_CLI)
 	{
 		\kekse\error($_reason);
@@ -597,6 +593,10 @@ function error($_reason, $_own = false, $_exit_code = 224)
 		}
 
 		exit(224);
+	}
+	else if(get_state('fin'))
+	{
+		return null;
 	}
 	else if(! get_state('sent'))
 	{
@@ -614,27 +614,38 @@ function error($_reason, $_own = false, $_exit_code = 224)
 function log_error($_reason, $_source = '', $_path = '', $_die = true)
 {
 	//
+	$ex = null;
+
+	//
+	if($_reason instanceof \Exception)
+	{
+		$ex = $_reason;
+		$_reason = $ex->getMessage();
+	}
+
+	//
 	if(get_config('raw'))
 	{
-		if($_reason instanceof \Exception)
+		if($ex)
 		{
-			throw $_reason;
+			throw $ex;
 		}
-		
+
 		throw new \Exception($_reason);
 	}
 	else if(KEKSE_CLI)
 	{
 		if($_die)
 		{
+			if($ex)
+			{
+				return error($ex);
+			}
+
 			return error($_reason);
 		}
-		
+
 		return null;
-	}
-	else if($_reason instanceof \Exception)
-	{
-		$_reason = $_reason->getMessage();
 	}
 	
 	$data = '[' . (string)time() . ']';
