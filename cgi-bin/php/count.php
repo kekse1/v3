@@ -818,7 +818,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 			if(!file_exists($result))
 			{
 				touch($result);
-				chmod($result, 01777);
+				//chmod($result, 0640);
 			}
 		}
 		else if(!is_dir($result))
@@ -859,7 +859,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 			if(!file_exists($result))
 			{
 				touch($result);
-				chmod($result, 01777);
+				//chmod($result, 0644);
 			}
 		}
 	}
