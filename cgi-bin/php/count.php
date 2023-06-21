@@ -4223,6 +4223,13 @@ function counter($_host = null, $_read_only = null)
 						$delete[$d++] = $p;
 					}
 				}
+<<<<<<< HEAD
+=======
+				else if($w || is_link($p))
+				{
+					$delete[$d++] = $p;
+				}
+>>>>>>> 0d379659bd9b27894b9ebcb7faff3c5ecfc1fb86
 				else
 				{
 					$delete[$d++] = $p;
