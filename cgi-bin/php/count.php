@@ -887,7 +887,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			$result = 'No such config item \'' . $_key . '\' available';
 		}
 		
-		return [ $_key, false, $result, null, null, null, null ];
+		return [ $_key, false, $result, null, null, null, null, '' ];
 	}
 	
 	$item = CONFIG_VECTOR[$_key];
