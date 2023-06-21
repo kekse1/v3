@@ -6,13 +6,12 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.4.2');
+define('COUNTER_VERSION', '3.5.0');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
 define('KEKSE_STRICT', true); //should stay (true)! don't change unless you know what you're doing..
 define('KEKSE_ANSI', true); //colors, styles, etc.. @ CLI! ^_^
-define('KEKSE_PREFIX', ' >> '); //console thing..
 
 //
 const DEFAULTS = array(
@@ -35,6 +34,7 @@ const DEFAULTS = array(
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120,130,40',
 	'bg' => '255,255,255,0',
+	'angle' => 0,//20,
 	'x' => 0,
 	'y' => 0,
 	'h' => 0,//64,
@@ -118,6 +118,7 @@ const CONFIG_VECTOR = array(
 	'unit' => array('types' => [ 'string' ], 'min' => 2, 'max' => 2, 'test' => true),
 	'fg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'bg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
+	'angle' => array('types' => [ 'integer', 'string' ], 'test' => true),
 	'x' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'y' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'h' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
@@ -151,7 +152,7 @@ else if(! (empty($_SERVER['argc']) || empty($_SERVER['argv'])))
 }
 else if(KEKSE_CLI)
 {
-	fprintf(STDERR, ' >> WARNING: CLI mode active, but missing \'$argc\' and/or \'$argv\'..! :-/' . PHP_EOL);
+	fprintf(STDERR, ' >> WARNING: CLI mode active, but missing \'argc\' and/or \'argv[]\'..! :-/' . PHP_EOL);
 	exit(127);
 }
 
@@ -219,6 +220,323 @@ function set_state($_key, $_value, $_die = true)
 }
 
 //
+namespace kekse;
+$console_condition = (KEKSE_CLI || \kekse\counter\get_config('raw'));
+
+function prompt(... $_args)
+{
+	global $console_condition;
+	
+	if($console_condition)
+	{
+		return \kekse\console\prompt(... $_args);
+	}
+	
+	return false;
+}
+
+function log(... $_args)
+{
+	global $console_condition;
+
+	if($console_condition)
+	{
+		return \kekse\console\log(... $_args);
+	}
+
+	return false;
+}
+
+function info(... $_args)
+{
+	global $console_condition;
+	
+	if($console_condition)
+	{
+		return \kekse\console\info(... $_args);
+	}
+
+	return false;
+}
+
+function error(... $_args)
+{
+	global $console_condition;
+
+	if($console_condition)
+	{
+		return \kekse\console\error(... $_args);
+	}
+
+	return false;
+}
+
+function warn(... $_args)
+{
+	global $console_condition;
+	
+	if($console_condition)
+	{
+		return \kekse\console\warn(... $_args);
+	}
+	
+	return false;
+}
+
+function debug(... $_args)
+{
+	global $console_condition;
+	
+	if($console_condition)
+	{
+		return \kekse\console\debug(... $_args);
+	}
+	
+	return false;
+}
+
+namespace kekse\console;
+
+if($console_condition)
+{
+	//
+	define('KEKSE_ANSI_ESC', chr(27));
+	define('KEKSE_ANSI_RESET', '[0m');
+	define('KEKSE_ANSI_BOLD', '[1m');
+	define('KEKSE_ANSI_RED', '[31m');
+	define('KEKSE_ANSI_GREEN', '[32m');
+	define('KEKSE_ANSI_YELLOW', '[33m');
+	define('KEKSE_ANSI_BLUE', '[34m');
+	define('KEKSE_ANSI_MAGENTA', '[35m');
+	//define('KEKSE_ANSI_CYAN', '[36m');
+
+	//
+	function insert_prefix($_string, $_color = null)
+	{
+		if(! is_string($_string))
+		{
+			return null;
+		}
+		else if(KEKSE_ANSI)
+		{
+			$seq = (KEKSE_ANSI_ESC . KEKSE_ANSI_BOLD);
+
+			if(is_string($_color)) switch(strtolower($_color))
+			{
+				case 'red':
+					$seq .= (KEKSE_ANSI_ESC . KEKSE_ANSI_RED);
+					break;
+				case 'green':
+					$seq .= (KEKSE_ANSI_ESC . KEKSE_ANSI_GREEN);
+					break;
+				case 'yellow':
+					$seq .= (KEKSE_ANSI_ESC . KEKSE_ANSI_YELLOW);
+					break;
+				case 'blue':
+					$seq .= (KEKSE_ANSI_ESC . KEKSE_ANSI_BLUE);
+					break;
+				case 'magenta':
+					$seq .= (KEKSE_ANSI_ESC . KEKSE_ANSI_MAGENTA);
+					break;
+			}
+
+			return ($seq . ' >> ' . (KEKSE_ANSI_ESC . KEKSE_ANSI_RESET) . $_string);
+		}
+
+		return (' >> ' . $_string);
+	}
+
+	//
+	function prompt($_string, $_return = false, $_repeat = true)
+	{
+		//
+		$_string = insert_prefix($_string, 'yellow');
+		
+		//
+		$confirm = function() use (&$_string, &$_return) {
+			fprintf(STDERR, $_string);
+			$res = readline();
+			
+			if($_return)
+			{
+				return $res;
+			}
+			else if(empty($res))
+			{
+				return null;
+			}
+			else switch(strtolower($res[0]))
+			{
+				case 'y': case '1': return true;
+				case 'n': case '0': return false;
+			}
+			
+			return null;
+		};
+
+		//		
+		$result = null;
+		
+		while($result === null)
+		{
+			$result = $confirm();
+			
+			if($result !== null)
+			{
+				break;
+			}
+		}
+		
+		return $result;
+	}
+	
+	//
+	function console_output(&$_format, &$_args)
+	{
+		$eol = 1;
+		
+		if($_format === null)
+		{
+			$eol = 0;
+			$_format = array_shift($_args);
+		}
+		else if(is_bool($_format))
+		{
+			$eol = ($_format ? 1 : 0);
+			$_format = array_shift($_args);
+		}
+		else if(is_int($_format))
+		{
+			$eol = $_format;
+			$_format = array_shift($_args);
+		}
+		
+		return [ $eol, $_format, $_args ];
+	}
+
+	//
+	function log($_format = '', ... $_args)
+	{
+		$result = console_output($_format, $_args);
+		
+		$eol = $result[0];
+		$_format = $result[1];
+		$_args = $result[2];
+		$result = '';
+		
+		if(is_string($_format) && !empty($_format))
+		{
+			$result = insert_prefix(sprintf($_format, ... $_args), null);
+		}
+		
+		printf($result);
+		
+		while(--$eol >= 0)
+		{
+			printf(PHP_EOL);
+		}
+		
+		return $result;
+	}
+
+	function info($_format = '', ... $_args)
+	{
+		$result = console_output($_format, $_args);
+		
+		$eol = $result[0];
+		$_format = $result[1];
+		$_args = $result[2];
+		$result = '';
+		
+		if(is_string($_format) && !empty($_format))
+		{
+			$result = insert_prefix(sprintf($_format, ... $_args), 'green');
+		}
+		
+		printf($result);
+		
+		while(--$eol >= 0)
+		{
+			printf(PHP_EOL);
+		}
+		
+		return $result;
+	}
+
+	function warn($_format = '', ... $_args)
+	{
+		$result = console_output($_format, $_args);
+		
+		$eol = $result[0];
+		$_format = $result[1];
+		$_args = $result[2];
+		$result = '';
+		
+		if(is_string($_format) && !empty($_format))
+		{
+			$result = insert_prefix(sprintf($_format, ... $_args), 'magenta');
+		}
+		
+		fprintf(STDERR, $result);
+		
+		while(--$eol >= 0)
+		{
+			fprintf(STDERR, PHP_EOL);
+		}
+		
+		return $result;
+	}
+
+	function error($_format = '', ... $_args)
+	{
+		$result = console_output($_format, $_args);
+		
+		$eol = $result[0];
+		$_format = $result[1];
+		$_args = $result[2];
+		$result = '';
+		
+		if(is_string($_format) && !empty($_format))
+		{
+			$result = insert_prefix(sprintf($_format, ... $_args), 'red');
+		}
+		
+		fprintf(STDERR, $result);
+		
+		while(--$eol >= 0)
+		{
+			fprintf(STDERR, PHP_EOL);
+		}
+		
+		return $result;
+	}
+	
+	function debug($_format = '', ... $_args)
+	{
+		$result = console_output($_format, $_args);
+		
+		$eol = $result[0];
+		$_format = $result[1];
+		$_args = $result[2];
+		$result = '';
+		
+		if(is_string($_format) && !empty($_format))
+		{
+			$result = insert_prefix(sprintf($_format, ... $_args), 'blue');
+		}
+		
+		fprintf(STDERR, $result);
+		
+		while(--$eol >= 0)
+		{
+			fprintf(STDERR, PHP_EOL);
+		}
+		
+		return $result;
+	}
+}
+
+//
 namespace kekse\counter;
 
 //
@@ -271,14 +589,7 @@ function error($_reason, $_own = false, $_exit_code = 224)
 	}
 	else if(KEKSE_CLI)
 	{
-		if(defined('STDERR'))
-		{
-			fprintf(STDERR, ' >> ' . $_reason . PHP_EOL);
-		}
-		else
-		{
-			die(' >> ' . $_reason . PHP_EOL);
-		}
+		\kekse\error($_reason);
 
 		if(is_int($_exit_code))
 		{
@@ -382,7 +693,7 @@ function check_path_char($_path, $_basename = true)
 		case '~':
 		case '+':
 		case '-':
-		case '%':
+		case '$':
 			return false;
 	}
 	
@@ -468,7 +779,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 	{
 		if($_die)
 		{
-			error('Path may not start with one of [ \'~\', \'+\', \'-\', \'%\' ]');
+			error('Path may not start with one of [ \'~\', \'+\', \'-\', \'$\' ]');
 		}
 		
 		return null;
@@ -563,6 +874,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 function check_config_item($_key, $_value = null, $_bool = false)
 {
 	$result = null;
+	$success = null;
 	
 	if(! array_key_exists($_key, CONFIG_VECTOR))
 	{
@@ -577,8 +889,26 @@ function check_config_item($_key, $_value = null, $_bool = false)
 		
 		return [ $_key, false, $result, null, null, null, null ];
 	}
-
+	
 	$item = CONFIG_VECTOR[$_key];
+	$minmax = '';
+	
+	if(isset($item['min']))
+	{
+		$minmax = '(' . $item['min'] . '..';
+		
+		if(isset($item['max']))
+		{
+			$minmax .= $item['max'];
+		}
+		
+		$minmax .= ')';
+	}
+	else if(isset($item['max']))
+	{
+		$minmax = '(..' . $item['max'] . ')';
+	}
+	
 	$valueType = gettype($_value);
 	$typesLen = count($item['types']);
 	$validTypes = '[ ' . implode(', ', $item['types']) . ' ]';
@@ -595,7 +925,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			$result = 'Invalid type';
 		}
 		
-		return [ $_key, false, $result, $valueType, $validTypes, null, null ];
+		return [ $_key, false, $result, $valueType, $validTypes, null, null, $minmax ];
 	}
 
 	$validLength = true;
@@ -694,16 +1024,41 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			$result .= ')';
 		}
 		
-		return [ $_key, false, $result, $valueType, $validTypes, $min, $max ];
+		return [ $_key, false, $result, $valueType, $validTypes, $min, $max, $minmax ];
 	}
 
 	$validTest = null;
-	$success = null;
 
 	if(isset($item['test']) && $item['test'])
 	{
 		switch($_key)
 		{
+			case 'angle':
+				if(is_string($_value))
+				{
+					$tmp = \kekse\unit($_value, true, false);
+
+					switch($tmp[1])
+					{
+						case 'deg':
+						case 'rad':
+							$validTest = true;
+							$success = 'Unit is valid: \'' . $tmp[1] . '\'';
+							break;
+						case '':
+							$validTest = true;
+							$success = 'No unit in String, assuming \'deg\'';
+							break;
+						default:
+							$validTest = 'Invalid unit \'' . $tmp[1] . '\'';
+							break;
+					}
+				}
+				else
+				{
+					$validTest = true;
+				}
+				break;
 			case 'size':
 				$tmp = \kekse\unit($_value, true, null);
 
@@ -742,7 +1097,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 
 				if($validTest !== null)
 				{
-					$count = \kekse\files($validTest, false, null, [ '~', '+', '-', '%' ], false, true, false, true);
+					$count = \kekse\files($validTest, false, null, [ '~', '+', '-', '$' ], false, true, false, true);
 					
 					if($count === -1)
 					{
@@ -829,10 +1184,12 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				}
 				break;
 			case 'font':
+				$item['test'] = null;//placeholder..
 				//check like 'fonts' above.. if not, false here, too.
 				//if ok, check if this font is installed in fonts directory (and readable)!
 				break;
 			case 'drawing':
+				$item['test'] = null;//placeholder..
 				//test like above 'fonts' dir.. else false; sonst:
 				//(1) 'font' is (correctly!) set (and readable - see above!!), else false here
 				//(2) if ok, look if 'font' exists as .ttf in the 'fonts'! and readable.. etc.!!
@@ -842,7 +1199,8 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			case 'fg':
 			case 'bg':
 				//check if parsing is possible.. check what 'color()' (TODO) returns (!== null?!!?)!//
-				$validTest = true;//FIXME/!!!
+				//$validTest = true;//FIXME/!!!
+				$item['test'] = null;//placeholder..
 				break;
 			case 'type':
 				if(! extension_loaded('gd')) switch($_value)
@@ -906,7 +1264,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			$result = 'Failed at extended test routine(s)';
 		}
 		
-		return [ $_key, false, $result, $valueType, $validTypes, $min, $max ];
+		return [ $_key, false, $result, $valueType, $validTypes, $min, $max, $minmax ];
 	}
 	else if(is_string($validTest))
 	{
@@ -915,7 +1273,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 			return false;
 		}
 		
-		return [ $_key, false, $validTest, $valueType, $validTypes, $min, $max ];
+		return [ $_key, false, $validTest, $valueType, $validTypes, $min, $max, $minmax ];
 	}
 
 	//
@@ -937,7 +1295,7 @@ function check_config_item($_key, $_value = null, $_bool = false)
 		}
 	}
 	
-	return [ $_key, true, $result, $valueType, $validTypes, $min, $max ];
+	return [ $_key, true, $result, $valueType, $validTypes, $min, $max, $minmax ];
 }
 
 function check_config_key($_key, $_die = true)
@@ -1050,7 +1408,7 @@ function check_host_config($_host, $_load = true, $_bool = false, $_die = true)
 
 	if($_load)
 	{
-		if(($config = load_config(\kekse\join_path(get_state('path'), '%' . $_host))) === null)
+		if(($config = load_config(\kekse\join_path(get_state('path'), '$' . $_host))) === null)
 		{
 			if($_die)
 			{
@@ -1122,7 +1480,7 @@ function get_config($_key, $_host = null, $_die = true)
 	{
 		$_host = get_state('host');
 	}
-	
+
 	if(isset($CONFIG[$_host]))
 	{
 		$config = $CONFIG[$_host];
@@ -1171,9 +1529,10 @@ function make_config($_host, $_reload = null, $_unset = true, $_restore = false)
 
 	//
 	$data = null;
-	$path = \kekse\join_path(get_state('path'), '%' . $_host);
+	$path = \kekse\join_path(get_state('path'), '$' . $_host);
 
-	if(!(is_file($path) && is_readable($path)))
+	//	
+	if(!((is_file($path) && is_readable($path))))
 	{
 		if($_unset)
 		{
@@ -1268,7 +1627,7 @@ function count_config($_path)
 
 function count_host_config($_host)
 {
-	return count_config(\kekse\join_path(get_state('path'), '%' . $_host));
+	return count_config(\kekse\join_path(get_state('path'), '$' . $_host));
 }
 
 function load_config($_path, $_data = null, $_depth = 8)
@@ -1312,7 +1671,7 @@ function load_config($_path, $_data = null, $_depth = 8)
 namespace kekse;
 
 //
-function is_number()
+function is_number($_item)
 {
 	return (is_int($_item) || is_float($_item));
 }
@@ -1766,7 +2125,7 @@ function secure($_string)
 			$len = strlen($result);
 		}
 
-		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '%')
+		while($rem < ($len - 1) && ($result[$rem] === '~' || $result[$rem] === '+' || $result[$rem] === '-') || $result[$rem] === '$')
 		{
 			++$rem;
 		}
@@ -1819,7 +2178,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 	{
 		$_depth = 0;
 	}
-
+	
 	if(is_dir($_path))
 	{
 		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
@@ -1926,7 +2285,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 
 		return rmdir($_path);
 	}
-	else if(file_exists($_path) && is_writable($_path))
+	else if(file_exists($_path))
 	{
 		if(unlink($_path) === false)
 		{
@@ -1941,7 +2300,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 	return true;
 }
 
-function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_STRICT, $_fallback = true)
+function get_param($_key, $_numeric = false, $_float = false, $_strict = KEKSE_STRICT, $_fallback = true)
 {
 	if(!is_bool($_strict))
 	{
@@ -1996,7 +2355,12 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 	{
 		return null;
 	}
-	else if($_numeric === null) switch(strtolower($value[0]))
+	else
+	{
+		$value = \kekse\remove_white_spaces($value);
+	}
+
+	if($_numeric === null) switch(strtolower($value[0]))
 	{
 		case '0':
 		case 'n':
@@ -2019,6 +2383,7 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 	$set = '';
 	$negative = false;
 	$remove = 0;
+	$removed = '';
 
 	if($_numeric) while($remove < $len && ($value[$remove] === '+' || $value[$remove] === '-'))
 	{
@@ -2032,6 +2397,7 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 
 	if($remove > 0)
 	{
+		$removed = substr($value, 0, $remove);
 		$value = substr($value, $remove);
 	}
 
@@ -2149,18 +2515,12 @@ function get_param($_key, $_numeric = false, $_float = true, $_strict = KEKSE_ST
 	{
 		return null;
 	}
+	else if($removed)
+	{
+		$result = $removed . $result;
+	}
 
 	return $result;
-}
-
-function px2pt($_px)
-{
-	return ($_px * 0.75);
-}
-
-function pt2px($_pt)
-{
-	return ($_pt / 0.75);
 }
 
 //
@@ -2174,15 +2534,40 @@ function unit($_string, $_float = false, $_null = true)
 	}
 	else
 	{
-		$_string = strtolower($_string);
+		$_string = \kekse\remove_white_spaces(strtolower($_string));
 	}
-	
+
 	$size = '';
 	$unit = '';
 	$state = false;
 	$float = false;
 	$wait = false;
 	$byte = 0;
+	$negative = false;
+
+	$rem = 0;
+	for($i = 0; $i < $len; ++$i)
+	{
+		if($_string[$i] === '-' || $_string[$i] === '+')
+		{
+			if($_string[$i] === '-')
+			{
+				$negative = !$negative;
+			}
+
+			++$rem;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if($rem > 0)
+	{
+		$_string = substr($_string, $rem);
+		$len -= $rem;
+	}
 	
 	for($i = 0; $i < $len; ++$i)
 	{
@@ -2221,6 +2606,11 @@ function unit($_string, $_float = false, $_null = true)
 				$size .= '.';
 			}
 		}
+		else if($byte === 43 || $byte === 45)
+		{
+			//43 = +
+			//45 = -
+		}
 	}
 	
 	$s = strlen($size);
@@ -2253,6 +2643,11 @@ function unit($_string, $_float = false, $_null = true)
 		{
 			$size = (int)$size;
 		}
+
+		if($negative)
+		{
+			$size = -$size;
+		}
 	}
 	
 	if($u === 0 && $_null)
@@ -2264,13 +2659,13 @@ function unit($_string, $_float = false, $_null = true)
 }
 
 //
-$colorDetermination = (\kekse\counter\get_config('raw') || KEKSE_CLI || \kekse\counter\get_config('drawing'));
+$color_condition = (KEKSE_CLI || \kekse\counter\get_config('raw') || \kekse\counter\get_config('drawing'));
 
 function color(... $_args)
 {
-	global $colorDetermination;
+	global $color_condition;
 	
-	if($colorDetermination)
+	if($color_condition)
 	{
 		return \kekse\color\color(... $_args);
 	}
@@ -2281,11 +2676,16 @@ function color(... $_args)
 //
 namespace kekse\color;
 
-if($colorDetermination)
+if($color_condition)
 {
 	//
-	function color($_string, $_gd = true)
+	function color($_string, $_gd = null)
 	{
+		if(!is_bool($_gd))
+		{
+			$_gd = extension_loaded('gd');
+		}
+
 		if(!is_string($_string))
 		{
 			if(is_array($_string) && color_check_array($_string))
@@ -2462,7 +2862,7 @@ if($colorDetermination)
 	function color_rgb_a($_string)
 	{
 		//
-		$_string = \kekse\remove_white_spaces($_string) . ',';
+		$_string .= ',';
 		$len = strlen($_string);
 		$result = array();
 		$comma = false;
@@ -2662,126 +3062,14 @@ if($colorDetermination)
 }
 
 //
-if(KEKSE_CLI || \kekse\counter\get_config('raw'))
-{
-	//
-	//TODO: WITH "KEKSE_PREFIX"!
-	//
-	function prompt($_string, $_return = false, $_repeat = true)
-	{
-		$confirm = function() use (&$_string, &$_return) {
-			$res = readline($_string);
-			
-			if($_return)
-			{
-				return $res;
-			}
-			else if(empty($res))
-			{
-				return null;
-			}
-			else switch(strtolower($res[0]))
-			{
-				case 'y': case '1': return true;
-				case 'n': case '0': return false;
-			}
-			
-			return null;
-		};
-		
-		$result = $confirm();
-		
-		if(is_string($result))
-		{
-			return $result;
-		}
-		else while($result === null)
-		{
-			$result = $confirm();
-		}
-		
-		return $result;
-	}
-
-	//
-	function log($format, ... $_args)
-	{
-	}
-
-	function info($format, ... $_args)
-	{
-	}
-
-	function warn($format, ... $_args)
-	{
-	}
-
-	function error($format, ... $_args)
-	{
-	}
-
-	function debug($format, ... $_args)
-	{
-	}
-}
-
-//
-namespace kekse\ansi;
-
-function ansi($_sequence, $_text = null)
-{
-	if(! KEKSE_ANSI)
-	{
-		return $_text;
-	}
-	else
-	{
-	}
-}
-
-function rgb($_text, $r, $g, $b, $a = 1.0)
-{
-	if(func_num_args() === 2)
-	{
-		if(is_string($_r))
-		{
-		}
-		else if(is_array($_r))
-		{
-		}
-	}
-	else
-	{
-	}
-}
-
-function reset()
-{
-	//'[0m'
-}
-
-function green($_text)
-{
-}
-
-function red($_text)
-{
-}
-
-function blue($_text)
-{
-}
-
-function bold($_text)
-{
-}
-
-//
 namespace kekse\counter;
 
 //
 function counter($_host = null, $_read_only = null)
 {
+	//
+	global $CONFIG;
+
 	//
 	if(!is_bool($_read_only))
 	{
@@ -2911,11 +3199,12 @@ function counter($_host = null, $_read_only = null)
 			}
 			
 			$type = $_host[0];
-
+			$p = \kekse\join_path(get_state('path'), $_host);
+			
 			switch($type)
 			{
 				case '~':
-					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
+					if($_check && !is_file($p))
 					{
 						return 0;
 					}
@@ -2923,7 +3212,7 @@ function counter($_host = null, $_read_only = null)
 					$type = COUNTER_VALUE;
 					break;
 				case '+':
-					if($_check && !is_dir(\kekse\join_path(get_state('path'), $_host)))
+					if($_check && !is_dir($p))
 					{
 						return 0;
 					}
@@ -2931,15 +3220,15 @@ function counter($_host = null, $_read_only = null)
 					$type = COUNTER_DIR;
 					break;
 				case '-':
-					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
+					if($_check && !is_file($p))
 					{
 						return 0;
 					}
 
 					$type = COUNTER_FILE;
 					break;
-				case '%':
-					if($_check && !is_file(\kekse\join_path(get_state('path'), $_host)))
+				case '$':
+					if($_check && !is_file($p))
 					{
 						return 0;
 					}
@@ -2978,7 +3267,7 @@ function counter($_host = null, $_read_only = null)
 				
 				if($handle === false)
 				{
-					fprintf(STDERR, ' >> Couldn\'t opendir()' . PHP_EOL);
+					\kekse\error('Couldn\'t opendir()');
 					exit(1);
 				}
 				
@@ -2998,7 +3287,7 @@ function counter($_host = null, $_read_only = null)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					$sub = \kekse\join_path(get_state('path'), '{~,+,-,%}' . strtolower($list[$i]));
+					$sub = \kekse\join_path(get_state('path'), '{~,+,-,$}' . strtolower($list[$i]));
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
 
@@ -3035,12 +3324,12 @@ function counter($_host = null, $_read_only = null)
 		{
 			if($_version)
 			{
-				printf('v' . COUNTER_VERSION . PHP_EOL);
+				\kekse\log('v' . COUNTER_VERSION);
 			}
 
 			if($_copyright)
 			{
-				printf('Copyright (c) %s' . PHP_EOL, KEKSE_COPYRIGHT);
+				\kekse\log('Copyright (c) %s', KEKSE_COPYRIGHT);
 			}
 
 			exit(0);
@@ -3048,33 +3337,35 @@ function counter($_host = null, $_read_only = null)
 
 		function help($_index = null)
 		{
-			printf(' >> Visit: <' . COUNTER_HELP . '>' . PHP_EOL);
-			printf(' >> Available parameters (use only one at the same time, please):' . PHP_EOL . PHP_EOL);
+			\kekse\debug('Visit: <' . COUNTER_HELP . '>');
+			\kekse\info('Available parameters (use only one at the same time, please):');
+			\kekse\info();
 
-			printf('    -? / --help' . PHP_EOL);
-			printf('    -V / --version' . PHP_EOL);
-			printf('    -C / --copyright' . PHP_EOL);
+			printf('    -? | --help' . PHP_EOL);
+			printf('    -V | --version' . PHP_EOL);
+			printf('    -C | --copyright' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -c / --check [*]' . PHP_EOL);
+			printf('    -c | --check [*]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -v / --values [*]' . PHP_EOL);
-			printf('    -s / --sync [*]' . PHP_EOL);
-			printf('    -l / --clean [*]' . PHP_EOL);
-			printf('    -p / --purge [*]' . PHP_EOL);
-			printf('    -z / --sanitize [--allow-without-values / -w]' . PHP_EOL);
-			printf('    -r / --remove [*]' . PHP_EOL);
+			printf('    -v | --values [*]' . PHP_EOL);
+			printf('    -s | --sync [*]' . PHP_EOL);
+			printf('    -l | --clean [*]' . PHP_EOL);
+			printf('    -p | --purge [*]' . PHP_EOL);
+			printf('    -r | --remove [*]' . PHP_EOL);
+			printf('    -z | --sanitize [--allow-without-values | -w / --dot-files | -d]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -t / --set (host) [value = 0]' . PHP_EOL);
+			printf('    -t | --set (host) [value = 0]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -f / --fonts [*]' . PHP_EOL);
-			printf('    -y / --types' . PHP_EOL);
-			printf('    -h / --hashes' . PHP_EOL);
+			printf('    -f | --fonts [*]' . PHP_EOL);
+			printf('    -y | --types' . PHP_EOL);
+			printf('    -h | --hashes' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -e / --errors' . PHP_EOL);
-			printf('    -u / --unlog' . PHP_EOL);
+			printf('    -e | --errors' . PHP_EOL);
+			printf('    -u | --unlog' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('The \'*\' arguments should all support GLOBs (which you should escape or quote).' . PHP_EOL);
-			printf('Arguments within \'[]\' are optional, and those within \'()\' are required..' . PHP_EOL);
+			
+			\kekse\info('The \'*\' arguments should all support GLOBs (which you should escape or quote).');
+			\kekse\info('Arguments within \'[]\' are optional, and those within \'()\' are required..');
 
 			exit(0);
 		}
@@ -3084,9 +3375,11 @@ function counter($_host = null, $_read_only = null)
 			$list = hash_algos();
 			$len = count($list);
 			
+			\kekse\info(2, 'Found %d hashes', $len);
+			
 			for($i = 0; $i < $len; ++$i)
 			{
-				printf($list[$i] . PHP_EOL);
+				\kekse\debug($list[$i]);
 			}
 			
 			exit(0);
@@ -3097,12 +3390,12 @@ function counter($_host = null, $_read_only = null)
 			//
 			if(!is_string(get_state('fonts')) || empty(get_state('fonts')))
 			{
-				fprintf(STDERR, ' >> \'FONTS\' directory is not properly configured' . PHP_EOL);
+				\kekse\error('\'FONTS\' directory is not properly configured');
 				exit(1);
 			}
 			else if(! is_dir(get_state('fonts')))
 			{
-				fprintf(STDERR, ' >> \'FONTS\' directory doesn\'t exist.' . PHP_EOL);
+				\kekse\error('\'FONTS\' directory doesn\'t exist.');
 				exit(2);
 			}
 
@@ -3155,16 +3448,17 @@ function counter($_host = null, $_read_only = null)
 
 			if($result === null)
 			{
-				fprintf(STDERR, ' >> No fonts found' . ($defined < 0 ? '' : ' (with your ' . $defined . ' globs)') . PHP_EOL);
+				error('No fonts found' . ($defined < 0 ? '' : ' (with your ' . $defined . ' globs)'));
 				exit(3);
 			}
 			
 			$len = count($result);
-			printf(' >> Found %d fonts' . ($defined < 0 ? '' : ' (by %d globs)') . PHP_EOL . PHP_EOL, $len, $defined);
+			\kekse\info('Found %d fonts' . ($defined < 0 ? '' : ' (by %d globs)'), $len, $defined);
+			\kekse\info();
 			
 			for($i = 0; $i < $len; ++$i)
 			{
-				printf($result[$i] . PHP_EOL);
+				\kekse\debug($result[$i]);
 			}
 
 			printf(PHP_EOL);
@@ -3175,18 +3469,39 @@ function counter($_host = null, $_read_only = null)
 		{
 			if(!extension_loaded('gd'))
 			{
-				fprintf(STDERR, ' >> The GD library/extension is not loaded/available' . PHP_EOL);
+				\kekse\error(' >> The GD library/extension is not loaded/available');
+				exit(1);
+			}
+			
+			$types = imagetypes();
+			$supported = array();
+			
+			if($types & IMG_PNG)
+			{
+				$supported[] = 'png';
+			}
+			
+			if($types & IMG_JPG)
+			{
+				$supported[] = 'jpg';
+			}
+			
+			$len = count($supported);
+			
+			if($len === 0)
+			{
+				\kekse\error('Supporting NO image types. :-/');
 				exit(1);
 			}
 			else
 			{
-				printf(' >> Supporting the following image types here:' . PHP_EOL . PHP_EOL);
+				\kekse\info(2, 'Supporting %d image types:', $len);
 			}
-
-			$types = imagetypes();
-
-			printf('\'png\': %s' . PHP_EOL, ($types & IMG_PNG ? 'yes' : 'no'));
-			printf('\'jpg\': %s' . PHP_EOL, ($types & IMG_JPG ? 'yes' : 'no'));
+			
+			for($i = 0; $i < $len; ++$i)
+			{
+				\kekse\debug($supported[$i]);
+			}
 
 			printf(PHP_EOL);
 			exit(0);
@@ -3220,7 +3535,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						++$cnt;
 
-						$item = \kekse\join_path(get_state('path'), '%' . $item);
+						$item = \kekse\join_path(get_state('path'), '$' . $item);
 						$item = glob($item, GLOB_BRACE);
 						$len = count($item);
 						
@@ -3246,7 +3561,7 @@ function counter($_host = null, $_read_only = null)
 				}
 				else if($idx === 0)
 				{
-					fprintf(STDERR, ' >> NONE of your %d hosts/globs has own configuration' . PHP_EOL, $cnt);
+					\kekse\warn('NONE of your %d hosts/globs has own configuration', $cnt);
 					exit(1);
 				}
 			}
@@ -3257,16 +3572,15 @@ function counter($_host = null, $_read_only = null)
 
 			//
 			$result = null;
-			$h = 0;
 
 			if($hosts === null)
 			{
-				printf(' >> Checking your DEFAULT configuration (no hosts specified).' . PHP_EOL . PHP_EOL);
+				\kekse\info(2, 'Checking your DEFAULT configuration (no hosts specified).');
 				$result = check_config();
 			}
 			else
 			{
-				printf(' >> Found %d per-host configuration' . ($idx === 1 ? '' : 's') . ' (by %d glob' . ($cnt === 1 ? '' : 's') . ' in total).' . PHP_EOL . PHP_EOL, $idx, $cnt);
+				\kekse\info(2, 'Found %d per-host configuration' . ($idx === 1 ? '' : 's') . ' (by %d glob' . ($cnt === 1 ? '' : 's') . ' in total).', $idx, $cnt);
 				$len = count($hosts);
 				$result = array();
 
@@ -3276,17 +3590,13 @@ function counter($_host = null, $_read_only = null)
 					{
 						unset($result[$hosts[$i]]);
 					}
-					else
-					{
-						++$h;
-					}
 				}
 			}
 
 			//			
 			$ok = 0;
 			$bad = 0;
-			$len = $maxLen = $maxLenKey = 0;
+			$len = $maxLen = $maxLenKey = $maxLenType = $maxLenLimits = 0;
 
 			if($hosts === null)
 			{
@@ -3301,39 +3611,31 @@ function counter($_host = null, $_read_only = null)
 					{
 						$maxLenKey = $len;
 					}
+
+					if(($len = strlen($state[3])) > $maxLenType)
+					{
+						$maxLenType = $len;
+					}
+
+					if(($len = strlen($state[7])) > $maxLenLimits)
+					{
+						$maxLenLimits = $len;
+					}
 				}
 				
 				$maxLenKey += 3;
-				$format = ('%' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's  %10s%-14s %s' . PHP_EOL);
+				$format = ('%' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's  %' . $maxLenType . 's %-' . $maxLenLimits . 's    %s' . PHP_EOL);
 				
 				foreach($result as $key => $state)
 				{
-					$limits = '';
-					
-					if($state[5] !== null)
-					{
-						$limits .= '(' . $state[5] . '..';
-						
-						if($state[6] !== null)
-						{
-							$limits .= $state[6];
-						}
-						
-						$limits .= ')';
-					}
-					else if($state[6] !== null)
-					{
-						$limits .= '(..' . $state[6] . ')';
-					}
-
 					if($state[1])
 					{
-						printf($format, '[ ' . $state[0], 'OK', $state[2], $state[3], $limits, $state[4]);
+						printf($format, '[ ' . $state[0], 'OK', $state[2], $state[3], $state[7], $state[4]);
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, $format, '[ ' . $state[0], 'BAD', $state[2], $state[3], $limits, $state[4]);
+						fprintf(STDERR, $format, '[ ' . $state[0], 'BAD', $state[2], $state[3], $state[7], $state[4]);
 						++$bad;
 					}
 				}
@@ -3355,6 +3657,16 @@ function counter($_host = null, $_read_only = null)
 						{
 							$maxLenKey = $len;
 						}
+
+						if(($len = strlen($state[3])) > $maxLenType)
+						{
+							$maxLenType = $len;
+						}
+
+						if(($len = strlen($state[7])) > $maxLenLimits)
+						{
+							$maxLenLimits = $len;
+						}
 					}
 
 					if(($len = strlen($host)) > $maxLenHost)
@@ -3364,46 +3676,20 @@ function counter($_host = null, $_read_only = null)
 				}
 
 				$maxLenKey += 3;
+				$format = (' %' . $maxLenHost . 's %' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's    %' . $maxLenType . 's %-' . $maxLenLimits . 's    %s' . PHP_EOL);
 
-				if($h === 1)
-				{
-					$format = ('%s%' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's  %10s%-14s %s' . PHP_EOL);
-				}
-				else
-				{
-					$format = (' %' . $maxLenHost . 's %' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's  %10s%-14s %s' . PHP_EOL);
-				}
-				
 				foreach($result as $host => $item)
 				{
 					foreach($item as $key => $state)
 					{
-						$limits = '';
-
-						if($state[5] !== null)
-						{
-							$limits .= '(' . $state[5] . '..';
-							
-							if($state[6] !== null)
-							{
-								$limits .= $state[6];
-							}
-							
-							$limits .= ')';
-						}
-						else if($state[6] !== null)
-						{
-							$limits .= '(..' . $state[6] . ')';
-						}
-						
 						if($state[1])
 						{
-							printf($format, ($h === 1 ? '' : $host), '[ ' . $state[0], 'OK', $state[2], $state[3], $limits, $state[4]);
+							printf($format, $host, '[ ' . $state[0], 'OK', $state[2], $state[3], $state[7], $state[4]);
 							++$ok;
 						}
 						else
 						{
-							fprintf(STDERR, $format, ($h === 1 ? '' : $host), '[ ' . $state[0], 'BAD', $state[2], $state[3], $limits, $state[4]);
+							fprintf(STDERR, $format, $host, '[ ' . $state[0], 'BAD', $state[2], $state[3], $state[7], $state[4]);
 							++$bad;
 						}
 					}
@@ -3414,22 +3700,21 @@ function counter($_host = null, $_read_only = null)
 
 			if(get_config('raw'))
 			{
-				fprintf(STDERR, ' >> WARNING: `RAW` mode enabled, which leads to a changed behavior..' . PHP_EOL);
+				\kekse\warn('Warning: `RAW` mode enabled, which leads to a changed behavior..');
 			}
 			
 			//
 			if($bad === 0)
 			{
-				printf(' >> All %d were OK! :-)', $ok);
-				printf('.' . PHP_EOL);
+				\kekse\info('All %d were OK! :-)', $ok);
 			}
 			else if($ok === 0)
 			{
-				fprintf(STDERR, ' >> NO single item was valid (%d errors)...' . PHP_EOL, $bad);
+				\kekse\error('NO single item was valid (%d errors)...', $bad);
 			}
 			else
 			{
-				printf(' >> Only %d items were valid.. %d caused errors!' . PHP_EOL, $ok, $bad);
+				\kekse\warn('Only %d items were valid.. %d caused errors!', $ok, $bad);
 			}
 
 			if($bad === 0)
@@ -3487,13 +3772,13 @@ function counter($_host = null, $_read_only = null)
 				
 				if($host === null)
 				{
-					fprintf(STDERR, ' >> No valid target host specified!' . PHP_EOL);
+					\kekse\warn('No valid target host specified!');
 					exit(1);
 				}
 			}
 			else
 			{
-				fprintf(STDERR, ' >> Can\'t locate arguments!' . PHP_EOL);
+				\kekse\warn('Can\'t locate arguments!');
 				exit(2);
 			}
 
@@ -3505,12 +3790,12 @@ function counter($_host = null, $_read_only = null)
 			{
 				if(!is_file($p))
 				{
-					fprintf(STDERR, ' >> Target is not a file!' . PHP_EOL);
+					\kekse\error('Target is not a file!');
 					exit(3);
 				}
 				else if(!is_writable($p) && is_readable($p))
 				{
-					fprintf(STDERR, ' >> File is not readable (n)or writable!' . PHP_EOL);
+					\kekse\error('File is not readable (n)or writable!');
 					exit(4);
 				}
 				else if(($orig = file_get_contents($p)) === false)
@@ -3519,39 +3804,39 @@ function counter($_host = null, $_read_only = null)
 				}
 				else if(($orig = (int)$orig) === $value)
 				{
-					printf(' >> File is already set to (%d).. so nothing changes! :-)' . PHP_EOL, $value);
+					\kekse\info('File is already set to (%d).. so nothing changes! :-)', $value);
 					exit(0);
 				}
 			}
 
-			printf(' >> Target file is \'%s\'' . ($existed ? ' (already existed)' : '') . '.' . PHP_EOL, $p);
+			\kekse\info('Target file is \'%s\'' . ($existed ? ' (already existed)' : '') . '.', $p);
 
 			if($orig === null)
 			{
 				if(!\kekse\prompt('Initialize file with value (' . $value . ') now [yes/no]? '))
 				{
-					fprintf(STDERR, ' >> Aborting..' . PHP_EOL);
+					\kekse\warn(' >> Aborting.. by request.');
 					exit(5);
 				}
 			}
 			else if(!\kekse\prompt('Replace old value (' . $orig . ') by new one (' . $value . ') now [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Aborting..' . PHP_EOL);
+				\kekse\warn('Aborting, as requested.');
 				exit(6);
 			}
 
 			if(file_put_contents($p, (string)$value) === false)
 			{
-				fprintf(STDERR, ' >> Unable to write value: %d' . PHP_EOL, $value);
+				\kekse\error('Unable to write value: %d', $value);
 				exit(7);
 			}
 			else if($orig === null)
 			{
-				printf(' >> Successfully initialized file with value: %d' . PHP_EOL, $value, $p);
+				\kekse\info('Successfully initialized file with value: %d', $value, $p);
 			}
 			else
 			{
-				printf(' >> Successfully replaced old value (%d) by new value: %d' . PHP_EOL, $orig, $value);
+				\kekse\info('Successfully replaced old value (%d) by new value: %d', $orig, $value);
 			}
 
 			//
@@ -3566,13 +3851,13 @@ function counter($_host = null, $_read_only = null)
 
 			if($list === null)
 			{
-				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
+				\kekse\warn('No hosts found.');
 				exit(1);
 			}
 			else
 			{
-				printf(' >> This will *delete* the whole cache!' . PHP_EOL);
-				printf(' >> Maybe you\'d rather like to \'--clean/-c\' instead!?' . PHP_EOL . PHP_EOL);
+				\kekse\warn('This will *delete* the whole cache!');
+				\kekse\debug(2, 'Maybe you\'d rather like to \'--clean/-c\' instead!?');
 			}
 
 			$dirs = array();
@@ -3602,21 +3887,22 @@ function counter($_host = null, $_read_only = null)
 				if($c > 0)
 				{
 					++$total;
-					printf($key . PHP_EOL);
+					printf('    ' . $key . PHP_EOL);
 				}
 			}
 
 			if($total === 0)
 			{
-				fprintf(STDERR, ' >> All of the %d found hosts are already free of special files.' . PHP_EOL, $len);
+				\kekse\warn('All of the %d found hosts are already free of special files.', $len);
 				exit(0);
 			}
 
-			printf(PHP_EOL . ' >> Found %d directories and %d files - for %d hosts.' . PHP_EOL, count($dirs), count($files), $total);
+			\kekse\info();
+			\kekse\info('Found %d directories and %d files - for %d hosts.', count($dirs), count($files), $total);
 
 			if(!\kekse\prompt('Do you really want to delete them [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Good, we\'re aborting here, as requested.' . PHP_EOL);
+				\kekse\warn('Good, we\'re aborting here, as requested.');
 				exit(2);
 			}
 			else
@@ -3653,17 +3939,17 @@ function counter($_host = null, $_read_only = null)
 
 			if($errors === 0)
 			{
-				printf(' >> Great, all %d files deleted successfully!' . PHP_EOL, $good);
+				\kekse\info('Great, all %d files deleted successfully!', $good);
 				exit(0);
 			}
 			else if($good > 0)
 			{
-				printf(' >> %d files sucessfully deleted..' . PHP_EOL, $good);
-				fprintf(STDERR, ' >> ... but %d files could *not* be removed. :-/' . PHP_EOL, $errors);
+				\kekse\info('%d files sucessfully deleted..', $good);
+				\kekse\error('... but %d files could *not* be removed. :-/', $errors);
 				exit(3);
 			}
 			
-			fprintf(STDERR, ' >> NONE of the selected %d files deleted! :-(' . PHP_EOL, $total);
+			\kekse\warn('NONE of the selected %d files deleted! :-(', $total);
 			exit(4);
 		}
 		
@@ -3674,7 +3960,7 @@ function counter($_host = null, $_read_only = null)
 
 			if($list === null)
 			{
-				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
+				\kekse\warn('No hosts found.');
 				exit(1);
 			}
 
@@ -3692,12 +3978,12 @@ function counter($_host = null, $_read_only = null)
 
 			if($len === 0)
 			{
-				printf(' >> No caches stored for %d host' . ($orig === 1 ? '' : 's') . '.' . PHP_EOL, $orig);
+				\kekse\info('No caches stored for %d host' . ($orig === 1 ? '' : 's') . '.', $orig);
 				exit(0);
 			}
 			else
 			{
-				printf(' >> Found %d host' . ($len === 1 ? '' : 's') . ' (of %d) with caches:' . PHP_EOL . PHP_EOL, $len, $orig);
+				\kekse\info(2, 'Found %d host' . ($len === 1 ? '' : 's') . ' (of %d) with caches:', $len, $orig);
 			}
 
 			foreach($list as $host => $type)
@@ -3709,7 +3995,7 @@ function counter($_host = null, $_read_only = null)
 
 			if(!\kekse\prompt('Do you want to continue [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Abort by request.' . PHP_EOL);
+				\kekse\warn('Abort by request.');
 				exit(2);
 			}
 
@@ -3808,7 +4094,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				if($e === 0)
 				{
-					printf(' >> Great, not a single error!');
+					\kekse\info(null, 'Great, not a single error!');
 				}
 				else
 				{
@@ -3819,18 +4105,18 @@ function counter($_host = null, $_read_only = null)
 						$total += $c;
 					}
 
-					fprintf(STDERR, ' >> Hm, %d host' . ($e === 0 ? '' : 's') . ' caused %d errors.', $e, $total);
+					\kekse\error(null, 'Hm, %d host' . ($e === 0 ? '' : 's') . ' caused %d errors.', $e, $total);
 				}
 			}
 
 			if($d === 0)
 			{
-				printf(' >> ' . ($e === 0 ? 'N' : 'But n') . 'o deletions, so nothing changed at all.' . PHP_EOL);
+				\kekse\info(($e === 0 ? 'N' : 'But n') . 'o deletions, so nothing changed at all.');
 				exit(0);
 			}
 			else
 			{
-				printf(' Deleted files per host:' . PHP_EOL . PHP_EOL);
+				\kekse\info(2, ' Deleted files per host:');
 			}
 
 			$sum = 0;
@@ -3847,20 +4133,21 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$s = ' %' . $maxLen . 's: %d' . PHP_EOL;
+			$s = ' %' . $maxLen . 's: %d';
 
 			foreach($delete as $host => $del)
 			{
-				printf($s, $host, $del);
+				\kekse\debug($s, $host, $del);
 			}
 
 			//
-			printf(PHP_EOL . ' >> Totally deleted %d files.' . PHP_EOL, $sum);
+			\kekse\info();
+			\kekse\info('Totally deleted %d files.', $sum);
 			exit(0);
 		}
 		
 		//
-		function sanitize($_index = null, $_allow_without_values = false)
+		function sanitize($_index = null, $_allow_without_values = false, $_dot_files = false)
 		{
 			//
 			if(is_int($_index) && $_index > -1) for($i = $_index + 1; $i < KEKSE_ARGC; ++$i)
@@ -3882,9 +4169,13 @@ function counter($_host = null, $_read_only = null)
 					case '-w':
 						$_allow_without_values = true;
 						break;
+					case '--dot-files':
+					case '-d':
+						$_dot_files = true;
+						break;
 				}
 
-				if($_allow_without_values)
+				if($_allow_without_values && $_dot_files)
 				{
 					break;
 				}
@@ -3900,12 +4191,16 @@ function counter($_host = null, $_read_only = null)
 			
 			if($handle === false)
 			{
-				fprintf(STDERR, ' >> Failed to open directory (\'' . get_state('path') . '\')' . PHP_EOL);
+				\kekse\error('Failed to open directory (\'' . get_state('path') . '\')');
 				exit(1);
 			}
 			else while($sub = readdir($handle))
 			{
 				if($sub === '.' || $sub === '..')
+				{
+					continue;
+				}
+				else if(!$_dot_files && $sub[0] === '.')
 				{
 					continue;
 				}
@@ -3977,7 +4272,7 @@ function counter($_host = null, $_read_only = null)
 						}
 					}
 				}
-				else if($sub[0] === '%')
+				else if($sub[0] === '$')
 				{
 					if(strlen($sub) === 1 || !is_file($p))
 					{
@@ -4017,11 +4312,11 @@ function counter($_host = null, $_read_only = null)
 			//
 			if($d === 0)
 			{
-				printf(' >> No files found to delete.' . PHP_EOL);
+				\kekse\info('No files found to delete.');
 
 				if($f > 0)
 				{
-					fprintf(STDERR, ' >> Whereas %d are not writable..' . PHP_EOL, $f);
+					\kekse\warn('Whereas %d are not writable..', $f);
 					exit(1);
 				}
 
@@ -4031,14 +4326,14 @@ function counter($_host = null, $_read_only = null)
 			{
 				if($f > 0)
 				{
-					fprintf(STDERR, ' >> With %d non-writable files..' . PHP_EOL, $f);
+					\kekse\warn('With %d non-writable files..', $f);
 				}
 
-				printf(' >> Allow deletion of %d files (non-existing value files %s)..' . PHP_EOL, $d, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
+				\kekse\info('Allow deletion of %d files (non-existing value files %s)..', $d, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
 
 				if(!\kekse\prompt('Do you really want to continue [yes/no]? '))
 				{
-					fprintf(STDERR, ' >> Aborted, as requested.' . PHP_EOL);
+					\kekse\warn('Aborted, as requested.');
 					exit(2);
 				}
 				else
@@ -4047,53 +4342,71 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 			
-			$result = 0;
-			$errors = 0;
-			
+			$result = array();
+			$errors = array();
+			$r = 0;
+			$e = 0;
+
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(\kekse\delete($delete[$i], true))
+				if(file_exists($delete[$i]) && \kekse\delete($delete[$i], true))
 				{
-					++$result;
+					$result[$r++] = $delete[$i];
 				}
 				else
 				{
-					++$errors;
-					array_splice($delete, $i--, 1);
+					$errors[$e++] = $delete[$i];
 				}
 			}
-			
+
 			if($f > 0)
 			{
-				fprintf(STDERR, ' >> With %d files ignored (no permissions).' . PHP_EOL, $f);
+				\kekse\warn('With %d files ignored (no permissions).', $f);
 			}
 
-			if($result === 0)
+			if($r === 0)
 			{
-				fprintf(STDERR, ' >> NO files deleted (only %d errors occured)' . PHP_EOL, $errors);
+				\kekse\warn('NO files deleted..');
+				
+				if($e > 0)
+				{
+					\kekse\error(2, 'AND %d errors:', $e);
+					
+					for($i = 0; $i < $e; ++$i)
+					{
+						fprintf(STDERR, '    ' . $errors[$i] . PHP_EOL);
+					}
+					
+					printf(PHP_EOL);
+				}
+
 				exit(3);
 			}
 			else
 			{
-				printf(' >> Operation deleted %d files, with' . ($errors === 0 ? 'out' : ' %d') . ' errors:' . PHP_EOL . PHP_EOL, $result, $errors);
+				\kekse\info(2, 'Operation deleted %d files:', $r);
 			}
 
-			$len = count($delete);
-			
-			for($i = 0; $i < $len; ++$i)
+			for($i = 0; $i < $r; ++$i)
 			{
-				printf('    ' . $delete[$i] . PHP_EOL);
+				printf('    ' . str_replace('%', '%%', $result[$i]) . PHP_EOL);
 			}
 			
 			printf(PHP_EOL);
 
-			//
-			if($errors === 0)
+			if($e > 0)
 			{
-				exit(0);
+				\kekse\warn(2, 'But with %d errors:', $e);
+				
+				for($i = 0; $i < $e; ++$i)
+				{
+					fprintf(STDERR, '    ' . str_replace('%', '%%', $errors[$i]) . PHP_EOL);
+				}
+				
+				printf(PHP_EOL);
 			}
 			
-			exit(4);
+			return ($e === 0 ? 0 : 4);
 		}
 		
 		function remove($_index = null)
@@ -4103,7 +4416,7 @@ function counter($_host = null, $_read_only = null)
 			
 			if($list === null)
 			{
-				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
+				\kekse\warn('No hosts found.');
 				exit(1);
 			}
 
@@ -4157,7 +4470,7 @@ function counter($_host = null, $_read_only = null)
 
 				if($type & COUNTER_CONFIG)
 				{
-					if(is_writable($p = \kekse\join_path($orig, '%' . $host)))
+					if(is_writable($p = \kekse\join_path($orig, '$' . $host)))
 					{
 						$delete[$d++] = $p;
 					}
@@ -4170,12 +4483,12 @@ function counter($_host = null, $_read_only = null)
 
 			if($d === 0 && $f === 0)
 			{
-				printf(' >> No files found (of %d hosts).' . PHP_EOL, $c);
+				\kekse\info('No files found (of %d hosts).', $c);
 				exit(0);
 			}
 			else
 			{
-				printf(' >> Found %d files (%d writable, %d not) at those %d hosts:' . PHP_EOL . PHP_EOL, ($d + $f), $d, $f, $h);
+				\kekse\info(2, 'Found %d files (%d writable, %d not) at those %d hosts:', ($d + $f), $d, $f, $h);
 
 				$len = $maxLen = 0;
 				$keys = array_keys($list);
@@ -4224,7 +4537,7 @@ function counter($_host = null, $_read_only = null)
 
 					if($type & COUNTER_CONFIG)
 					{
-						$types .= '% ';
+						$types .= '$ ';
 					}
 					else
 					{
@@ -4240,17 +4553,25 @@ function counter($_host = null, $_read_only = null)
 
 			if($f > 0)
 			{
-				fprintf(STDERR, ' >> With %d non-writable items..' . PHP_EOL, $f);
+				\kekse\warn('With %d non-writable items..', $f);
 			}
 
 			if($d === 0)
 			{
-				printf(' >> NO files can be deleted here!' . PHP_EOL);
-				exit($f === 0 ? 0 : 1);
+				$str = 'NO files can be deleted here!';
+				
+				if($f === 0)
+				{
+					\kekse\info($str);
+					exit(0);
+				}
+
+				\kekse\warn($str);
+				exit(1);
 			}
 			else if(!\kekse\prompt('Do you really want to delete ' . $d . ' files [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Abort requested.' . PHP_EOL);
+				\kekse\warn('Abort requested.');
 				exit(2);
 			}
 
@@ -4271,27 +4592,27 @@ function counter($_host = null, $_read_only = null)
 
 			if($err === 0)
 			{
-				printf(' >> Successfully deleted all %d files!' . PHP_EOL, $ok);
+				\kekse\info('Successfully deleted all %d files!', $ok);
 				exit(0);
 			}
 			else if($ok === 0)
 			{
-				fprintf(STDERR, ' >> NONE of %d files could be deleted! :-/' . PHP_EOL, $index);
+				\kekse\error('NONE of %d files could be deleted! :-/', $index);
 				exit(3);
 			}
 
-			printf(' >> Successfully deleted %d files.' . PHP_EOL, $ol);
-			fprintf(STDERR, ' >> BUT also %d errors occured.' . PHP_EOL, $err);
+			\kekse\info('Successfully deleted %d files.', $ol);
+			\kekse\error('BUT also %d errors occured.', $err);
 
 			if($f > 0)
 			{
-				fprintf(STDERR, ' >> AND %d files ignored due to missing write permissions.' . PHP_EOL, $f);
+				\kekse\warn('AND %d files ignored due to missing write permissions.', $f);
 			}
 
 			//
 			exit(0);
 		}
-		
+	
 		//
 		function sync($_index = null, $_purge = true)
 		{
@@ -4305,7 +4626,7 @@ function counter($_host = null, $_read_only = null)
 
 			if($list === null)
 			{
-				fprintf(STDERR, ' >> No hosts found.' . PHP_EOL);
+				\kekse\warn('No hosts found.');
 				exit(1);
 			}
 
@@ -4437,13 +4758,13 @@ function counter($_host = null, $_read_only = null)
 			}
 			else if($s === 0)
 			{
-				fprintf(STDERR, ' >> No hosts to synchronize.' . PHP_EOL);
+				\kekse\info('No hosts to synchronize.');
 				exit(0);
 			}
 
 			if(!\kekse\prompt('Do you want to synchronize ' . count($sync) . ' hosts now [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Good, aborting sync.' . PHP_EOL);
+				\kekse\warn('Good, aborting sync.');
 				exit(2);
 			}
 
@@ -4495,21 +4816,22 @@ function counter($_host = null, $_read_only = null)
 
 			if($tot > 0)
 			{
-				printf(PHP_EOL . ' >> Synchronization of %d hosts:' . PHP_EOL, $tot);
+				\kekse\info();
+				\kekse\info('Synchronization of %d hosts:', $tot);
 
 				if($chg > 0)
 				{
-					printf('    Changed %d cache values' . PHP_EOL, $chg);
+					\kekse\info('Changed %d cache values', $chg);
 				}
 
 				if($del > 0)
 				{
-					printf('    Deleted %d cache items' . PHP_EOL, $del);
+					\kekse\warn('Deleted %d cache items', $del);
 				}
 
 				if($err > 0)
 				{
-					fprintf(STDERR, '     ' . (($chg > 0 || $del > 0) ? 'But ' : '') . '%d errors occured. :-/' . PHP_EOL, $err);
+					\kekse\error((($chg > 0 || $del > 0) ? 'But ' : '') . '%d errors occured. :-/', $err);
 				}
 			}
 			
@@ -4523,35 +4845,33 @@ function counter($_host = null, $_read_only = null)
 
 			if(! file_exists(get_state('log')))
 			{
-				fprintf(STDERR, ' >> There is no \'%s\' which could be deleted. .. that\'s good for you. :)~' . PHP_EOL, basename(get_state('log')));
-				exit(1);
+				\kekse\info('There is no \'%s\' which could be deleted. .. that\'s good for you. :)~', basename(get_state('log')));
+				exit(0);
 			}
 			else if(!is_file(get_state('log')))
 			{
-				fprintf(STDERR, ' >> The \'%s\' is not a regular file. Please replace/remove it asap!' . PHP_EOL, get_state('log'));
+				\kekse\warn('The \'%s\' is not a regular file. Please replace/remove it asap!', get_state('log'));
+				exit(1);
 			}
 
 			if(!\kekse\prompt('Do you really want to delete the file \'' . basename(get_state('log')) . '\' [yes/no]? '))
 			{
-				fprintf(STDERR, ' >> Log file deletion aborted (by request).' . PHP_EOL);
-				exit(2);
+				\kekse\warn('Log file deletion aborted (by request).');
+				exit(1);
 			}
 			else if(\kekse\delete(get_state('log'), false) === false)
 			{
-				fprintf(STDERR, ' >> The \'%s\' couldn\'t be deleted!!' . PHP_EOL, basename(get_state('log')));
+				\kekse\error('The \'%s\' couldn\'t be deleted!!', basename(get_state('log')));
 
 				if(! is_file(get_state('log')))
 				{
-					fprintf(STDERR, ' >> I think it\'s not a regular file, could this be the reason why?' . PHP_EOL);
+					\kekse\debug('I think it\'s not a regular file, could this be the reason why?');
 				}
 
 				exit(2);
 			}
-			else
-			{
-				printf(' >> The \'%s\' is no longer.. :-)' . PHP_EOL, basename(get_state('log')));
-			}
 
+			\kekse\info('The \'%s\' is no longer.. :-)', basename(get_state('log')));
 			exit(0);
 		}
 
@@ -4559,17 +4879,17 @@ function counter($_host = null, $_read_only = null)
 		{
 			if(! file_exists(get_state('log')))
 			{
-				printf(' >> No errors logged! :-D' . PHP_EOL);
+				\kekse\info(' >> No errors logged! :-D' . PHP_EOL);
 				exit(0);
 			}
 			else if(!is_file(get_state('log')))
 			{
-				fprintf(STDERR, ' >> \'%s\' is not a file! Please delete asap!!' . PHP_EOL, basename(get_state('log')));
+				\kekse\error('\'%s\' is not a file! Please delete asap!', basename(get_state('log')));
 				exit(1);
 			}
 			else if(!is_readable(get_state('log')))
 			{
-				fprintf(STDERR, ' >> Log file \'%s\' is not readable! Please correct this asap!!' . PHP_EOL, basename(get_state('log')));
+				\kekse\error('Log file \'%s\' is not readable! Please correct this asap!', basename(get_state('log')));
 				exit(2);
 			}
 
@@ -4595,7 +4915,7 @@ function counter($_host = null, $_read_only = null)
 				$result = 0;
 			}
 
-			printf(' >> There are %d error log lines in \'%s\'..' . PHP_EOL, $result, basename(get_state('log')));
+			kekse\info('There are %d error log lines in \'%s\'..', $result, basename(get_state('log')));
 			exit(0);
 		}
 
@@ -4714,7 +5034,7 @@ function counter($_host = null, $_read_only = null)
 		}
 		
 		//
-		printf(' >> Call with `--help/-?` to see a list of available parameters.' . PHP_EOL);
+		\kekse\info('Call with `--help/-?` to see a list of available parameters.');
 		values(0);
 		exit();
 	}
@@ -4838,8 +5158,10 @@ function counter($_host = null, $_read_only = null)
 	}
 
 	//
-	set_state('host', get_host($_host));
-	$r = make_config(get_host($_host));
+	$host = get_host($_host);
+	set_state('host', $host);
+	make_config($host);
+	unset($host);
 
 	//
 	if(!get_state('test'))
@@ -4875,68 +5197,97 @@ function counter($_host = null, $_read_only = null)
 		//
 		function check_auto($_host)
 		{
-			if(get_config('auto') === null)
+			$auto = get_config('auto');
+
+			if($auto === null)
 			{
 				error(get_config('none'), true);
 			}
-			else if(get_config('auto') === true && !get_state('overridden'))
+
+			$exists = is_file(get_state('value'));
+
+			if($exists)
 			{
+				if(!get_state('test') && !is_readable(get_state('value')))
+				{
+					log_error('Value file for host \'' . (string)$_host . '\' is not readable', 'check_auto', get_state('value'), false);
+					error(get_config('none'), true);
+				}
+				else if(!get_state('ro') && !is_writable(get_state('value')))
+				{
+					log_error('Value file for host \'' . (string)$_host . '\' is not writable', 'check_auto', get_state('value'), false);
+					error(get_config('none'), true);
+				}
+
 				return;
 			}
-			else if(!is_file(get_state('value')))
+
+			$values = 0;
+			$total = 0;
+			
+			$handle = opendir(get_state('path'));
+
+			if($handle === false)
 			{
-				if(is_string($_host) && !empty($_host))
+				log_error('Couldn\'t opendir()', 'check_auto', get_state('path'));
+				error('Couldn\'t opendir()');
+			}
+			else while($sub = readdir($handle))
+			{
+				if($sub === '.' || $sub === '..')
 				{
-					return;
-				}
-				else if(is_string(get_config('override')) && !empty(get_config('override')))
-				{
-					return;
-				}
-				else if(get_state('overridden'))
-				{
-					error(get_config('none'), true);
-				}
-				else if(get_config('auto') === false)
-				{
-					error(get_config('none'), true);
-				}
-				else if(is_int(get_config('auto')))
-				{
-					$count = 0;
-					$handle = opendir(get_state('path'));
-
-					if($handle === false)
-					{
-						log_error('Can\'t opendir()', 'check_path', get_state('path'), false);
-						error(get_config('none'), true);
-					}
-
-					while($sub = readdir($handle))
-					{
-						if($sub[0] === '~')
-						{
-							++$count;
-						}
-					}
-
-					closedir($handle);
-
-					if($count >= get_config('auto'))
-					{
-						error(get_config('none'), true);
-					}
+					continue;
 				}
 				else
 				{
-					log_error('Invalid \'AUTO\' setting', 'check_path', '', false);
-					error('Invalid \'AUTO\' setting');
+					++$total;
+				}
+
+				if($sub[0] === '~')
+				{
+					++$values;
 				}
 			}
-			else if(file_exists(get_state('value')) && !is_writable(get_state('value')))
+
+			closedir($handle);
+
+			$limit = get_config('limit');
+
+			if($total >= $limit)
 			{
-				log_error('File is not writable', 'check_path', get_state('value'));
-				error('File is not writable');
+				log_error('Limit exceeded (' . (string)$limit . ')', 'check_auto', get_state('path'), false);
+				error(get_config('none'), true);
+			}
+			else if(is_string($_host) && !empty($_host))
+			{
+				return;
+			}
+			else if(is_string(get_config('override')) && !empty(get_config('override')))
+			{
+				return;
+			}
+			else if(get_state('overridden'))
+			{
+				error(get_config('none'), true);
+			}
+			else if(is_int(get_config('auto')))
+			{
+				if($values >= get_config('auto'))
+				{
+					error(get_config('none'), true);
+				}
+			}
+			else if(is_bool(get_config('auto')))
+			{
+				if(! get_config('auto'))
+				{
+					error(get_config('none'), true);
+				}
+			}
+			else
+			{
+				log_error('Invalid \'AUTO\' config', 'check_auto', '', false);
+				error(get_config('none'), true);
 			}
 		}
 
@@ -5553,6 +5904,49 @@ function counter($_host = null, $_read_only = null)
 				return null;
 			}
 
+			function check_angle($_value)
+			{
+				$result = null;
+
+				if(is_string($_value))
+				{
+					$unit = \kekse\unit($_value, true, true);
+
+					switch($unit[1])
+					{
+						case 'rad':
+							$result = rad2deg($unit[0]);
+							break;
+						case 'deg':
+						case null:
+							$result = $unit[0];
+							break;
+						default:
+							$result = null;
+							break;
+					}
+				}
+				else if(is_int($_value))
+				{
+					$result = (float)$_value;
+				}
+				else if(is_float($_value))
+				{
+					$result = $_value;
+				}
+				else
+				{
+					$result = null;
+				}
+
+				if($result !== null)
+				{
+					$result %= 360;
+				}
+
+				return $result;
+			}
+			
 			function get_drawing_options($_die = false)
 			{
 				//
@@ -5565,18 +5959,19 @@ function counter($_host = null, $_read_only = null)
 				}
 				else
 				{
-					$result['size'] = \kekse\get_param('size', true, true, false);
 					$result['unit'] = \kekse\get_param('unit', false);
+					$result['size'] = \kekse\get_param('size', true, true, false);
 					$result['font'] = \kekse\get_param('font', false);
 					$result['fg'] = \kekse\get_param('fg', false);
 					$result['bg'] = \kekse\get_param('bg', false);
-					$result['h'] = \kekse\get_param('h', true, false);
-					$result['v'] = \kekse\get_param('v', true, false);
-					$result['x'] = \kekse\get_param('x', true, false);
-					$result['y'] = \kekse\get_param('y', true, false);
-					$result['aa'] = \kekse\get_param('aa', null);
+					$result['h'] = \kekse\get_param('h', true, false, true);
+					$result['v'] = \kekse\get_param('v', true, false, true);
+					$result['x'] = \kekse\get_param('x', true, false, true);
+					$result['y'] = \kekse\get_param('y', true, false, true);
+					$result['aa'] = \kekse\get_param('aa', null, false, true);
+					$result['angle'] = \kekse\get_param('angle', true, true, false);
 				}
-
+				
 				//
 				if($result['unit'] === null)
 				{
@@ -5591,14 +5986,15 @@ function counter($_host = null, $_read_only = null)
 					default:
 						if($_die)
 						{
-							draw_error('\'?unit\' invalid [ px, pt ]');
+							draw_error('\'?unit\' is invalid; none of [ px, pt ]');
 							return null;
 						}
 						
 						$result['unit'] = get_config('unit');
 						break;
 				}
-				
+
+				//
 				if($result['size'] === null)
 				{
 					$result['size'] = get_config('size');
@@ -5625,36 +6021,7 @@ function counter($_host = null, $_read_only = null)
 					return null;
 				}
 
-				if($result['h'] === null)
-				{
-					$result['h'] = get_config('h');
-				}
-				else if($result['h'] > 512 || $result['h'] < -512)
-				{
-					if($_die)
-					{
-						draw_error('\'?h\' exceeds limit');
-						return null;
-					}
-					
-					$result['h'] = get_config('h');
-				}
-
-				if($result['v'] === null)
-				{
-					$result['v'] = get_config('v');
-				}
-				else if($result['v'] > 512 || $result['v'] < -512)
-				{
-					if($_die)
-					{
-						draw_error('\'?v\' exceeds limit');
-						return null;
-					}
-					
-					$result['v'] = get_config('v');
-				}
-
+				//
 				if($result['font'] === null)
 				{
 					$result['font'] = get_config('font');
@@ -5675,6 +6042,7 @@ function counter($_host = null, $_read_only = null)
 					}
 				}
 
+				//
 				if($result['fg'] === null)
 				{
 					$result['fg'] = get_config('fg');
@@ -5718,6 +6086,37 @@ function counter($_host = null, $_read_only = null)
 						return null;
 					}
 				}
+				
+				//
+				if($result['h'] === null)
+				{
+					$result['h'] = get_config('h');
+				}
+				else if($result['h'] > 512 || $result['h'] < -512)
+				{
+					if($_die)
+					{
+						draw_error('\'?h\' exceeds limit');
+						return null;
+					}
+					
+					$result['h'] = get_config('h');
+				}
+
+				if($result['v'] === null)
+				{
+					$result['v'] = get_config('v');
+				}
+				else if($result['v'] > 512 || $result['v'] < -512)
+				{
+					if($_die)
+					{
+						draw_error('\'?v\' exceeds limit');
+						return null;
+					}
+					
+					$result['v'] = get_config('v');
+				}
 
 				if($result['x'] === null)
 				{
@@ -5738,7 +6137,7 @@ function counter($_host = null, $_read_only = null)
 				{
 					$result['y'] = get_config('y');
 				}
-				else if($result['x'] > 512 || $result['y'] < -512)
+				else if($result['y'] > 512 || $result['y'] < -512)
 				{
 					if($_die)
 					{
@@ -5748,17 +6147,45 @@ function counter($_host = null, $_read_only = null)
 					
 					$result['y'] = get_config('y');
 				}
-				
+
+				//
 				if(!is_bool($result['aa']))
 				{
 					$result['aa'] = get_config('aa');
 				}
 
+				//
+				if(($result['angle'] = check_angle($result['angle'])) === null)
+				{
+					if($_die)
+					{
+						draw_error('\'?angle\' is invalid');
+						return null;
+					}
+					else if(($result['angle'] = check_angle(get_config('angle'))) === null)
+					{
+						draw_error('Invalid \'angle\' setting (after \'?angle\' was invalid or not specified');
+						return null;
+					}
+				}
+
+				//
 				return $result;
 			}
 
 			//
-			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null)
+			function px2pt($_px)
+			{
+				return ($_px * 0.75);
+			}
+
+			function pt2px($_pt)
+			{
+				return ($_pt / 0.75);
+			}
+
+			//
+			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null, $_angle = null)
 			{
 				//
 				if(get_state('sent'))
@@ -5770,6 +6197,7 @@ function counter($_host = null, $_read_only = null)
 				{
 					if(is_array($_font))
 					{
+						$_angle = $_font['angle'];
 						$_type = $_font['type'];
 						$_aa = $_font['aa'];
 						$_y = $_font['y'];
@@ -5797,11 +6225,11 @@ function counter($_host = null, $_read_only = null)
 				{
 					case 'px':
 						$px = $_size;
-						$pt = \kekse\px2pt($px);
+						$pt = px2pt($px);
 						break;
 					case 'pt':
 						$pt = $_size;
-						$px = \kekse\pt2px($pt);
+						$px = pt2px($pt);
 						break;
 					default:
 						draw_error('Invalid unit [ px, pt ]');
@@ -5837,7 +6265,7 @@ function counter($_host = null, $_read_only = null)
 				$image = null;
 
 				//
-				$createImage = function() use (&$textWidth, &$textHeight, &$image, &$_text, &$_aa, &$_fg, &$_bg, &$_font, &$_type, &$_h, &$_v, &$_x, &$_y, &$pt, &$px, &$vertical, &$horizontal)
+				$createImage = function() use (&$textWidth, &$textHeight, &$image, &$_text, &$_aa, &$_fg, &$_bg, &$_font, &$_type, &$_h, &$_v, &$_x, &$_y, &$pt, &$px, &$_angle, &$vertical, &$horizontal)
 				{
 					//
 					$drawImage = function() use(&$image, &$_type)
@@ -5863,6 +6291,19 @@ function counter($_host = null, $_read_only = null)
 						imagedestroy($image);
 						return $result;
 					};
+					
+					$rotateImage = (($_angle %= 360) === 0 ? null : function() use(&$image, &$_angle, &$bg)
+					{
+						//
+						$result = imagerotate($image, $_angle, $bg);
+
+						if(!$result)
+						{
+							return null;
+						}
+
+						return $result;
+					});
 
 					//
 					$add = 4;
@@ -5877,7 +6318,6 @@ function counter($_host = null, $_read_only = null)
 					$textWidth *= $scale;
 					$px *= $scale;
 					$pt *= $scale;
-					//$pt = \kekse\px2pt($px);
 					$y *= $scale;
 					$x *= $scale;
 					
@@ -5917,6 +6357,16 @@ function counter($_host = null, $_read_only = null)
 
 					//
 					imagettftext($image, $pt, 0, $x, $y, $fg, $_font, $_text);
+					
+					//
+					if($rotateImage !== null)
+					{
+						if(($image = $rotateImage()) === null)
+						{
+							draw_error('Image couldn\'t be rotated');
+							return null;
+						}
+					}
 
 					//
 					return $drawImage();
@@ -5929,7 +6379,7 @@ function counter($_host = null, $_read_only = null)
 				if(!$result)
 				{
 					draw_error('Header couldn\'t be sent');
-					return false;
+					return null;
 				}
 				
 				return $result;
