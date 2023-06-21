@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.5.1');
+define('COUNTER_VERSION', '3.5.2');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -1676,7 +1676,121 @@ function is_number($_item)
 	return (is_int($_item) || is_float($_item));
 }
 
-//
+function check_file($_path, $_file, $_log_error_source = null, $_die = false)
+{
+	$result = true;
+
+	if(! file_exists($_path))
+	{
+		if($_file)
+		{
+			$dir = dirname($_path);
+
+			if(file_exists($dir))
+			{
+				if(!is_dir($dir))
+				{
+					if(\kekse\delete($_path, true))
+					{
+						if(! mkdir($dir, 0700, true))
+						{
+							$result = false;
+						}
+					}
+					else
+					{
+						$result = false;
+					}
+				}
+			}
+			else if(! mkdir($dir))
+			{
+				$result = false;
+			}
+
+			if($result && file_exists($_path))
+			{
+				if(!is_file($_path))
+				{
+					if(\kekse\delete($_path, true))
+					{
+						if(! touch($_path))
+						{
+							$result = false;
+						}
+					}
+					else
+					{
+						$result = false;
+					}
+				}
+			}
+			else if(! touch($_path))
+			{
+				$result = false;
+			}
+		}
+		else if(file_exists($_path))
+		{
+			if(! is_dir($_path))
+			{
+				if(\kekse\delete($_path, true))
+				{
+					if(! mkdir($_path, 0700, true))
+					{
+						$result = false;
+					}
+				}
+				else
+				{
+					$result = false;
+				}
+			}
+		}
+		else if(! mkdir($_path, 0700, true))
+		{
+			$result = false;
+		}
+	}
+	else if($_file && !is_file($_path))
+	{
+		if(\kekse\delete($_path, true))
+		{
+			if(! touch($_path))
+			{
+				$result = false;
+			}
+		}
+		else
+		{
+			$result = false;
+		}
+	}
+
+	if($result)
+	{
+		if($_file)
+		{
+			chmod($_path, 0600);
+		}
+		else
+		{
+			chmod($_path, 0700);
+		}
+	}
+	else if(is_string($_log_error_source))
+	{
+		log_error('Failed with ' . ($_file ? 'file' : 'directory'), $_log_error_source, $_path, $_die);
+
+		if($_die)
+		{
+			error('Failed with ' . ($_file ? 'file' : 'directory'));
+		}
+	}
+
+	return $result;
+}
+
 function files($_dir, $_list = false, $_suffix = null, $_prefix = null, $_case_sensitive = false, $_remove = null, $_hidden = false, $_unique = false, $_equals = false)
 {
 	$handle = opendir($_dir);
@@ -4178,6 +4292,7 @@ function counter($_host = null, $_read_only = null)
 				}
 				
 				$p = \kekse\join_path(get_state('path'), $sub);
+				$v = \kekse\join_path(get_state('path'), '~' . $sub);
 
 				if(strlen($sub) === 1)
 				{
@@ -4185,40 +4300,40 @@ function counter($_host = null, $_read_only = null)
 				}
 				else if($sub[0] === '~')
 				{
-					if(!is_file($p) && !is_link($p))
+					if(!is_file($p))
 					{
 						$delete[$d++] = $p;
 					}
 				}
 				else if($sub[0] === '+')
 				{
-					if(!is_dir($p) && !is_link($p))
+					if(!is_dir($p))
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file($v))
 					{
-						$delete[$d++] = p;
+						$delete[$d++] = $p;
 					}
 				}
 				else if($sub[0] === '-')
 				{
-					if(!is_file($p) && !is_link($p))
+					if(!is_file($p))
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file($v))
 					{
 						$delete[$d++] = $p;
 					}
 				}
 				else if($sub[0] === '@')
 				{
-					if(!is_file($p) && !is_link($p))
+					if(!is_file($p))
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file(\kekse\join_path(get_state('path'), '~' . substr($sub, 1))))
+					else if(!$_allow_without_values && !is_file($v))
 					{
 						$delete[$d++] = $p;
 					}
