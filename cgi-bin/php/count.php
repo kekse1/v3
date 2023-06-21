@@ -2179,43 +2179,15 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		$_depth = 0;
 	}
 	
-	if(is_dir($_path))
+	if(is_link($_path))
+	{
+		return !!unlink($_path);
+	}
+	else if(is_dir($_path))
 	{
 		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
 		{
-			$handle = opendir($_path);
-
-			if($handle === false)
-			{
-				return false;
-			}
-
-			$count = 0;
-
-			while($sub = readdir($handle))
-			{
-				if($sub !== '.' && $sub !== '..')
-				{
-					++$count;
-				}
-			}
-
-			closedir($handle);
-
-			if($count < 0)
-			{
-				return false;
-			}
-			else if($count > 0)
-			{
-				return false;
-			}
-			else if(rmdir($_path) === false)
-			{
-				return false;
-			}
-			
-			return true;
+			return rmdir($_path);
 		}
 		
 		$handle = opendir($_path);
@@ -2238,18 +2210,26 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 				++$count;
 			}
 
-			if(! is_writable(\kekse\join_path($_path, $sub)))
+			$p = \kekse\join_path($_path, $sub);
+
+			if(is_link($p))
+			{
+				if(!unlink($p))
+				{
+					return false;
+				}
+			}
+			else if(! is_writable($p))
 			{
 				return false;
 			}
-			
-			if(is_dir(\kekse\join_path($_path, $sub)))
+			else if(is_dir($p))
 			{
 				if($_depth !== null && $_depth <= $_depth_current)
 				{
 					return false;
 				}
-				else if(!\kekse\delete(\kekse\join_path($_path, $sub), $_depth, $_depth_current + 1))
+				else if(!\kekse\delete($p, $_depth, $_depth_current + 1))
 				{
 					return false;
 				}
@@ -2258,7 +2238,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 					--$count;
 				}
 			}
-			else if(unlink(\kekse\join_path($_path, $sub)) === false)
+			else if(unlink($p) === false)
 			{
 				return false;
 			}
@@ -2285,14 +2265,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 
 		return rmdir($_path);
 	}
-	else if(file_exists($_path))
-	{
-		if(unlink($_path) === false)
-		{
-			return false;
-		}
-	}
-	else
+	else if(!unlink($_path))
 	{
 		return false;
 	}
@@ -4297,7 +4270,7 @@ function counter($_host = null, $_read_only = null)
 						}
 					}
 				}
-				else if($w)
+				else if($w || is_link($p))
 				{
 					$delete[$d++] = $p;
 				}
