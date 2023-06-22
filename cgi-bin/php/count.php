@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.2');
+define('COUNTER_VERSION', '3.6.3');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -25,20 +25,20 @@ const DEFAULTS = array(
 	'drawing' => true,
 	'override' => false,//true,
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,//16,
+	'radix' => 10,//3,
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
-	'font' => 'IntelOneMono',//'Candara',
-	'size' => 64,
+	'font' => 'IntelOneMono',
+	'size' => '28pt',
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120,130,40',
 	'bg' => '255,255,255,0',
-	'angle' => 0,//20,
+	'angle' => 0,//'0.25rad',
 	'x' => 0,
 	'y' => 0,
-	'h' => 0,//32,
-	'v' => 0,//0,
+	'h' => 0,
+	'v' => 0,
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
@@ -623,7 +623,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	}
 
 	//
-	if(get_config('raw'))
+	if(get_config('raw') && $_source !== 'exception_handler' && $_source !== 'error_handler')
 	{
 		if($ex)
 		{
@@ -714,12 +714,12 @@ function check_path_char($_path, $_basename = true)
 function error_handler($_no, $_str, $_file, $_line)
 {
 	$result = '[Error ' . (string)$_no . '] ' . $_str . ' (in file \'' . $_file . '\':' . (string)$_line;
-	return error($result, true);
+	return log_error($result, 'error_handler', '', false);
 }
 
 function exception_handler($_ex)
 {
-	return error($_ex, true);
+	return log_error($_ex, 'exception_handler', '', true);
 }
 
 set_error_handler('\kekse\counter\error_handler');
@@ -2282,6 +2282,10 @@ function secure_path($_string)
 }
 
 //
+//hint: if($_float), you'll get the integer of deleted files, PLUS you can extract via (%1), if all files or how many of all were deleted!! :D~
+//so: if(($res % 1) === 0) => all files deleted! otherwise (($res % 1) * 100) === percentage of deleted files.. ^_^
+//ps: not % operator, but fmod() should be used. the regular modulo only returns integer values..! ;-/
+//
 function delete($_path, $_depth = 0, $_depth_current = 0)
 {
 	if($_depth === true)
@@ -2307,8 +2311,13 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		{
 			return (rmdir($_path) ? 1 : 0);
 		}
+
+		//		
+		$total = 0;
+		$failed = 0;
+		$deleted = 0;
 		
-		$result = 0;
+		//
 		$handle = opendir($_path);
 
 		if($handle === false)
@@ -2316,11 +2325,16 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 			return $result;
 		}
 
+		//
 		while($sub = readdir($handle))
 		{
 			if($sub === '.' || $sub === '..')
 			{
 				continue;
+			}
+			else
+			{
+				++$total;
 			}
 
 			$p = \kekse\join_path($_path, $sub);
@@ -2329,34 +2343,51 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 			{
 				if(unlink($p))
 				{
-					++$result;
+					++$deleted;
+				}
+				else
+				{
+					++$failed;
 				}
 			}
 			else if(is_dir($p))
 			{
 				if(! ($_depth !== null && $_depth <= $_depth_current))
 				{
-					$result += \kekse\delete($p, $_depth, $_depth_current + 1);
+					$r = \kekse\delete($p, $_depth, $_depth_current + 1);
+					
+					$deleted += $r[0];
+					$failed += $r[1];
+					$total += $r[2];
 				}
 			}
 			else if(unlink($p))
 			{
-				++$result;
+				++$deleted;
+			}
+			else
+			{
+				++$failed;
 			}
 		}
 		
 		closedir($handle);
+		rmdir($_path);
 
-		if(rmdir($_path))
+		if($_depth_current > 0)
 		{
-			$result = (int)($result + 1);
+			return [ $deleted, $failed, $total ];
 		}
-		else
+		else if($total === $deleted)
 		{
-			$result = (float)$result;
+			return $total;
+		}
+		else if($total === 0)
+		{
+			return 0;
 		}
 
-		return $result;
+		return ($deleted + ($deleted / $total));
 	}
 	else if(unlink($_path))
 	{
@@ -3423,7 +3454,7 @@ function counter($_host = null, $_read_only = null)
 			printf('    -' . $b('l') . ' | --' . $b('clean') . ' [ * ]' . PHP_EOL);
 			printf('    -' . $b('p') . ' | --' . $b('purge') . ' [ * ]' . PHP_EOL);
 			printf('    -' . $b('r') . ' | --' . $b('remove') . ' [ * ]' . PHP_EOL);
-			printf('    -' . $b('z') . ' | --' . $b('sanitize') . ' [ --allow-without-values | -w ] [ --dot-files | -d ]' . PHP_EOL);
+			printf('    -' . $b('z') . ' | --' . $b('sanitize') . ' [ -' . $b('w') . ' | --' . $b('without-values') . ' ] [ -' . $b('-d') . ' | --' . $b('dot-files') . ' ]' . PHP_EOL);
 			printf(PHP_EOL);
 			printf('    -' . $b('t') . ' | --' . $b('set') . ' ( host ) [ value = 0 ]' . PHP_EOL);
 			printf(PHP_EOL);
@@ -3943,7 +3974,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\warn('This will *delete* the whole cache!');
+				\kekse\warn('This will *delete* the whole cache (only)!');
 				\kekse\debug('Maybe you\'d rather like to \'--clean/-c\' instead!?');
 			}
 
@@ -4008,14 +4039,14 @@ function counter($_host = null, $_read_only = null)
 			$errors = 0;
 			$good = 0;
 			$eff = 0;
-			$d;
+			$dr;
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if($d = \kekse\delete(\kekse\join_path(get_state('path'), '+' . $dirs[$i]), true))
+				if($dr = \kekse\delete(\kekse\join_path(get_state('path'), '+' . $dirs[$i]), true))
 				{
 					++$good;
-					$eff += $d;
+					$eff += $dr;
 				}
 				else
 				{
@@ -4025,10 +4056,10 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $f; ++$i)
 			{
-				if($d = \kekse\delete(\kekse\join_path(get_state('path'), '-' . $files[$i]), false))
+				if($dr = \kekse\delete(\kekse\join_path(get_state('path'), '-' . $files[$i]), false))
 				{
 					++$good;
-					$eff += $d;
+					$eff += $dr;
 				}
 				else
 				{
@@ -4036,26 +4067,19 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
+			if($eff !== $good)
+			{
+				\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
+			}
+
 			if($errors === 0)
 			{
 				\kekse\info('Great, all %d files deleted successfully!', $good);
-				
-				if($eff !== $good)
-				{
-					\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
-				}
-				
 				exit(0);
 			}
 			else if($good > 0)
 			{
 				\kekse\info('%d files sucessfully deleted.', $good);
-				
-				if($eff !== $good)
-				{
-					\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
-				}
-				
 				\kekse\error('But %d files could *not* be removed. :-/', $errors);
 				exit(3);
 			}
@@ -4203,11 +4227,6 @@ function counter($_host = null, $_read_only = null)
 
 			printf(PHP_EOL);
 			
-			if($eff > 0)
-			{
-				\kekse\debug('We got effectively %d more deletions beneath the cache files.', $eff);
-			}
-
 			if($d > 0)
 			{
 				if($e === 0)
@@ -4234,7 +4253,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\debug(2, ' Deleted files per host:');
+				\kekse\warn(2, ' Deleted files per host:');
 			}
 
 			$sum = 0;
@@ -4261,44 +4280,59 @@ function counter($_host = null, $_read_only = null)
 			//
 			printf(PHP_EOL);
 			\kekse\info('Totally deleted %d files.', $sum);
+			
+			if($eff !== $sum)
+			{
+				\kekse\debug('We got effectively %d more deletions beneath the cache files.', $eff);
+			}
+
 			exit(0);
 		}
 		
 		//
-		function sanitize($_index = null, $_allow_without_values = false, $_dot_files = false)
+		function sanitize($_index = null, $_without_values = false, $_dot_files = false)
 		{
 			//
-			if(is_int($_index) && $_index > -1) for($i = $_index + 1; $i < KEKSE_ARGC; ++$i)
+			if(is_int($_index) && $_index > -1)
 			{
-				$item = KEKSE_ARGV[$i];
-				$len = strlen($item);
+				$test = 0;
 
-				if($len < 2 || $len > KEKSE_LIMIT)
+				for($i = $_index + 1; $i < KEKSE_ARGC; ++$i)
 				{
-					continue;
-				}
-				else if($len === 2) switch($item)
-				{
-					case '-w':
-						$_allow_without_values = true;
-						break;
-					case '-d':
-						$_dot_files = true;
-						break;
-				}
-				else switch($item)
-				{
-					case '--allow-without-values':
-						$_allow_without_values = true;
-						break;
-					case '--dot-files':
-						$_dot_files = true;
-						break;
-				}
+					$item = KEKSE_ARGV[$i];
+					$len = strlen($item);
 
-				if($_allow_without_values && $_dot_files)
-				{
-					break;
+					if($len < 2 || $len > KEKSE_LIMIT)
+					{
+						continue;
+					}
+					else if($len === 2) switch($item)
+					{
+						case '-w':
+							$_without_values = true;
+							$test |= 1;
+							break;
+						case '-d':
+							$_dot_files = true;
+							$test |= 2;
+							break;
+					}
+					else switch($item)
+					{
+						case '--without-values':
+							$_without_values = true;
+							$test |= 1;
+							break;
+						case '--dot-files':
+							$_dot_files = true;
+							$test |= 2;
+							break;
+					}
+
+					if($test === 3)
+					{
+						break;
+					}
 				}
 			}
 
@@ -4345,7 +4379,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file($v))
+					else if($_without_values && !is_file($v))
 					{
 						$delete[$d++] = $p;
 					}
@@ -4356,7 +4390,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file($v))
+					else if($_without_values && !is_file($v))
 					{
 						$delete[$d++] = $p;
 					}
@@ -4367,7 +4401,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						$delete[$d++] = $p;
 					}
-					else if(!$_allow_without_values && !is_file($v))
+					else if($_without_values && !is_file($v))
 					{
 						$delete[$d++] = $p;
 					}
@@ -4388,7 +4422,28 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\info('Allow deletion of %d files (non-existing value files %s)..', $d, ($_allow_without_values ? 'are allowed' : 'will also delete caches'));
+				\kekse\info('Allow deletion of %d files?', $d);
+				$tmp_str = 'Non-existing value files ';
+				
+				if($_without_values)
+				{
+					\kekse\warn($tmp_str . 'will cause deletion of matching cache directories!');
+				}
+				else
+				{
+					\kekse\debug($tmp_str . 'are allowed (thus their cache directories won\'t be deleted).');
+				}
+
+				$tmp_str = 'Hidden dot-files (with \'.\' prefix) ';
+
+				if($_dot_files)
+				{
+					\kekse\warn($tmp_str . 'will also be removed!');
+				}
+				else
+				{
+					\kekse\debug($tmp_str . 'are being ignored.');
+				}
 
 				if(!\kekse\prompt('Do you really want to continue [yes/no]? '))
 				{
@@ -4441,11 +4496,6 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				if($eff !== $r)
-				{
-					\kekse\debug('We effecively deleted %d files in recursive deletion.', $eff);
-				}
-				
 				\kekse\info(2, 'Operation deleted %d files:', $r);
 			}
 
@@ -4466,6 +4516,11 @@ function counter($_host = null, $_read_only = null)
 				}
 				
 				printf(PHP_EOL);
+			}
+
+			if($eff !== $r)
+			{
+				\kekse\debug('We effecively deleted %d files in recursive deletion.', $eff);
 			}
 			
 			exit($e === 0 ? 0 : 3);
@@ -5973,7 +6028,7 @@ function counter($_host = null, $_read_only = null)
 
 				if($result !== null)
 				{
-					$result %= 360;
+					$result = fmod($result, 360);
 				}
 
 				return $result;
@@ -6324,7 +6379,7 @@ function counter($_host = null, $_read_only = null)
 						return $result;
 					};
 					
-					$rotateImage = (($_angle %= 360) === 0 ? null : function() use(&$image, &$_angle, &$bg)
+					$rotateImage = ($_angle === 0 ? null : function() use(&$image, &$_angle, &$bg)
 					{
 						//
 						$result = imagerotate($image, $_angle, $bg);
@@ -6353,11 +6408,17 @@ function counter($_host = null, $_read_only = null)
 					$y *= $scale;
 					$x *= $scale;
 					
+					if($_angle !== 0)
+					{
+						$_h += 8;
+						$_v += 8;
+					}
+					
 					if(($textWidth += ($_h * 2)) < 1)
 					{
 						$textWidth = 1;
 					}
-					
+
 					if(($textHeight += ($_v * 2)) < 1)
 					{
 						$textHeight = 1;
@@ -6365,6 +6426,12 @@ function counter($_host = null, $_read_only = null)
 					
 					$x += ($_x + $_h);
 					$y += ($_y + $_v);
+
+					//
+					$textWidth = (int)$textWidth;
+					$textHeight = (int)$textHeight;
+					$x = (int)$x;
+					$y = (int)$y;
 
 					//
 					$image = imagecreatetruecolor($textWidth, $textHeight);
