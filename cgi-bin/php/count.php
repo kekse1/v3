@@ -37,7 +37,7 @@ const DEFAULTS = array(
 	'angle' => 0,//20,
 	'x' => 0,
 	'y' => 0,
-	'h' => 0,//64,
+	'h' => 0,//32,
 	'v' => 0,//0,
 	'aa' => true,
 	'type' => 'png',
@@ -930,7 +930,7 @@ function config_check_limits($_min, $_max)
 	return $result;
 }
 
-function config_check_item($_key, $_value = null, $_bool = false, $_defaults = true)
+function config_check_item($_key, $_value = null, $_bool = false, $_host = null)
 {
 	$item = null;
 	$type = null;
@@ -944,7 +944,7 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 	$success = null;
 	$static = null;
 
-	$createReturn = function($_valid, $_string) use(&$_key, &$_value, &$_bool, &$type, &$types, &$validType, &$validLength, &$min, &$max, &$limits, &$test, &$validTest, &$static)
+	$createReturn = function($_valid, $_string) use(&$_key, &$_value, &$_bool, &$type, &$types, &$validType, &$validLength, &$min, &$max, &$limits, &$test, &$validTest, &$static, &$_host)
 	{
 		if($_bool)
 		{
@@ -952,6 +952,7 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 		}
 		
 		return array(
+			'host' => $_host,
 			'key' => $_key,
 			'value' => $_value,
 			'static' => $static,
@@ -983,7 +984,7 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 		$static = (isset($item['static']) && !!$item['static']);
 	}
 
-	if($static && !$_defaults)
+	if($static && $_host)
 	{
 		return $createReturn(false, 'Static setting! Overwrite is invalid');
 	}
@@ -1329,16 +1330,16 @@ function config_check($_config = null, $_bool = false, $_die = true)
 	global $CONFIG;
 
 	//
-	$defaults = null;
+	$host = null;
 
 	if(is_array($_config))
 	{
-		$defaults = false;
+		$host = true;
 	}
 	else
 	{
 		$_config = DEFAULTS;
-		$defaults = true;
+		$host = false;
 	}
 
 	//
@@ -1347,11 +1348,11 @@ function config_check($_config = null, $_bool = false, $_die = true)
 	//
 	foreach($_config as $key => $value)
 	{
-		$result[$key] = config_check_item($key, $value, $_bool, $defaults);
+		$result[$key] = config_check_item($key, $value, $_bool, $host);
 	}
 
 	//
-	if($defaults)
+	if(!$host)
 	{
 		$keys = array_keys(CONFIG_VECTOR);
 		$len = count($keys);
@@ -1376,6 +1377,7 @@ function config_check($_config = null, $_bool = false, $_die = true)
 					$test = (array_key_exists('test', $item) ? $item['test'] : false);
 
 					$result[$keys[$i]] = array(
+						'host' => false,
 						'key' => $keys[$i],
 						'value' => null,
 						'static' => $static,
