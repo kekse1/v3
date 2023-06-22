@@ -6446,12 +6446,6 @@ function counter($_host = null, $_read_only = null)
 					$y *= $scale;
 					$x *= $scale;
 					
-					if($_angle !== 0)
-					{
-						$_h += 8;
-						$_v += 8;
-					}
-					
 					if(($textWidth += ($_h * 2)) < 1)
 					{
 						$textWidth = 1;
