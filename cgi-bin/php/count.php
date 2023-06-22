@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.5.2');
+define('COUNTER_VERSION', '3.6.0');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -90,24 +90,16 @@ $STATE = array(
 );
 
 //
-const CONFIG_STATIC = array(
-	'path',
-	'auto',
-	'override',
-	'hash',
-	'raw'
-);
-
 const CONFIG_VECTOR = array(
-	'path' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
+	'path' => array('types' => [ 'string' ], 'static' => true, 'min' => 1, 'test' => true),
 	'log' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'threshold' => array('types' => [ 'integer', 'NULL' ], 'min' => 0),
-	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'min' => 0),
+	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'static' => true, 'min' => 0),
 	'hide' => array('types' => [ 'boolean', 'string' ]),
 	'client' => array('types' => [ 'boolean' ]),
 	'server' => array('types' => [ 'boolean' ]),
 	'drawing' => array('types' => [ 'boolean' ]),
-	'override' => array('types' => [ 'boolean', 'string' ], 'min' => 1),
+	'override' => array('types' => [ 'boolean', 'string' ], 'static' => true, 'min' => 1),
 	'content' => array('types' => [ 'string' ], 'min' => 1),
 	'radix' => array('types' => [ 'integer' ], 'min' => 2, 'max' => 36),
 	'clean' => array('types' => [ 'boolean', 'NULL', 'integer' ], 'min' => 0),
@@ -126,10 +118,10 @@ const CONFIG_VECTOR = array(
 	'aa' => array('types' => [ 'boolean' ]),
 	'type' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'privacy' => array('types' => [ 'boolean' ]),
-	'hash' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
+	'hash' => array('types' => [ 'string' ], 'static' => true, 'min' => 1, 'test' => true),
 	'error' => array('types' => [ 'string', 'NULL' ]),
 	'none' => array('types' => [ 'string' ]),
-	'raw' => array('types' => [ 'boolean' ], 'test' => null),
+	'raw' => array('types' => [ 'boolean' ], 'static' => true, 'test' => null),
 	'modules' => array('types' => [ 'string', 'NULL' ], 'test' => true)
 );
 
@@ -568,7 +560,7 @@ function error($_reason, $_own = false, $_exit_code = 224)
 {
 	$ex = null;
 	
-	if($_reason instanceof \Exception)
+	if($_reason instanceof \Throwable)
 	{
 		$ex = $_reason;
 		$_reason = $_reason->getMessage();
@@ -617,7 +609,7 @@ function log_error($_reason, $_source = '', $_path = '', $_die = true)
 	$ex = null;
 
 	//
-	if($_reason instanceof \Exception)
+	if($_reason instanceof \Throwable)
 	{
 		$ex = $_reason;
 		$_reason = $ex->getMessage();
@@ -711,6 +703,22 @@ function check_path_char($_path, $_basename = true)
 	return true;
 }
 
+//
+function error_handler($_no, $_str, $_file, $_line)
+{
+	$result = '[Error ' . (string)$_no . '] ' . $_str . ' (in file \'' . $_file . '\':' . (string)$_line;
+	return error($result, true);
+}
+
+function exception_handler($_ex)
+{
+	return error($_ex, true);
+}
+
+set_error_handler('\kekse\counter\error_handler');
+set_exception_handler('\kekse\counter\exception_handler');
+
+//
 function get_path($_path, $_check = true, $_file = false, $_create = true, $_die = true)
 {
 	if(!is_string($_path))
@@ -882,165 +890,174 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 	return $result;
 }
 
-function check_config_item($_key, $_value = null, $_bool = false)
+function check_config_limits($_min, $_max)
 {
-	$result = null;
-	$success = null;
-	
-	if(! array_key_exists($_key, CONFIG_VECTOR))
+	if(! is_int($_min))
 	{
-		if($_bool)
-		{
-			return false;
-		}
-		else
-		{
-			$result = 'No such config item \'' . $_key . '\' available';
-		}
-		
-		return [ $_key, false, $result, null, null, null, null, '' ];
-	}
-	
-	$item = CONFIG_VECTOR[$_key];
-	$minmax = '';
-	
-	if(isset($item['min']))
-	{
-		$minmax = '(' . $item['min'] . '..';
-		
-		if(isset($item['max']))
-		{
-			$minmax .= $item['max'];
-		}
-		
-		$minmax .= ')';
-	}
-	else if(isset($item['max']))
-	{
-		$minmax = '(..' . $item['max'] . ')';
-	}
-	
-	$valueType = gettype($_value);
-	$typesLen = count($item['types']);
-	$validTypes = '[ ' . implode(', ', $item['types']) . ' ]';
-	$validType = in_array($valueType, $item['types']);
-
-	if(!$validType)
-	{
-		if($_bool)
-		{
-			return false;
-		}
-		else
-		{
-			$result = 'Invalid type';
-		}
-		
-		return [ $_key, false, $result, $valueType, $validTypes, null, null, $minmax ];
+		$_min = null;
 	}
 
-	$validLength = true;
+	if(! is_int($_max))
+	{
+		$_max = null;
+	}
+
+	$result = '';
+
+	if($_min !== null)
+	{
+		$result .= '(' . (string)$_min . '..';
+
+		if($_max !== null)
+		{
+			$result .= (string)$_max;
+		}
+
+		$result .= ')';
+	}
+	else if($_max !== null)
+	{
+		$result .= '(..' . (string)$_max . ')';
+	}
+
+	return $result;
+}
+
+function check_config_item($_key, $_value = null, $_bool = false, $_defaults = true)
+{
+	$item = null;
+	$type = null;
+	$types = null;
+	$validType = null;
+	$validLength = null;
 	$min = $max = null;
+	$limits = '';
+	$test = null;
+	$validTest = null;
+	$success = null;
+	$static = null;
 
-	if(isset($item['min']))
+	$createReturn = function($_valid, $_string) use(&$_key, &$_value, &$_bool, &$type, &$types, &$validType, &$validLength, &$min, &$max, &$limits, &$test, &$validTest, &$static)
+	{
+		if($_bool)
+		{
+			return $_valid;
+		}
+		
+		return array(
+			'key' => $_key,
+			'value' => $_value,
+			'static' => $static,
+			'valid' => $_valid,
+			'string' => $_string,
+			'type' => $type,
+			'types' => $types,
+			'validType' => $validType,
+			'validLength' => $validLength,
+			'min' => $min,
+			'max' => $max,
+			'limits' => $limits,
+			'test' => $test,
+			'validTest' => $validTest
+		);
+	};
+
+	if(! isset(CONFIG_VECTOR[$_key]))
+	{
+		return $createReturn(false, 'No such config item available');
+	}
+	else
+	{
+		$item = CONFIG_VECTOR[$_key];
+		$type = gettype($_value);
+		$types = '[ ' . implode(', ', $item['types']) . ' ]';
+		$validType = in_array($type, $item['types']);
+		$test = (array_key_exists('test', $item) ? $item['test'] : false);
+		$static = (isset($item['static']) && !!$item['static']);
+	}
+
+	if($static && !$_defaults)
+	{
+		return $createReturn(false, 'Static setting! Overwrite is invalid');
+	}
+	else if(!$validType)
+	{
+		return $createReturn(false, 'Invalid item type \'' . $type . '\'');
+	}
+
+	if(isset($item['max']) && is_int($item['min']))
 	{
 		$min = $item['min'];
-		
-		if($valueType === 'string')
-		{
-			if(strlen($_value) < $item['min'])
-			{
-				$validLength = false;
-			}
-		}
-		else if($valueType === 'integer')
-		{
-			$validMin = true;
-			$validMax = true;
-
-			if($_value < $item['min'])
-			{
-				$validMin = false;
-			}
-
-			if(isset($item['max']))
-			{
-				$max = $item['max'];
-				
-				if($_value > $item['max'])
-				{
-					$validMax = false;
-				}
-			}
-
-			if($validMin && $validMax)
-			{
-				$validLength = true;
-			}
-		}
-		else
-		{
-			$validLength = null;
-		}
 	}
-	else if(isset($item['max']))
+	
+	if(isset($item['max']) && is_int($item['max']))
 	{
 		$max = $item['max'];
-		
-		if($valueType === 'string')
+	}
+
+	$limits = check_config_limits($min, $max);
+
+	if($min !== null)
+	{
+		if($type === 'string')
 		{
-			if(strlen($_value) > $item['max'])
+			if(strlen($_value) < $min)
 			{
 				$validLength = false;
 			}
 		}
-		else if($valueType === 'integer')
+		else if($type === 'integer' || $type === 'double')
 		{
-			if($_value > $item['max'])
+			if($_value < $min)
 			{
 				$validLength = false;
 			}
 		}
-		else
+	}
+	
+	if($max !== null)
+	{
+		if($type === 'string')
 		{
-			$validLength = null;
+			if(strlen($_value) > $max)
+			{
+				$validLength = false;
+			}
+		}
+		else if($type === 'integer' || $type === 'double')
+		{
+			if($_value > $max)
+			{
+				$validLength = false;
+			}
 		}
 	}
 
 	if($validLength === false)
 	{
-		if($_bool)
+		$r = 'Invalid length (';
+		
+		if($min !== null)
 		{
-			return false;
-		}
-		else
-		{
-			$result = 'Invalid length (';
-
-			if(isset($item['min']))
-			{
-				$result .= 'minimum is ' . $item['min'];
-
-				if(isset($item['max']))
-				{
-					$result .= ', ';
-				}
-			}
-
-			if(isset($item['max']))
-			{
-				$result .= 'maximum is ' . $item['max'];
-			}
+			$r .= 'minimum is ' . $min;
 			
-			$result .= ')';
+			if($max !== null)
+			{
+				$r .= ', ';
+			}
 		}
 		
-		return [ $_key, false, $result, $valueType, $validTypes, $min, $max, $minmax ];
+		if($max !== null)
+		{
+			$r .= 'maximum is ' . $max;
+		}
+		
+		$r .= ')';
+		
+		return $createReturn(false, $r);
 	}
 
-	$validTest = null;
-
-	if(isset($item['test']) && $item['test'])
+	if($test)
 	{
 		switch($_key)
 		{
@@ -1259,73 +1276,44 @@ function check_config_item($_key, $_value = null, $_bool = false)
 				break;
 		}
 	}
-	else
-	{
-		$validTest = true;
-	}
 	
 	if($validTest === false)
 	{
-		if($_bool)
-		{
-			return false;
-		}
-		else
-		{
-			$result = 'Failed at extended test routine(s)';
-		}
-		
-		return [ $_key, false, $result, $valueType, $validTypes, $min, $max, $minmax ];
+		return $createReturn(false, 'Failed at extended test routine');
 	}
 	else if(is_string($validTest))
 	{
-		if($_bool)
-		{
-			return false;
-		}
-		
-		return [ $_key, false, $validTest, $valueType, $validTypes, $min, $max, $minmax ];
+		return $createReturn(false, $validTest);
 	}
 
 	//
-	if($_bool)
+	if(is_string($success))
 	{
-		return true;
-	}
-	else if(is_string($success))
-	{
-		$result = $success;
-	}
-	else
-	{
-		$result = 'Passed';
-		
-		if(array_key_exists('test', $item) && $item['test'] === null)
-		{
-			$result .= ' (without extended tests)';
-		}
+		return $createReturn(true, $success);
 	}
 	
-	return [ $_key, true, $result, $valueType, $validTypes, $min, $max, $minmax ];
+	$r = 'Passed';
+	
+	if($test === null)
+	{
+		$r .= ' (without extended tests)';
+	}
+	
+	return $createReturn(true, $r);
 }
 
-function check_config_key($_key, $_die = true)
+function check_config_item_static($_key)
 {
-	if(!is_string($_key) || empty($_key))
-	{
-		if($_die)
-		{
-			error('Invalid $_key argument');
-		}
-
-		return false;
-	}
-	else if(in_array($_key, CONFIG_STATIC))
+	if(! isset(CONFIG_VECTOR[$_key]))
 	{
 		return null;
 	}
-	
-	return array_key_exists($_key, CONFIG_VECTOR);
+	else if(array_key_exists('static', CONFIG_VECTOR[$_key]))
+	{
+		return !!CONFIG_VECTOR[$_key]['static'];
+	}
+
+	return false;
 }
 
 function check_config($_config = null, $_bool = false, $_die = true)
@@ -1352,33 +1340,7 @@ function check_config($_config = null, $_bool = false, $_die = true)
 	//
 	foreach($_config as $key => $value)
 	{
-		$k = check_config_key($key, $_die);
-		$result[$key] = check_config_item($key, $value, $_bool);
-
-		if($k === null && $def)
-		{
-			if($_bool)
-			{
-				$result[$key] = false;
-			}
-			else
-			{
-				$result[$key][1] = false;
-				$result[$key][2] = 'Static setting, can\'t be overwritten';
-			}
-		}
-		else if($k === false)
-		{
-			if($_bool)
-			{
-				$result[$key] = false;
-			}
-			else
-			{
-				$result[$key][1] = false;
-				$result[$key][2] = 'Unknown setting';
-			}
-		}
+		$result[$key] = check_config_item($key, $value, $_bool, !$def);
 	}
 
 	//
@@ -1399,7 +1361,29 @@ function check_config($_config = null, $_bool = false, $_die = true)
 				}
 				else
 				{
-					$result[$keys[$i]] = [ $keys[$i], false, 'Missing!', null, '[ ' . implode(', ', CONFIG_VECTOR[$keys[$i]]['types']) . ' ]', null, null ];
+					$static = (isset($item['static']) ? !!$item['static'] : false);
+					$types = '[ ' . implode(', ', $item['types']) . ' ]';
+					$min = (is_int($item['min']) ? $item['min'] : null);
+					$max = (is_int($item['max']) ? $item['max'] : null);
+					$limits = config_check_limits($min, $max);
+					$test = (array_key_exists('test', $item) ? $item['test'] : false);
+
+					$result[$keys[$i]] = array(
+						'key' => $keys[$i],
+						'value' => null,
+						'static' => $static,
+						'valid' => false,
+						'string' => 'Missing! Needs to be set in DEFAULTS',
+						'type' => null,
+						'types' => $types,
+						'validType' => null,
+						'validLength' => null,
+						'min' => $min,
+						'max' => $max,
+						'limits' => $limits,
+						'test' => $test,
+						'validTest' => null
+					);
 				}
 			}
 		}
@@ -3678,7 +3662,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\info(2, 'Found %d per-host configuration' . ($idx === 1 ? '' : 's') . ' (by %d glob' . ($cnt === 1 ? '' : 's') . ' in total).', $idx, $cnt);
+				\kekse\info('Found %d per-host configuration' . ($idx === 1 ? '' : 's') . ' (by %d glob' . ($cnt === 1 ? '' : 's') . ' in total).', $idx, $cnt);
 				$len = count($hosts);
 				$result = array();
 
@@ -3694,100 +3678,116 @@ function counter($_host = null, $_read_only = null)
 			//			
 			$ok = 0;
 			$bad = 0;
-			$len = $maxLen = $maxLenKey = $maxLenType = $maxLenLimits = 0;
+			$maxLen = array('string' => 0, 'key' => 0, 'type' => 0, 'limits' => 0);
+
+			$checkMaxLen = function($_state) use(&$maxLen)
+			{
+				$len = 0;
+
+				if(($len = strlen($_state['string'])) > $maxLen['string'])
+				{
+					$maxLen['string'] = $len;
+				}
+
+				if(($len = strlen($_state['key'])) > $maxLen['key'])
+				{
+					$maxLen['key'] = $len;
+				}
+
+				if(is_string($_state['type']) && ($len = strlen($_state['type'])) > $maxLen['type'])
+				{
+					$maxLen['type'] = $len;
+				}
+
+				if(($len = strlen($_state['limits'])) > $maxLen['limits'])
+				{
+					$maxLen['limits'] = $len;
+				}
+			};
 
 			if($hosts === null)
 			{
+				\kekse\info();
+
 				foreach($result as $key => $state)
 				{
-					if(($len = strlen($state[2])) > $maxLen)
-					{
-						$maxLen = $len;
-					}
-
-					if(($len = strlen($state[0])) > $maxLenKey)
-					{
-						$maxLenKey = $len;
-					}
-
-					if(($len = strlen($state[3])) > $maxLenType)
-					{
-						$maxLenType = $len;
-					}
-
-					if(($len = strlen($state[7])) > $maxLenLimits)
-					{
-						$maxLenLimits = $len;
-					}
+					$checkMaxLen($state);
 				}
 				
-				$maxLenKey += 3;
-				$format = ('%' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's  %' . $maxLenType . 's %-' . $maxLenLimits . 's    %s' . PHP_EOL);
+				$maxLen['key'] += 3;
+				$format = ('%' . $maxLen['key'] . 's ]  %-4s  %-' . $maxLen['string'] . 's    %' . $maxLen['type'] . 's %-' . $maxLen['limits'] . 's    %s' . PHP_EOL);
 				
 				foreach($result as $key => $state)
 				{
-					if($state[1])
+					if($state['valid'])
 					{
-						printf($format, '[ ' . $state[0], 'OK', $state[2], $state[3], $state[7], $state[4]);
+						printf($format, '[ ' . $state['key'], 'OK', $state['string'], $state['type'], $state['limits'], $state['types']);
 						++$ok;
 					}
 					else
 					{
-						fprintf(STDERR, $format, '[ ' . $state[0], 'BAD', $state[2], $state[3], $state[7], $state[4]);
+						fprintf(STDERR, $format, '[ ' . $state['key'], 'BAD', $state['string'], $state['type'], $state['limits'], $state['types']);
 						++$bad;
 					}
 				}
 			}
 			else
 			{
-				$maxLenHost = 0;
+				$maxLen['host'] = 0;
+				$count = 0;
 
 				foreach($result as $host => $item)
 				{
+					$c = count($item);
+
+					if($c === 0)
+					{
+						continue;
+					}
+					else
+					{
+						$count += $c;
+					}
+
 					foreach($item as $key => $state)
 					{
-						if(($len = strlen($state[2])) > $maxLen)
-						{
-							$maxLen = $len;
-						}
-
-						if(($len = strlen($state[0])) > $maxLenKey)
-						{
-							$maxLenKey = $len;
-						}
-
-						if(($len = strlen($state[3])) > $maxLenType)
-						{
-							$maxLenType = $len;
-						}
-
-						if(($len = strlen($state[7])) > $maxLenLimits)
-						{
-							$maxLenLimits = $len;
-						}
+						$checkMaxLen($state);
+						++$count;
 					}
 
-					if(($len = strlen($host)) > $maxLenHost)
+					if(($len = strlen($host)) > $maxLen['host'])
 					{
-						$maxLenHost = $len;
+						$maxLen['host'] = $len;
 					}
+
+					++$count;
 				}
 
-				$maxLenKey += 3;
-				$format = (' %' . $maxLenHost . 's %' . $maxLenKey . 's ]  %-4s  %-' . $maxLen . 's    %' . $maxLenType . 's %-' . $maxLenLimits . 's    %s' . PHP_EOL);
+				if($count === 0)
+				{
+					\kekse\warn('No config items found');
+					exit(2);
+				}
+				else
+				{
+					\kekse\info();
+				}
+
+				$maxLen['key'] += 3;
+				$format = (' %' . $maxLen['host'] . 's %' . $maxLen['key'] . 's ]  %-4s  %-' . $maxLen['string'] . 's    %' . $maxLen['type'] . 's %-' . $maxLen['limits'] . 's    %s' . PHP_EOL);
 
 				foreach($result as $host => $item)
 				{
 					foreach($item as $key => $state)
 					{
-						if($state[1])
+						if($state['valid'])
 						{
-							printf($format, $host, '[ ' . $state[0], 'OK', $state[2], $state[3], $state[7], $state[4]);
+							printf($format, $host, '[ ' . $state['key'], 'OK', $state['string'], $state['type'], $state['limits'], $state['types']);
 							++$ok;
 						}
 						else
 						{
-							fprintf(STDERR, $format, $host, '[ ' . $state[0], 'BAD', $state[2], $state[3], $state[7], $state[4]);
+							fprintf(STDERR, $format, $host, '[ ' . $state['key'], 'BAD', $state['string'], $state['type'], $state['limits'], $state['types']);
 							++$bad;
 						}
 					}
@@ -3812,7 +3812,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\warn('Only %d items were valid.. %d caused errors!', $ok, $bad);
+				\kekse\warn('Only %d items is valid.. %d caused errors!', $ok, $bad);
 			}
 
 			if($bad === 0)
@@ -3820,7 +3820,7 @@ function counter($_host = null, $_read_only = null)
 				exit(0);
 			}
 
-			exit(2);
+			exit(3);
 		}
 		
 		function set($_index = null)
