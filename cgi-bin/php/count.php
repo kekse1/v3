@@ -2387,7 +2387,14 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 			return 0;
 		}
 
-		return ($deleted + ($deleted / $total));
+		$result = ($deleted + ($deleted / $total));
+
+		if(fmod($result, 1) == 0)
+		{
+			$result = (int)$result;
+		}
+
+		return $result;
 	}
 	else if(unlink($_path))
 	{
