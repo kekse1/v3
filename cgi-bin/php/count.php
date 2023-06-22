@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.1');
+define('COUNTER_VERSION', '3.6.2');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -2299,23 +2299,22 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 	
 	if(is_link($_path))
 	{
-		return !!unlink($_path);
+		return (unlink($_path) ? 1 : 0);
 	}
 	else if(is_dir($_path))
 	{
 		if(is_int($_depth) && ($_depth <= $_depth_current || $_depth <= 0))
 		{
-			return rmdir($_path);
+			return (rmdir($_path) ? 1 : 0);
 		}
 		
+		$result = 0;
 		$handle = opendir($_path);
 
 		if($handle === false)
 		{
-			return false;
+			return $result;
 		}
-		
-		$count = 0;
 
 		while($sub = readdir($handle))
 		{
@@ -2323,72 +2322,44 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 			{
 				continue;
 			}
-			else
-			{
-				++$count;
-			}
 
 			$p = \kekse\join_path($_path, $sub);
 
 			if(is_link($p))
 			{
-				if(!unlink($p))
+				if(unlink($p))
 				{
-					return false;
+					++$result;
 				}
-			}
-			else if(! is_writable($p))
-			{
-				return false;
 			}
 			else if(is_dir($p))
 			{
-				if($_depth !== null && $_depth <= $_depth_current)
+				if(! ($_depth !== null && $_depth <= $_depth_current))
 				{
-					return false;
-				}
-				else if(!\kekse\delete($p, $_depth, $_depth_current + 1))
-				{
-					return false;
-				}
-				else
-				{
-					--$count;
+					$result += \kekse\delete($p, $_depth, $_depth_current + 1);
 				}
 			}
-			else if(unlink($p) === false)
+			else if(unlink($p))
 			{
-				return false;
-			}
-			else
-			{
-				--$count;
+				++$result;
 			}
 		}
 		
 		closedir($handle);
 
-		if($count === -1)
+		if(rmdir($_path))
 		{
-			return false;
-		}
-		else if($count > 0)
-		{
-			return false;
-		}
-		else if(!is_writable($_path))
-		{
-			return false;
+			++$result;
 		}
 
-		return rmdir($_path);
+		return $result;
 	}
-	else if(!unlink($_path))
+	else if(unlink($_path))
 	{
-		return false;
+		return 1;
 	}
 	
-	return true;
+	return 0;
 }
 
 function get_param($_key, $_numeric = false, $_float = false, $_strict = KEKSE_STRICT, $_fallback = true)
@@ -3441,18 +3412,18 @@ function counter($_host = null, $_read_only = null)
 			printf('    -' . $b('V') . ' | --' . $b('version') . PHP_EOL);
 			printf('    -' . $b('C') . ' | --' . $b('copyright') . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -' . $b('c') . ' | --' . $b('check') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('c') . ' | --' . $b('check') . ' [ * ]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -' . $b('v') . ' | --' . $b('values') . ' [*]' . PHP_EOL);
-			printf('    -' . $b('s') . ' | --' . $b('sync') . ' [*]' . PHP_EOL);
-			printf('    -' . $b('l') . ' | --' . $b('clean') . ' [*]' . PHP_EOL);
-			printf('    -' . $b('p') . ' | --' . $b('purge') . ' [*]' . PHP_EOL);
-			printf('    -' . $b('r') . ' | --' . $b('remove') . ' [*]' . PHP_EOL);
-			printf('    -' . $b('z') . ' | --' . $b('sanitize') . ' [--allow-without-values | -w / --dot-files | -d]' . PHP_EOL);
+			printf('    -' . $b('v') . ' | --' . $b('values') . ' [ * ]' . PHP_EOL);
+			printf('    -' . $b('s') . ' | --' . $b('sync') . ' [ * ]' . PHP_EOL);
+			printf('    -' . $b('l') . ' | --' . $b('clean') . ' [ * ]' . PHP_EOL);
+			printf('    -' . $b('p') . ' | --' . $b('purge') . ' [ * ]' . PHP_EOL);
+			printf('    -' . $b('r') . ' | --' . $b('remove') . ' [ * ]' . PHP_EOL);
+			printf('    -' . $b('z') . ' | --' . $b('sanitize') . ' [ --allow-without-values | -w ] [ --dot-files | -d ]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -' . $b('t') . ' | --' . $b('set') . ' (host) [value = 0]' . PHP_EOL);
+			printf('    -' . $b('t') . ' | --' . $b('set') . ' ( host ) [ value = 0 ]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -' . $b('f') . ' | --' . $b('fonts') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('f') . ' | --' . $b('fonts') . ' [ * ]' . PHP_EOL);
 			printf('    -' . $b('y') . ' | --' . $b('types') . PHP_EOL);
 			printf('    -' . $b('h') . ' | --' . $b('hashes') . PHP_EOL);
 			printf(PHP_EOL);
@@ -3969,7 +3940,7 @@ function counter($_host = null, $_read_only = null)
 			else
 			{
 				\kekse\warn('This will *delete* the whole cache!');
-				\kekse\debug(2, 'Maybe you\'d rather like to \'--clean/-c\' instead!?');
+				\kekse\debug('Maybe you\'d rather like to \'--clean/-c\' instead!?');
 			}
 
 			$dirs = array();
@@ -3978,6 +3949,7 @@ function counter($_host = null, $_read_only = null)
 			$len = 0;
 			$d = 0;
 			$f = 0;
+			$s = false;
 
 			foreach($list as $key => $value)
 			{
@@ -3999,6 +3971,13 @@ function counter($_host = null, $_read_only = null)
 				if($c > 0)
 				{
 					++$total;
+
+					if(!$s)
+					{
+						printf(PHP_EOL);
+						$s = true;
+					}
+
 					printf('    ' . $key . PHP_EOL);
 				}
 			}
@@ -4024,12 +4003,15 @@ function counter($_host = null, $_read_only = null)
 
 			$errors = 0;
 			$good = 0;
+			$eff = 0;
+			$d;
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(\kekse\delete(\kekse\join_path(get_state('path'), '+' . $dirs[$i]), true))
+				if($d = \kekse\delete(\kekse\join_path(get_state('path'), '+' . $dirs[$i]), true))
 				{
 					++$good;
+					$eff += $d;
 				}
 				else
 				{
@@ -4039,9 +4021,10 @@ function counter($_host = null, $_read_only = null)
 
 			for($i = 0; $i < $f; ++$i)
 			{
-				if(\kekse\delete(\kekse\join_path(get_state('path'), '-' . $files[$i]), false))
+				if($d = \kekse\delete(\kekse\join_path(get_state('path'), '-' . $files[$i]), false))
 				{
 					++$good;
+					$eff += $d;
 				}
 				else
 				{
@@ -4052,12 +4035,24 @@ function counter($_host = null, $_read_only = null)
 			if($errors === 0)
 			{
 				\kekse\info('Great, all %d files deleted successfully!', $good);
+				
+				if($eff !== $good)
+				{
+					\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
+				}
+				
 				exit(0);
 			}
 			else if($good > 0)
 			{
-				\kekse\info('%d files sucessfully deleted..', $good);
-				\kekse\error('... but %d files could *not* be removed. :-/', $errors);
+				\kekse\info('%d files sucessfully deleted.', $good);
+				
+				if($eff !== $good)
+				{
+					\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
+				}
+				
+				\kekse\error('But %d files could *not* be removed. :-/', $errors);
 				exit(3);
 			}
 			
@@ -4175,12 +4170,14 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			//
+			$eff = 0;
+			
 			foreach($result as $host => $count)
 			{
 				if($count === 0)
 				{
-					if(is_writable(\kekse\join_path(get_state('path'), '+' . $host))) \kekse\delete(\kekse\join_path(get_state('path'), '+' . $host), true);
-					if(is_writable(\kekse\join_path(get_state('path'), '-' . $host))) \kekse\delete(\kekse\join_path(get_state('path'), '-' . $host), false);
+					if(is_writable(\kekse\join_path(get_state('path'), '+' . $host))) $eff += \kekse\delete(\kekse\join_path(get_state('path'), '+' . $host), true);
+					if(is_writable(\kekse\join_path(get_state('path'), '-' . $host))) $eff += \kekse\delete(\kekse\join_path(get_state('path'), '-' . $host), false);
 				}
 				else if(is_writable(\kekse\join_path(get_state('path'), '-' . $host)))
 				{
@@ -4201,12 +4198,17 @@ function counter($_host = null, $_read_only = null)
 			$d = count($delete);
 
 			printf(PHP_EOL);
+			
+			if($eff > 0)
+			{
+				\kekse\debug('We got effectively %d more deletions beneath the cache files.', $eff);
+			}
 
 			if($d > 0)
 			{
 				if($e === 0)
 				{
-					\kekse\info(null, 'Great, not a single error!');
+					\kekse\info('Great, not a single error!');
 				}
 				else
 				{
@@ -4228,7 +4230,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\info(2, ' Deleted files per host:');
+				\kekse\debug(2, ' Deleted files per host:');
 			}
 
 			$sum = 0;
@@ -4245,15 +4247,15 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$s = ' %' . $maxLen . 's: %d';
+			$s = '    %' . $maxLen . 's:  %d' . PHP_EOL;
 
 			foreach($delete as $host => $del)
 			{
-				\kekse\debug($s, $host, $del);
+				printf($s, $host, $del);
 			}
 
 			//
-			\kekse\info();
+			printf(PHP_EOL);
 			\kekse\info('Totally deleted %d files.', $sum);
 			exit(0);
 		}
@@ -4267,22 +4269,25 @@ function counter($_host = null, $_read_only = null)
 				$item = KEKSE_ARGV[$i];
 				$len = strlen($item);
 
-				if($item[0] === '-')
-				{
-					break;
-				}
-				else if($len < 2 || $len > KEKSE_LIMIT)
+				if($len < 2 || $len > KEKSE_LIMIT)
 				{
 					continue;
+				}
+				else if($len === 2) switch($item)
+				{
+					case '-w':
+						$_allow_without_values = true;
+						break;
+					case '-d':
+						$_dot_files = true;
+						break;
 				}
 				else switch($item)
 				{
 					case '--allow-without-values':
-					case '-w':
 						$_allow_without_values = true;
 						break;
 					case '--dot-files':
-					case '-d':
 						$_dot_files = true;
 						break;
 				}
@@ -4396,26 +4401,29 @@ function counter($_host = null, $_read_only = null)
 			$errors = array();
 			$r = 0;
 			$e = 0;
+			$eff = 0;
+			$dr;
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(\kekse\delete($delete[$i], true))
+				if($dr = \kekse\delete($delete[$i], true))
 				{
 					$result[$r++] = $delete[$i];
+					$eff += $dr;
 				}
 				else
 				{
 					$errors[$e++] = $delete[$i];
 				}
 			}
-
+			
 			if($r === 0)
 			{
-				\kekse\warn('NO files deleted..');
+				\kekse\warn('NO files deleted.');
 				
 				if($e > 0)
 				{
-					\kekse\error(2, 'AND %d errors:', $e);
+					\kekse\error(2, 'With %d errors:', $e);
 					
 					for($i = 0; $i < $e; ++$i)
 					{
@@ -4429,6 +4437,11 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
+				if($eff !== $r)
+				{
+					\kekse\debug('We effecively deleted %d files in recursive deletion.', $eff);
+				}
+				
 				\kekse\info(2, 'Operation deleted %d files:', $r);
 			}
 
@@ -4441,7 +4454,7 @@ function counter($_host = null, $_read_only = null)
 
 			if($e > 0)
 			{
-				\kekse\warn(2, 'But with %d errors:', $e);
+				\kekse\warn(2, 'With %d errors:', $e);
 				
 				for($i = 0; $i < $e; ++$i)
 				{
@@ -4451,7 +4464,7 @@ function counter($_host = null, $_read_only = null)
 				printf(PHP_EOL);
 			}
 			
-			return ($e === 0 ? 0 : 3);
+			exit($e === 0 ? 0 : 3);
 		}
 		
 		function remove($_index = null)
@@ -4518,7 +4531,7 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			$format = '    %' . $maxLen . 's    %s' . PHP_EOL;
+			$format = '    %' . $maxLen . 's:  %s' . PHP_EOL;
 
 			foreach($list as $host => $type)
 			{
@@ -4575,17 +4588,25 @@ function counter($_host = null, $_read_only = null)
 
 			$ok = 0;
 			$err = 0;
+			$eff = 0;
+			$dr;
 
 			for($i = 0; $i < $d; ++$i)
 			{
-				if(\kekse\delete($delete[$i], true))
+				if($dr = \kekse\delete($delete[$i], true))
 				{
 					++$ok;
+					$eff += $dr;
 				}
 				else
 				{
 					++$err;
 				}
+			}
+			
+			if($eff > 0 && $eff !== $ok)
+			{
+				\kekse\debug('Effecively deleted %d files because of recursive deletion.', $eff);
 			}
 
 			if($err === 0)
@@ -4600,7 +4621,7 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			\kekse\info('Successfully deleted %d files.', $ol);
-			\kekse\error('BuT also %d errors occured.', $err);
+			\kekse\error('But also %d errors occured.', $err);
 
 			//
 			exit(0);
@@ -4626,6 +4647,7 @@ function counter($_host = null, $_read_only = null)
 			$result = array();
 			$maxLen = 0;
 			$len = 0;
+			$eff = 0;
 
 			foreach($list as $key => $value)
 			{
@@ -4666,7 +4688,7 @@ function counter($_host = null, $_read_only = null)
 							}
 							else if($_purge)
 							{
-								\kekse\delete(\kekse\join_path(get_state('path'), '+' . $key, $sub), true);
+								$eff += \kekse\delete(\kekse\join_path(get_state('path'), '+' . $key, $sub), true);
 							}
 						}
 						
@@ -4715,8 +4737,7 @@ function counter($_host = null, $_read_only = null)
 					$val = null;
 				}
 
-				$result[$key] = [
-					($val === null ? null : (int)$val), $cache, $real, $config ];
+				$result[$key] = [ ($val === null ? null : (int)$val), $cache, $real, $config ];
 			}
 
 			printf(PHP_EOL);
@@ -4745,6 +4766,11 @@ function counter($_host = null, $_read_only = null)
 			printf(PHP_EOL);
 			$s = count($sync);
 
+			if($eff > 0)
+			{
+				\kekse\debug('Invalid items in directories caused %d deletions, btw.', $eff);
+			}
+			
 			if(!$_sync)
 			{
 				exit(0);
@@ -4766,6 +4792,8 @@ function counter($_host = null, $_read_only = null)
 			$del = 0;
 			$err = 0;
 			$p;
+			$dr;
+			$eff = 0;
 
 			foreach($sync as $host => $val)
 			{
@@ -4773,9 +4801,10 @@ function counter($_host = null, $_read_only = null)
 				{
 					if(is_dir($p = \kekse\join_path(get_state('path'), '+' . $host)))
 					{
-						if(\kekse\delete($p, true))
+						if($dr = \kekse\delete($p, true))
 						{
 							++$del;
+							$eff += $dr;
 						}
 						else
 						{
@@ -4788,6 +4817,7 @@ function counter($_host = null, $_read_only = null)
 						if(\kekse\delete($p, false))
 						{
 							++$del;
+							++$eff;
 						}
 						else
 						{
@@ -4826,6 +4856,11 @@ function counter($_host = null, $_read_only = null)
 				{
 					\kekse\error((($chg > 0 || $del > 0) ? 'But ' : '') . '%d errors occured. :-/', $err);
 				}
+				
+				if($eff !== $del)
+				{
+					\kekse\debug('Effectively deleted %d files in recursive mode.', $eff);
+				}
 			}
 			
 			//
@@ -4852,7 +4887,7 @@ function counter($_host = null, $_read_only = null)
 				\kekse\warn('Log file deletion aborted (by request).');
 				exit(1);
 			}
-			else if(\kekse\delete(get_state('log'), false) === false)
+			else if(! \kekse\delete(get_state('log'), false))
 			{
 				\kekse\error('The \'%s\' couldn\'t be deleted!!', basename(get_state('log')));
 
