@@ -4067,9 +4067,14 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 
-			if($eff !== $good)
+			if($eff != $good)
 			{
 				\kekse\debug('Recursive deletion effectively deleted %d files.', $eff);
+				
+				if(fmod($eff, 1) != 0)
+				{
+					\kekse\warn('But not the whole recursion depth could be deleted');
+				}
 			}
 
 			if($errors === 0)
@@ -4281,9 +4286,14 @@ function counter($_host = null, $_read_only = null)
 			printf(PHP_EOL);
 			\kekse\info('Totally deleted %d files.', $sum);
 			
-			if($eff !== $sum)
+			if($eff != $sum)
 			{
 				\kekse\debug('We got effectively %d more deletions beneath the cache files.', $eff);
+				
+				if(fmod($eff, 1) != 0)
+				{
+					\kekse\warn('But not the whole recursion depth was fully removed..');
+				}
 			}
 
 			exit(0);
@@ -4518,9 +4528,14 @@ function counter($_host = null, $_read_only = null)
 				printf(PHP_EOL);
 			}
 
-			if($eff !== $r)
+			if($eff != $r)
 			{
 				\kekse\debug('We effecively deleted %d files in recursive deletion.', $eff);
+				
+				if(fmod($eff, 1) != 0)
+				{
+					\kekse\warn('But not the whole recursion depth could fully be deleted..');
+				}
 			}
 			
 			exit($e === 0 ? 0 : 3);
@@ -4663,9 +4678,14 @@ function counter($_host = null, $_read_only = null)
 				}
 			}
 			
-			if($eff > 0 && $eff !== $ok)
+			if($eff > 0 && $eff != $ok)
 			{
 				\kekse\debug('Effecively deleted %d files because of recursive deletion.', $eff);
+				
+				if(fmod($eff, 1) != 0)
+				{
+					\kekse\warn('But not the whole recursion depth could be deleted completely..');
+				}
 			}
 
 			if($err === 0)
@@ -4828,6 +4848,11 @@ function counter($_host = null, $_read_only = null)
 			if($eff > 0)
 			{
 				\kekse\debug('Invalid items in directories caused %d deletions, btw.', $eff);
+				
+				if(fmod($eff, 1) != 0)
+				{
+					\kekse\warn('But not the whole recursion depth was fully deleted..');
+				}
 			}
 			
 			if(!$_sync)
@@ -4916,9 +4941,14 @@ function counter($_host = null, $_read_only = null)
 					\kekse\error((($chg > 0 || $del > 0) ? 'But ' : '') . '%d errors occured. :-/', $err);
 				}
 				
-				if($eff !== $del)
+				if($eff != $del)
 				{
 					\kekse\debug('Effectively deleted %d files in recursive mode.', $eff);
+					
+					if(fmod($eff, 1) != 0)
+					{
+						\kekse\warn('But not the whole recursion depth was fully deleted..');
+					}
 				}
 			}
 			
