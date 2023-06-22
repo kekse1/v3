@@ -2349,7 +2349,11 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 
 		if(rmdir($_path))
 		{
-			++$result;
+			$result = (int)($result + 1);
+		}
+		else
+		{
+			$result = (float)$result;
 		}
 
 		return $result;
