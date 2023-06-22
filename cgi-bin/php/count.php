@@ -2285,6 +2285,7 @@ function secure_path($_string)
 //hint: if($_float), you'll get the integer of deleted files, PLUS you can extract via (%1), if all files or how many of all were deleted!! :D~
 //so: if(($res % 1) === 0) => all files deleted! otherwise (($res % 1) * 100) === percentage of deleted files.. ^_^
 //ps: not % operator, but fmod() should be used. the regular modulo only returns integer values..! ;-/
+//pps: to get to know if everything down below the tree was deleted successfull, just test if `is_int($result)`! ^_^
 //
 function delete($_path, $_depth = 0, $_depth_current = 0)
 {
