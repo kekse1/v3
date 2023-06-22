@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.0');
+define('COUNTER_VERSION', '3.6.1');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -38,7 +38,7 @@ const DEFAULTS = array(
 	'x' => 0,
 	'y' => 0,
 	'h' => 0,//64,
-	'v' => 0,//4,
+	'v' => 0,//0,
 	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
@@ -164,12 +164,7 @@ function get_state($_key, $_die = true)
 		
 		return null;
 	}
-	else
-	{
-		$_key = strtolower($_key);
-	}
-
-	if(array_key_exists($_key, $STATE))
+	else if(array_key_exists($_key = strtolower($_key), $STATE))
 	{
 		return $STATE[$_key];
 	}
@@ -300,7 +295,19 @@ if($console_condition)
 	define('KEKSE_ANSI_YELLOW', '[33m');
 	define('KEKSE_ANSI_BLUE', '[34m');
 	define('KEKSE_ANSI_MAGENTA', '[35m');
-	//define('KEKSE_ANSI_CYAN', '[36m');
+
+	//
+	//TODO/the others here, too!?
+	//
+	function bold($_string)
+	{
+		if(!KEKSE_ANSI)
+		{
+			return $_string;
+		}
+
+		return (KEKSE_ANSI_ESC . KEKSE_ANSI_BOLD . $_string . KEKSE_ANSI_ESC . KEKSE_ANSI_RESET);
+	}
 
 	//
 	function insert_prefix($_string, $_color = null)
@@ -1139,7 +1146,7 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 					else
 					{
 						$validTest = true;
-						$success = 'Already exists with ' . $count . ' counters';
+						$success = $count . ' counters available';
 					}
 				}
 				else
@@ -1164,12 +1171,12 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 					else if($count === 0)
 					{
 						$validTest = true;
-						$success = 'Available, but without installed font(s) (.ttf)';
+						$success = 'Without installed fonts';
 					}
 					else
 					{
 						$validTest = true;
-						$success = 'Great, even with ' . $count . ' installed fonts (.ttf)';
+						$success = $count . ' installed font' . ($count === 1 ? '' : 's');
 					}
 				}
 				else
@@ -1197,12 +1204,12 @@ function config_check_item($_key, $_value = null, $_bool = false, $_defaults = t
 						else if($count === 0)
 						{
 							$validTest = true;
-							$success = 'Available, but no module installed (.php)';
+							$success = 'No modules installed';
 						}
 						else
 						{
 							$validTest = true;
-							$success = 'Yes, even with ' . $count . ' installed modules (.php)';
+							$success = $count . ' installed module' . ($count === 1 ? '' : 's');
 						}
 					}
 					else
@@ -1322,16 +1329,16 @@ function config_check($_config = null, $_bool = false, $_die = true)
 	global $CONFIG;
 
 	//
-	$def = null;
+	$defaults = null;
 
 	if(is_array($_config))
 	{
-		$def = true;
+		$defaults = false;
 	}
 	else
 	{
 		$_config = DEFAULTS;
-		$def = false;
+		$defaults = true;
 	}
 
 	//
@@ -1340,11 +1347,11 @@ function config_check($_config = null, $_bool = false, $_die = true)
 	//
 	foreach($_config as $key => $value)
 	{
-		$result[$key] = config_check_item($key, $value, $_bool, !$def);
+		$result[$key] = config_check_item($key, $value, $_bool, $defaults);
 	}
 
 	//
-	if(!$def)
+	if($defaults)
 	{
 		$keys = array_keys(CONFIG_VECTOR);
 		$len = count($keys);
@@ -3423,27 +3430,32 @@ function counter($_host = null, $_read_only = null)
 			\kekse\info('Available parameters (use only one at the same time, please):');
 			\kekse\info();
 
-			printf('    -? | --help' . PHP_EOL);
-			printf('    -V | --version' . PHP_EOL);
-			printf('    -C | --copyright' . PHP_EOL);
+			$b = function($_s)
+			{
+				return \kekse\console\bold($_s);
+			};
+
+			printf('    -' . $b('?') . ' | --' . $b('help') . PHP_EOL);
+			printf('    -' . $b('V') . ' | --' . $b('version') . PHP_EOL);
+			printf('    -' . $b('C') . ' | --' . $b('copyright') . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -c | --check [*]' . PHP_EOL);
+			printf('    -' . $b('c') . ' | --' . $b('check') . ' [*]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -v | --values [*]' . PHP_EOL);
-			printf('    -s | --sync [*]' . PHP_EOL);
-			printf('    -l | --clean [*]' . PHP_EOL);
-			printf('    -p | --purge [*]' . PHP_EOL);
-			printf('    -r | --remove [*]' . PHP_EOL);
-			printf('    -z | --sanitize [--allow-without-values | -w / --dot-files | -d]' . PHP_EOL);
+			printf('    -' . $b('v') . ' | --' . $b('values') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('s') . ' | --' . $b('sync') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('l') . ' | --' . $b('clean') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('p') . ' | --' . $b('purge') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('r') . ' | --' . $b('remove') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('z') . ' | --' . $b('sanitize') . ' [--allow-without-values | -w / --dot-files | -d]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -t | --set (host) [value = 0]' . PHP_EOL);
+			printf('    -' . $b('t') . ' | --' . $b('set') . ' (host) [value = 0]' . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -f | --fonts [*]' . PHP_EOL);
-			printf('    -y | --types' . PHP_EOL);
-			printf('    -h | --hashes' . PHP_EOL);
+			printf('    -' . $b('f') . ' | --' . $b('fonts') . ' [*]' . PHP_EOL);
+			printf('    -' . $b('y') . ' | --' . $b('types') . PHP_EOL);
+			printf('    -' . $b('h') . ' | --' . $b('hashes') . PHP_EOL);
 			printf(PHP_EOL);
-			printf('    -e | --errors' . PHP_EOL);
-			printf('    -u | --unlog' . PHP_EOL);
+			printf('    -' . $b('e') . ' | --' . $b('errors') . PHP_EOL);
+			printf('    -' . $b('u') . ' | --' . $b('unlog') . PHP_EOL);
 			printf(PHP_EOL);
 			
 			\kekse\info('The \'*\' arguments should all support GLOBs (which you should escape or quote).');
