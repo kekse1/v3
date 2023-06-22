@@ -890,7 +890,7 @@ function get_path($_path, $_check = true, $_file = false, $_create = true, $_die
 	return $result;
 }
 
-function check_config_limits($_min, $_max)
+function config_check_limits($_min, $_max)
 {
 	if(! is_int($_min))
 	{
@@ -923,7 +923,7 @@ function check_config_limits($_min, $_max)
 	return $result;
 }
 
-function check_config_item($_key, $_value = null, $_bool = false, $_defaults = true)
+function config_check_item($_key, $_value = null, $_bool = false, $_defaults = true)
 {
 	$item = null;
 	$type = null;
@@ -995,7 +995,7 @@ function check_config_item($_key, $_value = null, $_bool = false, $_defaults = t
 		$max = $item['max'];
 	}
 
-	$limits = check_config_limits($min, $max);
+	$limits = config_check_limits($min, $max);
 
 	if($min !== null)
 	{
@@ -1302,7 +1302,7 @@ function check_config_item($_key, $_value = null, $_bool = false, $_defaults = t
 	return $createReturn(true, $r);
 }
 
-function check_config_item_static($_key)
+function config_check_item_static($_key)
 {
 	if(! isset(CONFIG_VECTOR[$_key]))
 	{
@@ -1316,7 +1316,7 @@ function check_config_item_static($_key)
 	return false;
 }
 
-function check_config($_config = null, $_bool = false, $_die = true)
+function config_check($_config = null, $_bool = false, $_die = true)
 {
 	//
 	global $CONFIG;
@@ -1340,7 +1340,7 @@ function check_config($_config = null, $_bool = false, $_die = true)
 	//
 	foreach($_config as $key => $value)
 	{
-		$result[$key] = check_config_item($key, $value, $_bool, !$def);
+		$result[$key] = config_check_item($key, $value, $_bool, !$def);
 	}
 
 	//
@@ -1363,8 +1363,8 @@ function check_config($_config = null, $_bool = false, $_die = true)
 				{
 					$static = (isset($item['static']) ? !!$item['static'] : false);
 					$types = '[ ' . implode(', ', $item['types']) . ' ]';
-					$min = (is_int($item['min']) ? $item['min'] : null);
-					$max = (is_int($item['max']) ? $item['max'] : null);
+					$min = ((isset($item['min']) && is_int($item['min'])) ? $item['min'] : null);
+					$max = ((isset($item['max']) && is_int($item['max'])) ? $item['max'] : null);
 					$limits = config_check_limits($min, $max);
 					$test = (array_key_exists('test', $item) ? $item['test'] : false);
 
@@ -1393,7 +1393,7 @@ function check_config($_config = null, $_bool = false, $_die = true)
 	return $result;
 }
 
-function check_host_config($_host, $_load = true, $_bool = false, $_die = true)
+function config_check_host($_host, $_load = true, $_bool = false, $_die = true)
 {
 	//
 	global $CONFIG;
@@ -1431,10 +1431,10 @@ function check_host_config($_host, $_load = true, $_bool = false, $_die = true)
 	}
 
 	//
-	return check_config($config, $_bool, $_die);
+	return config_check($config, $_bool, $_die);
 }
 
-function unset_invalid_config(&$_config, $check)
+function config_unset_invalid(&$_config, $check)
 {
 	foreach($check as $key => $state)
 	{
@@ -1577,8 +1577,8 @@ function make_config($_host, $_reload = null, $_unset = true, $_restore = false)
 	else
 	{
 		$HASHES[$_host] = $hash;
-		$chk = check_config($conf, true, false);
-		unset_invalid_config($conf, $chk);
+		$chk = config_check($conf, true, false);
+		config_unset_invalid($conf, $chk);
 	}
 
 	//
@@ -1600,7 +1600,7 @@ function unload_config($_host)
 	return false;
 }
 
-function count_config($_path)
+function config_count($_path)
 {
 	$result = load_config($_path);
 	
@@ -1608,9 +1608,9 @@ function count_config($_path)
 	{
 		return -1;
 	}
-	else if($chk = check_config($result = $result[0], true, false))
+	else if($chk = config_check($result = $result[0], true, false))
 	{
-		$result = unset_invalid_config($result, $chk);
+		$result = config_unset_invalid($result, $chk);
 	}
 	else
 	{
@@ -1620,9 +1620,9 @@ function count_config($_path)
 	return count($result);
 }
 
-function count_host_config($_host)
+function config_count_host($_host)
 {
-	return count_config(\kekse\join_path(get_state('path'), '@' . $_host));
+	return config_count(\kekse\join_path(get_state('path'), '@' . $_host));
 }
 
 function load_config($_path, $_data = null, $_depth = 8)
@@ -1653,7 +1653,7 @@ function load_config($_path, $_data = null, $_depth = 8)
 	{
 		return null;
 	}
-	else if(check_config($result, true, false) === null)
+	else if(config_check($result, true, false) === null)
 	{
 		return null;
 	}
@@ -3658,7 +3658,7 @@ function counter($_host = null, $_read_only = null)
 			if($hosts === null)
 			{
 				\kekse\info(2, 'Checking your DEFAULT configuration (no hosts specified).');
-				$result = check_config();
+				$result = config_check();
 			}
 			else
 			{
@@ -3668,7 +3668,7 @@ function counter($_host = null, $_read_only = null)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					if(($result[$hosts[$i]] = check_host_config($hosts[$i], true, false)) === null)
+					if(($result[$hosts[$i]] = config_check_host($hosts[$i], true, false)) === null)
 					{
 						unset($result[$hosts[$i]]);
 					}
@@ -3812,7 +3812,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			else
 			{
-				\kekse\warn('Only %d items is valid.. %d caused errors!', $ok, $bad);
+				\kekse\warn('Only %d item' . ($ok === 1 ? '' : 's') . ' ' . ($ok === 1 ? 'is' : 'are') . ' valid.. %d caused errors!', $ok, $bad);
 			}
 
 			if($bad === 0)
