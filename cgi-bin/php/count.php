@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.3');
+define('COUNTER_VERSION', '3.6.4');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -39,7 +39,6 @@ const DEFAULTS = array(
 	'y' => 0,
 	'h' => 0,
 	'v' => 0,
-	'aa' => true,
 	'type' => 'png',
 	'privacy' => false,
 	'hash' => 'sha3-256',
@@ -115,7 +114,6 @@ const CONFIG_VECTOR = array(
 	'y' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'h' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
 	'v' => array('types' => [ 'integer' ], 'min' => -512, 'max' => 512),
-	'aa' => array('types' => [ 'boolean' ]),
 	'type' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'privacy' => array('types' => [ 'boolean' ]),
 	'hash' => array('types' => [ 'string' ], 'static' => true, 'min' => 1, 'test' => true),
@@ -711,19 +709,24 @@ function check_path_char($_path, $_basename = true)
 }
 
 //
-function error_handler($_no, $_str, $_file, $_line)
+if(! get_config('raw'))
 {
-	$result = '[Error ' . (string)$_no . '] ' . $_str . ' (in file \'' . $_file . '\':' . (string)$_line;
-	return log_error($result, 'error_handler', '', false);
-}
+	//
+	function error_handler($_no, $_str, $_file, $_line)
+	{
+		$result = '[Error ' . (string)$_no . '] ' . $_str . ' (in file \'' . $_file . '\':' . (string)$_line;
+		return log_error($result, 'error_handler', '', false);
+	}
 
-function exception_handler($_ex)
-{
-	return log_error($_ex, 'exception_handler', '', true);
-}
+	function exception_handler($_ex)
+	{
+		return log_error($_ex, 'exception_handler', '', true);
+	}
 
-set_error_handler('\kekse\counter\error_handler');
-set_exception_handler('\kekse\counter\exception_handler');
+	//
+	set_error_handler('\kekse\counter\error_handler');
+	set_exception_handler('\kekse\counter\exception_handler');
+}
 
 //
 function get_path($_path, $_check = true, $_file = false, $_create = true, $_die = true)
@@ -6069,6 +6072,11 @@ function counter($_host = null, $_read_only = null)
 					$result = fmod($result, 360);
 				}
 
+				if($result !== null && $result < 0)
+				{
+					$result = (float)abs(360 + $result);
+				}
+
 				return $result;
 			}
 			
@@ -6093,7 +6101,6 @@ function counter($_host = null, $_read_only = null)
 					$result['v'] = \kekse\get_param('v', true, false, true);
 					$result['x'] = \kekse\get_param('x', true, false, true);
 					$result['y'] = \kekse\get_param('y', true, false, true);
-					$result['aa'] = \kekse\get_param('aa', null, false, true);
 					$result['angle'] = \kekse\get_param('angle', true, true, false);
 				}
 				
@@ -6274,12 +6281,6 @@ function counter($_host = null, $_read_only = null)
 				}
 
 				//
-				if(!is_bool($result['aa']))
-				{
-					$result['aa'] = get_config('aa');
-				}
-
-				//
 				if(($result['angle'] = check_angle($result['angle'])) === null)
 				{
 					if($_die)
@@ -6310,7 +6311,7 @@ function counter($_host = null, $_read_only = null)
 			}
 
 			//
-			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_aa = null, $_type = null, $_angle = null)
+			function draw_text($_text, $_font, $_size = null, $_unit = null, $_fg = null, $_bg = null, $_h = null, $_v = null, $_x = null, $_y = null, $_type = null, $_angle = null)
 			{
 				//
 				if(get_state('sent'))
@@ -6324,7 +6325,6 @@ function counter($_host = null, $_read_only = null)
 					{
 						$_angle = $_font['angle'];
 						$_type = $_font['type'];
-						$_aa = $_font['aa'];
 						$_y = $_font['y'];
 						$_x = $_font['x'];
 						$_v = $_font['v'];
@@ -6390,10 +6390,10 @@ function counter($_host = null, $_read_only = null)
 				$image = null;
 
 				//
-				$createImage = function() use (&$textWidth, &$textHeight, &$image, &$_text, &$_aa, &$_fg, &$_bg, &$_font, &$_type, &$_h, &$_v, &$_x, &$_y, &$pt, &$px, &$_angle, &$vertical, &$horizontal)
+				$create_image = function() use (&$textWidth, &$textHeight, &$image, &$_text, &$_fg, &$_bg, &$_font, &$_type, &$_h, &$_v, &$_x, &$_y, &$pt, &$px, &$_angle, &$vertical, &$horizontal)
 				{
 					//
-					$drawImage = function() use(&$image, &$_type)
+					$draw_image = function() use(&$image, &$_type)
 					{
 						$result = null;
 						
@@ -6417,35 +6417,92 @@ function counter($_host = null, $_read_only = null)
 						return $result;
 					};
 					
-					$rotateImage = ($_angle === 0 ? null : function() use(&$image, &$_angle, &$bg)
+					$rotate_image = ($_angle == 0 ? null : function() use(&$image, &$_angle, &$textWidth, &$textHeight, &$color, &$initialize_image, &$_bg)
 					{
-						//
-						$result = imagerotate($image, $_angle, $bg);
+						$fix_angle = false;
+						$w = $textWidth;
+						$h = $textHeight;
 
+						if($_angle == 90 || $_angle == 270)
+						{
+							$fix_angle = true;
+							[ $w, $h ] = [ $h, $w ];
+						}
+						else if($_angle == 180)
+						{
+							$fix_angle = true;
+						}
+
+						$rotated = imagerotate($image, $_angle, $color($image, $_bg));
+						imagedestroy($image);
+						$result = $rotated;
+						
+						if(!$rotated)
+						{
+							return null;
+						}
+						else if($fix_angle)
+						{
+							$result = $initialize_image($w, $h);
+							imagecopy($result, $rotated, 0, 0, 0, 0, $w, $h);
+							imagedestroy($rotated);
+
+							if(!$result)
+							{
+								$result = null;
+							}
+						}
+
+						return ($image = $result);
+					});
+					
+					$color = function(&$_image, &$_color)
+					{
+						return imagecolorallocatealpha($_image, $_color[0], $_color[1], $_color[2], $_color[3]);
+					};
+
+					$initialize_image = function($_w, $_h) use(&$color, &$_bg)
+					{
+						$result = imagecreatetruecolor($_w, $_h);
+						
 						if(!$result)
 						{
 							return null;
 						}
 
+						imagesavealpha($result, true);
+						imagealphablending($result, true);
+						imageantialias($result, true);
+						
+						imagefill($result, 0, 0, $color($result, $_bg));
+						
 						return $result;
-					});
+					};
+					
+					$draw_text = function(&$_image, &$_x, &$_y) use(&$color, &$pt, &$_font, &$_text, &$_angle, &$_fg)
+					{
+						return imagettftext($_image, $pt, 0, $_x, $_y, $color($_image, $_fg), $_font, $_text);
+					};
 
 					//
-					$add = 4;
 					$x = (-$horizontal * 0.75);
-					$y = ($textHeight - $vertical) + $add / 2;
-					$textHeight += $add;
+					$y = ($textHeight - $vertical);
+
+					$textHeight += 6;
+					$y += 4;
+					$textWidth += 6;
+					$x += 4;
 
 					//
 					$scale = ($px / $textHeight);
 
-					$textHeight *= $scale;
+					$textHeight = $px;
 					$textWidth *= $scale;
 					$px *= $scale;
 					$pt *= $scale;
 					$y *= $scale;
 					$x *= $scale;
-					
+
 					if(($textWidth += ($_h * 2)) < 1)
 					{
 						$textWidth = 1;
@@ -6460,51 +6517,38 @@ function counter($_host = null, $_read_only = null)
 					$y += ($_y + $_v);
 
 					//
-					$textWidth = (int)$textWidth;
-					$textHeight = (int)$textHeight;
+					$textWidth = ceil($textWidth);
+					$textHeight = ceil($textHeight);
 					$x = (int)$x;
 					$y = (int)$y;
 
 					//
-					$image = imagecreatetruecolor($textWidth, $textHeight);
-					imagesavealpha($image, true);
-					imageantialias($image, $_aa);
-					imagealphablending($image, true);
-
-					//
-					$bg = imagecolorallocatealpha($image, $_bg[0], $_bg[1], $_bg[2], $_bg[3]);
-					imagefill($image, 0, 0, $bg);
-					
-					//
-					$fg = imagecolorallocatealpha($image, $_fg[0], $_fg[1], $_fg[2], $_fg[3]);
-
-					if(!$_aa)
+					if(($image = $initialize_image($textWidth, $textHeight, $_bg)) === null)
 					{
-						if(($fg = -$fg) === 0)
-						{
-							$fg = -1;
-						}
+						draw_error('Image couldn\'t be initialized');
+						return null;
 					}
-
-					//
-					imagettftext($image, $pt, 0, $x, $y, $fg, $_font, $_text);
+					else
+					{
+						$draw_text($image, $x, $y);
+					}
 					
 					//
-					if($rotateImage !== null)
+					if($rotate_image !== null)
 					{
-						if(($image = $rotateImage()) === null)
+						if(($image = $rotate_image($image, $textWidth, $textHeight, $_bg)) === null)
 						{
-							draw_error('Image couldn\'t be rotated');
+							draw_error('Unable to rotate image');
 							return null;
 						}
 					}
-
+					
 					//
-					return $drawImage();
+					return $draw_image();
 				};
 				
 				//
-				$result = $createImage();
+				$result = $create_image();
 				
 				//
 				if(!$result)
