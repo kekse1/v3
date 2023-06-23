@@ -2324,28 +2324,44 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		//
 		$handle = opendir($_path);
 
-		if($handle === false)
+		if($handle)
 		{
-			return $result;
-		}
-
-		//
-		while($sub = readdir($handle))
-		{
-			if($sub === '.' || $sub === '..')
+			while($sub = readdir($handle))
 			{
-				continue;
-			}
-			else
-			{
-				++$total;
-			}
+				if($sub === '.' || $sub === '..')
+				{
+					continue;
+				}
+				else
+				{
+					++$total;
+				}
 
-			$p = \kekse\join_path($_path, $sub);
+				$p = \kekse\join_path($_path, $sub);
 
-			if(is_link($p))
-			{
-				if(unlink($p))
+				if(is_link($p))
+				{
+					if(unlink($p))
+					{
+						++$deleted;
+					}
+					else
+					{
+						++$failed;
+					}
+				}
+				else if(is_dir($p))
+				{
+					if(! ($_depth !== null && $_depth <= $_depth_current))
+					{
+						$r = \kekse\delete($p, $_depth, $_depth_current + 1);
+
+						$deleted += $r[0];
+						$failed += $r[1];
+						$total += $r[2];
+					}
+				}
+				else if(unlink($p))
 				{
 					++$deleted;
 				}
@@ -2354,28 +2370,9 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 					++$failed;
 				}
 			}
-			else if(is_dir($p))
-			{
-				if(! ($_depth !== null && $_depth <= $_depth_current))
-				{
-					$r = \kekse\delete($p, $_depth, $_depth_current + 1);
-					
-					$deleted += $r[0];
-					$failed += $r[1];
-					$total += $r[2];
-				}
-			}
-			else if(unlink($p))
-			{
-				++$deleted;
-			}
-			else
-			{
-				++$failed;
-			}
-		}
 		
-		closedir($handle);
+			closedir($handle);
+		}
 
 		if(rmdir($_path))
 		{
