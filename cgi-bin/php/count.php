@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.4');
+define('COUNTER_VERSION', '3.6.5');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -414,11 +414,7 @@ if($console_condition)
 	//
 	function log($_format = '', ... $_args)
 	{
-		$result = console_output($_format, $_args);
-		
-		$eol = $result[0];
-		$_format = $result[1];
-		$_args = $result[2];
+		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
 		
 		if(is_string($_format) && !empty($_format))
@@ -438,11 +434,7 @@ if($console_condition)
 
 	function info($_format = '', ... $_args)
 	{
-		$result = console_output($_format, $_args);
-		
-		$eol = $result[0];
-		$_format = $result[1];
-		$_args = $result[2];
+		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
 		
 		if(is_string($_format) && !empty($_format))
@@ -462,11 +454,7 @@ if($console_condition)
 
 	function warn($_format = '', ... $_args)
 	{
-		$result = console_output($_format, $_args);
-		
-		$eol = $result[0];
-		$_format = $result[1];
-		$_args = $result[2];
+		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
 		
 		if(is_string($_format) && !empty($_format))
@@ -486,11 +474,7 @@ if($console_condition)
 
 	function error($_format = '', ... $_args)
 	{
-		$result = console_output($_format, $_args);
-		
-		$eol = $result[0];
-		$_format = $result[1];
-		$_args = $result[2];
+		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
 		
 		if(is_string($_format) && !empty($_format))
@@ -510,11 +494,7 @@ if($console_condition)
 	
 	function debug($_format = '', ... $_args)
 	{
-		$result = console_output($_format, $_args);
-		
-		$eol = $result[0];
-		$_format = $result[1];
-		$_args = $result[2];
+		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
 		
 		if(is_string($_format) && !empty($_format))
@@ -1578,20 +1558,19 @@ function make_config($_host, $_reload = null, $_unset = true, $_restore = false)
 
 	//
 	$conf = ($data === null ? load_config($path) : load_config(null, $data));
-	$data = $conf[2];
-	$hash = $conf[1];
-	$conf = $conf[0];
 
 	if($conf === null)
 	{
 		return null;
 	}
-	else
-	{
-		$HASHES[$_host] = $hash;
-		$chk = config_check($conf, true, false);
-		config_unset_invalid($conf, $chk);
-	}
+
+	$data = $conf[2];
+	$hash = $conf[1];
+	$conf = $conf[0];
+
+	$HASHES[$_host] = $hash;
+	$chk = config_check($conf, true, false);
+	config_unset_invalid($conf, $chk);
 
 	//
 	return ($CONFIG[$_host] = $conf);
@@ -2605,7 +2584,7 @@ function get_param($_key, $_numeric = false, $_float = false, $_strict = KEKSE_S
 				$hadPoint = false;
 			}
 
-			if($hadPoint)
+			if($hadPoint || $_float)
 			{
 				$result = (double)$result;
 			}
@@ -6078,6 +6057,11 @@ function counter($_host = null, $_read_only = null)
 					$result = (float)abs(360 + $result);
 				}
 
+				if($result !== null)
+				{
+					$result = round($result, 2);
+				}
+
 				return $result;
 			}
 			
@@ -6423,15 +6407,18 @@ function counter($_host = null, $_read_only = null)
 						$fix_angle = false;
 						$w = $textWidth;
 						$h = $textHeight;
+						$r = (int)round($_angle);
 
-						if($_angle == 90 || $_angle == 270)
+						switch($r)
 						{
-							$fix_angle = true;
-							[ $w, $h ] = [ $h, $w ];
-						}
-						else if($_angle == 180)
-						{
-							$fix_angle = true;
+							case 90:
+							case 270:
+								$fix_angle = true;
+								[ $w, $h ] = [ $h, $w ];
+								break;
+							case 180:
+								$fix_angle = true;
+								break;
 						}
 
 						$rotated = imagerotate($image, $_angle, $color($image, $_bg));
