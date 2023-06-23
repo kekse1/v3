@@ -2317,7 +2317,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		}
 
 		//		
-		$total = 0;
+		$total = 1;
 		$failed = 0;
 		$deleted = 0;
 		
@@ -2376,7 +2376,15 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		}
 		
 		closedir($handle);
-		rmdir($_path);
+
+		if(rmdir($_path))
+		{
+			++$deleted;
+		}
+		else
+		{
+			++$failed;
+		}
 
 		if($_depth_current > 0)
 		{
@@ -2385,10 +2393,6 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		else if($total === $deleted)
 		{
 			return $total;
-		}
-		else if($total === 0)
-		{
-			return 0;
 		}
 
 		$result = ($deleted + ($deleted / $total));
