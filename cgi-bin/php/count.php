@@ -6964,7 +6964,7 @@ function counter($_host = null, $_read_only = null)
 	}
 
 	//
-	if(!(get_state('ro') || get_state('test') || $_readonly))
+	if(!(get_state('ro') || get_state('test') || $_read_only))
 	{
 		if(with_server(true))
 		{
