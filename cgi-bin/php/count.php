@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.7');
+define('COUNTER_VERSION', '3.6.8');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -289,6 +289,7 @@ if($console_condition)
 	define('KEKSE_ANSI_ESC', chr(27));
 	define('KEKSE_ANSI_RESET', '[0m');
 	define('KEKSE_ANSI_BOLD', '[1m');
+	define('KEKSE_ANSI_UNDERLINE', '[4m');
 	define('KEKSE_ANSI_RED', '[31m');
 	define('KEKSE_ANSI_GREEN', '[32m');
 	define('KEKSE_ANSI_YELLOW', '[33m');
@@ -306,6 +307,26 @@ if($console_condition)
 		}
 
 		return (KEKSE_ANSI_ESC . KEKSE_ANSI_BOLD . $_string . KEKSE_ANSI_ESC . KEKSE_ANSI_RESET);
+	}
+
+	function underline($_string)
+	{
+		if(!KEKSE_ANSI)
+		{
+			return $_string;
+		}
+
+		return (KEKSE_ANSI_ESC . KEKSE_ANSI_UNDERLINE . $_string . KEKSE_ANSI_ESC . KEKSE_ANSI_RESET);
+	}
+
+	function high($_string)
+	{
+		if(!KEKSE_ANSI)
+		{
+			return $_string;
+		}
+
+		return (KEKSE_ANSI_ESC . KEKSE_ANSI_BOLD . KEKSE_ANSI_ESC . KEKSE_ANSI_UNDERLINE . $_string . KEKSE_ANSI_ESC . KEKSE_ANSI_RESET);
 	}
 
 	//
@@ -423,7 +444,7 @@ if($console_condition)
 			$result = insert_prefix(sprintf($_format, ... $_args), null);
 		}
 		
-		printf($result);
+		printf('%s', $result);
 		
 		while(--$eol >= 0)
 		{
@@ -437,13 +458,13 @@ if($console_condition)
 	{
 		[ $eol, $_format, $_args ] = console_output($_format, $_args);
 		$result = '';
-		
+
 		if(is_string($_format) && !empty($_format))
 		{
 			$result = insert_prefix(sprintf($_format, ... $_args), 'green');
 		}
-		
-		printf($result);
+
+		printf('%s', $result);
 		
 		while(--$eol >= 0)
 		{
@@ -463,7 +484,7 @@ if($console_condition)
 			$result = insert_prefix(sprintf($_format, ... $_args), 'magenta');
 		}
 		
-		fprintf(STDERR, $result);
+		fprintf(STDERR, '%s', $result);
 		
 		while(--$eol >= 0)
 		{
@@ -483,7 +504,7 @@ if($console_condition)
 			$result = insert_prefix(sprintf($_format, ... $_args), 'red');
 		}
 		
-		fprintf(STDERR, $result);
+		fprintf(STDERR, '%s', $result);
 		
 		while(--$eol >= 0)
 		{
@@ -503,7 +524,7 @@ if($console_condition)
 			$result = insert_prefix(sprintf($_format, ... $_args), 'blue');
 		}
 		
-		fprintf(STDERR, $result);
+		fprintf(STDERR, '%s', $result);
 		
 		while(--$eol >= 0)
 		{
@@ -2344,6 +2365,10 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 						$failed += $r[1];
 						$total += $r[2];
 					}
+					else
+					{
+						--$total;
+					}
 				}
 				else if(unlink($p))
 				{
@@ -2369,6 +2394,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 
 		if($_depth_current > 0)
 		{
+			--$total;
 			return [ $deleted, $failed, $total ];
 		}
 		else if($total === $deleted)
