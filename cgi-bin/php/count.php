@@ -2322,7 +2322,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
 		}
 
 		//		
-		$total = 0;
+		$total = ($_depth_current === 0 ? 1 : 0);
 		$failed = 0;
 		$deleted = 0;
 		
@@ -2395,10 +2395,6 @@ function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
 		if($_depth_current > 0 || $_float === null)
 		{
 			return [ $total, $deleted, $failed ];
-		}
-		else
-		{
-			++$total;
 		}
 
 		if($total === $deleted)
