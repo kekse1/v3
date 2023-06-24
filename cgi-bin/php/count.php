@@ -67,7 +67,7 @@ $STATE = array(
 	'done' => null,
 	
 	'test' => null,
-	'ro' => null,
+	'readonly' => null,
 	'zero' => null,
 	'draw' => null,
 	
@@ -3217,7 +3217,7 @@ function counter($_host = null, $_read_only = null)
 
 	//
 	set_state('test', (KEKSE_CLI ? null : (isset($_GET['test']))));
-	set_state('ro', (KEKSE_CLI ? null : (get_state('test') || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+	set_state('readonly', (KEKSE_CLI ? null : (get_state('test') || (isset($_GET['readonly']) || isset($_GET['ro'])))));
 	set_state('zero', (KEKSE_CLI ? null : (get_config('drawing') && isset($_GET['zero']) && extension_loaded('gd'))));
 	set_state('draw', (KEKSE_CLI ? null : (get_state('zero') || (get_config('drawing') && isset($_GET['draw']) && extension_loaded('gd')))));
 
@@ -5595,7 +5595,7 @@ function counter($_host = null, $_read_only = null)
 					log_error('Value file for host \'' . (string)$_host . '\' is not readable', 'check_auto', get_state('value'), false);
 					error(get_config('none'), true);
 				}
-				else if(!get_state('ro') && !is_writable(get_state('value')))
+				else if(!get_state('readonly') && !is_writable(get_state('value')))
 				{
 					log_error('Value file for host \'' . (string)$_host . '\' is not writable', 'check_auto', get_state('value'), false);
 					error(get_config('none'), true);
@@ -6859,7 +6859,7 @@ function counter($_host = null, $_read_only = null)
 	$value = $real;
 	
 	//
-	if(!(get_state('ro') || get_state('test') || $_read_only || get_state('done')))
+	if(!(get_state('readonly') || get_state('test') || $_read_only || get_state('done')))
 	{
 		if(test())
 		{
@@ -6923,7 +6923,7 @@ function counter($_host = null, $_read_only = null)
 	}
 
 	//
-	if(!(get_state('ro') || get_state('test') || $_read_only || get_state('done')) && with_server())
+	if(!(get_state('readonly') || get_state('test') || $_read_only || get_state('done')) && with_server())
 	{
 		//
 		write_timestamp();
