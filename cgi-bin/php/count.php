@@ -2366,6 +2366,11 @@ function delete($_path, $_depth = 0, $_float = true, $_depth_current = 0)
 						$deleted += $r[1];
 						$failed += $r[2];
 					}
+					else
+					{
+						//TODO/FIXME/!?????
+						//++$failed;
+					}
 				}
 				else if(unlink($p))
 				{
