@@ -67,7 +67,7 @@ $STATE = array(
 	'done' => null,
 	
 	'test' => null,
-	'readonly' => null,
+	'ro' => null,
 	'zero' => null,
 	'draw' => null,
 	
@@ -3217,7 +3217,7 @@ function counter($_host = null, $_read_only = null)
 
 	//
 	set_state('test', (KEKSE_CLI ? null : (isset($_GET['test']))));
-	set_state('readonly', (KEKSE_CLI ? null : (get_state('test') || (isset($_GET['readonly']) || isset($_GET['ro'])))));
+	set_state('ro', (KEKSE_CLI ? null : (get_state('test') || (isset($_GET['readonly']) || isset($_GET['ro'])))));
 	set_state('zero', (KEKSE_CLI ? null : (get_config('drawing') && isset($_GET['zero']) && extension_loaded('gd'))));
 	set_state('draw', (KEKSE_CLI ? null : (get_state('zero') || (get_config('drawing') && isset($_GET['draw']) && extension_loaded('gd')))));
 
@@ -4264,7 +4264,7 @@ function counter($_host = null, $_read_only = null)
 					{
 						++$errors[$host];
 					}
-					else if(get_config('threshold') === null || \kekse\timestamp($val = (int)$val) >= get_config('threshold'))
+					else if(!(is_int(get_config('threshold')) || get_config('threshold') < 1) || \kekse\timestamp($val = (int)$val) >= get_config('threshold'))
 					{
 						if(\kekse\delete($p, false))
 						{
@@ -5595,7 +5595,7 @@ function counter($_host = null, $_read_only = null)
 					log_error('Value file for host \'' . (string)$_host . '\' is not readable', 'check_auto', get_state('value'), false);
 					error(get_config('none'), true);
 				}
-				else if(!get_state('readonly') && !is_writable(get_state('value')))
+				else if(!get_state('ro') && !is_writable(get_state('value')))
 				{
 					log_error('Value file for host \'' . (string)$_host . '\' is not writable', 'check_auto', get_state('value'), false);
 					error(get_config('none'), true);
@@ -5737,7 +5737,7 @@ function counter($_host = null, $_read_only = null)
 			{
 				return true;
 			}
-			else if($_threshold_test && (get_config('threshold') === null || get_config('threshold') < 1))
+			else if($_threshold_test && (!is_int(get_config('threshold') || get_config('threshold') < 1)))
 			{
 				return true;
 			}
@@ -5753,7 +5753,7 @@ function counter($_host = null, $_read_only = null)
 					log_error('File can\'t be read', 'test_file', get_state('ip'));
 					error('File can\'t be read');
 				}
-				else if(\kekse\timestamp(read_timestamp()) < get_config('threshold'))
+				else if(is_int(get_config('threshold')) && \kekse\timestamp(read_timestamp()) < get_config('threshold'))
 				{
 					return false;
 				}
@@ -5764,7 +5764,11 @@ function counter($_host = null, $_read_only = null)
 
 		function test_cookie($_threshold_test = true)
 		{
-			if($_threshold_test && (get_config('threshold') === null || get_config('threshold') < 1))
+			if($_threshold_test && (!is_int(get_config('threshold')) || get_config('threshold') < 1))
+			{
+				return true;
+			}
+			else if(get_state('overridden'))
 			{
 				return true;
 			}
@@ -5784,13 +5788,13 @@ function counter($_host = null, $_read_only = null)
 		{
 			$threshold = null;
 			
-			if(($threshold = get_config('threshold')) === null)
+			if(!is_int($threshold = get_config('threshold')) || $threshold < 1)
 			{
 				return null;
 			}
-			else if($threshold <= 0)
+			else if(get_state('overridden'))
 			{
-				$threshold = 0;
+				return null;
 			}
 			
 			return setcookie(get_state('cookie'), (string)\kekse\timestamp(), array(
@@ -5824,6 +5828,7 @@ function counter($_host = null, $_read_only = null)
 			}
 			
 			$result = 0;
+			$is_int = is_int(get_config('threshold'));
 			
 			while($sub = readdir($handle))
 			{
@@ -5837,6 +5842,10 @@ function counter($_host = null, $_read_only = null)
 				if(!is_file($p))
 				{
 					\kekse\delete($p, true);
+				}
+				else if(!$is_int)
+				{
+					++$result;
 				}
 				else if(\kekse\timestamp((int)file_get_contents($p)) < get_config('threshold'))
 				{
@@ -6861,7 +6870,7 @@ function counter($_host = null, $_read_only = null)
 	$value = $real;
 	
 	//
-	if(!(get_state('readonly') || get_state('test') || $_read_only || get_state('done')))
+	if(!(get_state('ro') || get_state('test') || $_read_only || get_state('done')))
 	{
 		if(test(true))
 		{
@@ -6925,7 +6934,7 @@ function counter($_host = null, $_read_only = null)
 	}
 
 	//
-	if(!(get_state('readonly') || get_state('test') || $_readonly))
+	if(!(get_state('ro') || get_state('test') || $_readonly))
 	{
 		if(with_server(true))
 		{
