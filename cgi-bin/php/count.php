@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.8');
+define('COUNTER_VERSION', '3.6.9');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -2295,7 +2295,7 @@ function secure_path($_string)
 //ps: not % operator, but fmod() should be used. the regular modulo only returns integer values..! ;-/
 //pps: to get to know if everything down below the tree was deleted successfull, just test if `is_int($result)`! ^_^
 //
-function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
+function delete($_path, $_depth = 0, $_float = true, $_depth_current = 0)
 {
 	if($_depth === true)
 	{
@@ -2322,7 +2322,7 @@ function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
 		}
 
 		//		
-		$total = ($_depth_current === 0 ? 1 : 0);
+		$total = 1;
 		$failed = 0;
 		$deleted = 0;
 		
@@ -2359,15 +2359,12 @@ function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
 				{
 					if(! ($_depth !== null && $_depth <= $_depth_current))
 					{
-						$r = \kekse\delete($p, $_depth, $_depth_current + 1);
-
-						$deleted += $r[2];
-						$failed += $r[1];
-						$total += $r[0];
-					}
-					else
-					{
 						--$total;
+						$r = \kekse\delete($p, $_depth, $_float, $_depth_current + 1);
+
+						$total += $r[0];
+						$deleted += $r[1];
+						$failed += $r[2];
 					}
 				}
 				else if(unlink($p))
@@ -4762,36 +4759,13 @@ function counter($_host = null, $_read_only = null)
 					$errors[$e++] = $delete[$i];
 				}
 			}
-			
-			if($r === 0)
-			{
-				\kekse\warn('NO files deleted.');
-				
-				if($e > 0)
-				{
-					\kekse\error(2, 'With %d errors:', $e);
-					
-					for($i = 0; $i < $e; ++$i)
-					{
-						fprintf(STDERR, '    ' . $errors[$i] . PHP_EOL);
-					}
-					
-					printf(PHP_EOL);
-				}
 
-				exit(2);
-			}
-			else
-			{
-				\kekse\info(2, 'Operation deleted %d files:', $r);
-			}
+			\kekse\info('Effectively deleted %d files!', $eff);
 
-			for($i = 0; $i < $r; ++$i)
+			if(fmod($eff, 1) != 0)
 			{
-				printf('    %s' . PHP_EOL, $result[$i]);
+				\kekse\warn('But not the whole recursion depth could be deleted..');
 			}
-			
-			printf(PHP_EOL);
 
 			if($e > 0)
 			{
@@ -4805,16 +4779,6 @@ function counter($_host = null, $_read_only = null)
 				printf(PHP_EOL);
 			}
 
-			if($eff != $r)
-			{
-				\kekse\debug('We effecively deleted %d files in recursive deletion.', $eff);
-				
-				if(fmod($eff, 1) != 0)
-				{
-					\kekse\warn('But not the whole recursion depth could fully be deleted..');
-				}
-			}
-			
 			exit($e === 0 ? 0 : 3);
 		}
 		
