@@ -2295,7 +2295,7 @@ function secure_path($_string)
 //ps: not % operator, but fmod() should be used. the regular modulo only returns integer values..! ;-/
 //pps: to get to know if everything down below the tree was deleted successfull, just test if `is_int($result)`! ^_^
 //
-function delete($_path, $_depth = 0, $_depth_current = 0)
+function delete($_path, $_depth = 0, $_depth_current = 0, $_float = true)
 {
 	if($_depth === true)
 	{
@@ -2361,9 +2361,9 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 					{
 						$r = \kekse\delete($p, $_depth, $_depth_current + 1);
 
-						$deleted += $r[0];
+						$deleted += $r[2];
 						$failed += $r[1];
-						$total += $r[2];
+						$total += $r[0];
 					}
 					else
 					{
@@ -2392,9 +2392,9 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 			++$failed;
 		}
 
-		if($_depth_current > 0)
+		if($_depth_current > 0 || $_float === null)
 		{
-			return [ $deleted, $failed, $total ];
+			return [ $total, $deleted, $failed ];
 		}
 		else
 		{
@@ -2404,6 +2404,10 @@ function delete($_path, $_depth = 0, $_depth_current = 0)
 		if($total === $deleted)
 		{
 			return $total;
+		}
+		else if($_float === false)
+		{
+			return $deleted;
 		}
 
 		$result = ($deleted + ($deleted / $total));
