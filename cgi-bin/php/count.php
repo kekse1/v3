@@ -6,7 +6,7 @@ namespace kekse\counter;
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('COUNTER_HELP', 'https://github.com/kekse1/count.php/');
-define('COUNTER_VERSION', '3.6.6');
+define('COUNTER_VERSION', '3.6.7');
 
 //
 define('KEKSE_LIMIT', 224); //reasonable maximum length for *some* strings.. e.g. path components (theoretically up to 255 chars @ unices..);
@@ -5674,66 +5674,70 @@ function counter($_host = null, $_read_only = null)
 		}
 
 		//
-		function with_server()
+		function with_server($_threshold_test = true)
 		{
 			if(KEKSE_CLI)
 			{
 				return false;
 			}
-
-			$conf = get_config('threshold');
-			
-			if($conf === null || $conf <= 0)
+			else if($_threshold_test)
 			{
-				return false;
+				$conf = get_config('threshold');
+			
+				if($conf === null || $conf < 1)
+				{
+					return false;
+				}
 			}
 
 			return get_config('server');
 		}
 
-		function with_client()
+		function with_client($_threshold_test = true)
 		{
 			if(KEKSE_CLI)
 			{
 				return false;
 			}
-
-			$conf = get_config('threshold');
-			
-			if($conf === null || $conf <= 0)
+			else if($_threshold_test)
 			{
-				return false;
+				$conf = get_config('threshold');
+			
+				if($conf === null || $conf < 1)
+				{
+					return false;
+				}
 			}
 
 			return get_config('client');
 		}
 
 		//
-		function test()
+		function test($_threshold_test = true)
 		{
 			$result = true;
 
-			if(with_client() && !get_state('overridden'))
+			if(with_client($_threshold_test) && !get_state('overridden'))
 			{
-				$result = test_cookie();
+				$result = test_cookie($_threshold_test);
 			}
 
-			if($result && with_server())
+			if($result && with_server($_threshold_test))
 			{
-				$result = test_file();
+				$result = test_file($_threshold_test);
 			}
 
 			return $result;
 		}
 
-		function test_file()
+		function test_file($_threshold_test = true)
 		{
 			//
 			if(get_state('ip') === null)
 			{
 				return true;
 			}
-			else if(get_config('threshold') === null)
+			else if($_threshold_test && (get_config('threshold') === null || get_config('threshold') < 1))
 			{
 				return true;
 			}
@@ -5758,9 +5762,9 @@ function counter($_host = null, $_read_only = null)
 			return true;
 		}
 
-		function test_cookie()
+		function test_cookie($_threshold_test = true)
 		{
-			if(get_config('threshold') === null)
+			if($_threshold_test && (get_config('threshold') === null || get_config('threshold') < 1))
 			{
 				return true;
 			}
@@ -5827,22 +5831,20 @@ function counter($_host = null, $_read_only = null)
 				{
 					continue;
 				}
-				else
-				{
-					$sub = \kekse\join_path(get_state('dir'), $sub);
-				}
+
+				$p = \kekse\join_path(get_state('dir'), $sub);
 				
-				if(!is_file($sub))
+				if(!is_file($p))
 				{
-					continue;
+					\kekse\delete($p, true);
 				}
-				else if(get_config('threshold') !== null && \kekse\timestamp((int)file_get_contents($sub)) < get_config('threshold'))
+				else if(\kekse\timestamp((int)file_get_contents($p)) < get_config('threshold'))
 				{
 					++$result;
 				}
-				else if(! \kekse\delete($sub, false))
+				else if(! \kekse\delete($p, false))
 				{
-					log_error('Unable to delete() outdated file', 'clean_files', $sub, false);
+					log_error('Unable to delete() outdated file', 'clean_files', $p, false);
 					++$result;
 				}
 			}
@@ -6861,12 +6863,12 @@ function counter($_host = null, $_read_only = null)
 	//
 	if(!(get_state('readonly') || get_state('test') || $_read_only || get_state('done')))
 	{
-		if(test())
+		if(test(true))
 		{
 			write_value(++$value);
 		}
 
-		if(with_client() && !get_state('overridden') && !KEKSE_CLI)
+		if(with_client(true) && !get_state('overridden') && !KEKSE_CLI)
 		{
 			make_cookie();
 		}
@@ -6923,23 +6925,27 @@ function counter($_host = null, $_read_only = null)
 	}
 
 	//
-	if(!(get_state('readonly') || get_state('test') || $_read_only || get_state('done')) && with_server())
+	if(!(get_state('readonly') || get_state('test') || $_readonly))
 	{
-		//
-		write_timestamp();
-
-		//
-		if(get_config('clean') === true)
+		if(with_server(true))
 		{
-			clean_files();
+			write_timestamp();
 		}
-		else if(is_int(get_config('clean')))
-		{
-			$count = read_count();
 
-			if($count >= get_config('clean'))
+		if(with_server(false))
+		{
+			if(get_config('clean') === true)
 			{
 				clean_files();
+			}
+			else if(is_int(get_config('clean')))
+			{
+				$count = read_count();
+
+				if($count >= get_config('clean'))
+				{
+					clean_files();
+				}
 			}
 		}
 	}
