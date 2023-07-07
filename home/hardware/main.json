@@ -5,11 +5,21 @@
       {"type":"directory","name":"Kingston HyperX (4x8GB)"}
     ]},
     {"type":"link","name":"Autoradio","target":"Radio"},
+    {"type":"link","name":"Belichtungseinheit","target":"Trommel"},
     {"type":"link","name":"CPU","target":"Prozessor"},
     {"type":"directory","name":"Drucker","contents":[
+      {"type":"link","name":"Belichtungseinheit","target":"Trommel"},
       {"type":"directory","name":"Canon PIXMA ix6850"},
       {"type":"directory","name":"Lexmark MB2236adw","contents":[
-        {"type":"directory","name":"Toner"}
+        {"type":"link","name":"Belichtungseinheit","target":"Trommel"},
+        {"type":"directory","name":"Toner"},
+        {"type":"directory","name":"Trommel"}
+      ]},
+      {"type":"directory","name":"Toner","contents":[
+        {"type":"link","name":"Lexmark MB2236adw","target":"../Lexmark MB2236adw/Toner/"}
+      ]},
+      {"type":"directory","name":"Trommel","contents":[
+        {"type":"link","name":"Lexmark MB2236adw","target":"../Lexmark MB2236adw/Trommel/"}
       ]}
     ]},
     {"type":"directory","name":"Einplatinencomputer"},
@@ -115,7 +125,9 @@
       {"type":"directory","name":"Razer BlackWidow"},
       {"type":"directory","name":"Roccat Vulcan TKL Pro"}
     ]},
+    {"type":"link","name":"Toner","target":"Drucker/Toner/"},
     {"type":"link","name":"Trackball","target":"Pointer/Trackball/"},
+    {"type":"link","name":"Trommel","target":"Drucker/Trommel/"},
     {"type":"directory","name":"TV","contents":[
       {"type":"directory","name":"LG 55NANO779PA"},
       {"type":"link","name":"LG 55NANO779PA NANOCELL TV","target":"LG 55NANO779PA"},

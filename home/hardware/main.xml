@@ -6,11 +6,21 @@
       <directory name="Kingston HyperX (4x8GB)"></directory>
     </directory>
     <link name="Autoradio" target="Radio"></link>
+    <link name="Belichtungseinheit" target="Trommel"></link>
     <link name="CPU" target="Prozessor"></link>
     <directory name="Drucker">
+      <link name="Belichtungseinheit" target="Trommel"></link>
       <directory name="Canon PIXMA ix6850"></directory>
       <directory name="Lexmark MB2236adw">
+        <link name="Belichtungseinheit" target="Trommel"></link>
         <directory name="Toner"></directory>
+        <directory name="Trommel"></directory>
+      </directory>
+      <directory name="Toner">
+        <link name="Lexmark MB2236adw" target="../Lexmark MB2236adw/Toner/"></link>
+      </directory>
+      <directory name="Trommel">
+        <link name="Lexmark MB2236adw" target="../Lexmark MB2236adw/Trommel/"></link>
       </directory>
     </directory>
     <directory name="Einplatinencomputer"></directory>
@@ -116,7 +126,9 @@
       <directory name="Razer BlackWidow"></directory>
       <directory name="Roccat Vulcan TKL Pro"></directory>
     </directory>
+    <link name="Toner" target="Drucker/Toner/"></link>
     <link name="Trackball" target="Pointer/Trackball/"></link>
+    <link name="Trommel" target="Drucker/Trommel/"></link>
     <directory name="TV">
       <directory name="LG 55NANO779PA"></directory>
       <link name="LG 55NANO779PA NANOCELL TV" target="LG 55NANO779PA"></link>

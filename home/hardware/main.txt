@@ -3,11 +3,19 @@ hardware/
 │   ├── Kingston FURY Renegade (4x16GB)
 │   └── Kingston HyperX (4x8GB)
 ├── Autoradio -> Radio
+├── Belichtungseinheit -> Trommel
 ├── CPU -> Prozessor
 ├── Drucker
+│   ├── Belichtungseinheit -> Trommel
 │   ├── Canon PIXMA ix6850
-│   └── Lexmark MB2236adw
-│       └── Toner
+│   ├── Lexmark MB2236adw
+│   │   ├── Belichtungseinheit -> Trommel
+│   │   ├── Toner
+│   │   └── Trommel
+│   ├── Toner
+│   │   └── Lexmark MB2236adw -> ../Lexmark MB2236adw/Toner/
+│   └── Trommel
+│       └── Lexmark MB2236adw -> ../Lexmark MB2236adw/Trommel/
 ├── Einplatinencomputer
 ├── Fernseher -> TV
 ├── Festplatte
@@ -87,7 +95,9 @@ hardware/
 │   ├── EMPIRE Gaming K300
 │   ├── Razer BlackWidow
 │   └── Roccat Vulcan TKL Pro
+├── Toner -> Drucker/Toner/
 ├── Trackball -> Pointer/Trackball/
+├── Trommel -> Drucker/Trommel/
 ├── TV
 │   ├── LG 55NANO779PA
 │   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
