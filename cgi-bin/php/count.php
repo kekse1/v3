@@ -4235,7 +4235,7 @@ function counter($_read_only = null)
 	{
 		if(securityTest($_path))
 		{
-			if(! \kekse\startsWith(basename($_path), COUNTER_VALUE_PREFIX))
+			if(! \kekse\startsWith(basename($_path), COUNTER_VALUE_CHAR))
 			{
 				return \kekse\delete($_path, ... $_args);
 			}
