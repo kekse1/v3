@@ -5,11 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-<<<<<<< HEAD
 define('COUNTER_VERSION', '4.0.2');
-=======
-define('COUNTER_VERSION', '4.0.1');
->>>>>>> 7c9d36d31eeebd1e5851a0f0fc214b5a5e11b3de
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -4416,11 +4412,7 @@ function counter($_read_only = null)
 
 				if($item === '')
 				{
-<<<<<<< HEAD
 					continue;
-=======
-					$result[$index++] = $item;
->>>>>>> 7c9d36d31eeebd1e5851a0f0fc214b5a5e11b3de
 				}
 				else if($item[0] === '-' && $item !== '-')
 				{
