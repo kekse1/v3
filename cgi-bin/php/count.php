@@ -5,7 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.0');
+define('COUNTER_VERSION', '4.0.1');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -150,7 +150,7 @@ const CONFIG_VECTOR = array(
 );
 
 //
-if(KEKSE_CLI)//i'm altering the argc/argv, so i want a copy just for me..
+if(KEKSE_CLI)
 {
 	$ARGC = null;
 	$ARGV = null;
@@ -4417,8 +4417,6 @@ function counter($_read_only = null)
 				if($item === '')
 				{
 					$result[$index++] = $item;
-					array_splice($GLOBALS['KEKSE_ARGV'], $i--, 1);
-					--$GLOBALS['KEKSE_ARGC'];
 				}
 				else if($item[0] === '-' && $item !== '-')
 				{
@@ -4439,8 +4437,6 @@ function counter($_read_only = null)
 				else
 				{
 					$result[$index++] = $item;
-					array_splice($GLOBALS['KEKSE_ARGV'], $i--, 1);
-					--$GLOBALS['KEKSE_ARGC'];
 				}
 			}
 
@@ -4613,8 +4609,6 @@ function counter($_read_only = null)
 							{
 								if(!$_value)
 								{
-									array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-									--$GLOBALS['KEKSE_ARGC'];
 									return true;
 								}
 								else
@@ -4627,15 +4621,6 @@ function counter($_read_only = null)
 									}
 									else
 									{
-										array_splice($GLOBALS['KEKSE_ARGV'], $res[0], 1);
-										--$GLOBALS['KEKSE_ARGC'];
-										
-										if($i !== $res[0])
-										{
-											array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-											--$GLOBALS['KEKSE_ARGC'];
-										}
-										
 										return $res[1];
 									}
 								}
@@ -4649,8 +4634,6 @@ function counter($_read_only = null)
 					{
 						if(!$_value)
 						{
-							array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-							--$GLOBALS['KEKSE_ARGC'];
 							return true;
 						}
 						else
@@ -4663,15 +4646,6 @@ function counter($_read_only = null)
 							}
 							else
 							{
-								array_splice($GLOBALS['KEKSE_ARGV'], $res[0], 1);
-								--$GLOBALS['KEKSE_ARGC'];
-								
-								if($i !== $res[0])
-								{
-									array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-									--$GLOBALS['KEKSE_ARGC'];
-								}
-								
 								return $res[1];
 							}
 						}
@@ -4683,8 +4657,6 @@ function counter($_read_only = null)
 					{
 						if(!$_value)
 						{
-							array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-							--$GLOBALS['KEKSE_ARGC'];
 							return true;
 						}
 						else
@@ -4697,15 +4669,6 @@ function counter($_read_only = null)
 							}
 							else
 							{
-								array_splice($GLOBALS['KEKSE_ARGV'], $res[0], 1);
-								--$GLOBALS['KEKSE_ARGC'];
-								
-								if($i !== $res[0])
-								{
-									array_splice($GLOBALS['KEKSE_ARGV'], $i, 1);
-									--$GLOBALS['KEKSE_ARGC'];
-								}
-								
 								return $res[1];
 							}
 						}
@@ -4715,8 +4678,6 @@ function counter($_read_only = null)
 
 			if($matched !== null)
 			{
-				array_splice($GLOBALS['KEKSE_ARGV'], $matched, 1);
-				--$GLOBALS['KEKSE_ARGC'];
 				return true;
 			}
 
@@ -8101,6 +8062,11 @@ function counter($_read_only = null)
 						$func = 'unlog';
 						$index = $i;
 						break;
+				}
+				
+				if($func !== null)
+				{
+					break;
 				}
 			}
 
