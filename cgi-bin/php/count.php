@@ -5,7 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.2');
+define('COUNTER_VERSION', '4.0.3');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -5613,7 +5613,7 @@ function counter($_read_only = null)
 					$item = substr($item, 0, $pos);
 				}
 				
-				$hosts[$item] = $value;
+				$hosts[$item = \kekse\secureHost($item)] = $value;
 				
 				if(! is_file(\kekse\joinPath(getState('path'), COUNTER_VALUE_CHAR . $item)))
 				{
