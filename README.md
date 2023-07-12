@@ -6,6 +6,8 @@ v3
 .. that's the base version, as I guess my **kekse.biz** had at least(!) two prior versions before.
 The real/full version of all the JavaScript's is available in the [version.json](json/version.json).
 
+See also [libjs.de](https://libjs.de/) and [github.com/**kekse1**/_lib.js_](https://github.com/kekse1/lib.js/).
+
 # Index
 * [Preview](#preview)
 * [Other projects](#other-projects)
