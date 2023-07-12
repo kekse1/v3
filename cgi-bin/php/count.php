@@ -5,7 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.3');
+define('COUNTER_VERSION', '4.0.4');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -2656,6 +2656,33 @@ if($consoleCondition)
 		return $result;
 	}
 
+	function underlineFaint($_string, $_reset = true, $_stream = null)
+	{
+		if(!is_string($_string))
+		{
+			$_string = '';
+			$_reset = false;
+		}
+
+		if(! withAnsi($_stream))
+		{
+			return $_string;
+		}
+
+		$result = (ESCAPE . FAINT . ESCAPE . UNDERLINE . $_string);
+
+		if($_reset)
+		{
+			$result .= (ESCAPE . RESET);
+		}
+		else if($_reset === null)
+		{
+			$result .= (ESCAPE . FAINT_OFF . ESCAPE . UNDERLINE_OFF);
+		}
+
+		return $result;
+	}
+
 	function soft($_string, $_reset = true, $_stream = null)
 	{
 		if(!is_string($_string))
@@ -5115,50 +5142,51 @@ function counter($_read_only = null)
 
 			//
 			$pad = str_pad('', 12, ' ');
-			$format = ' %s' . \kekse\console\ansi\bold('%18s', true, 1) . ' / ' . \kekse\console\ansi\bold('%-18s', true, 1) . '  ' . \kekse\console\ansi\faint('%s', true, 1) . PHP_EOL;
+			$format = ' %s' . \kekse\console\ansi\bold('%18s', true, 1) . ' / ' . \kekse\console\ansi\bold('%-6s', true, 1) . \kekse\console\ansi\boldFaint('%8s', true, 1) . '  ' . \kekse\console\ansi\faint('%s', true, 1) . PHP_EOL;
 			$mark = '*';
 			
 			//
 			printf(PHP_EOL);
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-n', true, 1), \kekse\console\ansi\boldFaint('--lines', true, 1), $pad . $pad . 'Disable line limit or define amount of rows to show');
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-N', true, 1), \kekse\console\ansi\boldFaint('--no-ansi', true, 1), $pad . $pad . 'Disable ANSI escape sequences (colors and styles)');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-n', true, 1), \kekse\console\ansi\boldFaint('--lines', true, 1), $pad, 'Disable line limit or define amount of rows to show');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-N', true, 1), \kekse\console\ansi\boldFaint('--no-ansi', true, 1), $pad, 'Disable ANSI escape sequences (colors and styles)');
 			printf(PHP_EOL);
-			printf($format, ' ', '--help', '-?', 'This screen');
-			printf($format, ' ', '--version', '-V', 'Current version');
-			printf($format, ' ', '--website', '-W', 'Project website');
-			printf($format, ' ', '--copyright', '-C', 'Copyright info');
-			printf($format, ' ', '--info', '-I', 'All infos together');
+			printf($format, ' ', '--help', '-?', '', 'This screen');
+			printf($format, ' ', '--version', '-V', '', 'Current version');
+			printf($format, ' ', '--website', '-W', '', 'Project website');
+			printf($format, ' ', '--copyright', '-C', '', 'Copyright info');
+			printf($format, ' ', '--info', '-I', '', 'All infos together');
 			printf(PHP_EOL);
-			printf($format, ' ', '--values', '-v', '[' . \kekse\console\ansi\underline('DEFAULT', null, 1) . '] Shows the counted values (w/ cache and config)');
+			printf($format, ' ', '--values', '-v', '[ * ]', '[' . \kekse\console\ansi\underline('DEFAULT', null, 1) . '] Shows the counted values (w/ cache and config)');
 			printf(PHP_EOL);
-			printf($format, ' ', '--config', '-c', 'Check your own configuration (defaults or per-host)');
+			printf($format, ' ', '--config', '-c', '[ * ]', 'Check your own configuration (defaults or per-host)');
 			printf(PHP_EOL);
-			printf($format, $mark, '--sync', '-y', 'Synchronize caches which are out-of-sync.');
-			printf($format, $mark, '--clean', '-l', 'Remove out-dated cache files (remote address protocol)');
+			printf($format, $mark, '--sync', '-y', '[ * ]', 'Synchronize caches which are out-of-sync.');
+			printf($format, $mark, '--clean', '-l', '[ * ]', 'Remove out-dated cache files (remote address protocol)');
 			printf(PHP_EOL);
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-w', true, 1), \kekse\console\ansi\boldFaint('--without-values', true, 1), $pad . 'Also remove caches for hosts without a real value file');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-w', true, 1), \kekse\console\ansi\boldFaint('--without-values', true, 1), '', 'Also remove caches for hosts without value file');
 			printf(PHP_EOL);
-			printf($format, $mark, '--purge', '-p', 'Delete only the caches (with files plus directories)');
-			printf($format, $mark, '--remove', '-r', 'Delete all real counter files for all/some hosts');
+			printf($format, $mark, '--purge', '-p', '[ * ]', 'Delete only the caches (with files plus directories)');
+			printf($format, $mark, '--remove', '-r', '[ * ]', 'Delete all real counter files for all/some hosts');
 			printf(PHP_EOL);
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-g', true, 1), \kekse\console\ansi\boldFaint('--config', true, 1), $pad . $pad . 'Include the `' . COUNTER_CONFIG_CHAR . '` configuration files as well');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-g', true, 1), \kekse\console\ansi\boldFaint('--config', true, 1), $pad, 'Include the `' . COUNTER_CONFIG_CHAR . '` configuration files as well');
 			printf(PHP_EOL);
-			printf($format, $mark, '--sanitize', '-z', 'Delete all non-valid counter files (cleaning up)');
+			printf($format, $mark, '--sanitize', '-z', '', 'Delete all non-valid counter files (cleaning up)');
 			printf(PHP_EOL);
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-w', true, 1), \kekse\console\ansi\boldFaint('--without-values', true, 1), $pad . 'Betray host files without own value files as non-valid');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-w', true, 1), \kekse\console\ansi\boldFaint('--without-values', true, 1), '', 'Betray hosts without own value files as non-valid');
 			printf(PHP_EOL);
-			printf($format, $mark, '--set', '-s', 'Changes or initializes value files (0 by default)');
+			printf($format, $mark, '--set', '-s', '[ *[=value] ]', 'Changes or initializes value files (0 by default)');
 			printf(PHP_EOL);
-			printf($format, ' ', '--fonts', '-f', 'A list of all installed fonts');
-			printf($format, ' ', '--types', '-p', 'A list of all usable image types');
-			printf($format, ' ', '--hashes', '-h', 'A list of all available hashes');
+			printf($format, ' ', '--fonts', '-f', '[ * ]', 'A list of all installed fonts, or selection');
+			printf($format, ' ', '--types', '-p', '', 'A list of all usable image types');
+			printf($format, ' ', '--hashes', '-h', '', 'A list of all available hashes');
 			printf(PHP_EOL);
-			printf($format, ' ', '--errors', '-e', 'Counts the amount of error lines in the log file');
-			printf($format, ' ', '--unlog', '-u', 'Remove the whole log file');
+			printf($format, ' ', '--errors', '-e', '', 'Counts the amount of error lines in the log file');
+			printf($format, ' ', '--unlog', '-u', '', 'Deletes the whole log file, if any');
 			printf(PHP_EOL);
 
 			//
 			\kekse\warn('Lines starting with `' . $mark . '` are functions with \'hard\' write operations!');
+			\kekse\info('These and all with \'[ * ]\' can also have at least one host, or globs!');
 
 			//
 			if(! is_int($_exit))
@@ -5432,7 +5460,7 @@ function counter($_read_only = null)
 
 				$maxLen['key'] += 2;
 				
-				$header = \kekse\console\ansi\hard('   %-' . $maxLen['key'] . 's  %-5s  %-' . $maxLen['string'] . 's %-' . $maxLen['type'] . 's %-' . $maxLen['limits'] . 's %s ' . PHP_EOL, true, true);
+				$header = \kekse\console\ansi\underlineFaint('   %-' . $maxLen['key'] . 's  %-5s  %-' . $maxLen['string'] . 's %-' . $maxLen['type'] . 's %-' . $maxLen['limits'] . 's %s ' . PHP_EOL, true, true);
 				printf($header, ($maxLen['key'] <= 2 ? '' : ' Item'), 'State', ($maxLen['string'] === 0 ? '' : 'Comment'), ($maxLen['type'] === 0 ? '' : ' Type'), ($maxLen['limits'] === 0 ? '' : ' Limits'), ' Valid types');
 
 				$format = (\kekse\console\ansi\bold(' %s ', true, true) . \kekse\console\ansi\bold('%' . $maxLen['key'] . 's', true, true) . ' ] ' . \kekse\console\ansi\underline('%5s', true, true) . ': %-' . $maxLen['string'] . 's  ' . \kekse\console\ansi\boldFaint('%' . $maxLen['type'] . 's', true, true) . ' ' . \kekse\console\ansi\soft('%-' . $maxLen['limits'] . 's', true, true) . ' ' . \kekse\console\ansi\faint('%s', true, true) . PHP_EOL);
@@ -5499,7 +5527,7 @@ function counter($_read_only = null)
 					printf(PHP_EOL);
 				}
 
-				$header = \kekse\console\ansi\hard(' %-' . $maxLen['host'] . 's   %-' . $maxLen['key'] . 's    %-5s %-' . $maxLen['string'] . 's    %-' . $maxLen['type'] . 's%-' . $maxLen['limits'] . 's    %s ' . PHP_EOL, true, true);
+				$header = \kekse\console\ansi\underlineFaint(' %-' . $maxLen['host'] . 's   %-' . $maxLen['key'] . 's    %-5s %-' . $maxLen['string'] . 's    %-' . $maxLen['type'] . 's%-' . $maxLen['limits'] . 's    %s ' . PHP_EOL, true, true);
 				printf($header, ($maxLen['host'] === 0 ? '' : ' Host'), ($maxLen['key'] === 0 ? '' : ' Item'), ' State', ($maxLen['string'] === 0 ? '' : ' Comment'), ($maxLen['type'] === 0 ? '' : ' Type'), ($maxLen['limits'] === 0 ? '' : ' Limits'), ' Valid types');
 
 				$invalid = 'NULL';
@@ -5612,8 +5640,15 @@ function counter($_read_only = null)
 					
 					$item = substr($item, 0, $pos);
 				}
-				
-				$hosts[$item = \kekse\secureHost($item)] = $value;
+
+				if(($item = \kekse\secureHost($item)) === null)
+				{
+					continue;
+				}
+				else
+				{
+					$hosts[$item] = $value;
+				}
 				
 				if(! is_file(\kekse\joinPath(getState('path'), COUNTER_VALUE_CHAR . $item)))
 				{
@@ -5641,7 +5676,7 @@ function counter($_read_only = null)
 			$same = 0;
 			$result = array();
 
-			$header = \kekse\console\ansi\hard('  %-' . $maxLen . 's       %-10s    %-10s ' . PHP_EOL, true, 1);
+			$header = \kekse\console\ansi\underlineFaint('  %-' . $maxLen . 's       %-10s    %-10s ' . PHP_EOL, true, 1);
 			printf($header, ' Item', ' New value', ' Current value');
 
 			foreach($hosts as $host => $value)
@@ -5737,7 +5772,7 @@ function counter($_read_only = null)
 			$limit = false;
 			$i = 0;
 
-			$header = \kekse\console\ansi\hard('%-' . $maxLen . 's        %-9s %-9s  %s ' . PHP_EOL, true, 1);
+			$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen . 's        %-9s %-9s  %s ' . PHP_EOL, true, 1);
 			printf($header, ($maxLen === 0 ? '' : ' Host'), ' Current', ' New', ' Return value');
 
 			foreach($result as $host => $state)
@@ -6272,7 +6307,7 @@ function counter($_read_only = null)
 			$i = 1;
 			$format = ' ' . \kekse\console\ansi\hard(' %' . $maxLen['host'] . 's ', true, 1) . '      ' . \kekse\console\ansi\bold('%' . $maxLen['value'] . 's', true, 1) . '      %' . $maxLen['caches'] . 's / %-' . $maxLen['caches'] . 's        %' . $maxLen['config'] . 's' . PHP_EOL;
 
-			$header = \kekse\console\ansi\hard('%-' . $maxLen['host'] . 's       %-' . $maxLen['value'] . 's %-' . $maxLen['caches'] . 's       %-' . $maxLen['config'] . 's ' . PHP_EOL, true, 1);
+			$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen['host'] . 's       %-' . $maxLen['value'] . 's %-' . $maxLen['caches'] . 's       %-' . $maxLen['config'] . 's ' . PHP_EOL, true, 1);
 			printf($header, ($maxLen['host'] === 0 ? '' : ' Host'), ($maxLen['value'] === 0 ? '' : ' Value'), ($maxLen['caches'] === 0 ? '' : ' Cache'), ($maxLen['config'] === 0 ? '' : ' Configuration'));
 
 			for($i = 0; $i < $h; ++$i)
@@ -6407,7 +6442,7 @@ function counter($_read_only = null)
 			printf(PHP_EOL);
 
 			//
-			$header = \kekse\console\ansi\hard('%-' . $maxLen . 's       %-20s%s     ' . PHP_EOL, true, 1);
+			$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen . 's       %-20s%s     ' . PHP_EOL, true, 1);
 			printf($header, ($maxLen === 0 ? '' : ' Host'), ' Changed', ' Deletions');
 
 			//
@@ -6967,7 +7002,7 @@ function counter($_read_only = null)
 				$limit = false;
 				$i = 0;
 
-				$header = \kekse\console\ansi\hard('%-' . $maxLen . 's       %-10s%18s%18s      %-14s ' . PHP_EOL, true, 1);
+				$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen . 's       %-10s%18s%18s      %-14s ' . PHP_EOL, true, 1);
 				printf($header, ($maxLen === 0 ? '' : ' Host'), ' Real count', 'Changes', 'Deletions', ' Percent');
 
 				foreach($count as $host => $real)
@@ -7162,7 +7197,7 @@ function counter($_read_only = null)
 			$limit = false;
 			$i = 0;
 
-			$header = \kekse\console\ansi\hard('%-' . $maxLen . 's     %-4s / %-4s %8s  ' . PHP_EOL, true, true);
+			$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen . 's     %-4s / %-4s %8s  ' . PHP_EOL, true, true);
 			printf($header, ($maxLen === 0 ? '' : ' Host'), ' del', 'total', ' Percent');
 			
 			foreach($delete as $host => $state)
@@ -7312,7 +7347,7 @@ function counter($_read_only = null)
 			$limit = false;
 			$i = 0;
 
-			$header = \kekse\console\ansi\hard('%-' . $maxLen . 's     %s ' . PHP_EOL, true, 1);
+			$header = \kekse\console\ansi\underlineFaint('%-' . $maxLen . 's     %s ' . PHP_EOL, true, 1);
 			printf($header, ($maxLen === 0 ? '' : ' Host'), ' Selected types');
 			
 			foreach($types as $host => $selection)
