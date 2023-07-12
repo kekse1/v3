@@ -272,6 +272,9 @@ TODO
 ### [date](date.js.md).js
 TODO
 
+### [debounce](debounce.js.md)
+TODO
+
 ### [document](document.js.md).js
 TODO
 

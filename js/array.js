@@ -407,6 +407,35 @@
 	}});
 
 	//
+	Object.defineProperty(Array.prototype, 'populate', { value: function()
+	{
+		var base;
+
+		if(arguments.length === 1 && isArray(arguments[0], true))
+		{
+			base = arguments[0];
+		}
+		else
+		{
+			base = Array.from(arguments);
+		}
+
+		if(this.length >= base.length)
+		{
+			return 0;
+		}
+
+		var result = 0;
+
+		for(var i = this.length; i < base.length; ++i, ++result)
+		{
+			this[i] = base[i];
+		}
+
+		return result;
+	}});
+
+	//
 
 })();
 
