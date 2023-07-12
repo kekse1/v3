@@ -5,7 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.4');
+define('COUNTER_VERSION', '4.0.5');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -37,21 +37,21 @@ const DEFAULTS = array(
 	'path' => 'count/',
 	'log' => 'count.log',
 	'threshold' => 7200,
-	'auto' => 32,//false,
-	'hide' => false,//true,
-	'client' => true,//false,
-	'server' => true,//false,
+	'auto' => 32,
+	'hide' => false,
+	'client' => true,
+	'server' => true,
 	'drawing' => true,
-	'override' => false,//true,
+	'override' => false,
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,//3,
+	'radix' => 10,
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
-	'font' => 'IntelOneMono',
+	'font' => 'Candara',
 	'size' => '42px',
 	'unit' => 'px',
-	'fg' => '0,0,0,1',//'120,130,40',
+	'fg' => '0,0,0',//'120,130,40',
 	'bg' => '255,255,255,0',
 	'angle' => 0.0,//'0.25rad',
 	'x' => 0.0,
@@ -5942,7 +5942,7 @@ function counter($_read_only = null)
 				\kekse\warn('No host(s) found.');
 				exit(1);
 			}
-			
+
 			//
 			$maxLen = 0;
 			$hostLen = 0;
@@ -6141,19 +6141,10 @@ function counter($_read_only = null)
 				//
 				$td = count($delete[$host]);
 				
-				if($td > 0)
-				{
-					$totalDelete += $td;
-				}
-				else
-				{
-					unset($delete[$host]);
-				}
-				
-				//
+				$totalDelete += $td;
 				++$totalHosts;
 				$hosts[$h++] = $host;
-				
+
 				if(($hostLen = \kekse\strlen($host, true)) > $maxLen)
 				{
 					$maxLen = $hostLen;
@@ -6242,12 +6233,7 @@ function counter($_read_only = null)
 				else
 				{
 					$cnt = count($tmp);
-					$strings[$host]['delete'] = \kekse\console\ansi\soft('(' . $cnt . ' deletion' . ($cnt === 1 ? '' : 's'), true, 1);
-					
-					if(($currLen = \kekse\strlen($strings[$host]['delete'], true)) > $maxLen['delete'])
-					{
-						$maxLen['delete'] = $currLen;
-					}
+					$strings[$host]['delete'] = \kekse\console\ansi\soft('(' . $cnt . ' deletion' . ($cnt === 1 ? '' : 's') . ')', true, 1);
 				}
 				
 				//
