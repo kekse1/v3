@@ -5142,7 +5142,7 @@ function counter($_read_only = null)
 
 			//
 			$pad = str_pad('', 12, ' ');
-			$format = ' %s' . \kekse\console\ansi\bold('%18s', true, 1) . ' / ' . \kekse\console\ansi\bold('%-6s', true, 1) . \kekse\console\ansi\boldFaint('%8s', true, 1) . '  ' . \kekse\console\ansi\faint('%s', true, 1) . PHP_EOL;
+			$format = ' %s' . \kekse\console\ansi\bold('%18s', true, 1) . ' / ' . \kekse\console\ansi\bold('%-6s', true, 1) . \kekse\console\ansi\boldFaint('%-8s', true, 1) . '  ' . \kekse\console\ansi\faint('%s', true, 1) . PHP_EOL;
 			$mark = '*';
 			
 			//
