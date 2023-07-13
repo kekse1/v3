@@ -1,5 +1,6 @@
 <img src="https://kekse.biz/php/count.php?draw&override=github:kekse.biz&text=`kekse.biz`" />
-v3
+
+**v3** ...
 
 .. that's the base version, as I guess my **kekse.biz** had at least(!) two prior versions before.
 The real/full version of all the JavaScript's is available in the [version.json](json/version.json).
