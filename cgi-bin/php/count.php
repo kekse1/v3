@@ -24,7 +24,7 @@ const DEFAULTS = array(
 	'fonts' => 'fonts/',
 	'font' => 'Candara',
 	'size' => '64px',
-	'min' => false,//true,
+	'min' => false,
 	'unit' => 'px',
 	'fg' => '0,0,0',//'120,130,40',
 	'bg' => '255,255,255,0',
@@ -43,7 +43,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.1.2');
+define('COUNTER_VERSION', '4.2.0');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -9789,7 +9789,7 @@ function counter($_read_only = null, $_host = null)
 				//
 				$measure = function() use(&$_text, &$_options)
 				{
-					$m = imagettfbbox($_options['pt'], 0, $_options['font'], $_text);
+					$m = imagettfbbox($_options['pt'], $_options['angle'], $_options['font'], $_text);
 
 					$minX = (float)round(min($m[0], $m[2], $m[4], $m[6]), 2);
 					$maxX = (float)round(max($m[0], $m[2], $m[4], $m[6]), 2);
@@ -9797,7 +9797,7 @@ function counter($_read_only = null, $_host = null)
 					$maxY = (float)round(max($m[1], $m[3], $m[5], $m[7]), 2);
 					$calculatedHeight = ($maxY - $minY);
 
-					if($_options['min'])
+					if($_options['min'] || $_options['angle'] != 0)
 					{
 						$height = $calculatedHeight;
 					}
@@ -9810,22 +9810,30 @@ function counter($_read_only = null, $_host = null)
 					$top = $height - $maxY - $diffHeight / 2;//$top = (($diffHeight - $minY) - ($diffHeight) / 2);
 					$width = ($maxX - $minX);
 					$left = -$minX / 2;
-					
-					if($height < $_options['px'])
-					{
-						$height += 4.0;
-						$top += 2.0;
-					}
 
-					if($height > $_options['px'])
+					if($_options['angle'] == 0)
 					{
-						$height = $_options['px'];
+						if($height < $_options['px'])
+						{
+							$height += 4.0;
+							$top += 2.0;
+						}
+
+						if($height > $_options['px'])
+						{
+							$height = $_options['px'];
+						}
 					}
 
 					$_options['width'] = (float)round($width, 2);
 					$_options['height'] = (float)round($height, 2);
 					$_options['left'] = (float)round($left, 2);
 					$_options['top'] = (float)round($top, 2);
+					
+					$_options['originalWidth'] = $_options['width'];
+					$_options['originalHeight'] = $_options['height'];
+					$_options['originalLeft'] = $_options['left'];
+					$_options['originTop'] = $_options['top'];
 					
 					$_options['measure'] = array(
 						'minX' => $minX,
@@ -9872,6 +9880,12 @@ function counter($_read_only = null, $_host = null)
 					$_options['top'] += $_options['v'];
 					$_options['top'] += $_options['y'];
 				}
+				
+				//
+				$_options['diffWidth'] = ($_options['width'] - $_options['originalWidth']);
+				$_options['diffHeight'] = ($_options['height'] - $_options['originalHeight']);
+				$_options['diffLeft'] = ($_options['left'] - $_options['originalLeft']);
+				$_options['diffTop'] = ($_options['top'] - $_options['originalTop']);
 
 				//
 				$createImage = function() use (&$image, &$_options, &$_text)
@@ -9901,54 +9915,34 @@ function counter($_read_only = null, $_host = null)
 						return $result;
 					};
 					
-					$rotateImage = (!$_options['angle'] ? null : function() use(&$image, &$_options, &$color)
-					{
-						$fixAngle = true;
-
-						if(($_options['angle'] >= 89.99 && $_options['angle'] <= 90.01)
-							|| ($_options['angle'] >= 269.99 && $_options['angle'] <= 270.01))
-						{
-							[ $_options['width'], $_options['height'] ] = [ $_options['height'], $_options['width'] ];
-						}
-						else if(! ($_options['angle'] >= 179.99 && $_options['angle'] <= 180.01))
-						{
-							$fixAngle = false;
-						}
-
-						$rotated = imagerotate($image, $_options['angle'], $color($image, $_options['bg']));
-						imagedestroy($image);
-						$result = $rotated;
-						
-						if(!$result)
-						{
-							return null;
-						}
-						else if($fixAngle)
-						{
-							$result = $initializeImage();
-							imagecopy($result, $rotated, 0, 0, 0, 0, $m[0], $m[1]);
-							imagedestroy($rotated);
-
-							if(!$result)
-							{
-								$result = null;
-							}
-						}
-
-						$_options['width'] = imagesx($result);
-						$_options['height'] = imagesy($result);
-
-						return ($image = $result);
-					});
-					
 					$color = function(&$_image, &$_color)
 					{
 						return imagecolorallocatealpha($_image, $_color[0], $_color[1], $_color[2], $_color[3]);
 					};
 
-					$initializeImage = function() use(&$color, &$_options)
+					$initializeImage = function($_width = null, $_height = null) use(&$color, &$_options)
 					{
-						$result = imagecreatetruecolor((int)round($_options['width']), (int)round($_options['height']));
+						$width; $height;
+						
+						if($_width === null)
+						{
+							$width = $_options['width'];
+						}
+						else
+						{
+							$width = $_width;
+						}
+						
+						if($_height === null)
+						{
+							$height = $_options['height'];
+						}
+						else
+						{
+							$height = $_height;
+						}
+						
+						$result = imagecreatetruecolor($width, $height);
 						
 						if(!$result)
 						{
@@ -9966,7 +9960,7 @@ function counter($_read_only = null, $_host = null)
 					
 					$drawText = function() use(&$image, &$color, &$_options, &$_text)
 					{
-						return imagettftext($image, $_options['pt'], 0, (int)round($_options['left']), (int)round($_options['top']), $color($image, $_options['fg']), $_options['font'], $_text);
+						return imagettftext($image, $_options['pt'], $_options['angle'], (int)round($_options['left']), (int)round($_options['top']), $color($image, $_options['fg']), $_options['font'], $_text);
 					};
 					
 					//
@@ -9978,16 +9972,6 @@ function counter($_read_only = null, $_host = null)
 					else
 					{
 						$drawText();
-					}
-					
-					//
-					if($rotateImage !== null)
-					{
-						if(($image = $rotateImage()) === null)
-						{
-							drawingError('Unable to rotate image');
-							return null;
-						}
 					}
 					
 					//
