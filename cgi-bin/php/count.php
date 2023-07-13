@@ -9882,12 +9882,6 @@ function counter($_read_only = null, $_host = null)
 				}
 				
 				//
-				$_options['diffWidth'] = ($_options['width'] - $_options['originalWidth']);
-				$_options['diffHeight'] = ($_options['height'] - $_options['originalHeight']);
-				$_options['diffLeft'] = ($_options['left'] - $_options['originalLeft']);
-				$_options['diffTop'] = ($_options['top'] - $_options['originalTop']);
-
-				//
 				$createImage = function() use (&$image, &$_options, &$_text)
 				{
 					//
