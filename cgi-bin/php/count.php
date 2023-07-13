@@ -26,8 +26,8 @@ const DEFAULTS = array(
 	'size' => '64px',
 	'min' => false,
 	'unit' => 'px',
-	'fg' => '0,0,0',//'120,130,40',
-	'bg' => '255,255,255,0',
+	'fg' => '0, 0, 0, 1',//'120,130,40',
+	'bg' => '255, 255, 255, 0',
 	'angle' => 0.0,//'10deg',
 	'x' => 0.0,
 	'y' => 0.0,
@@ -9369,13 +9369,13 @@ function counter($_read_only = null, $_host = null)
 				$byParam['fg'] = true;
 				$byParam['bg'] = true;
 				
-				if(!$result['fg'])
+				if($result['fg'] === null)
 				{
 					$result['fg'] = getConfig('fg');
 					$byParam['fg'] = false;
 				}
 
-				if(!$result['bg'])
+				if($result['bg'] === null)
 				{
 					$result['bg'] = getConfig('bg');
 					$byParam['bg'] = false;
@@ -9384,7 +9384,7 @@ function counter($_read_only = null, $_host = null)
 				$result['fg'] = \kekse\color($result['fg'], true);
 				$result['bg'] = \kekse\color($result['bg'], true);
 
-				if(!$result['fg'])
+				if($result['fg'] === null)
 				{
 					if($_die)
 					{
@@ -9399,7 +9399,7 @@ function counter($_read_only = null, $_host = null)
 					}
 				}
 
-				if(!$result['bg'])
+				if($result['bg'] === null)
 				{
 					if($_die)
 					{
@@ -9418,7 +9418,7 @@ function counter($_read_only = null, $_host = null)
 				$byParam['size'] = true;
 				
 				//
-				if(!$result['size'])
+				if($result['size'] === null)
 				{
 					$result['size'] = getConfig('size');
 					$byParam['size'] = false;
@@ -9490,7 +9490,7 @@ function counter($_read_only = null, $_host = null)
 				$byParam['y'] = true;
 
 				//
-				if(!$result['h'])
+				if($result['h'] === null)
 				{
 					$result['h'] = getConfig('h');
 					$byParam['h'] = false;
@@ -9545,7 +9545,7 @@ function counter($_read_only = null, $_host = null)
 					return null;
 				}
 				
-				if(!$result['v'])
+				if($result['v'] === null)
 				{
 					$result['v'] = getConfig('v');
 					$byParam['v'] = false;
@@ -9600,7 +9600,7 @@ function counter($_read_only = null, $_host = null)
 					return null;
 				}
 				
-				if(!$result['x'])
+				if($result['x'] === null)
 				{
 					$result['x'] = getConfig('x');
 					$byParam['x'] = false;
@@ -9655,7 +9655,7 @@ function counter($_read_only = null, $_host = null)
 					return null;
 				}
 				
-				if(!$result['y'])
+				if($result['y'] === null)
 				{
 					$result['y'] = getConfig('y');
 					$byParam['y'] = false;
@@ -9744,7 +9744,7 @@ function counter($_read_only = null, $_host = null)
 				//
 				$byParam['angle'] = true;
 
-				if(!$result['angle'])
+				if($result['angle'] === null)
 				{
 					$result['angle'] = getConfig('angle');
 					$byParam['angle'] = false;
