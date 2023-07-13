@@ -9838,7 +9838,7 @@ function counter($_read_only = null, $_host = null)
 						else
 						{
 							$width += 2.0;
-							$top += 1.0;
+							$left += 1.0;
 						}
 						
 						if($width > $_options['px'])
