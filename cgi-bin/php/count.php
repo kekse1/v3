@@ -26,7 +26,7 @@ const DEFAULTS = array(
 	'size' => '64px',
 	'min' => false,
 	'unit' => 'px',
-	'fg' => '0, 0, 0, 1',//'120,130,40',
+	'fg' => '0, 0, 0, 1',//'120, 130, 40',
 	'bg' => '255, 255, 255, 0',
 	'angle' => 0.0,//'10deg',
 	'x' => 0.0,
@@ -43,7 +43,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.2.0');
+define('COUNTER_VERSION', '4.3.0');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -9795,52 +9795,87 @@ function counter($_read_only = null, $_host = null)
 					$maxX = (float)round(max($m[0], $m[2], $m[4], $m[6]), 2);
 					$minY = (float)round(min($m[1], $m[3], $m[5], $m[7]), 2);
 					$maxY = (float)round(max($m[1], $m[3], $m[5], $m[7]), 2);
-					$calculatedHeight = ($maxY - $minY);
 
-					if($_options['min'] || $_options['angle'] != 0)
-					{
-						$height = $calculatedHeight;
-					}
-					else
-					{
-						$height = $_options['px'];
-					}
-					
-					$diffHeight = $height - $calculatedHeight;
-					$top = $height - $maxY - $diffHeight / 2;//$top = (($diffHeight - $minY) - ($diffHeight) / 2);
-					$width = ($maxX - $minX);
-					$left = -$minX / 2;
+					$height = $maxY - $minY;
+					$calculatedSize = $height;
+					$width = $maxX - $minX;
+					$left = -$minX;
+					$top = -$minY;
+					$diffSize = 0;
 
-					if($_options['angle'] == 0)
+					$intAngle = (int)round($_options['angle']);
+					$angle0 = ($intAngle == 0);
+					$angle90 = ($intAngle % 90 == 0);
+					$angle180 = ($intAngle % 180 == 0);
+
+					if($angle0 || $angle180)
 					{
-						if($height < $_options['px'])
+						if(!$_options['min'])
 						{
-							$height += 4.0;
-							$top += 2.0;
+							$diffSize = ($_options['px'] - $height);
+							$height = $_options['px'];
+							$top += $diffSize / 2;
 						}
-
+						else
+						{
+							$height += 2.0;
+							$top += 1.0;
+						}
+						
 						if($height > $_options['px'])
 						{
 							$height = $_options['px'];
 						}
 					}
-
+					else if($angle90)
+					{
+						if(!$_options['min'])
+						{
+							$diffSize = ($_options['px'] - $width);
+							$width = $_options['px'];
+							$left += $diffSize / 2;
+						}
+						else
+						{
+							$width += 2.0;
+							$top += 1.0;
+						}
+						
+						if($width > $_options['px'])
+						{
+							$width = $_options['px'];
+						}
+					}
+					
+					//
+					$width += $_options['h'] * 2;
+					$height += $_options['v'] * 2;
+					
+					if($width < 1)
+					{
+						$width = 1;
+						$left = 0;
+					}
+					else
+					{
+						$left += $_options['h'] + $_options['x'];
+					}
+					
+					if($height < 1)
+					{
+						$height = 1;
+						$top = 0;
+					}
+					else
+					{
+						$top += $_options['v'] + $_options['y'];
+					}
+				
+					//
 					$_options['width'] = (float)round($width, 2);
 					$_options['height'] = (float)round($height, 2);
 					$_options['left'] = (float)round($left, 2);
 					$_options['top'] = (float)round($top, 2);
-					
-					$_options['originalWidth'] = $_options['width'];
-					$_options['originalHeight'] = $_options['height'];
-					$_options['originalLeft'] = $_options['left'];
-					$_options['originTop'] = $_options['top'];
-					
-					$_options['measure'] = array(
-						'minX' => $minX,
-						'minY' => $minY,
-						'maxX' => $maxX,
-						'maxY' => $maxY
-					);
 
 					return array(
 						'width' => &$_options['width'],
@@ -9855,32 +9890,6 @@ function counter($_read_only = null, $_host = null)
 				$measure();
 				$image = null;
 
-				//
-				$_options['width'] += ($_options['h'] * 2);
-				$_options['height'] += ($_options['v'] * 2);
-				
-				if($_options['width'] < 1)
-				{
-					$_options['width'] = 1;
-					$_options['left'] = 0;
-				}
-				else
-				{
-					$_options['left'] += $_options['h'];
-					$_options['left'] += $_options['x'];
-				}
-				
-				if($_options['height'] < 1)
-				{
-					$_options['height'] = 1;
-					$_options['top'] = 0;
-				}
-				else
-				{
-					$_options['top'] += $_options['v'];
-					$_options['top'] += $_options['y'];
-				}
-				
 				//
 				$createImage = function() use (&$image, &$_options, &$_text)
 				{
