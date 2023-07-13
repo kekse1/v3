@@ -122,7 +122,7 @@ $STATE = array(
 //
 const CONFIG_VECTOR = array(
 	'path' => array('types' => [ 'string' ], 'static' => true, 'min' => 1, 'test' => true),
-	'text' => array('types' => [ 'integer', 'NULL', 'boolean' ], 'min' => 1),
+	'text' => array('types' => [ 'integer', 'boolean' ], 'min' => 1),
 	'log' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'threshold' => array('types' => [ 'integer', 'NULL' ], 'min' => 0),
 	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'min' => 0),
