@@ -1,4 +1,4 @@
-<img src="https://kekse.biz/php/count.php?draw&override=github:kekse.biz&text=kuchen@kekse.biz&font=IntelOneMono" />
+<img src="https://kekse.biz/php/count.php?draw&override=github:kekse.biz&text=kuchen@kekse.biz" />
 
 # kekse.biz
 v3
