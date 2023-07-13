@@ -8320,9 +8320,9 @@ function counter($_read_only = null, $_host = null)
 		makeConfig($_host);
 
 		//
-		if(KEKSE_CLI)
+		if(KEKSE_CLI || !getConfig('drawing'))
 		{
-			setConfig('text', 0, '', false);
+			setConfig('text', 0);
 			setState('text', null);
 		}
 		else
