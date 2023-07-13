@@ -42,7 +42,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.7');
+define('COUNTER_VERSION', '4.0.8');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -9696,11 +9696,11 @@ function counter($_read_only = null, $_host = null)
 					$maxX = (float)round(max($m[0], $m[2], $m[4], $m[6]), 2);
 					$minY = (float)round(min($m[1], $m[3], $m[5], $m[7]), 2);
 					$maxY = (float)round(max($m[1], $m[3], $m[5], $m[7]), 2);
-					$calculatedHeight = $maxY - $minY;
+					$calculatedHeight = ($maxY - $minY);
 
 					if($_options['min'])
 					{
-						$height = min($calculatedHeight + $maxY, $_options['px']);
+						$height = $calculatedHeight;
 					}
 					else
 					{
@@ -9716,6 +9716,11 @@ function counter($_read_only = null, $_host = null)
 					{
 						$height += 4.0;
 						$top += 2.0;
+					}
+
+					if($height > $_options['px'])
+					{
+						$height = $_options['px'];
 					}
 
 					$_options['width'] = (float)round($width, 2);
