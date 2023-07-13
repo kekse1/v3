@@ -8,6 +8,7 @@ namespace kekse\counter;
 //
 const DEFAULTS = array(
 	'path' => 'count/',
+	'text' => 32,//false,
 	'log' => 'count.log',
 	'threshold' => 7200,
 	'auto' => 32,//false,
@@ -42,7 +43,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.8');
+define('COUNTER_VERSION', '4.1.0');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -85,7 +86,7 @@ const PATHS = array(
 );
 
 //
-$CONFIG = array();
+$CONFIG = array('*' => array());
 $HASHES = array();
 
 $STATE = array(
@@ -97,6 +98,7 @@ $STATE = array(
 	'ro' => null,
 	'zero' => null,
 	'draw' => null,
+	'text' => null,
 	
 	'path' => null,
 	'log' => null,
@@ -120,6 +122,7 @@ $STATE = array(
 //
 const CONFIG_VECTOR = array(
 	'path' => array('types' => [ 'string' ], 'static' => true, 'min' => 1, 'test' => true),
+	'text' => array('types' => [ 'integer', 'NULL', 'boolean' ], 'min' => 1),
 	'log' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'threshold' => array('types' => [ 'integer', 'NULL' ], 'min' => 0),
 	'auto' => array('types' => [ 'boolean', 'integer', 'NULL' ], 'min' => 0),
@@ -1249,6 +1252,16 @@ function getParam($_key, $_numeric = false, $_float = false, $_strict = true, $_
 	if(strlen($value) > KEKSE_LIMIT_STRING)
 	{
 		return null;
+	}
+	else if(is_int($_numeric))
+	{
+		if($_numeric < 0)
+		{
+			$_numeric = 0;
+			return '';
+		}
+		
+		return \kekse\limit($value, $_numeric);
 	}
 	else
 	{
@@ -3749,30 +3762,66 @@ function counter($_read_only = null, $_host = null)
 		//
 		$config = null;
 
-		if(!is_string($_host) || $_host === '')
+		if(!is_string($_host))
 		{
 			$_host = getState('host');
 		}
-
-		if(isset($CONFIG[$_host]))
+		
+		if(is_string($_host) && isset($CONFIG[$_host]) && array_key_exists($_key, $CONFIG[$_host]))
 		{
-			$config = $CONFIG[$_host];
+			return $CONFIG[$_host][$_key];
 		}
-
-		//
-		if($config !== null && array_key_exists($_key, $config))
+		else if(array_key_exists($_key, $CONFIG['*']))
 		{
-			return $config[$_key];
+			return $CONFIG['*'][$_key];
 		}
 		else if(array_key_exists($_key, DEFAULTS))
 		{
 			return DEFAULTS[$_key];
 		}
-
-		//
+		
 		return null;
 	}
 
+	function setConfig($_key, $_value, $_host = null, $_die = true)
+	{
+		//
+		if(is_string($_key) && $_key !== '')
+		{
+			$_key = strtolower($_key);
+		}
+		else if($_die)
+		{
+			error('Invalid $_key (no non-empty String)');
+		}
+		else
+		{
+			return null;
+		}
+		
+		//
+		global $CONFIG;
+		
+		//
+		$config = null;
+		
+		if(!is_string($_host))
+		{
+			$_host = getState('host');
+		}
+
+		if(is_string($_host) && isset($CONFIG[$_host]) && array_key_exists($_key, $CONFIG[$_host]))
+		{
+			return $CONFIG[$_host][$_key] = $_value;
+		}
+		else if(array_key_exists($_key, DEFAULTS))
+		{
+			return $CONFIG['*'][$_key] = $_value;
+		}
+		
+		return null;
+	}
+	
 	function configLoaded($_host = null)
 	{
 		//
@@ -3781,7 +3830,7 @@ function counter($_read_only = null, $_host = null)
 		//
 		$result = null;
 
-		if(is_string($_host) && $_host !== '')
+		if(is_string($_host))
 		{
 			$result = isset($CONFIG[$_host]);
 		}
@@ -8131,45 +8180,6 @@ function counter($_read_only = null, $_host = null)
 	}
 
 	//
-	function withServer($_threshold_test = true)
-	{
-		if(!getState('address'))
-		{
-			return false;
-		}
-		else if($_threshold_test)
-		{
-			$conf = getConfig('threshold');
-		
-			if($conf === null || $conf < 1)
-			{
-				return false;
-			}
-		}
-
-		return !!getConfig('server');
-	}
-
-	function withClient($_threshold_test = true)
-	{
-		if(!getState('address'))
-		{
-			return false;
-		}
-		else if($_threshold_test)
-		{
-			$conf = getConfig('threshold');
-		
-			if($conf === null || $conf < 1)
-			{
-				return false;
-			}
-		}
-
-		return !!getConfig('client');
-	}
-
-	//
 	function setup($_host = null)
 	{
 		//
@@ -8266,9 +8276,95 @@ function counter($_read_only = null, $_host = null)
 		}
 
 		//
+		function withServer($_threshold_test = true)
+		{
+			if(!getState('address'))
+			{
+				return false;
+			}
+			else if($_threshold_test)
+			{
+				$conf = getConfig('threshold');
+			
+				if($conf === null || $conf < 1)
+				{
+					return false;
+				}
+			}
+
+			return !!getConfig('server');
+		}
+
+		function withClient($_threshold_test = true)
+		{
+			if(!getState('address'))
+			{
+				return false;
+			}
+			else if($_threshold_test)
+			{
+				$conf = getConfig('threshold');
+			
+				if($conf === null || $conf < 1)
+				{
+					return false;
+				}
+			}
+
+			return !!getConfig('client');
+		}
+
+		//
 		$_host = getHost($_host);
 		setState('host', $_host);
 		makeConfig($_host);
+
+		//
+		if(KEKSE_CLI)
+		{
+			setConfig('text', 0, '', false);
+			setState('text', null);
+		}
+		else
+		{
+			$textConfig = getConfig('text');
+
+			if(is_bool($textConfig))
+			{
+				$textConfig = ($textConfig ? 96 : 0);
+			}
+			else if(! (is_int($textConfig) && $textConfig >= 0))
+			{
+				$textConfig = 0;
+			}
+
+			if($textConfig > KEKSE_LIMIT_STRING)
+			{
+				$textConfig = KEKSE_LIMIT_STRING;
+			}
+
+			setConfig('text', $textConfig);
+
+			if($textConfig > 0)
+			{
+				$text = \kekse\getParam('text', $textConfig);
+			}
+			else
+			{
+				$text = null;
+			}
+			
+			setConfig('text', $textConfig);
+			setState('text', $text);
+			
+			if($text)
+			{
+				setState('ro', true);
+			}
+
+			unset($textConfig);
+			unset($text);
+		}
 
 		//
 		if(getState('ro'))
@@ -8995,12 +9091,16 @@ function counter($_read_only = null, $_host = null)
 	if(getConfig('drawing'))
 	{
 		//
-		function draw($_text, $_zero = null)
+		function draw($_text, $_zero_text = null)
 		{
 			//
-			if(!is_bool($_zero))
+			if(!is_bool($_zero_text) && !is_int($_zero_text))
 			{
-				$_zero = !!getState('zero');
+				$_zero_text = !!getState('zero');
+			}
+			else if(is_int($_zero_text) && strlen($_text) > $_zero_text)
+			{
+				$_text = \kekse\limit($_text, $_zero_text);
 			}
 			
 			//
@@ -9049,7 +9149,7 @@ function counter($_read_only = null, $_host = null)
 			}
 
 			//
-			if($_zero)
+			if($_zero_text === true)
 			{
 				//
 				function drawZero($_type)
@@ -9993,9 +10093,16 @@ function counter($_read_only = null, $_host = null)
 	}
 
 	//
-	if(getState('draw') || getState('zero'))
+	if(getState('draw') || getState('zero') || getState('text') !== null)
 	{
-		draw($value, getState('zero'));
+		if(getState('text'))
+		{
+			draw(getState('text'), getConfig('text'));
+		}
+		else
+		{
+			draw($value, getState('zero'));
+		}
 	}
 	else
 	{
