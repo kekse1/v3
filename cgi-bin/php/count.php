@@ -4,34 +4,7 @@
 namespace kekse\counter;
 
 //
-define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.6');
-define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
-
-//
-define('KEKSE_ANSI', true); //colors, styles, etc.. @ CLI. _only_ if stdout/stderr is a tty! ^_^
-define('KEKSE_STRICT', true); //should stay (true)! don't change unless you know what you're doing..
-define('KEKSE_LIMIT_TTY', 40); //in cli mode, when showing a list of files, limit output to this amount of lines..
-define('KEKSE_LIMIT_TTY_PROMPT', true); //show a prompt to ask user whether to continue or not?
-define('KEKSE_LIMIT_STRING', 224); //reasonable maximum length for (most) strings.. e.g. path components
-// some excludes, mainly for `\kekse\delete()`..
-define('KEKSE_KEEP', true); //don't delete '.keep'
-define('KEKSE_KEEP_HTACCESS', true); //don't delete any '.htaccess'
-define('KEKSE_KEEP_HIDDEN', true); //don't delete any '.' prefixed file
-// maybe you want to use my `kekse` extensions (etc.) only, without the `kekse\counter` itself?
-define('KEKSE_RAW', false); //will not call the main/base `counter()` function, and the whole `kekse\counter` won't be declared. ^_^
-// normally this shouldn't be changed (but it's only an aesthetic thing..); BUT they need to be only one character [long], never longer!
-define('COUNTER_VALUE_CHAR', '~');
-define('COUNTER_DIR_CHAR', '+');
-define('COUNTER_FILE_CHAR', '-');
-define('COUNTER_CONFIG_CHAR', '@');
-//problems with different httpd and console user? set to 0777/0666. but it's really insecure! use 0700/0600!
-define('KEKSE_MODE_DIR', 0700); //file mode; set to (null) to never change (by default)
-define('KEKSE_MODE_FILE', 0600); //dir mode; set to (null) to never change (by default)
-
-//
-define('KEKSE_CLI', (php_sapi_name() === 'cli'));
-
+//change your default configuration here.. that should be all to change..!
 //
 const DEFAULTS = array(
 	'path' => 'count/',
@@ -66,6 +39,34 @@ const DEFAULTS = array(
 	'none' => '/',
 	'modules' => null//'modules/'
 );
+
+//
+define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
+define('COUNTER_VERSION', '4.0.7');
+define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
+
+//
+define('KEKSE_ANSI', true); //colors, styles, etc.. @ CLI. _only_ if stdout/stderr is a tty! ^_^
+define('KEKSE_LIMIT_TTY', 40); //in cli mode, when showing a list of files, limit output to this amount of lines..
+define('KEKSE_LIMIT_TTY_PROMPT', true); //show a prompt to ask user whether to continue or not?
+define('KEKSE_LIMIT_STRING', 224); //reasonable maximum length for (most) strings.. e.g. path components
+// some excludes, mainly for `\kekse\delete()`..
+define('KEKSE_KEEP', true); //don't delete '.keep'
+define('KEKSE_KEEP_HTACCESS', true); //don't delete any '.htaccess'
+define('KEKSE_KEEP_HIDDEN', true); //don't delete any '.' prefixed file
+// maybe you want to use my `kekse` extensions (etc.) only, without the `kekse\counter` itself?
+define('KEKSE_RAW', false); //will not call the main/base `counter()` function, and the whole `kekse\counter` won't be declared. ^_^
+// normally this shouldn't be changed (but it's only an aesthetic thing..); BUT they need to be only one character [long], never longer!
+define('COUNTER_VALUE_CHAR', '~');
+define('COUNTER_DIR_CHAR', '+');
+define('COUNTER_FILE_CHAR', '-');
+define('COUNTER_CONFIG_CHAR', '@');
+//problems with different httpd and console user? set to 0777/0666. but it's really insecure! use 0700/0600!
+define('KEKSE_MODE_DIR', 0700); //file mode; set to (null) to never change (by default)
+define('KEKSE_MODE_FILE', 0600); //dir mode; set to (null) to never change (by default)
+
+//
+define('KEKSE_CLI', (php_sapi_name() === 'cli'));
 
 //
 //maybe rather dynamic, in reading out the `modules` directory!?? //(much) TODO!/
@@ -1205,14 +1206,8 @@ function delete($_path, $_depth = 0, $_extended = false, $_depth_current = 0)
 	return ($f === 0);	
 }
 
-//
-function getParam($_key, $_numeric = false, $_float = false, $_strict = KEKSE_STRICT, $_lower_case = false, $_fallback = true)
+function getParam($_key, $_numeric = false, $_float = false, $_strict = true, $_lower_case = false, $_fallback = true)
 {
-	if(!is_bool($_strict))
-	{
-		$_strict = KEKSE_STRICT;
-	}
-	
 	if(!is_string($_key) || $_key === '')
 	{
 		return null;
@@ -1265,10 +1260,14 @@ function getParam($_key, $_numeric = false, $_float = false, $_strict = KEKSE_ST
 		case '0':
 		case 'n':
 		case 'N':
+		case 'f':
+		case 'F':
 			return false;
 		case '1':
 		case 'y':
 		case 'Y':
+		case 't':
+		case 'T':
 			return true;
 		default:
 			if($_strict)
@@ -2879,7 +2878,7 @@ if($consoleCondition)
 namespace kekse\counter;
 
 //
-function counter($_read_only = null)
+function counter($_read_only = null, $_host = null)
 {
 	//
 	function getState($_key)
@@ -4358,6 +4357,12 @@ function counter($_read_only = null)
 		
 		return $result;
 	}
+	
+	//
+	if(is_string($_read_only))
+	{
+		error('You must have mixed up the $_read_only and $_host argument. The string is the 2nd argument..');
+	}
 
 	//
 	setState('log', getPath(getConfig('log'), true, false, false));
@@ -4427,7 +4432,7 @@ function counter($_read_only = null)
 	}
 
 	//
-	if(KEKSE_CLI)
+	if(KEKSE_CLI && !(KEKSE_RAW && $GLOBALS['KEKSE_ARGC'] === 1))
 	{
 		//
 		function getArguments($_index, $_secure = false)
@@ -5365,7 +5370,7 @@ function counter($_read_only = null)
 				
 				for($i = 0; $i < $cnt; ++$i)
 				{
-					$item = \kekse\joinPath($path, COUNTER_CONFIG_CHAR . $list[$i]);
+					$item = \kekse\joinPath($path, COUNTER_CONFIG_CHAR . strtolower($list[$i]));
 					$item = glob($item, GLOB_BRACE);
 					$len = count($item);
 					
@@ -8116,6 +8121,14 @@ function counter($_read_only = null)
 		//
 		exit(0);
 	}
+	else if(KEKSE_CLI && !is_string($_host))
+	{
+		error('In CLI mode, you\'ve to define the $_host argument');
+	}
+	else
+	{
+		$_host = \kekse\secureHost($_host);
+	}
 
 	//
 	function withServer($_threshold_test = true)
@@ -8157,7 +8170,7 @@ function counter($_read_only = null)
 	}
 
 	//
-	function setup()
+	function setup($_host = null)
 	{
 		//
 		function removePort($_host)
@@ -8191,18 +8204,22 @@ function counter($_read_only = null)
 			return $result;
 		}
 
-		function getHost($_die = true)
+		function getHost($_host = null, $_die = true)
 		{
 			//
 			$result = null;
 			$overridden = false;
 
 			//
-			if(is_string(($result = getConfig('override'))) && $result !== '')
+			if(is_string($result = $_host))
 			{
 				$overridden = true;
 			}
-			else if(is_string($result = \kekse\getParam('override', false)) && $result !== '')
+			else if(is_string(($result = getConfig('override'))) && $result !== '')
+			{
+				$overridden = true;
+			}
+			else if(is_string($result = \kekse\getParam('override', false, false, true)) && $result !== '')
 			{
 				if(! getConfig('override'))
 				{
@@ -8249,10 +8266,9 @@ function counter($_read_only = null)
 		}
 
 		//
-		$host = getHost();
-		setState('host', $host);
-		makeConfig($host);
-		unset($host);
+		$_host = getHost($_host);
+		setState('host', $_host);
+		makeConfig($_host);
 
 		//
 		if(getState('ro'))
@@ -8973,7 +8989,7 @@ function counter($_read_only = null)
 	}
 
 	//
-	setup();
+	setup($_host);
 
 	//
 	if(getConfig('drawing'))
@@ -8996,10 +9012,10 @@ function counter($_read_only = null)
 			function getDrawingType()
 			{
 				//
-				$result = \kekse\getParam('type', false);
+				$result = \kekse\getParam('type', false, false, true);
 				$byParam = true;
 
-				if(!is_string($result))
+				if($result === null)
 				{
 					$result = getConfig('type');
 					$byParam = false;
@@ -9186,16 +9202,25 @@ function counter($_read_only = null)
 					$result['x'] = \kekse\getParam('x', true, true, false);
 					$result['y'] = \kekse\getParam('y', true, true, false);
 					$result['angle'] = \kekse\getParam('angle', true, true, false);
-					$result['min'] = isset($_GET['min']);
+					$result['min'] = \kekse\getParam('min', null);
 				}
 
 				//
 				$byParam = array();
 				
 				//
+				$byParam['min'] = true;
+
+				if($result['min'] === null)
+				{
+					$result['min'] = getConfig('min');
+					$byParam['min'] = false;
+				}
+
+				//
 				$byParam['unit'] = true;
 				
-				if(! $result['unit'])
+				if($result['unit'] === null)
 				{
 					$result['unit'] = getConfig('unit');
 					$byParam['unit'] = false;
