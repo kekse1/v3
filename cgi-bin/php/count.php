@@ -5,7 +5,7 @@ namespace kekse\counter;
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.0.5');
+define('COUNTER_VERSION', '4.0.6');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -37,23 +37,24 @@ const DEFAULTS = array(
 	'path' => 'count/',
 	'log' => 'count.log',
 	'threshold' => 7200,
-	'auto' => 32,
-	'hide' => false,
-	'client' => true,
-	'server' => true,
+	'auto' => 32,//false,
+	'hide' => false,//true,
+	'client' => true,//false,
+	'server' => true,//false,
 	'drawing' => true,
-	'override' => false,
+	'override' => false,//true,
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,
+	'radix' => 10,//3,
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
 	'font' => 'Candara',
 	'size' => '56px',
+	'min' => false,//true,
 	'unit' => 'px',
 	'fg' => '0,0,0',//'120,130,40',
 	'bg' => '255,255,255,0',
-	'angle' => 0.0,//'0.25rad',
+	'angle' => 0.0,//'0.15rad',
 	'x' => 0.0,
 	'y' => 0.0,
 	'h' => 0.0,
@@ -133,6 +134,7 @@ const CONFIG_VECTOR = array(
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'font' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'size' => array('types' => [ 'double', 'integer', 'string' ], 'min' => 3, 'max' => 512, 'test' => true),
+	'min' => array('types' => [ 'boolean' ]),
 	'unit' => array('types' => [ 'string' ], 'min' => 2, 'max' => 2, 'test' => true),
 	'fg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'bg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
@@ -9184,6 +9186,7 @@ function counter($_read_only = null)
 					$result['x'] = \kekse\getParam('x', true, true, false);
 					$result['y'] = \kekse\getParam('y', true, true, false);
 					$result['angle'] = \kekse\getParam('angle', true, true, false);
+					$result['min'] = isset($_GET['min']);
 				}
 
 				//
@@ -9668,13 +9671,27 @@ function counter($_read_only = null)
 					$maxX = (float)round(max($m[0], $m[2], $m[4], $m[6]), 2);
 					$minY = (float)round(min($m[1], $m[3], $m[5], $m[7]), 2);
 					$maxY = (float)round(max($m[1], $m[3], $m[5], $m[7]), 2);
+					$calculatedHeight = $maxY - $minY;
+
+					if($_options['min'])
+					{
+						$height = min($calculatedHeight + $maxY, $_options['px']);
+					}
+					else
+					{
+						$height = $_options['px'];
+					}
 					
-					$height = $_options['px'];
-					$calculatedHeight = ($maxY - $minY);
-					$diffHeight = ($height - $calculatedHeight);
-					$top = $height - $maxY - ($diffHeight / 2);//$top = (($diffHeight - $minY) - ($diffHeight) / 2);
+					$diffHeight = $height - $calculatedHeight;
+					$top = $height - $maxY - $diffHeight / 2;//$top = (($diffHeight - $minY) - ($diffHeight) / 2);
 					$width = ($maxX - $minX);
 					$left = -$minX / 2;
+					
+					if($height < $_options['px'])
+					{
+						$height += 4.0;
+						$top += 2.0;
+					}
 
 					$_options['width'] = (float)round($width, 2);
 					$_options['height'] = (float)round($height, 2);
@@ -9687,7 +9704,7 @@ function counter($_read_only = null)
 						'maxX' => $maxX,
 						'maxY' => $maxY
 					);
-					
+
 					return array(
 						'width' => &$_options['width'],
 						'height' => &$_options['height'],
