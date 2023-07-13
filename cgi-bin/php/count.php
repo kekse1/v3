@@ -8331,7 +8331,7 @@ function counter($_read_only = null, $_host = null)
 
 			if(is_bool($textConfig))
 			{
-				$textConfig = ($textConfig ? 96 : 0);
+				$textConfig = ($textConfig ? 64 : 0);
 			}
 			else if(! (is_int($textConfig) && $textConfig >= 0))
 			{
