@@ -23,7 +23,7 @@ const DEFAULTS = array(
 	'limit' => 32768,
 	'fonts' => 'fonts/',
 	'font' => 'Candara',
-	'size' => '56px',
+	'size' => '64px',
 	'min' => false,//true,
 	'unit' => 'px',
 	'fg' => '0,0,0',//'120,130,40',
@@ -43,7 +43,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.1.1');
+define('COUNTER_VERSION', '4.1.2');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -1255,10 +1255,14 @@ function getParam($_key, $_numeric = false, $_float = false, $_strict = true, $_
 	}
 	else if(is_int($_numeric))
 	{
-		if($_numeric < 0)
+		if($_numeric <= 0)
 		{
 			$_numeric = 0;
 			return '';
+		}
+		else
+		{
+			$value = \kekse\removeBinary($value, false);
 		}
 		
 		return \kekse\limit($value, $_numeric);
