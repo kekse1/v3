@@ -5,6 +5,17 @@
 // 
 
 //
+define('KEKSE_RAW', true);
+require_once('./count.php');
+
+//
+\kekse\error('TODO! ;-)');
+
+//
+//bedenke unbedingt SECURITY, teils die von 'count.php'...
+//.. will ich nicht eine gemeinsame \kekse\-php-datei? hm aber count.php muss autark laufen...
+//eher: require_once(count.php), vorher *hier* aber 'define('KEKSE_RAW', true)'!!! :-D
+//
 //example, vorbereitung:
 //
 /*

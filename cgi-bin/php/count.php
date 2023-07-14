@@ -22,7 +22,7 @@ const DEFAULTS = array(
 	'drawing' => true,
 	'override' => false,//true,
 	'content' => 'text/plain;charset=UTF-8',
-	'radix' => 10,//3,
+	'radix' => 10,//4,
 	'clean' => true,
 	'limit' => 32768,
 	'fonts' => 'fonts/',
@@ -30,8 +30,8 @@ const DEFAULTS = array(
 	'size' => '64px',
 	'min' => false,
 	'unit' => 'px',
-	'fg' => '0, 0, 0, 1',//'120, 130, 40',
-	'bg' => '255, 255, 255, 0',
+	'fg' => '0,0,0,1',//'120, 130, 40',
+	'bg' => '#fff0',
 	'angle' => 0.0,//'10deg',
 	'x' => 0.0,
 	'y' => 0.0,
@@ -47,7 +47,7 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.3.1');
+define('COUNTER_VERSION', '4.3.2');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -60,7 +60,7 @@ define('KEKSE_KEEP', true); //don't delete '.keep'
 define('KEKSE_KEEP_HTACCESS', true); //don't delete any '.htaccess'
 define('KEKSE_KEEP_HIDDEN', true); //don't delete any '.' prefixed file
 // maybe you want to use my `kekse` extensions (etc.) only, without the `kekse\counter` itself?
-define('KEKSE_RAW', false); //will not call the main/base `counter()` function, and the whole `kekse\counter` won't be declared. ^_^
+if(!defined('KEKSE_RAW')) define('KEKSE_RAW', false); //won't call base `counter()`, nor define kekse\counter
 // normally this shouldn't be changed (but it's only an aesthetic thing..); BUT they need to be only one character [long], never longer!
 define('COUNTER_VALUE_CHAR', '~');
 define('COUNTER_DIR_CHAR', '+');
