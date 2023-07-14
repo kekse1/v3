@@ -9,12 +9,15 @@ define('KEKSE_RAW', true);
 require_once('./count.php');
 
 //
+define('KEKSE_RESIZE_VERSION', '0.0.1');
+define('KEKSE_RESIZE_WEBSITE', 'https://github.com/kekse1/resize.php/');
+if(!defined('KEKSE_COPYRIGHT')) define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
+
+//
 \kekse\error('TODO! ;-)');
 
 //
-//bedenke unbedingt SECURITY, teils die von 'count.php'...
-//.. will ich nicht eine gemeinsame \kekse\-php-datei? hm aber count.php muss autark laufen...
-//eher: require_once(count.php), vorher *hier* aber 'define('KEKSE_RAW', true)'!!! :-D
+//bedenke unbedingt SECURITY, s. count.php
 //
 //example, vorbereitung:
 //
