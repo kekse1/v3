@@ -36,14 +36,14 @@ const DEFAULTS = array(
 	'type' => 'png',
 	'privacy' => false,
 	'hash' => 'sha3-256',
-	'error' => '-',
+	'error' => null,//'-',
 	'none' => '/',
 	'modules' => null//'modules/'
 );
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.3.0');
+define('COUNTER_VERSION', '4.3.1');
 define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -1830,6 +1830,20 @@ function colorCheckArray($_array)
 	return true;
 }
 
+function isColor($_item)
+{
+	if(is_array($_item))
+	{
+		return colorCheckArray($_item);
+	}
+	else if(is_string($_item))
+	{
+		return (colorIsList($_item) || colorIsHexadecimal($_item));
+	}
+	
+	return false;
+}
+
 function colorList($_string)
 {
 	//
@@ -1837,9 +1851,7 @@ function colorList($_string)
 	{
 		if(is_array($_string))
 		{
-			$len = count($_string);
-			
-			if($len === 3 || $len === 4)
+			if(colorCheckArray($_string))
 			{
 				return $_string;
 			}
@@ -1896,6 +1908,92 @@ function colorList($_string)
 	}
 	
 	$result[3] = (double)$split[3];
+	return $result;
+}
+
+function colorHexadecimal($_string)
+{
+	if(!is_string($_string))
+	{
+		if(is_array($_string))
+		{
+			if(colorCheckArray($_string))
+			{
+				return $_string;
+			}
+		}
+		
+		return null;
+	}
+	else if($_string === '')
+	{
+		return null;
+	}
+	else if(strlen($_string) > KEKSE_LIMIT_STRING)
+	{
+		return null;
+	}
+	else if(strpos($_string, ',') !== false)
+	{
+		return null;
+	}
+	else if(($_string = \kekse\removeWhiteSpaces($_string))[0] === '#')
+	{
+		$_string = substr($_string, 1);
+	}
+	
+	$s;
+	$result = '';
+	$len = 0;
+	$l = strlen($_string);
+	
+	for($i = 0; $i < $l; ++$i)
+	{
+		if(($s = colorSymbolHexadecimal($_string[$i])) !== '')
+		{
+			$result .= $s;
+			++$len;
+		}
+	}
+	
+	if($len !== 3 && $len !== 4 && $len !== 6 && $len !== 8)
+	{
+		return null;
+	}
+	else if($len === 3 || $len === 4)
+	{
+		$r = '';
+		
+		for($i = 0; $i < $len; ++$i)
+		{
+			$r .= $result[$i] . $result[$i];
+		}
+		
+		$result = $r;
+		
+		if($len === 3)
+		{
+			$result .= 'ff';
+		}
+	}
+	else if($len === 6)
+	{
+		$result .= 'ff';
+	}
+	
+	$len = 8;
+	
+	//
+	$string = $result;
+	$result = array();
+	$tmp = '';
+	
+	for($i = 0, $j = 0; $i < $len; $i += 2, ++$j)
+	{
+		$result[$j] = hexdec($string[$i] . $string[$i + 1]);
+	}
+	
+	//
 	return $result;
 }
 
