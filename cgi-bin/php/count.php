@@ -48,7 +48,7 @@ const DEFAULTS = array(
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('KEKSE_WEBSITE', 'https://kekse.biz/');
-define('KEKSE_COUNTER_VERSION', '4.3.3');
+define('KEKSE_COUNTER_VERSION', '4.3.4');
 define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -5340,7 +5340,7 @@ function counter($_read_only = null, $_host = null)
 			printf($format, $mark, '--set', '-s', '[ *[=value] ]', 'Changes or initializes value files (0 by default)');
 			printf(PHP_EOL);
 			printf($format, ' ', '--fonts', '-f', '[ * ]', 'A list of all installed fonts, or selection');
-			printf($format, ' ', '--types', '-p', '', 'A list of all usable image types');
+			printf($format, ' ', '--types', '-t', '', 'A list of all usable image types');
 			printf($format, ' ', '--hashes', '-h', '', 'A list of all available hashes');
 			printf(PHP_EOL);
 			printf($format, ' ', '--errors', '-e', '', 'Counts the amount of error lines in the log file');
@@ -8139,7 +8139,7 @@ function counter($_read_only = null, $_host = null)
 						$func = 'fonts';
 						$index = $i;
 						break;
-					case '-y':
+					case '-t':
 						$func = 'types';
 						$index = $i;
 						break;
