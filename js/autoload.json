@@ -24,12 +24,12 @@
 
 	"url",
 	"intl",
+
+	"debounce",
 	
 	"id",
 	"path",
 	"color",
-
-	"debounce",
 
 	"favicon",
 	"title",
