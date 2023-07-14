@@ -17,10 +17,14 @@ hardware/
 │   └── Trommel
 │       └── Lexmark MB2236adw -> ../Lexmark MB2236adw/Trommel/
 ├── Einplatinencomputer
-├── Fernseher -> TV
+├── Fernseher
+│   ├── LG 55NANO779PA
+│   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
+│   ├── Nokia Streaming Box 8000 (Android TV)
+│   └── SHARP LC-55CUF8462ES (TV)
 ├── Festplatte
-│   ├── Sabrent 256 GB
-│   └── WD_BLACK SN770
+│   ├── Sabrent SB-ROCKET-256 (256 GB)
+│   └── WD_BLACK SN770 (512 GB)
 ├── Gehaeuse
 │   └── Thermaltake Level 20 XT (Cube)
 ├── Grafikkarte
@@ -50,11 +54,11 @@ hardware/
 ├── Netzteil
 │   └── be quiet! Straight Power E7 (600 Watt)
 ├── Notebook -> Laptop
+├── PC
 ├── Pointer
 │   ├── Maus
-│   │   ├── Cherry [MC 3000] XERO (White)
-│   │   ├── KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
-│   │   └── Vertikale Maus -> KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten
+│   │   ├── Cherry MC 3000 (XERO) [White]
+│   │   └── KINGTOP Vertical Mouse [Red+Black]
 │   ├── Mauspad
 │   │   ├── Titanwolf 1200x600mm
 │   │   └── Titanwolf XXL Speed Gaming Mauspad (90x40cm)
@@ -81,6 +85,8 @@ hardware/
 │   └── TechniSat TECHNIMAX SR1
 ├── SDR
 │   └── Realtek RTL2832U
+├── Skizzenbuch
+│   └── Kangaro A4 blanko, Wire-o, Hardcover, schwarz mit Druck, 140g creme Papier, K-5576
 ├── Smartphone
 │   ├── HUAWEI Mate20 Pro
 │   │   └── WWW
@@ -98,11 +104,7 @@ hardware/
 ├── Toner -> Drucker/Toner/
 ├── Trackball -> Pointer/Trackball/
 ├── Trommel -> Drucker/Trommel/
-├── TV
-│   ├── LG 55NANO779PA
-│   ├── LG 55NANO779PA NANOCELL TV -> LG 55NANO779PA
-│   ├── Nokia Streaming Box 8000 (Android TV)
-│   └── SHARP LC-55CUF8462ES (TV)
+├── TV -> Fernseher
 ├── Uhr
 │   └── TIMEX Intelligent Quartz
 └── USB-Stick

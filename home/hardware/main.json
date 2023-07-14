@@ -23,10 +23,15 @@
       ]}
     ]},
     {"type":"directory","name":"Einplatinencomputer"},
-    {"type":"link","name":"Fernseher","target":"TV"},
+    {"type":"directory","name":"Fernseher","contents":[
+      {"type":"directory","name":"LG 55NANO779PA"},
+      {"type":"link","name":"LG 55NANO779PA NANOCELL TV","target":"LG 55NANO779PA"},
+      {"type":"directory","name":"Nokia Streaming Box 8000 (Android TV)"},
+      {"type":"directory","name":"SHARP LC-55CUF8462ES (TV)"}
+    ]},
     {"type":"directory","name":"Festplatte","contents":[
-      {"type":"directory","name":"Sabrent 256 GB"},
-      {"type":"directory","name":"WD_BLACK SN770"}
+      {"type":"directory","name":"Sabrent SB-ROCKET-256 (256 GB)"},
+      {"type":"directory","name":"WD_BLACK SN770 (512 GB)"}
     ]},
     {"type":"directory","name":"Gehaeuse","contents":[
       {"type":"directory","name":"Thermaltake Level 20 XT (Cube)"}
@@ -65,11 +70,11 @@
       {"type":"directory","name":"be quiet! Straight Power E7 (600 Watt)"}
     ]},
     {"type":"link","name":"Notebook","target":"Laptop"},
+    {"type":"directory","name":"PC"},
     {"type":"directory","name":"Pointer","contents":[
       {"type":"directory","name":"Maus","contents":[
-        {"type":"directory","name":"Cherry [MC 3000] XERO (White)"},
-        {"type":"directory","name":"KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten"},
-        {"type":"link","name":"Vertikale Maus","target":"KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten"}
+        {"type":"directory","name":"Cherry MC 3000 (XERO) [White]"},
+        {"type":"directory","name":"KINGTOP Vertical Mouse [Red+Black]"}
       ]},
       {"type":"directory","name":"Mauspad","contents":[
         {"type":"directory","name":"Titanwolf 1200x600mm"},
@@ -106,6 +111,9 @@
     {"type":"directory","name":"SDR","contents":[
       {"type":"directory","name":"Realtek RTL2832U"}
     ]},
+    {"type":"directory","name":"Skizzenbuch","contents":[
+      {"type":"directory","name":"Kangaro A4 blanko, Wire-o, Hardcover, schwarz mit Druck, 140g creme Papier, K-5576"}
+    ]},
     {"type":"directory","name":"Smartphone","contents":[
       {"type":"directory","name":"HUAWEI Mate20 Pro","contents":[
         {"type":"directory","name":"WWW"}
@@ -128,12 +136,7 @@
     {"type":"link","name":"Toner","target":"Drucker/Toner/"},
     {"type":"link","name":"Trackball","target":"Pointer/Trackball/"},
     {"type":"link","name":"Trommel","target":"Drucker/Trommel/"},
-    {"type":"directory","name":"TV","contents":[
-      {"type":"directory","name":"LG 55NANO779PA"},
-      {"type":"link","name":"LG 55NANO779PA NANOCELL TV","target":"LG 55NANO779PA"},
-      {"type":"directory","name":"Nokia Streaming Box 8000 (Android TV)"},
-      {"type":"directory","name":"SHARP LC-55CUF8462ES (TV)"}
-    ]},
+    {"type":"link","name":"TV","target":"Fernseher"},
     {"type":"directory","name":"Uhr","contents":[
       {"type":"directory","name":"TIMEX Intelligent Quartz"}
     ]},

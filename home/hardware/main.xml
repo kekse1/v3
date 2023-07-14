@@ -24,10 +24,15 @@
       </directory>
     </directory>
     <directory name="Einplatinencomputer"></directory>
-    <link name="Fernseher" target="TV"></link>
+    <directory name="Fernseher">
+      <directory name="LG 55NANO779PA"></directory>
+      <link name="LG 55NANO779PA NANOCELL TV" target="LG 55NANO779PA"></link>
+      <directory name="Nokia Streaming Box 8000 (Android TV)"></directory>
+      <directory name="SHARP LC-55CUF8462ES (TV)"></directory>
+    </directory>
     <directory name="Festplatte">
-      <directory name="Sabrent 256 GB"></directory>
-      <directory name="WD_BLACK SN770"></directory>
+      <directory name="Sabrent SB-ROCKET-256 (256 GB)"></directory>
+      <directory name="WD_BLACK SN770 (512 GB)"></directory>
     </directory>
     <directory name="Gehaeuse">
       <directory name="Thermaltake Level 20 XT (Cube)"></directory>
@@ -66,11 +71,11 @@
       <directory name="be quiet! Straight Power E7 (600 Watt)"></directory>
     </directory>
     <link name="Notebook" target="Laptop"></link>
+    <directory name="PC"></directory>
     <directory name="Pointer">
       <directory name="Maus">
-        <directory name="Cherry [MC 3000] XERO (White)"></directory>
-        <directory name="KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten"></directory>
-        <link name="Vertikale Maus" target="KINGTOP Vertical Mouse Dual Mode Wired und 2.4G Wireless 4.800 DPI 5 Tasten"></link>
+        <directory name="Cherry MC 3000 (XERO) [White]"></directory>
+        <directory name="KINGTOP Vertical Mouse [Red+Black]"></directory>
       </directory>
       <directory name="Mauspad">
         <directory name="Titanwolf 1200x600mm"></directory>
@@ -107,6 +112,9 @@
     <directory name="SDR">
       <directory name="Realtek RTL2832U"></directory>
     </directory>
+    <directory name="Skizzenbuch">
+      <directory name="Kangaro A4 blanko, Wire-o, Hardcover, schwarz mit Druck, 140g creme Papier, K-5576"></directory>
+    </directory>
     <directory name="Smartphone">
       <directory name="HUAWEI Mate20 Pro">
         <directory name="WWW"></directory>
@@ -129,12 +137,7 @@
     <link name="Toner" target="Drucker/Toner/"></link>
     <link name="Trackball" target="Pointer/Trackball/"></link>
     <link name="Trommel" target="Drucker/Trommel/"></link>
-    <directory name="TV">
-      <directory name="LG 55NANO779PA"></directory>
-      <link name="LG 55NANO779PA NANOCELL TV" target="LG 55NANO779PA"></link>
-      <directory name="Nokia Streaming Box 8000 (Android TV)"></directory>
-      <directory name="SHARP LC-55CUF8462ES (TV)"></directory>
-    </directory>
+    <link name="TV" target="Fernseher"></link>
     <directory name="Uhr">
       <directory name="TIMEX Intelligent Quartz"></directory>
     </directory>
