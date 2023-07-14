@@ -1,6 +1,10 @@
 <?php
 
 //
+// Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
+//
+
+//
 namespace kekse\counter;
 
 //

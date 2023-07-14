@@ -48,8 +48,8 @@ directories or files, the *italic* ones are just symlinks ('symbolic links' ;).
 * ./*cursor.png*
 
 ## '**cgi-bin**/'
-With './php/', to which we also could symlink in the base directory, if wanted.
-Most important file in there is the 'cgi-bin/php/*count.php*'!
+With './php/', to which we also could symlink in the base directory, if wanted. Most important file in there
+is the 'cgi-bin/php/*count.php*', and also _will be_ 'cgi-bin/php/*resize.php*'..
 
 ## '**count**/'
 You better `chmod 1777` it. There must be a symlink 'cgi-bin/php/count' to here.
