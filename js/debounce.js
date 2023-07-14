@@ -2,7 +2,7 @@
 {
 
 	//
-	debounce = function(_function, _timeout, _context = undefined, ... _args)
+	debounce = function(_function, _timeout, ... _args)
 	{
 		if(typeof _function !== 'function')
 		{
@@ -17,28 +17,14 @@
 			_timeout = 0;
 		}
 
-		const result = function(... _a)
+		return function(... _a)
 		{
 			_a.populate(_args);
 
 			return setTimeout(() => {
-				return _function(... _a);
+				return _function.apply(this, _a);
 			}, _timeout);
 		};
-
-		if(typeof _context !== 'undefined')
-		{
-			if(Object.isExtensible(_context))
-			{
-				return result.bind(_context);
-			}
-			else
-			{
-				_args.unshift(_context);
-			}
-		}
-
-		return result;
 	};
 
 })();
