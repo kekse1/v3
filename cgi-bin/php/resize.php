@@ -10,8 +10,6 @@ require_once('./count.php');
 
 //
 define('KEKSE_RESIZE_VERSION', '0.0.1');
-define('KEKSE_RESIZE_WEBSITE', 'https://github.com/kekse1/resize.php/');
-if(!defined('KEKSE_COPYRIGHT')) define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 
 //
 \kekse\error('TODO! ;-)');
@@ -22,6 +20,14 @@ if(!defined('KEKSE_COPYRIGHT')) define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk 
 //example, vorbereitung:
 //
 /*
+ *
+ *
+ *
+ *
+ * remote-images e#mit https: etc an fopen()/file_get_contents() reichen(!!),
+ *
+ * *
+
 
 // mime_content_type(path) => < https://www.php.net/mime_content_type >
 //

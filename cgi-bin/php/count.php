@@ -32,7 +32,7 @@ const DEFAULTS = array(
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120, 130, 40',
 	'bg' => '#fff0',
-	'angle' => 0.0,//'10deg',
+	'angle' => 0.0,//'8deg',
 	'x' => 0.0,
 	'y' => 0.0,
 	'h' => 0.0,
@@ -47,8 +47,9 @@ const DEFAULTS = array(
 
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
-define('COUNTER_VERSION', '4.3.2');
-define('COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
+define('KEKSE_WEBSITE', 'https://kekse.biz/');
+define('KEKSE_COUNTER_VERSION', '4.3.3');
+define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
 define('KEKSE_ANSI', true); //colors, styles, etc.. @ CLI. _only_ if stdout/stderr is a tty! ^_^
@@ -62,10 +63,10 @@ define('KEKSE_KEEP_HIDDEN', true); //don't delete any '.' prefixed file
 // maybe you want to use my `kekse` extensions (etc.) only, without the `kekse\counter` itself?
 if(!defined('KEKSE_RAW')) define('KEKSE_RAW', false); //won't call base `counter()`, nor define kekse\counter
 // normally this shouldn't be changed (but it's only an aesthetic thing..); BUT they need to be only one character [long], never longer!
-define('COUNTER_VALUE_CHAR', '~');
-define('COUNTER_DIR_CHAR', '+');
-define('COUNTER_FILE_CHAR', '-');
-define('COUNTER_CONFIG_CHAR', '@');
+define('KEKSE_COUNTER_VALUE_CHAR', '~');
+define('KEKSE_COUNTER_DIR_CHAR', '+');
+define('KEKSE_COUNTER_FILE_CHAR', '-');
+define('KEKSE_COUNTER_CONFIG_CHAR', '@');
 //problems with different httpd and console user? set to 0777/0666. but it's really insecure! use 0700/0600!
 define('KEKSE_MODE_DIR', 0777); //file mode; set to (null) to never change (by default)
 define('KEKSE_MODE_FILE', 0666); //dir mode; set to (null) to never change (by default)
@@ -834,7 +835,7 @@ function secure($_string, $_lower_case = false)
 	{
 		$rem = 0;
 		
-		while($rem < $len && $result[$rem] === '.' || $result[$rem] === COUNTER_VALUE_CHAR || $result[$rem] === COUNTER_DIR_CHAR || $result[$rem] === COUNTER_FILE_CHAR || $result[$rem] === COUNTER_CONFIG_CHAR)
+		while($rem < $len && $result[$rem] === '.' || $result[$rem] === KEKSE_COUNTER_VALUE_CHAR || $result[$rem] === KEKSE_COUNTER_DIR_CHAR || $result[$rem] === KEKSE_COUNTER_FILE_CHAR || $result[$rem] === KEKSE_COUNTER_CONFIG_CHAR)
 		{
 			++$rem;
 		}
@@ -3521,7 +3522,7 @@ function counter($_read_only = null, $_host = null)
 
 					if($validTest !== null)
 					{
-						$count = files($validTest, false, null, [ COUNTER_VALUE_CHAR, COUNTER_DIR_CHAR, COUNTER_FILE_CHAR, COUNTER_CONFIG_CHAR ], false, true, true);
+						$count = files($validTest, false, null, [ KEKSE_COUNTER_VALUE_CHAR, KEKSE_COUNTER_DIR_CHAR, KEKSE_COUNTER_FILE_CHAR, KEKSE_COUNTER_CONFIG_CHAR ], false, true, true);
 						
 						if($count === -1)
 						{
@@ -3800,7 +3801,7 @@ function counter($_read_only = null, $_host = null)
 
 		if($_load)
 		{
-			if(($config = loadConfig(\kekse\joinPath(getState('path'), COUNTER_CONFIG_CHAR . $_host), null, false)) === null)
+			if(($config = loadConfig(\kekse\joinPath(getState('path'), KEKSE_COUNTER_CONFIG_CHAR . $_host), null, false)) === null)
 			{
 				if($_die)
 				{
@@ -3957,7 +3958,7 @@ function counter($_read_only = null, $_host = null)
 
 		//
 		$data = null;
-		$path = \kekse\joinPath(getState('path'), COUNTER_CONFIG_CHAR . $_host);
+		$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_CONFIG_CHAR . $_host);
 		$data = null;
 		
 		//
@@ -4074,7 +4075,7 @@ function counter($_read_only = null, $_host = null)
 
 	function configCountHost($_host, $_check = true)
 	{
-		return configCount(\kekse\joinPath(getState('path'), COUNTER_CONFIG_CHAR . $_host), null, $_check);
+		return configCount(\kekse\joinPath(getState('path'), KEKSE_COUNTER_CONFIG_CHAR . $_host), null, $_check);
 	}
 
 	function configCheckJSON($_data)
@@ -4257,13 +4258,13 @@ function counter($_read_only = null, $_host = null)
 		
 		switch($base[0])
 		{
-			case COUNTER_VALUE_CHAR:
-			case COUNTER_DIR_CHAR:
-			case COUNTER_FILE_CHAR:
-			case COUNTER_CONFIG_CHAR:
+			case KEKSE_COUNTER_VALUE_CHAR:
+			case KEKSE_COUNTER_DIR_CHAR:
+			case KEKSE_COUNTER_FILE_CHAR:
+			case KEKSE_COUNTER_CONFIG_CHAR:
 				if($_die)
 				{
-					error('Path may not start with these characters: [ `' . COUNTER_VALUE_CHAR . '`, `' . COUNTER_DIR_CHAR . '`, `' . COUNTER_FILE_CHAR . '`, `' . COUNTER_CONFIG_CHAR . '` ]');
+					error('Path may not start with these characters: [ `' . KEKSE_COUNTER_VALUE_CHAR . '`, `' . KEKSE_COUNTER_DIR_CHAR . '`, `' . KEKSE_COUNTER_FILE_CHAR . '`, `' . KEKSE_COUNTER_CONFIG_CHAR . '` ]');
 				}
 				
 				return null;
@@ -4414,7 +4415,7 @@ function counter($_read_only = null, $_host = null)
 	{
 		if(securityTest($_path))
 		{
-			if(! \kekse\startsWith(basename($_path), COUNTER_VALUE_CHAR))
+			if(! \kekse\startsWith(basename($_path), KEKSE_COUNTER_VALUE_CHAR))
 			{
 				return \kekse\delete($_path, ... $_args);
 			}
@@ -4908,10 +4909,10 @@ function counter($_read_only = null, $_host = null)
 		unset($aarg);
 
 		//
-		define('COUNTER_VALUE', 1);
-		define('COUNTER_DIR', 2);
-		define('COUNTER_FILE', 4);
-		define('COUNTER_CONFIG', 8);
+		define('KEKSE_COUNTER_VALUE', 1);
+		define('KEKSE_COUNTER_DIR', 2);
+		define('KEKSE_COUNTER_FILE', 4);
+		define('KEKSE_COUNTER_CONFIG', 8);
 
 		//
 		function getHostItem($_host, &$_result, $_path)
@@ -4926,37 +4927,37 @@ function counter($_read_only = null, $_host = null)
 			
 			switch($type)
 			{
-				case COUNTER_VALUE_CHAR:
+				case KEKSE_COUNTER_VALUE_CHAR:
 					if(!is_file($p))
 					{
 						return 0;
 					}
 
-					$type = COUNTER_VALUE;
+					$type = KEKSE_COUNTER_VALUE;
 					break;
-				case COUNTER_DIR_CHAR:
+				case KEKSE_COUNTER_DIR_CHAR:
 					if(!is_dir($p))
 					{
 						return 0;
 					}
 
-					$type = COUNTER_DIR;
+					$type = KEKSE_COUNTER_DIR;
 					break;
-				case COUNTER_FILE_CHAR:
+				case KEKSE_COUNTER_FILE_CHAR:
 					if(!is_file($p))
 					{
 						return 0;
 					}
 
-					$type = COUNTER_FILE;
+					$type = KEKSE_COUNTER_FILE;
 					break;
-				case COUNTER_CONFIG_CHAR:
+				case KEKSE_COUNTER_CONFIG_CHAR:
 					if(!is_file($p))
 					{
 						return 0;
 					}
 					
-					$type = COUNTER_CONFIG;
+					$type = KEKSE_COUNTER_CONFIG;
 					break;
 				default:
 					return 0;
@@ -5016,7 +5017,7 @@ function counter($_read_only = null, $_host = null)
 
 				for($i = 0; $i < $len; ++$i)
 				{
-					$sub = \kekse\joinPath($path, '{' . COUNTER_VALUE_CHAR . ',' . COUNTER_DIR_CHAR . ',' . COUNTER_FILE_CHAR . ',' . COUNTER_CONFIG_CHAR . '}' . strtolower($list[$i]));
+					$sub = \kekse\joinPath($path, '{' . KEKSE_COUNTER_VALUE_CHAR . ',' . KEKSE_COUNTER_DIR_CHAR . ',' . KEKSE_COUNTER_FILE_CHAR . ',' . KEKSE_COUNTER_CONFIG_CHAR . '}' . strtolower($list[$i]));
 					$sub = glob($sub, GLOB_BRACE);
 					$subLen = count($sub);
 
@@ -5258,17 +5259,17 @@ function counter($_read_only = null, $_host = null)
 			{
 				if($_ansi)
 				{
-					\kekse\debug('%s', COUNTER_WEBSITE);
+					\kekse\debug('%s', KEKSE_COUNTER_WEBSITE);
 				}
 				else
 				{
-					printf('%s' . PHP_EOL, COUNTER_WEBSITE);
+					printf('%s' . PHP_EOL, KEKSE_COUNTER_WEBSITE);
 				}
 			}
 
 			if($_version)
 			{
-				$str = COUNTER_VERSION;
+				$str = KEKSE_COUNTER_VERSION;
 				
 				if($_copyright || $_website)
 				{
@@ -5330,7 +5331,7 @@ function counter($_read_only = null, $_host = null)
 			printf($format, $mark, '--purge', '-p', '[ * ]', 'Delete only the caches (with files plus directories)');
 			printf($format, $mark, '--remove', '-r', '[ * ]', 'Delete all real counter files for all/some hosts');
 			printf(PHP_EOL);
-			printf($format, $pad, \kekse\console\ansi\boldFaint('-g', true, 1), \kekse\console\ansi\boldFaint('--config', true, 1), $pad, 'Include the `' . COUNTER_CONFIG_CHAR . '` configuration files as well');
+			printf($format, $pad, \kekse\console\ansi\boldFaint('-g', true, 1), \kekse\console\ansi\boldFaint('--config', true, 1), $pad, 'Include the `' . KEKSE_COUNTER_CONFIG_CHAR . '` configuration files as well');
 			printf(PHP_EOL);
 			printf($format, $mark, '--sanitize', '-z', '', 'Delete all non-valid counter files (cleaning up)');
 			printf(PHP_EOL);
@@ -5525,7 +5526,7 @@ function counter($_read_only = null, $_host = null)
 				
 				for($i = 0; $i < $cnt; ++$i)
 				{
-					$item = \kekse\joinPath($path, COUNTER_CONFIG_CHAR . strtolower($list[$i]));
+					$item = \kekse\joinPath($path, KEKSE_COUNTER_CONFIG_CHAR . strtolower($list[$i]));
 					$item = glob($item, GLOB_BRACE);
 					$len = count($item);
 					
@@ -5812,7 +5813,7 @@ function counter($_read_only = null, $_host = null)
 					$hosts[$item] = $value;
 				}
 				
-				if(! is_file(\kekse\joinPath(getState('path'), COUNTER_VALUE_CHAR . $item)))
+				if(! is_file(\kekse\joinPath(getState('path'), KEKSE_COUNTER_VALUE_CHAR . $item)))
 				{
 					$newHosts[$nh++] = $item;
 				}
@@ -5851,7 +5852,7 @@ function counter($_read_only = null, $_host = null)
 					$limit = limitListCheck(++$i, $ah);
 				}
 
-				$current = \kekse\joinPath(getState('path'), COUNTER_VALUE_CHAR . $host);
+				$current = \kekse\joinPath(getState('path'), KEKSE_COUNTER_VALUE_CHAR . $host);
 
 				if(is_file($current))
 				{
@@ -5912,7 +5913,7 @@ function counter($_read_only = null, $_host = null)
 			foreach($result as $host => $values)
 			{
 				//
-				$path = \kekse\joinPath(getState('path'), COUNTER_VALUE_CHAR . $host);
+				$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_VALUE_CHAR . $host);
 				$res = null;
 
 				//
@@ -6132,11 +6133,11 @@ function counter($_read_only = null, $_host = null)
 				$cache = 0;
 				
 				//
-				$p = \kekse\joinPath($path, COUNTER_VALUE_CHAR . $host);
+				$p = \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . $host);
 				
-				if($type & COUNTER_VALUE)
+				if($type & KEKSE_COUNTER_VALUE)
 				{
-					$p = \kekse\joinPath($path, COUNTER_VALUE_CHAR . $host);
+					$p = \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . $host);
 					$values[$host] = readInt($p);
 				}
 				else
@@ -6156,9 +6157,9 @@ function counter($_read_only = null, $_host = null)
 				}
 				
 				//
-				$p = \kekse\joinPath($path, COUNTER_FILE_CHAR . $host);
+				$p = \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host);
 				
-				if($type & COUNTER_FILE)
+				if($type & KEKSE_COUNTER_FILE)
 				{
 					$cache = readInt($p);
 					
@@ -6184,9 +6185,9 @@ function counter($_read_only = null, $_host = null)
 				}
 
 				//
-				$p = \kekse\joinPath($path, COUNTER_DIR_CHAR . $host);
+				$p = \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host);
 				
-				if($type & COUNTER_DIR)
+				if($type & KEKSE_COUNTER_DIR)
 				{
 					$handle = opendir($p);
 					
@@ -6222,7 +6223,7 @@ function counter($_read_only = null, $_host = null)
 						if($real === 0)
 						{
 							++$totalDirs;
-							$sp = \kekse\joinPath($path, COUNTER_DIR_CHAR . $host);
+							$sp = \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host);
 							$delete[$host][$d++] = $sp;
 							$outOfSync = true;
 						}
@@ -6231,18 +6232,18 @@ function counter($_read_only = null, $_host = null)
 					{
 						$real = 0;
 
-						if($type & COUNTER_FILE)
+						if($type & KEKSE_COUNTER_FILE)
 						{
-							$delete[$host][$d++] = \kekse\joinPath($path, COUNTER_FILE_CHAR . $host);
+							$delete[$host][$d++] = \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host);
 							$outOfSync = true;
 						}
 					}
 				}
 				else
 				{
-					if($type & COUNTER_FILE)
+					if($type & KEKSE_COUNTER_FILE)
 					{
-						$delete[$host][$d++] = \kekse\joinPath($path, COUNTER_FILE_CHAR . $host);
+						$delete[$host][$d++] = \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host);
 						$outOfSync = true;
 					}
 					
@@ -6258,9 +6259,9 @@ function counter($_read_only = null, $_host = null)
 					}
 				}
 				
-				$p = \kekse\joinPath($path, COUNTER_CONFIG_CHAR . $host);
+				$p = \kekse\joinPath($path, KEKSE_COUNTER_CONFIG_CHAR . $host);
 				
-				if($type & COUNTER_CONFIG)
+				if($type & KEKSE_COUNTER_CONFIG)
 				{
 					$conf = loadConfig($p, null, false);
 					$all = 0;
@@ -6652,7 +6653,7 @@ function counter($_read_only = null, $_host = null)
 				
 				if(is_array($cache) && $cache[1] > 0)
 				{
-					$path = \kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host);
+					$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host);
 					
 					if(\kekse\writeInt($path, $cache[1]) === false)
 					{
@@ -6793,9 +6794,9 @@ function counter($_read_only = null, $_host = null)
 				$hosts[$h++] = $host;
 				$d = 0;
 				
-				if($type & COUNTER_DIR)
+				if($type & KEKSE_COUNTER_DIR)
 				{
-					if($withoutValues && !($type & COUNTER_VALUE))
+					if($withoutValues && !($type & KEKSE_COUNTER_VALUE))
 					{
 						$delete[$host][$d++] = $path;
 						++$td;
@@ -6810,9 +6811,9 @@ function counter($_read_only = null, $_host = null)
 					else
 					{
 						//
-						if($type & COUNTER_CONFIG)
+						if($type & KEKSE_COUNTER_CONFIG)
 						{
-							$conf = loadConfig(\kekse\joinPath($path, COUNTER_CONFIG_CHAR . $host), null, true);
+							$conf = loadConfig(\kekse\joinPath($path, KEKSE_COUNTER_CONFIG_CHAR . $host), null, true);
 							
 							if($conf && array_key_exists('threshold', $conf))
 							{
@@ -6845,7 +6846,7 @@ function counter($_read_only = null, $_host = null)
 						}
 
 						//
-						$handle = opendir(\kekse\joinPath($path, COUNTER_DIR_CHAR . $host));
+						$handle = opendir(\kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host));
 						
 						if($handle === false)
 						{
@@ -6877,7 +6878,7 @@ function counter($_read_only = null, $_host = null)
 									continue;
 								}
 								
-								$p = \kekse\joinPath($path, COUNTER_DIR_CHAR . $host, $sub);
+								$p = \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host, $sub);
 								
 								if(!is_file($p))
 								{
@@ -6920,22 +6921,22 @@ function counter($_read_only = null, $_host = null)
 
 							if($count[$host] === 0)
 							{
-								$p = \kekse\joinPath(getState('path'), COUNTER_DIR_CHAR . $host);
+								$p = \kekse\joinPath(getState('path'), KEKSE_COUNTER_DIR_CHAR . $host);
 								if(file_exists($p)) $delete[$host][$d++] = $p;
-								$p = \kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host);
+								$p = \kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host);
 								if(file_exists($p)) $delete[$host][$d++] = $p;
 							}
 						}
 					}
 				}
-				else if($type & COUNTER_FILE)
+				else if($type & KEKSE_COUNTER_FILE)
 				{
 					if(($hostLen = \kekse\strlen($host, true)) > $maxLen)
 					{
 						$maxLen = $hostLen;
 					}
 
-					$delete[$host] = array(\kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host));
+					$delete[$host] = array(\kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host));
 				}
 			}
 
@@ -6981,7 +6982,7 @@ function counter($_read_only = null, $_host = null)
 				if($real > 0)
 				{
 					$cache = 0;
-					$path = \kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host);
+					$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host);
 					
 					if(is_file($path))
 					{
@@ -7011,7 +7012,7 @@ function counter($_read_only = null, $_host = null)
 				}
 				else
 				{
-					$path = \kekse\joinPath(getState('path'), COUNTER_DIR_CHAR . $host);
+					$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_DIR_CHAR . $host);
 					
 					if(file_exists($path) && !in_array($path, $delete[$host]))
 					{
@@ -7024,7 +7025,7 @@ function counter($_read_only = null, $_host = null)
 						}
 					}
 					
-					$path = \kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host);
+					$path = \kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host);
 					
 					if(file_exists($path) && !in_array($path, $delete[$host]))
 					{
@@ -7079,7 +7080,7 @@ function counter($_read_only = null, $_host = null)
 				$cacheSum += $state[1];
 				$outDatedSum += $state[0];
 
-				$p = \kekse\joinPath(getState('path'), COUNTER_FILE_CHAR . $host);
+				$p = \kekse\joinPath(getState('path'), KEKSE_COUNTER_FILE_CHAR . $host);
 				$res = \kekse\readInt($p);
 				
 				if($res !== $state[1])
@@ -7240,16 +7241,16 @@ function counter($_read_only = null, $_host = null)
 				$delete[$host] = array();
 				$a = 0;
 				
-				if($state & COUNTER_DIR)
+				if($state & KEKSE_COUNTER_DIR)
 				{
-					$delete[$host][$a++] = \kekse\joinPath($path, COUNTER_DIR_CHAR . $host);
+					$delete[$host][$a++] = \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host);
 					++$total;
 					++$d;
 				}
 				
-				if($state & COUNTER_FILE)
+				if($state & KEKSE_COUNTER_FILE)
 				{
-					$delete[$host][$a++] = \kekse\joinPath($path, COUNTER_FILE_CHAR . $host);
+					$delete[$host][$a++] = \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host);
 					++$total;
 				}
 				
@@ -7418,10 +7419,10 @@ function counter($_read_only = null, $_host = null)
 				$types[$host] = '';
 				$abc = 0;
 				
-				if($state & COUNTER_VALUE)
+				if($state & KEKSE_COUNTER_VALUE)
 				{
-					$hosts[$host][$h++] = \kekse\joinPath($path, COUNTER_VALUE_CHAR . $host);
-					$types[$host] .= COUNTER_VALUE_CHAR . ' ';
+					$hosts[$host][$h++] = \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . $host);
+					$types[$host] .= KEKSE_COUNTER_VALUE_CHAR . ' ';
 					++$totalFiles;
 					++$abc;
 				}
@@ -7430,10 +7431,10 @@ function counter($_read_only = null, $_host = null)
 					$types[$host] .= '  ';
 				}
 				
-				if($state & COUNTER_DIR)
+				if($state & KEKSE_COUNTER_DIR)
 				{
-					$hosts[$host][$h++] = \kekse\joinPath($path, COUNTER_DIR_CHAR . $host);
-					$types[$host] .= COUNTER_DIR_CHAR . ' ';
+					$hosts[$host][$h++] = \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host);
+					$types[$host] .= KEKSE_COUNTER_DIR_CHAR . ' ';
 					++$totalFiles;
 					++$dirs;
 					++$abc;
@@ -7443,10 +7444,10 @@ function counter($_read_only = null, $_host = null)
 					$types[$host] .= '  ';
 				}
 				
-				if($state & COUNTER_FILE)
+				if($state & KEKSE_COUNTER_FILE)
 				{
-					$hosts[$host][$h++] = \kekse\joinPath($path, COUNTER_FILE_CHAR . $host);
-					$types[$host] .= COUNTER_FILE_CHAR . ' ';
+					$hosts[$host][$h++] = \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host);
+					$types[$host] .= KEKSE_COUNTER_FILE_CHAR . ' ';
 					++$totalFiles;
 					++$abc;
 				}
@@ -7455,10 +7456,10 @@ function counter($_read_only = null, $_host = null)
 					$types[$host] .= '  ';
 				}
 				
-				if($config && ($state & COUNTER_CONFIG))
+				if($config && ($state & KEKSE_COUNTER_CONFIG))
 				{
-					$hosts[$host][$h++] = \kekse\joinPath($path, COUNTER_CONFIG_CHAR . $host);
-					$types[$host] .= COUNTER_CONFIG_CHAR . ' ';
+					$hosts[$host][$h++] = \kekse\joinPath($path, KEKSE_COUNTER_CONFIG_CHAR . $host);
+					$types[$host] .= KEKSE_COUNTER_CONFIG_CHAR . ' ';
 					++$totalFiles;
 					++$abc;
 				}
@@ -7644,7 +7645,7 @@ function counter($_read_only = null, $_host = null)
 			else if($withoutValues)
 			{
 				\kekse\warn('All host files without corresponding value file will also get deleted!');
-				\kekse\debug('But this doesn\'t affect per-host configuration files (`' . COUNTER_CONFIG_CHAR . '` prefix).');
+				\kekse\debug('But this doesn\'t affect per-host configuration files (`' . KEKSE_COUNTER_CONFIG_CHAR . '` prefix).');
 			}
 			
 			//
@@ -7674,7 +7675,7 @@ function counter($_read_only = null, $_host = null)
 					{
 						continue;
 					}
-					else if($sub[0] !== COUNTER_VALUE_CHAR)
+					else if($sub[0] !== KEKSE_COUNTER_VALUE_CHAR)
 					{
 						continue;
 					}
@@ -7733,7 +7734,7 @@ function counter($_read_only = null, $_host = null)
 					
 					switch($type)
 					{
-						case COUNTER_VALUE_CHAR:
+						case KEKSE_COUNTER_VALUE_CHAR:
 							if(! is_file($p))
 							{
 								$deletion[$d++] = $p;
@@ -7744,7 +7745,7 @@ function counter($_read_only = null, $_host = null)
 								}
 							}
 							break;
-						case COUNTER_DIR_CHAR:
+						case KEKSE_COUNTER_DIR_CHAR:
 							if(! is_dir($p))
 							{
 								$deletion[$d++] = $p;
@@ -7800,7 +7801,7 @@ function counter($_read_only = null, $_host = null)
 								}
 							}
 							break;
-						case COUNTER_FILE_CHAR:
+						case KEKSE_COUNTER_FILE_CHAR:
 							if(! is_file($p))
 							{
 								$deletion[$d++] = $p;
@@ -7816,7 +7817,7 @@ function counter($_read_only = null, $_host = null)
 								++$dirs;
 							}
 							break;
-						case COUNTER_CONFIG_CHAR:
+						case KEKSE_COUNTER_CONFIG_CHAR:
 							if(! is_file($p))
 							{
 								$deletion[$d++] = $p;
@@ -8485,8 +8486,8 @@ function counter($_read_only = null, $_host = null)
 				$path = getState('path');
 				$host = getState('host');
 				
-				setState('dir', \kekse\joinPath($path, COUNTER_DIR_CHAR . $host));
-				setState('file', \kekse\joinPath($path, COUNTER_FILE_CHAR . $host));
+				setState('dir', \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host));
+				setState('file', \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host));
 				
 				if(! checkPath(getState('dir'), false, 'setup', true, true))
 				{
@@ -8544,7 +8545,7 @@ function counter($_read_only = null, $_host = null)
 		if(!getState('test'))
 		{
 			//
-			setState('value', \kekse\joinPath($path, COUNTER_VALUE_CHAR . getState('host')));
+			setState('value', \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . getState('host')));
 			
 			if(! checkPath(getState('value'), true, 'setup', true, false))
 			{
@@ -8619,7 +8620,7 @@ function counter($_read_only = null, $_host = null)
 						
 						$pp = \kekse\joinPath($path, $sub);
 
-						if($sub[0] === COUNTER_VALUE_CHAR && is_file($pp))
+						if($sub[0] === KEKSE_COUNTER_VALUE_CHAR && is_file($pp))
 						{
 							if(checkPath($pp, true, 'checkAuto', true))
 							{
