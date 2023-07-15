@@ -21,7 +21,7 @@ const DEFAULTS = array(
 	'server' => true,//false,
 	'drawing' => true,
 	'override' => false,//true,
-	'content' => 'text/plain;charset=UTF-8',
+	'content' => 'text/plain;charset=utf-8',
 	'radix' => 10,//4,
 	'clean' => true,
 	'limit' => 32768,
