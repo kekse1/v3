@@ -48,7 +48,7 @@ const DEFAULTS = array(
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('KEKSE_WEBSITE', 'https://kekse.biz/');
-define('KEKSE_COUNTER_VERSION', '4.3.4');
+define('KEKSE_COUNTER_VERSION', '4.3.5');
 define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -9888,9 +9888,18 @@ function counter($_read_only = null, $_host = null)
 					drawingError('Header already sent (unexpected here)');
 					return null;
 				}
+				
+				//
+				$addSomeSpace = function(&$_width, &$_height, &$_left, &$_top)
+				{
+					$_width += 4.0;
+					$_height += 4.0;
+					$_left += 2.0;
+					$_top += 2.0;
+				};
 
 				//
-				$measure = function() use(&$_text, &$_options)
+				$measure = function() use(&$_text, &$_options, &$addSomeSpace)
 				{
 					$m = imagettfbbox($_options['pt'], $_options['angle'], $_options['font'], $_text);
 
@@ -9919,15 +9928,14 @@ function counter($_read_only = null, $_host = null)
 							$height = $_options['px'];
 							$top += $diffSize / 2;
 						}
-						else
-						{
-							$height += 2.0;
-							$top += 1.0;
-						}
+						
+						$addSomeSpace($width, $height, $left, $top);
 						
 						if($height > $_options['px'])
 						{
+							$diff = ($height - $_options['px']);
 							$height = $_options['px'];
+							$top -= ($diff / 2);
 						}
 					}
 					else if($angle90)
@@ -9938,16 +9946,19 @@ function counter($_read_only = null, $_host = null)
 							$width = $_options['px'];
 							$left += $diffSize / 2;
 						}
-						else
-						{
-							$width += 2.0;
-							$left += 1.0;
-						}
 						
+						$addSomeSpace($width, $height, $left, $top);
+
 						if($width > $_options['px'])
 						{
+							$diff = ($width - $_options['px']);
 							$width = $_options['px'];
+							$left -= ($diff / 2);
 						}
+					}
+					else
+					{
+						$addSomeSpace($width, $height, $left, $top);
 					}
 					
 					//
