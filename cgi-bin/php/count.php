@@ -876,7 +876,7 @@ function secureHost($_string)
 	return secure($_string, true);
 }
 
-function securePath($_string)
+function secureFile($_string)
 {
 	return secure($_string, false);
 }
@@ -8484,7 +8484,7 @@ function counter($_read_only = null, $_host = null)
 			if(withServer())
 			{
 				$path = getState('path');
-				$host = getState('host');
+				$host = \kekse\secureFile(getState('host'));
 				
 				setState('dir', \kekse\joinPath($path, KEKSE_COUNTER_DIR_CHAR . $host));
 				setState('file', \kekse\joinPath($path, KEKSE_COUNTER_FILE_CHAR . $host));
@@ -8525,7 +8525,7 @@ function counter($_read_only = null, $_host = null)
 
 			if(getState('dir'))
 			{
-				setState('ip', \kekse\joinPath(getState('dir'), \kekse\securePath(getState('remote'))));
+				setState('ip', \kekse\joinPath(getState('dir'), \kekse\secureFile(getState('remote'))));
 			
 				if(! checkPath(getState('ip'), true, 'setup', true, true))
 				{
@@ -8545,7 +8545,7 @@ function counter($_read_only = null, $_host = null)
 		if(!getState('test'))
 		{
 			//
-			setState('value', \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . getState('host')));
+			setState('value', \kekse\joinPath($path, KEKSE_COUNTER_VALUE_CHAR . \kekse\secureFile(getState('host'))));
 			
 			if(! checkPath(getState('value'), true, 'setup', true, false))
 			{
