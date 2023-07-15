@@ -28,11 +28,11 @@ const DEFAULTS = array(
 	'fonts' => 'fonts/',
 	'font' => 'Candara',
 	'size' => '64px',
-	'min' => false,
+	'scale' => false,
 	'unit' => 'px',
 	'fg' => '0,0,0,1',//'120, 130, 40',
 	'bg' => '#fff0',
-	'angle' => 0.0,//'8deg',
+	'angle' => 0.0,//'7deg',
 	'x' => 0.0,
 	'y' => 0.0,
 	'h' => 0.0,
@@ -48,7 +48,7 @@ const DEFAULTS = array(
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('KEKSE_WEBSITE', 'https://kekse.biz/');
-define('KEKSE_COUNTER_VERSION', '4.3.5');
+define('KEKSE_COUNTER_VERSION', '4.4.0');
 define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -143,7 +143,7 @@ const CONFIG_VECTOR = array(
 	'fonts' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'font' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'size' => array('types' => [ 'double', 'integer', 'string' ], 'min' => 3, 'max' => 512, 'test' => true),
-	'min' => array('types' => [ 'boolean' ]),
+	'scale' => array('types' => [ 'boolean' ]),
 	'unit' => array('types' => [ 'string' ], 'min' => 2, 'max' => 2, 'test' => true),
 	'fg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
 	'bg' => array('types' => [ 'string' ], 'min' => 1, 'test' => true),
@@ -9404,19 +9404,19 @@ function counter($_read_only = null, $_host = null)
 					$result['x'] = \kekse\getParam('x', true, true, false);
 					$result['y'] = \kekse\getParam('y', true, true, false);
 					$result['angle'] = \kekse\getParam('angle', true, true, false);
-					$result['min'] = \kekse\getParam('min', null);
+					$result['scale'] = \kekse\getParam('scale', null);
 				}
 
 				//
 				$byParam = array();
 				
 				//
-				$byParam['min'] = true;
+				$byParam['scale'] = true;
 
-				if($result['min'] === null)
+				if($result['scale'] === null)
 				{
-					$result['min'] = getConfig('min');
-					$byParam['min'] = false;
+					$result['scale'] = getConfig('scale');
+					$byParam['scale'] = false;
 				}
 
 				//
@@ -9890,16 +9890,7 @@ function counter($_read_only = null, $_host = null)
 				}
 				
 				//
-				$addSomeSpace = function(&$_width, &$_height, &$_left, &$_top)
-				{
-					$_width += 4.0;
-					$_height += 4.0;
-					$_left += 2.0;
-					$_top += 2.0;
-				};
-
-				//
-				$measure = function() use(&$_text, &$_options, &$addSomeSpace)
+				$measure = function() use(&$_text, &$_options)
 				{
 					$m = imagettfbbox($_options['pt'], $_options['angle'], $_options['font'], $_text);
 
@@ -9913,52 +9904,31 @@ function counter($_read_only = null, $_host = null)
 					$width = $maxX - $minX;
 					$left = -$minX;
 					$top = -$minY;
-					$diffSize = 0;
+
+					$width += 4.0;
+					$height += 4.0;
+					$left += 2.0;
+					$top += 2.0;
 
 					$intAngle = (int)round($_options['angle']);
 					$angle0 = ($intAngle == 0);
 					$angle90 = ($intAngle % 90 == 0);
 					$angle180 = ($intAngle % 180 == 0);
-
-					if($angle0 || $angle180)
+					
+					if(!$_options['scale'])
 					{
-						if(!$_options['min'])
+						if($angle0 || $angle180)
 						{
-							$diffSize = ($_options['px'] - $height);
+							$diff = ($_options['px'] - $height);
 							$height = $_options['px'];
-							$top += $diffSize / 2;
+							$top += $diff / 2;
 						}
-						
-						$addSomeSpace($width, $height, $left, $top);
-						
-						if($height > $_options['px'])
+						else if($angle90)
 						{
-							$diff = ($height - $_options['px']);
-							$height = $_options['px'];
-							$top -= ($diff / 2);
-						}
-					}
-					else if($angle90)
-					{
-						if(!$_options['min'])
-						{
-							$diffSize = ($_options['px'] - $width);
+							$diff = ($_options['px'] - $width);
 							$width = $_options['px'];
-							$left += $diffSize / 2;
+							$left += $diff / 2;
 						}
-						
-						$addSomeSpace($width, $height, $left, $top);
-
-						if($width > $_options['px'])
-						{
-							$diff = ($width - $_options['px']);
-							$width = $_options['px'];
-							$left -= ($diff / 2);
-						}
-					}
-					else
-					{
-						$addSomeSpace($width, $height, $left, $top);
 					}
 					
 					//
