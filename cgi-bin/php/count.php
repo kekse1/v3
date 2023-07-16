@@ -48,7 +48,7 @@ const DEFAULTS = array(
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('KEKSE_WEBSITE', 'https://kekse.biz/');
-define('KEKSE_COUNTER_VERSION', '4.4.0');
+define('KEKSE_COUNTER_VERSION', '4.4.1');
 define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -9910,13 +9910,13 @@ function counter($_read_only = null, $_host = null)
 					$left += 2.0;
 					$top += 2.0;
 
-					$intAngle = (int)round($_options['angle']);
-					$angle0 = ($intAngle == 0);
-					$angle90 = ($intAngle % 90 == 0);
-					$angle180 = ($intAngle % 180 == 0);
-					
 					if(!$_options['scale'])
 					{
+						$intAngle = (int)round($_options['angle']);
+						$angle0 = ($intAngle == 0);
+						$angle90 = ($intAngle % 90 == 0);
+						$angle180 = ($intAngle % 180 == 0);
+					
 						if($angle0 || $angle180)
 						{
 							$diff = ($_options['px'] - $height);
