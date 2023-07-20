@@ -48,7 +48,7 @@ const DEFAULTS = array(
 //
 define('KEKSE_COPYRIGHT', 'Sebastian Kucharczyk <kuchen@kekse.biz>');
 define('KEKSE_WEBSITE', 'https://kekse.biz/');
-define('KEKSE_COUNTER_VERSION', '4.4.2');
+define('KEKSE_COUNTER_VERSION', '4.4.3');
 define('KEKSE_COUNTER_WEBSITE', 'https://github.com/kekse1/count.php/');
 
 //
@@ -802,6 +802,10 @@ function secure($_string, $_lower_case = false)
 				$add = '/';
 			}
 		}
+		else if($byte === 95)
+		{
+			$add = '_';
+		}
 		else if($byte === 58)
 		{
 			$add = ':';
@@ -1375,9 +1379,18 @@ function getParam($_key, $_numeric = false, $_float = false, $_strict = true, $_
 				$hadPoint = true;
 			}
 		}
+		else if($byte === 95)
+		{
+			$set = '_';
+			$numeric = false;
+		}
 		else if($byte === 44)
 		{
 			$set = ',';
+		}
+		else if($byte >= 43 && $byte <= 45)
+		{
+			$set = chr($byte);
 			$numeric = false;
 		}
 		else if($byte === 58)
