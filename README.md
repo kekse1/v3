@@ -2,6 +2,10 @@
 
 **v3** ...
 
+> **Warning**
+> **This version is out-dated!
+> Currently I'm working on the [`v4`](https://github.com/kekse1/v4/)!! ^\_^**
+
 .. that's the base version, as I guess my **kekse.biz** had at least(!) two prior versions before.
 The real/full version of all the JavaScript's is available in the [version.json](json/version.json).
 
