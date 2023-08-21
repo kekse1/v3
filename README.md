@@ -6,7 +6,7 @@
 > Currently I'm working on the [**`v4`**](https://github.com/kekse1/v4/)!! ^\_^**
 
 See also:
-* [`libjs.de`](https://libjs.de/) and [`github.com/**kekse1**/lib.js`](https://github.com/kekse1/lib.js/).
+* [`libjs.de`](https://libjs.de/) and [`github.com/kekse1/lib.js`](https://github.com/kekse1/lib.js/).
 * [`v4`](https://github.com/kekse1/v4/)
 
 ##### Screenshot
