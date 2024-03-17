@@ -1,4 +1,4 @@
-<img src="https://kekse.biz/github.php?draw&override=github:v3&text=`kekse.biz`&draw" />
+![https://kekse.biz/github.php?draw&override=github:v3](v3)
 
 **v3** ...
 > **Warning**
