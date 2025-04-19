@@ -13,7 +13,7 @@ See also:
 Alles, was hier hiervon bleibt.. ein Screenshot mit einem ersten Beispiel-Design, wie ich mir das damals
 so vorgestellt hatte..
 
-![First Design](docs/screenshot.png)
+![First Design](img/screenshot.png)
 
 ### Other projects and links
 * [`kekse1` @ github.com](https://github.com/kekse1/)
